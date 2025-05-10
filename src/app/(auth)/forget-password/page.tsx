@@ -9,6 +9,7 @@ import Link from '../components/Link'
 import Label from '@/app/components/Label'
 import Button from '@/app/components/Button'
 import Input from '@/app/components/Input'
+import InputPassword from '@/app/components/InputPassword'
 import Pin from '@/app/components/Pin'
 
 export default function ForgetPasswordPage() {
@@ -19,6 +20,7 @@ export default function ForgetPasswordPage() {
 	const [form, setForm] = useState({ field: null, message: '' })
 
 	const [email, setEmail] = useState('')
+	const [password, setPassword] = useState('')
 	const [code, setCode] = useState('')
 
 	return (
@@ -40,7 +42,7 @@ export default function ForgetPasswordPage() {
 									<Label htmlFor='email' isInvalid={form?.field === 'email'}>
 										E-mail
 									</Label>
-									<Input type='email' id='email' name='email' value={email} autocomplete='email' placeholder='seuemail@inpe.br' minlength={8} maxlength={255} required autofocus isInvalid={form?.field === 'email'} invalidMessage={form?.message ?? ''} />
+									<Input type='email' id='email' name='email' value={email} setValue={setEmail} autocomplete='email' placeholder='seuemail@inpe.br' minlength={8} maxlength={255} required autofocus isInvalid={form?.field === 'email'} invalidMessage={form?.message ?? ''} />
 								</div>
 								<div>
 									<Button type='submit' disabled={loading}>
@@ -97,12 +99,11 @@ export default function ForgetPasswordPage() {
 					<>
 						<form>
 							<fieldset className='grid gap-5'>
-								<input type='hidden' name='token' value={token} />
 								<div>
 									<Label htmlFor='new-password' isInvalid={form?.field === 'password'}>
 										Nova senha
 									</Label>
-									<Input type='strong-password' id='new-password' name='password' autocomplete='current-password' placeholder='••••••••' minlength={8} maxlength={160} required autofocus isInvalid={form?.field === 'password'} invalidMessage={form?.message ?? ''} />
+									<InputPassword id='new-password' name='password' value={password} setValue={setPassword} autocomplete='current-password' placeholder='••••••••' minlength={6} maxlength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
 								</div>
 								<div>
 									<Button type='submit' disabled={loading}>
