@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 
-import ToggleTheme from './components/ToggleTheme'
+import AuthToggleTheme from './components/AuthToggleTheme'
 
 export const metadata: Metadata = {
-	title: 'Silo',
+	title: 'Autenticação do Silo',
 	description: 'Sistema de gerenciamento de produtos e tarefas.',
 }
 
@@ -39,7 +39,7 @@ export default function AuthLayout({
 				</div>
 
 				{/* Alternar modo escuro/claro */}
-				<ToggleTheme />
+				<AuthToggleTheme />
 			</div>
 		</>
 	)

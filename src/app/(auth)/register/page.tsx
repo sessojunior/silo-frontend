@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-import Header from '../components/Header'
-import Divider from '../components/Divider'
-import Link from '../components/Link'
+import { toast } from '$lib/client/utils/toast'
+
+import AuthHeader from '../components/AuthHeader'
+import AuthDivider from '../components/AuthDivider'
+import AuthLink from '../components/AuthLink'
 
 import Label from '@/app/components/Label'
 import Button from '@/app/components/Button'
@@ -28,8 +30,8 @@ export default function RegisterPage() {
 	return (
 		<>
 			{/* Header */}
-			{step === 1 && <Header icon='icon-[lucide--user-round-plus]' title='Criar conta' description='Preencha os dados abaixo para criar sua conta e começar a usar.' />}
-			{step === 2 && <Header icon='icon-[lucide--square-asterisk]' title='Verifique a conta' description='Precisamos verificar seu e-mail, insira o código que recebeu por e-mail.' />}
+			{step === 1 && <AuthHeader icon='icon-[lucide--user-round-plus]' title='Criar conta' description='Preencha os dados abaixo para criar sua conta e começar a usar.' />}
+			{step === 2 && <AuthHeader icon='icon-[lucide--square-asterisk]' title='Verifique a conta' description='Precisamos verificar seu e-mail, insira o código que recebeu por e-mail.' />}
 
 			{/* Container */}
 			<div className='mt-10 text-base text-zinc-600 dark:text-zinc-200'>
@@ -67,14 +69,14 @@ export default function RegisterPage() {
 										)}
 									</Button>
 								</div>
-								<Divider>ou</Divider>
+								<AuthDivider>ou</AuthDivider>
 								<div className='flex w-full flex-col items-center justify-center gap-3'>
 									<Button href='/login/google' type='button' style='bordered' icon='icon-[logos--google-icon]'>
 										Criar com Google
 									</Button>
 								</div>
 								<p className='mt-2 text-center'>
-									Tem uma conta? <Link href='/login'>Entre</Link>.
+									Tem uma conta? <AuthLink href='/login'>Entre</AuthLink>.
 								</p>
 							</fieldset>
 						</form>
@@ -105,7 +107,7 @@ export default function RegisterPage() {
 									</Button>
 								</div>
 								<p className='mt-2 text-center'>
-									<Link href='/login'>Voltar</Link>
+									<AuthLink href='/login'>Voltar</AuthLink>
 								</p>
 							</fieldset>
 						</form>

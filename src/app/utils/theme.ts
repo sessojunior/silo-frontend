@@ -1,14 +1,24 @@
-// Função para alternar entre tema claro e escuro manualmente
-export function toggleTheme() {
+// Função para alternar entre tema claro e escuro manualmente ou forçar um tema
+export function toggleTheme(theme?: 'light' | 'dark') {
+	if (typeof window === 'undefined') return
+
 	const root = document.documentElement
+
+	let newTheme: 'light' | 'dark'
 	const currentTheme = root.classList.contains('dark') ? 'dark' : 'light'
 
-	if (currentTheme === 'dark') {
-		root.classList.remove('dark')
-		localStorage.setItem('theme', 'light')
+	if (theme === 'light' || theme === 'dark') {
+		newTheme = theme
 	} else {
+		newTheme = currentTheme === 'dark' ? 'light' : 'dark'
+	}
+
+	if (newTheme === 'dark') {
 		root.classList.add('dark')
 		localStorage.setItem('theme', 'dark')
+	} else {
+		root.classList.remove('dark')
+		localStorage.setItem('theme', 'light')
 	}
 }
 

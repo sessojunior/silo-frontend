@@ -1,4 +1,4 @@
-export default function Header({ icon, title, description }: { icon: string; title: string; description: string }) {
+export default function AuthHeader({ icon, title, description }: { icon: string; title: string; description: string }) {
 	return (
 		<>
 			<div className='mx-auto mb-4 flex size-14 items-center justify-center rounded-lg border border-zinc-200 bg-white dark:bg-zinc-900 dark:border-zinc-700 dark:text-white'>

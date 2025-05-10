@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { toggleTheme, applySavedTheme } from '@/app/utils/theme'
 
-export default function ToggleTheme() {
+export default function AuthToggleTheme() {
 	useEffect(() => {
 		applySavedTheme()
 	}, [])

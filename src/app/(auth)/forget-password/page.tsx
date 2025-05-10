@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-import Header from '../components/Header'
-import Link from '../components/Link'
+import { toast } from '$lib/client/utils/toast'
+
+import AuthHeader from '../components/AuthHeader'
+import AuthLink from '../components/AuthLink'
 
 import Label from '@/app/components/Label'
 import Button from '@/app/components/Button'
@@ -26,10 +28,10 @@ export default function ForgetPasswordPage() {
 	return (
 		<>
 			{/* Header */}
-			{step === 1 && <Header icon='icon-[lucide--key-round]' title='Esqueceu a senha' description='Não se preocupe, iremos te ajudar a recuperar sua senha.' />}
-			{step === 2 && <Header icon='icon-[lucide--square-asterisk]' title='Verifique a conta' description='Para sua segurança, insira o código que recebeu por e-mail.' />}
-			{step === 3 && <Header icon='icon-[lucide--lock]' title='Redefinir a senha' description='Agora você precisa digitar a nova senha para sua conta.' />}
-			{step === 4 && <Header icon='icon-[lucide--lock-keyhole]' title='Senha alterada' description='A sua senha foi alterada com sucesso! Volte para continuar.' />}
+			{step === 1 && <AuthHeader icon='icon-[lucide--key-round]' title='Esqueceu a senha' description='Não se preocupe, iremos te ajudar a recuperar sua senha.' />}
+			{step === 2 && <AuthHeader icon='icon-[lucide--square-asterisk]' title='Verifique a conta' description='Para sua segurança, insira o código que recebeu por e-mail.' />}
+			{step === 3 && <AuthHeader icon='icon-[lucide--lock]' title='Redefinir a senha' description='Agora você precisa digitar a nova senha para sua conta.' />}
+			{step === 4 && <AuthHeader icon='icon-[lucide--lock-keyhole]' title='Senha alterada' description='A sua senha foi alterada com sucesso! Volte para continuar.' />}
 
 			{/* Container */}
 			<div className='mt-10 text-base text-zinc-600 dark:text-zinc-200'>
@@ -56,7 +58,7 @@ export default function ForgetPasswordPage() {
 									</Button>
 								</div>
 								<p className='mt-2 text-center'>
-									<Link href='/login'>Voltar</Link>
+									<AuthLink href='/login'>Voltar</AuthLink>
 								</p>
 							</fieldset>
 						</form>
@@ -87,7 +89,7 @@ export default function ForgetPasswordPage() {
 									</Button>
 								</div>
 								<p className='mt-2 text-center'>
-									<Link href='/sign-in'>Voltar</Link>
+									<AuthLink href='/sign-in'>Voltar</AuthLink>
 								</p>
 							</fieldset>
 						</form>
@@ -117,7 +119,7 @@ export default function ForgetPasswordPage() {
 									</Button>
 								</div>
 								<p className='mt-2 text-center'>
-									<Link href='/sign-in'>Voltar</Link>
+									<AuthLink href='/sign-in'>Voltar</AuthLink>
 								</p>
 							</fieldset>
 						</form>
@@ -134,7 +136,7 @@ export default function ForgetPasswordPage() {
 								</Button>
 							</div>
 							<p className='mt-2 text-center'>
-								<Link href='/sign-in'>Voltar</Link>
+								<AuthLink href='/sign-in'>Voltar</AuthLink>
 							</p>
 						</div>
 					</>
