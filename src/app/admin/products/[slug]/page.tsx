@@ -1,5 +1,7 @@
+import Image from 'next/image'
+
 import Tree, { type TreeItemProps } from '@/app/components/Tree'
-import Accordion from '@/app/components/Accordion'
+import Accordion, { type Section } from '@/app/components/Accordion'
 import Button from '@/app/components/Button'
 
 // Dados de documentos
@@ -310,21 +312,21 @@ const docs: TreeItemProps[] = [
 // Dados de contatos
 const contacts = [
 	{
-		image: 'https://randomuser.me/api/portraits/men/10.jpg',
+		image: '/uploads/avatar/10.jpg',
 		name: 'Marcelo Silvano',
 		role: 'Analista técnico',
 		team: 'CGCT',
 		email: 'marcelo.silvano@inpe.br',
 	},
 	{
-		image: 'https://randomuser.me/api/portraits/men/20.jpg',
+		image: '/uploads/avatar/20.jpg',
 		name: 'José Santana',
 		role: 'Metereologista',
 		team: 'DIPTC',
 		email: 'jose.santana@inpe.br',
 	},
 	{
-		image: 'https://randomuser.me/api/portraits/women/30.jpg',
+		image: '/uploads/avatar/30.jpg',
 		name: 'Aline Mendez',
 		role: 'Pesquisador',
 		team: 'DIPTC',
@@ -333,55 +335,53 @@ const contacts = [
 ]
 
 // Dados de manual
-const manual = {
-	sections: [
-		{
-			id: '1',
-			title: '1. Introdução',
-			description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-			chapters: [
-				{
-					id: '1.1',
-					title: '1.1. Como funciona o modelo',
-					description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-				},
-				{
-					id: '1.2',
-					title: '1.2. Descrição do funcionamento interno',
-					description: 'Nam turpis ligula, vestibulum id risus vitae, posuere scelerisque massa. Proin odio risus, pulvinar ac elementum sit amet, dignissim vel lacus. Maecenas efficitur velit eget tellus maximus iaculis.',
-				},
-			],
-		},
-		{
-			id: '2',
-			title: '2. Funcionamento',
-			description: null,
-			chapters: [
-				{
-					id: '2.1',
-					title: '2.1. Pré-processamento',
-					description: 'Donec quis feugiat metus, at cursus erat. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Cras varius nisi sit amet ante auctor lacinia. Nulla in rutrum nulla, et auctor nulla.',
-				},
-				{
-					id: '2.2',
-					title: '2.2. Operações realizadas',
-					description: 'Vestibulum id magna ullamcorper dolor rutrum tincidunt. Maecenas egestas lorem mi, nec elementum libero feugiat quis. Vivamus erat lacus, commodo eget vehicula at, blandit eget velit..',
-				},
-				{
-					id: '2.3',
-					title: '2.3. Pós-processamento',
-					description: 'Suspendisse iaculis porttitor mollis. Pellentesque quis augue nisi. Aenean maximus ex congue arcu euismod gravida. Nam nec neque nisl.',
-				},
-			],
-		},
-		{
-			id: '3',
-			title: '3. Resolução de conflitos',
-			description: 'Pellentesque condimentum imperdiet sapien, vel vestibulum ante maximus ultricies. Sed scelerisque maximus enim. Vivamus sed ornare sem.',
-			chapters: [],
-		},
-	],
-}
+const sections: Section[] = [
+	{
+		id: '1',
+		title: '1. Introdução',
+		description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+		chapters: [
+			{
+				id: '1.1',
+				title: '1.1. Como funciona o modelo',
+				description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+			},
+			{
+				id: '1.2',
+				title: '1.2. Descrição do funcionamento interno',
+				description: 'Nam turpis ligula, vestibulum id risus vitae, posuere scelerisque massa. Proin odio risus, pulvinar ac elementum sit amet, dignissim vel lacus. Maecenas efficitur velit eget tellus maximus iaculis.',
+			},
+		],
+	},
+	{
+		id: '2',
+		title: '2. Funcionamento',
+		description: undefined,
+		chapters: [
+			{
+				id: '2.1',
+				title: '2.1. Pré-processamento',
+				description: 'Donec quis feugiat metus, at cursus erat. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Cras varius nisi sit amet ante auctor lacinia. Nulla in rutrum nulla, et auctor nulla.',
+			},
+			{
+				id: '2.2',
+				title: '2.2. Operações realizadas',
+				description: 'Vestibulum id magna ullamcorper dolor rutrum tincidunt. Maecenas egestas lorem mi, nec elementum libero feugiat quis. Vivamus erat lacus, commodo eget vehicula at, blandit eget velit..',
+			},
+			{
+				id: '2.3',
+				title: '2.3. Pós-processamento',
+				description: 'Suspendisse iaculis porttitor mollis. Pellentesque quis augue nisi. Aenean maximus ex congue arcu euismod gravida. Nam nec neque nisl.',
+			},
+		],
+	},
+	{
+		id: '3',
+		title: '3. Resolução de conflitos',
+		description: 'Pellentesque condimentum imperdiet sapien, vel vestibulum ante maximus ultricies. Sed scelerisque maximus enim. Vivamus sed ornare sem.',
+		chapters: [],
+	},
+]
 
 export default function ProductsPage() {
 	return (
@@ -473,7 +473,7 @@ export default function ProductsPage() {
 							{contacts.map(({ image, name, role, team, email }, index) => (
 								<div key={email || index} className='flex gap-x-2'>
 									<div className='size-12 shrink-0'>
-										<img src={image} alt={name} className='size-full rounded-full' />
+										<Image src={image} alt={name} width={40} height={40} className='size-full rounded-full' />
 									</div>
 									<div className='flex flex-col'>
 										<div className='text-base font-bold'>{name}</div>
@@ -508,7 +508,7 @@ export default function ProductsPage() {
 						</div>
 						<div className='flex flex-col'>
 							{/* Manual */}
-							<Accordion sections={manual.sections} />
+							<Accordion sections={sections} />
 						</div>
 					</div>
 				</div>
