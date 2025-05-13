@@ -78,7 +78,7 @@ export default function ProductTurn() {
 							content={
 								<div className='w-64 text-sm'>
 									{/* Cabeçalho */}
-									<div className='rounded-t-xl border-b border-zinc-200 bg-zinc-100 px-4 py-2 dark:border-zinc-700'>
+									<div className='rounded-t-xl border-b border-zinc-200 bg-zinc-50 px-4 py-2 dark:border-zinc-700'>
 										<div className='flex flex-col'>
 											<div className='flex items-center gap-2'>
 												<span className='icon-[lucide--folder-git-2] size-5 shrink-0 text-zinc-400'></span>
@@ -116,7 +116,7 @@ export default function ProductTurn() {
 											}
 
 											return (
-												<li key={index} className='flex items-start gap-2 rounded-lg p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900'>
+												<li key={index} className='flex items-start gap-2 rounded-lg p-2 hover:bg-zinc-50 dark:hover:bg-zinc-900'>
 													<div className={`flex h-5 w-5 items-center justify-center rounded-full text-xs ${bgClass}`}>{turn.time}</div>
 													<div className='text-zinc-800 dark:text-zinc-200'>{text}</div>
 												</li>
@@ -125,7 +125,7 @@ export default function ProductTurn() {
 									</ul>
 
 									{/* Rodapé */}
-									<div className='flex items-center justify-between rounded-b-xl border-t border-zinc-200 bg-zinc-100 px-4 py-3 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400'>
+									<div className='flex items-center justify-between rounded-b-xl border-t border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400'>
 										<span className='flex items-center gap-x-1.5'>
 											<span>{new Date(day.date).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</span>
 											<span className='text-zinc-300'>•</span>
@@ -140,7 +140,7 @@ export default function ProductTurn() {
 								</div>
 							}
 						>
-							<div className='rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-700'>
+							<div className='rounded-full bg-zinc-50 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-700'>
 								<div className='flex gap-x-0.5 rounded-full p-1.5'>
 									{day.turns.map((turn, index) => {
 										const bgColorMap: Record<string, string> = {
