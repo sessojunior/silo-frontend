@@ -49,17 +49,28 @@ function SidebarMenuItem({ item }: { item: SidebarMenuProps }) {
 					<button
 						type='button'
 						onClick={toggleAccordion}
-						className={`flex w-full items-center gap-x-3 rounded-lg px-2.5 py-2 text-left text-base font-medium transition-colors duration-300
-							text-zinc-800 hover:bg-zinc-200 dark:text-zinc-200 dark:hover:bg-zinc-700`}
+						className={`
+							flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium
+							text-zinc-800 hover:bg-zinc-200 dark:text-zinc-200 dark:hover:bg-zinc-700 transition-colors duration-300
+						`}
 					>
-						{item.icon && <span className={`${item.icon} size-4 shrink-0 text-zinc-400`}></span>}
-						{item.title}
-						<span className={`ms-auto size-4 transition-transform duration-500 ${isOpen ? 'rotate-180' : ''}`}>
-							<span className='icon-[lucide--chevron-down] text-zinc-400'></span>
+						<span className='flex items-center gap-2'>
+							{item.icon && <span className={`${item.icon} w-4 h-4 shrink-0 text-zinc-500`}></span>}
+							<span>{item.title}</span>
+						</span>
+						<span className={`flex items-center justify-center transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+							<span className='icon-[lucide--chevron-down] w-4 h-4 text-zinc-500'></span>
 						</span>
 					</button>
 
-					<ul ref={contentRef} className='ml-4 overflow-hidden border-l border-zinc-300 pl-3 text-sm transition-all duration-500 dark:border-zinc-600' style={{ maxHeight: '0px' }}>
+					<ul
+						ref={contentRef}
+						className={`
+							ml-5 border-l border-zinc-300 pl-3 text-sm overflow-hidden transition-all duration-300
+							dark:border-zinc-600
+						`}
+						style={{ maxHeight: '0px' }}
+					>
 						{item.items.map((child) => (
 							<SidebarMenuItem key={child.id} item={child} />
 						))}
@@ -69,11 +80,14 @@ function SidebarMenuItem({ item }: { item: SidebarMenuProps }) {
 				item.url && (
 					<NextLink
 						href={item.url}
-						className={`flex w-full items-center gap-x-3 rounded-lg px-2.5 py-2 text-base font-medium transition-all duration-300
-							${isActive ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-600 dark:text-white' : 'text-zinc-600 hover:bg-zinc-200 dark:text-zinc-200 dark:hover:bg-zinc-700'}`}
+						className={`
+							flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium
+							${isActive ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-600 dark:text-white' : 'text-zinc-600 hover:bg-zinc-200 dark:text-zinc-200 dark:hover:bg-zinc-700'}
+							transition-all duration-300
+						`}
 					>
-						{item.icon && <span className={`${item.icon} size-4 shrink-0 text-zinc-400`}></span>}
-						{item.title}
+						{item.icon && <span className={`${item.icon} w-4 h-4 shrink-0 text-zinc-500`}></span>}
+						<span>{item.title}</span>
 					</NextLink>
 				)
 			)}

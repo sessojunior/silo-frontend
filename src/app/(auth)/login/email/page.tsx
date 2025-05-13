@@ -1,15 +1,18 @@
+'use client'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { toast } from '$lib/client/utils/toast'
 
-import Label from '$lib/client/components/ui/Label.svelte'
-import Input from '$lib/client/components/ui/Input.svelte'
-import Button from '$lib/client/components/ui/Button.svelte'
-import Header from '$lib/client/components/auth/Header.svelte'
-import Link from '$lib/client/components/auth/Link.svelte'
-import Divider from '$lib/client/components/auth/Divider.svelte'
-import Pin from '$lib/client/components/auth/Pin.svelte'
+import AuthHeader from '../../components/AuthHeader'
+import AuthDivider from '../../components/AuthDivider'
+import AuthLink from '../../components/AuthLink'
+
+import Label from '@/app/components/Label'
+import Button from '@/app/components/Button'
+import Input from '@/app/components/Input'
+import Pin from '@/app/components/Pin'
 
 export default function LoginEmailPage() {
 	const router = useRouter()
@@ -23,8 +26,8 @@ export default function LoginEmailPage() {
 
 	return (
 		<>
-			{step === 1 && <Header icon='icon-[lucide--log-in]' title='Entrar' description='Entre para commençar a usar.' />}
-			{step === 2 && <Header icon='icon-[lucide--square-asterisk]' title='Verifique a conta' description='Precisamos verificar seu e-mail, insira o código que recebeu por e-mail.' />}
+			{step === 1 && <AuthHeader icon='icon-[lucide--log-in]' title='Entrar' description='Entre para commençar a usar.' />}
+			{step === 2 && <AuthHeader icon='icon-[lucide--square-asterisk]' title='Verifique a conta' description='Precisamos verificar seu e-mail, insira o código que recebeu por e-mail.' />}
 
 			{/* Container */}
 			<div className='mt-10 text-base text-zinc-600 dark:text-zinc-200'>
@@ -50,17 +53,17 @@ export default function LoginEmailPage() {
 										)}
 									</Button>
 								</div>
-								<Divider>ou</Divider>
+								<AuthDivider>ou</AuthDivider>
 								<div className='flex w-full flex-col items-center justify-center gap-3'>
-									<Button href='/sign-in' type='button' style='bordered' icon='icon-[lucide--log-in]'>
+									<Button href='/login' type='button' style='bordered' icon='icon-[lucide--log-in]'>
 										Entrar com e-mail e senha
 									</Button>
-									<Button href='/sign-in/google' type='button' style='bordered' icon='icon-[logos--google-icon]'>
+									<Button href='/login/google' type='button' style='bordered' icon='icon-[logos--google-icon]'>
 										Entrar com Google
 									</Button>
 								</div>
 								<p className='mt-2 text-center'>
-									Não tem conta? <Link href='/sign-up'>Cadastre-se</Link>.
+									Não tem conta? <AuthLink href='/register'>Cadastre-se</AuthLink>.
 								</p>
 							</fieldset>
 						</form>
@@ -91,7 +94,7 @@ export default function LoginEmailPage() {
 									</Button>
 								</div>
 								<p className='mt-2 text-center'>
-									<Link href='/sign-in'>Voltar</Link>
+									<AuthLink href='/login'>Voltar</AuthLink>
 								</p>
 							</fieldset>
 						</form>

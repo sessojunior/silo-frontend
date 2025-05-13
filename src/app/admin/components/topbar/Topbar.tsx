@@ -13,18 +13,20 @@ interface TopbarProps {
 export default function Topbar({ title, account }: TopbarProps) {
 	return (
 		<>
-			<header className='sticky inset-x-0 top-0 z-[48] flex h-16 w-full flex-shrink-0 flex-wrap border-b border-b-zinc-200 bg-white py-2.5 md:flex-nowrap md:justify-start lg:ps-[260px] dark:border-zinc-700 dark:bg-zinc-900'>
+			<header className='sticky inset-x-0 top-0 z-40 flex h-16 w-full flex-shrink-0 flex-wrap border-b border-b-zinc-200 bg-white py-2.5 md:flex-nowrap md:justify-start lg:ps-[260px] dark:border-zinc-700 dark:bg-zinc-900'>
 				<nav className='flex w-full items-center px-4'>
 					<div className='flex w-full items-center justify-between gap-x-2'>
-						<div className='lg:hidden'>
-							{/* Alternar exibir/ocultar menu lateral */}
-							<TopbarButton icon='icon-[lucide--menu]' style='menu'>
-								Exibir menu lateral
-							</TopbarButton>
-						</div>
+						<div className='flex items-center gap-x-2'>
+							<div className='lg:hidden'>
+								{/* Alternar exibir/ocultar menu lateral */}
+								<TopbarButton icon='icon-[lucide--menu]' style='menu'>
+									Exibir menu lateral
+								</TopbarButton>
+							</div>
 
-						{/* Título */}
-						<TopbarTitle>{title ?? <span className='icon-[lucide--loader-circle] shrink-0 animate-spin text-neutral-200'></span>}</TopbarTitle>
+							{/* Título */}
+							<TopbarTitle>{title ?? <span className='icon-[lucide--loader-circle] shrink-0 animate-spin text-neutral-200'></span>}</TopbarTitle>
+						</div>
 
 						{/* Botoes, divisoria e dropdown */}
 						<div className='flex flex-row items-center justify-end gap-1'>

@@ -134,7 +134,7 @@ export default function LoginPage() {
 								</div>
 								<AuthDivider>ou</AuthDivider>
 								<div className='flex w-full flex-col items-center justify-center gap-3'>
-									<Button href='/login/code' type='button' style='bordered' icon='icon-[lucide--log-in]'>
+									<Button href='/login/email' type='button' style='bordered' icon='icon-[lucide--log-in]'>
 										Entrar só com e-mail
 									</Button>
 									<Button href='/login/google' type='button' style='bordered' icon='icon-[logos--google-icon]'>
