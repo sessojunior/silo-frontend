@@ -59,7 +59,7 @@ export default function RegisterPage() {
 									<InputPasswordHints id='password' name='password' value={password} setValue={setPassword} autocomplete='current-password' placeholder='••••••••' minlength={8} maxlength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
 								</div>
 								<div>
-									<Button type='submit' disabled={loading}>
+									<Button type='submit' disabled={loading} className='w-full'>
 										{loading ? (
 											<>
 												<span className='icon-[lucide--loader-circle] animate-spin'></span> Criando conta...
@@ -71,11 +71,11 @@ export default function RegisterPage() {
 								</div>
 								<AuthDivider>ou</AuthDivider>
 								<div className='flex w-full flex-col items-center justify-center gap-3'>
-									<Button href='/login/google' type='button' style='bordered' icon='icon-[logos--google-icon]'>
+									<Button href='/login/google' type='button' style='bordered' icon='icon-[logos--google-icon]' className='w-full'>
 										Criar com Google
 									</Button>
 								</div>
-								<p className='mt-2 text-center'>
+								<p className='text-center'>
 									Tem uma conta? <AuthLink href='/login'>Entre</AuthLink>.
 								</p>
 							</fieldset>
@@ -96,7 +96,7 @@ export default function RegisterPage() {
 									<Pin id='code' name='code' length={5} value={code} setValue={setCode} isInvalid={form?.field === 'code'} invalidMessage={form?.message ?? ''} />
 								</div>
 								<div>
-									<Button type='submit' disabled={loading}>
+									<Button type='submit' disabled={loading} className='w-full'>
 										{loading ? (
 											<>
 												<span className='icon-[lucide--loader-circle] animate-spin'></span> Enviando...
@@ -106,7 +106,7 @@ export default function RegisterPage() {
 										)}
 									</Button>
 								</div>
-								<p className='mt-2 text-center'>
+								<p className='text-center'>
 									<AuthLink href='/login'>Voltar</AuthLink>
 								</p>
 							</fieldset>

@@ -47,7 +47,7 @@ export default function ForgetPasswordPage() {
 									<Input type='email' id='email' name='email' value={email} setValue={setEmail} autocomplete='email' placeholder='seuemail@inpe.br' minlength={8} maxlength={255} required autofocus isInvalid={form?.field === 'email'} invalidMessage={form?.message ?? ''} />
 								</div>
 								<div>
-									<Button type='submit' disabled={loading}>
+									<Button type='submit' disabled={loading} className='w-full'>
 										{loading ? (
 											<>
 												<span className='icon-[lucide--loader-circle] animate-spin'></span> Enviando...
@@ -57,7 +57,7 @@ export default function ForgetPasswordPage() {
 										)}
 									</Button>
 								</div>
-								<p className='mt-2 text-center'>
+								<p className='text-center'>
 									<AuthLink href='/login'>Voltar</AuthLink>
 								</p>
 							</fieldset>
@@ -78,7 +78,7 @@ export default function ForgetPasswordPage() {
 									<Pin id='code' name='code' length={5} value={code} setValue={setCode} isInvalid={form?.field === 'code'} invalidMessage={form?.message ?? ''} />
 								</div>
 								<div>
-									<Button type='submit' disabled={loading}>
+									<Button type='submit' disabled={loading} className='w-full'>
 										{loading ? (
 											<>
 												<span className='icon-[lucide--loader-circle] animate-spin'></span> Enviando...
@@ -88,7 +88,7 @@ export default function ForgetPasswordPage() {
 										)}
 									</Button>
 								</div>
-								<p className='mt-2 text-center'>
+								<p className='text-center'>
 									<AuthLink href='/sign-in'>Voltar</AuthLink>
 								</p>
 							</fieldset>
@@ -108,7 +108,7 @@ export default function ForgetPasswordPage() {
 									<InputPassword id='new-password' name='password' value={password} setValue={setPassword} autocomplete='current-password' placeholder='••••••••' minlength={6} maxlength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
 								</div>
 								<div>
-									<Button type='submit' disabled={loading}>
+									<Button type='submit' disabled={loading} className='w-full'>
 										{loading ? (
 											<>
 												<span className='icon-[lucide--loader-circle] animate-spin'></span> Redefinindo...
@@ -118,7 +118,7 @@ export default function ForgetPasswordPage() {
 										)}
 									</Button>
 								</div>
-								<p className='mt-2 text-center'>
+								<p className='text-center'>
 									<AuthLink href='/sign-in'>Voltar</AuthLink>
 								</p>
 							</fieldset>
@@ -131,11 +131,11 @@ export default function ForgetPasswordPage() {
 					<>
 						<div className='grid gap-5'>
 							<div>
-								<Button href='/app/welcome' type='button'>
+								<Button href='/app/welcome' type='button' className='w-full'>
 									Ir para o painel
 								</Button>
 							</div>
-							<p className='mt-2 text-center'>
+							<p className='text-center'>
 								<AuthLink href='/sign-in'>Voltar</AuthLink>
 							</p>
 						</div>

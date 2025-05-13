@@ -122,7 +122,7 @@ export default function LoginPage() {
 									<AuthLink href='/forget-password'>Redefinir ou esqueceu a senha?</AuthLink>
 								</p>
 								<div>
-									<Button type='submit' disabled={loading}>
+									<Button type='submit' disabled={loading} className='w-full'>
 										{loading ? (
 											<>
 												<span className='icon-[lucide--loader-circle] animate-spin'></span> Entrando...
@@ -134,14 +134,14 @@ export default function LoginPage() {
 								</div>
 								<AuthDivider>ou</AuthDivider>
 								<div className='flex w-full flex-col items-center justify-center gap-3'>
-									<Button href='/login/email' type='button' style='bordered' icon='icon-[lucide--log-in]'>
+									<Button href='/login/email' type='button' style='bordered' icon='icon-[lucide--log-in]' className='w-full'>
 										Entrar só com e-mail
 									</Button>
-									<Button href='/login/google' type='button' style='bordered' icon='icon-[logos--google-icon]'>
+									<Button href='/login/google' type='button' style='bordered' icon='icon-[logos--google-icon]' className='w-full'>
 										Entrar com Google
 									</Button>
 								</div>
-								<p className='mt-2 text-center'>
+								<p className='text-center'>
 									Não tem conta? <AuthLink href='/register'>Cadastre-se</AuthLink>.
 								</p>
 							</fieldset>
@@ -162,7 +162,7 @@ export default function LoginPage() {
 									<Pin id='code' name='code' length={5} value={code} setValue={setCode} isInvalid={form?.field === 'code'} invalidMessage={form?.message} />
 								</div>
 								<div>
-									<Button type='submit' disabled={loading}>
+									<Button type='submit' disabled={loading} className='w-full'>
 										{loading ? (
 											<>
 												<span className='icon-[lucide--loader-circle] animate-spin'></span> Enviando...
@@ -172,7 +172,7 @@ export default function LoginPage() {
 										)}
 									</Button>
 								</div>
-								<p className='mt-2 text-center'>
+								<p className='text-center'>
 									<AuthLink href='/login'>Voltar</AuthLink>
 								</p>
 							</fieldset>

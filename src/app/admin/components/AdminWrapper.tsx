@@ -30,7 +30,7 @@ export default function AdminWrapper({ user, sidebar, account, children }: { use
 
 			{/* Conteúdo */}
 			<div className='w-full transition-all duration-300 lg:pl-[260px]'>
-				<div className='h-[calc(100svh-64px)] bg-zinc-50  dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100'>
+				<div className='h-[calc(100svh-64px)] bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100'>
 					{/* Contéudo da página */}
 					{children}
 				</div>

@@ -6,12 +6,11 @@ import Button from '@/app/components/nav/Button'
 import Content from '@/app/components/nav/Content'
 
 const tabs = [
-	{ label: 'Alterar perfil', url: '/admin/profile' },
-	{ label: 'Preferências', url: '/admin/profile/preferences' },
-	{ label: 'Segurança', url: '/admin/profile/security' },
+	{ label: 'Base de conhecimento', url: '/admin/products/brams-ams-15-km' },
+	{ label: 'Problemas & soluções', url: '/admin/products/brams-ams-15-km/problems' },
 ]
 
-export default function ProfileLayout({ children }: { children: React.ReactNode }) {
+export default function ProductsLayout({ children }: { children: React.ReactNode }) {
 	const pathname = usePathname()
 
 	return (
@@ -33,7 +32,7 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
 				<div>
 					{/* Conteúdo */}
 					<Content>
-						<div className='flex min-h-full w-full flex-col items-start justify-start gap-8 p-8 text-zinc-600 dark:text-zinc-200'>{children}</div>
+						<div className='flex min-h-full w-full flex-col items-start justify-start gap-8 text-zinc-600 dark:text-zinc-200'>{children}</div>
 					</Content>
 				</div>
 			</div>

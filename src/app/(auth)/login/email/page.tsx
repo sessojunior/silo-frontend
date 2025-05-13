@@ -43,7 +43,7 @@ export default function LoginEmailPage() {
 									<Input type='email' id='email' name='email' value={email} setValue={setEmail} autocomplete='email' placeholder='seuemail@inpe.br' minlength={8} maxlength={255} required autofocus isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
 								</div>
 								<div>
-									<Button type='submit' disabled={loading}>
+									<Button type='submit' disabled={loading} className='w-full'>
 										{loading ? (
 											<>
 												<span className='icon-[lucide--loader-circle] animate-spin'></span> Entrando...
@@ -55,14 +55,14 @@ export default function LoginEmailPage() {
 								</div>
 								<AuthDivider>ou</AuthDivider>
 								<div className='flex w-full flex-col items-center justify-center gap-3'>
-									<Button href='/login' type='button' style='bordered' icon='icon-[lucide--log-in]'>
+									<Button href='/login' type='button' style='bordered' icon='icon-[lucide--log-in]' className='w-full'>
 										Entrar com e-mail e senha
 									</Button>
-									<Button href='/login/google' type='button' style='bordered' icon='icon-[logos--google-icon]'>
+									<Button href='/login/google' type='button' style='bordered' icon='icon-[logos--google-icon]' className='w-full'>
 										Entrar com Google
 									</Button>
 								</div>
-								<p className='mt-2 text-center'>
+								<p className='text-center'>
 									Não tem conta? <AuthLink href='/register'>Cadastre-se</AuthLink>.
 								</p>
 							</fieldset>
@@ -83,7 +83,7 @@ export default function LoginEmailPage() {
 									<Pin id='code' name='code' length={5} value={code} setValue={setCode} isInvalid={form?.field === 'code'} invalidMessage={form?.message} />
 								</div>
 								<div>
-									<Button type='submit' disabled={loading}>
+									<Button type='submit' disabled={loading} className='w-full'>
 										{loading ? (
 											<>
 												<span className='icon-[lucide--loader-circle] animate-spin'></span> Enviando...
@@ -93,7 +93,7 @@ export default function LoginEmailPage() {
 										)}
 									</Button>
 								</div>
-								<p className='mt-2 text-center'>
+								<p className='text-center'>
 									<AuthLink href='/login'>Voltar</AuthLink>
 								</p>
 							</fieldset>
