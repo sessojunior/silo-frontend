@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { toast } from '$lib/client/utils/toast'
+import { toast } from '@/app/utils/toast'
 
 import AuthHeader from '../components/AuthHeader'
 import AuthDivider from '../components/AuthDivider'
@@ -26,10 +26,6 @@ export default function LoginPage() {
 	const [password, setPassword] = useState('')
 	const [code, setCode] = useState('')
 
-	useEffect(() => {
-		console.log('mudou password')
-	}, [password])
-
 	// Enviar dados de login
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -48,17 +44,28 @@ export default function LoginPage() {
 
 			if (!res.ok) {
 				setForm({ field: data.field, message: data.message })
+				toast({
+					type: 'error',
+					title: data.message,
+				})
 			} else {
 				// Exemplo: caso precise verificar código, avança para etapa 2
 				if (data.requireVerification) {
 					setStep(2)
 				} else {
-					// login bem-sucedido
+					toast({
+						type: 'success',
+						title: 'Login realizado com sucesso.',
+					})
 					router.push('/admin/dashboard')
 				}
 			}
 		} catch (err) {
 			console.error(err)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado. Tente novamente.',
+			})
 			setForm({ field: null, message: 'Erro inesperado. Tente novamente.' })
 		} finally {
 			setLoading(false)
@@ -82,7 +89,15 @@ export default function LoginPage() {
 
 			if (!res.ok) {
 				setForm({ field: data.field, message: data.message })
+				toast({
+					type: 'error',
+					title: data.message,
+				})
 			} else {
+				toast({
+					type: 'success',
+					title: 'Login realizado com sucesso.',
+				})
 				window.location.href = '/dashboard'
 			}
 		} catch (err) {

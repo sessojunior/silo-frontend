@@ -6,6 +6,8 @@ import Topbar from './topbar/Topbar'
 
 import type { UserProps, SidebarProps, AccountProps } from '../layout'
 
+import Toast from '@/app/components/Toast'
+
 // Contexto para compartilhar estado entre Topbar e Sidebar
 const SidebarContext = createContext<{
 	isOpen: boolean
@@ -35,6 +37,9 @@ export default function AdminWrapper({ user, sidebar, account, children }: { use
 					{children}
 				</div>
 			</div>
+
+			{/* Toast */}
+			<Toast />
 		</SidebarContext.Provider>
 	)
 }

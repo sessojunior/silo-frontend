@@ -3,6 +3,8 @@ import Image from 'next/image'
 
 import AuthToggleTheme from './components/AuthToggleTheme'
 
+import Toast from '@/app/components/Toast'
+
 export const metadata: Metadata = {
 	title: 'Autenticação do Silo',
 	description: 'Sistema de gerenciamento de produtos e tarefas.',
@@ -40,6 +42,9 @@ export default function AuthLayout({
 
 				{/* Alternar modo escuro/claro */}
 				<AuthToggleTheme />
+
+				{/* Toast */}
+				<Toast />
 			</div>
 		</>
 	)

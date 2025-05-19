@@ -37,7 +37,53 @@
 /* Padrão de estilo hover em todos os dispositivos */
 @custom-variant hover (&:hover);
 
-/* Scrollbar */
+/* Barra de rolagem */
 .scrollbar {
 	@apply [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-300 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-500 [&::-webkit-scrollbar-track]:bg-zinc-100 dark:[&::-webkit-scrollbar-track]:bg-zinc-700;
+}
+
+/* Barra de progresso */
+@layer utilities {
+	@keyframes progress-bar {
+		from {
+			width: 100%;
+		}
+		to {
+			width: 0%;
+		}
+	}
+
+	@keyframes toast-in {
+		from {
+			opacity: 0;
+			transform: translateY(-20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@keyframes toast-out {
+		from {
+			opacity: 1;
+			transform: translateY(0);
+		}
+		to {
+			opacity: 0;
+			transform: translateY(-20px);
+		}
+	}
+
+	.animate-progress-bar {
+		animation: progress-bar linear forwards;
+	}
+
+	.animate-toast-in {
+		animation: toast-in 0.5s ease forwards;
+	}
+
+	.animate-toast-out {
+		animation: toast-out 0.5s ease forwards;
+	}
 }
