@@ -6,10 +6,18 @@ Silo é um aplicativo de gerenciamento de produtos e tarefas para o CPTEC/INPE.
 
 Este aplicativo está sendo desenvolvido utilizando:
 
-- [Next.js](https://nextjs.org/)
-- [React](https://react.dev/)
-- [TailwindCSS](https://tailwindcss.com/)
-- [Iconify](https://iconify.design/docs/usage/css/tailwind/tailwind4/)
+- [Next.js](https://nextjs.org/) (framework full stack)
+- [React](https://react.dev/) (componentes react)
+- [TailwindCSS](https://tailwindcss.com/) (utilitário css com classes prontas)
+- [Iconify](https://iconify.design/docs/usage/css/tailwind/tailwind4/) (ícones)
+
+Para a API está sendo utilizado:
+
+- [Drizzle ORM](https://orm.drizzle.team/) (ORM moderno do tipo schema-first, parecido com SQL)
+- [Zod](https://zod.dev/) (validação de dados)
+- [SQLite](https://www.sqlite.org/) (banco leve para desenvolvimento)
+- [PostgreSQL](https://www.postgresql.org/) (banco robusto para produção)
+- Fetch API (comunicação cliente-servidor)
 
 ## Login com o Google
 
