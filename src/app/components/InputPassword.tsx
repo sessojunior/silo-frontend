@@ -5,7 +5,7 @@ import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 interface InputPasswordProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> {
-	ref?: React.RefObject<HTMLInputElement>
+	ref?: React.RefObject<HTMLInputElement | null>
 	value: string
 	setValue: (value: string) => void
 	isInvalid?: boolean

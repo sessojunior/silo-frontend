@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from 'uuid'
-import { randomBytes, createHash } from 'crypto'
 import { argon2id, hash, verify } from 'argon2'
 
 // Gera um hash seguro da senha
@@ -23,18 +22,32 @@ export function generateId(): string {
 	return uuidv4()
 }
 
-// Gera um token aleatório de 30 bytes codificado em base64url
-export function generateToken(): string {
-	return randomBytes(30)
-		.toString('base64') // codifica em base64 padrão
-		.replace(/\+/g, '-') // substitui + por -
-		.replace(/\//g, '_') // substitui / por _
-		.replace(/=+$/, '') // remove padding
+// Gera bytes aleatórios usando Web Crypto API
+function getRandomBytes(size: number): Uint8Array {
+	const array = new Uint8Array(size)
+	crypto.getRandomValues(array)
+	return array
 }
 
-// Gera o hash SHA-256 de um token (output em hexadecimal minúsculo)
-export function generateHashToken(token: string): string {
-	return createHash('sha256').update(token).digest('hex')
+// Gera token base64url de tamanho variável (padrão 30 bytes)
+export function generateToken(size: number = 30): string {
+	const bytes = getRandomBytes(size)
+	let binary = ''
+	for (let i = 0; i < bytes.length; i++) {
+		binary += String.fromCharCode(bytes[i])
+	}
+	const base64 = btoa(binary)
+	return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+// Gera o hash SHA-256 de um token com Web Crypto API
+export async function generateHashToken(token: string): Promise<string> {
+	const encoder = new TextEncoder()
+	const data = encoder.encode(token)
+	const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+	const hashArray = Array.from(new Uint8Array(hashBuffer))
+	const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+	return hashHex
 }
 
 // Gera um código OTP com caracteres legíveis (ex: '347AEFHJKMNPRTWY')
@@ -43,7 +56,7 @@ export function generateHashToken(token: string): string {
 export function generateOtp({ allowedCharacters, numberCharacters }: { allowedCharacters: string; numberCharacters: number }): string {
 	const chars = allowedCharacters
 	const charsLen = chars.length
-	const random = randomBytes(numberCharacters)
+	const random = getRandomBytes(numberCharacters)
 	let code = ''
 
 	for (let i = 0; i < numberCharacters; i++) {

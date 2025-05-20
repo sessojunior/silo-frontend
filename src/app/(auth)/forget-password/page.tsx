@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useRef, useEffect } from 'react'
 
-import { toast } from '$lib/client/utils/toast'
+import { toast } from '@/app/lib/toast'
 
 import AuthHeader from '../components/AuthHeader'
 import AuthLink from '../components/AuthLink'
@@ -15,8 +14,6 @@ import InputPassword from '@/app/components/InputPassword'
 import Pin from '@/app/components/Pin'
 
 export default function ForgetPasswordPage() {
-	const router = useRouter()
-
 	const [loading, setLoading] = useState(false)
 	const [step, setStep] = useState(1)
 	const [form, setForm] = useState({ field: null, message: '' })
@@ -24,6 +21,154 @@ export default function ForgetPasswordPage() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [code, setCode] = useState('')
+	const [token, setToken] = useState('')
+
+	const emailRef = useRef<HTMLInputElement>(null)
+	const passwordRef = useRef<HTMLInputElement>(null)
+	const codeRef = useRef<HTMLInputElement>(null)
+
+	// Foca no campo inválido quando houver erro
+	useEffect(() => {
+		if (!form.field) return
+
+		switch (form.field) {
+			case 'email':
+				emailRef.current?.focus()
+				break
+			case 'password':
+				passwordRef.current?.focus()
+				break
+			case 'code':
+				codeRef.current?.focus()
+				break
+		}
+	}, [form])
+
+	// Etapa 1: Enviar e-mail
+	const handleSendEmail = async (e: React.FormEvent) => {
+		e.preventDefault()
+
+		setLoading(true)
+		setForm({ field: null, message: '' })
+
+		try {
+			const res = await fetch('/api/auth/forget-password', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email }),
+			})
+
+			const data = await res.json()
+
+			if (!res.ok) {
+				setForm({ field: data.field, message: data.message })
+				toast({
+					type: 'error',
+					title: data.message,
+				})
+			} else {
+				toast({
+					type: 'info',
+					title: 'Agora só falta verificar seu e-mail.',
+				})
+				// Redireciona para a etapa 2
+				setStep(2)
+			}
+		} catch (err) {
+			console.error(err)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado. Tente novamente.',
+			})
+			setForm({ field: null, message: 'Erro inesperado. Tente novamente.' })
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	// Etapa 2: Enviar código de verificação
+	const handleVerifyCode = async (e: React.FormEvent) => {
+		e.preventDefault()
+		setLoading(true)
+		setForm({ field: null, message: '' })
+
+		try {
+			const res = await fetch('/api/auth/verify-code', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email, code }),
+			})
+
+			const data = await res.json()
+
+			if (!res.ok) {
+				setForm({ field: data.field, message: data.message })
+				toast({
+					type: 'error',
+					title: data.message,
+				})
+			} else {
+				// Salva o token
+				setToken(data.token)
+				toast({
+					type: 'success',
+					title: 'Conta verificada com sucesso.',
+				})
+				// Redireciona para a etapa 3
+				setStep(3)
+			}
+		} catch (err) {
+			console.error(err)
+			toast({
+				type: 'error',
+				title: 'Erro ao verificar o código.',
+			})
+			setForm({ field: null, message: 'Erro ao verificar o código.' })
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	// Etapa 3: Enviar a nova senha
+	const handleSendPassword = async (e: React.FormEvent) => {
+		e.preventDefault()
+		setLoading(true)
+		setForm({ field: null, message: '' })
+
+		try {
+			const res = await fetch('/api/auth/send-password', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token, password }),
+			})
+
+			const data = await res.json()
+
+			if (!res.ok) {
+				setForm({ field: data.field, message: data.message })
+				toast({
+					type: 'error',
+					title: data.message,
+				})
+			} else {
+				toast({
+					type: 'success',
+					title: 'Senha alterada com sucesso.',
+				})
+				// Redireciona para a etapa 4
+				setStep(4)
+			}
+		} catch (err) {
+			console.error(err)
+			toast({
+				type: 'error',
+				title: 'Erro ao alterar a senha.',
+			})
+			setForm({ field: null, message: 'Erro ao alterar a senha.' })
+		} finally {
+			setLoading(false)
+		}
+	}
 
 	return (
 		<>
@@ -38,8 +183,8 @@ export default function ForgetPasswordPage() {
 				{/* Etapa 1: Inserir e-mail para enviar o código OTP para o e-mail */}
 				{step === 1 && (
 					<>
-						<form>
-							<fieldset className='grid gap-5'>
+						<form onSubmit={handleSendEmail}>
+							<fieldset className='grid gap-5' disabled={loading}>
 								<div>
 									<Label htmlFor='email' isInvalid={form?.field === 'email'}>
 										E-mail
@@ -68,8 +213,8 @@ export default function ForgetPasswordPage() {
 				{/* Etapa 2: Enviar código OTP para verificar se está correto */}
 				{step === 2 && (
 					<>
-						<form>
-							<fieldset className='grid gap-5'>
+						<form onSubmit={handleVerifyCode}>
+							<fieldset className='grid gap-5' disabled={loading}>
 								<input type='hidden' name='email' value={email} />
 								<div>
 									<Label htmlFor='code' isInvalid={form?.field === 'code'}>
@@ -99,8 +244,8 @@ export default function ForgetPasswordPage() {
 				{/* Etapa 3: Enviar nova senha para alteração */}
 				{step === 3 && (
 					<>
-						<form>
-							<fieldset className='grid gap-5'>
+						<form onSubmit={handleSendPassword}>
+							<fieldset className='grid gap-5' disabled={loading}>
 								<div>
 									<Label htmlFor='new-password' isInvalid={form?.field === 'password'}>
 										Nova senha

@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 		}
 
 		// Cria o cookie de sessão
-		const response = NextResponse.redirect(new URL('/app/welcome', req.url))
+		const response = NextResponse.json({ success: true }, { status: 200 })
 		auth.setCookieSessionToken(response, resultCreateSessionToken.token, resultCreateSessionToken.session.expiresAt)
 
 		return response

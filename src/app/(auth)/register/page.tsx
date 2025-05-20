@@ -143,7 +143,8 @@ export default function RegisterPage() {
 					type: 'success',
 					title: 'Conta verificada com sucesso.',
 				})
-				router.push('/app/welcome')
+				// Redireciona para a página protegida
+				router.push('/admin/welcome')
 			}
 		} catch (err) {
 			console.error(err)

@@ -18,10 +18,10 @@ import { sendEmail } from './sendEmail'
 // A sessão expira em 30 dias
 export async function createSessionToken(userId: string): Promise<{ session: { token: string; userId: string; expiresAt: Date }; token: string } | { error: { code: string; message: string } }> {
 	// Gera um token aleatório
-	const token = generateToken()
+	const token = await generateToken()
 
 	// Gera o hash do token
-	const hashToken = generateHashToken(token)
+	const hashToken = await generateHashToken(token)
 
 	// Um dia em milissegundos
 	const DAY_IN_MS = 24 * 60 * 60 * 1000 // 86400000 ms (1 dia)
@@ -53,7 +53,7 @@ export async function createSessionToken(userId: string): Promise<{ session: { t
 // 4. Apaga do banco de dados todos os tokens expirados
 export async function validateSessionToken(token: string): Promise<{ session: { id: string; token: string; userId: string; expiresAt: Date }; user: { id: string; name: string; email: string } } | { error: { code: string; message: string } }> {
 	// Gera o hash do token
-	const hashToken = generateHashToken(token)
+	const hashToken = await generateHashToken(token)
 
 	// 1. Verifica se a sessão existe no banco de dados
 	const [selectSession] = await (db as typeof dbProduction)

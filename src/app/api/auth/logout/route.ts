@@ -1,22 +1,23 @@
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
 import * as auth from '@/app/lib/auth'
 
 // Faz logout do usuário
-export async function POST(req: NextRequest) {
-	// Obtém o token da sessão do cookie
-	const sessionToken = req.cookies.get(auth.sessionCookieName)?.value
+export async function POST() {
+	// Lê o cookie diretamente via cookies()
+	const cookieStore = await cookies()
+	const sessionToken = cookieStore.get(auth.sessionCookieName)?.value
 
-	// Se não houver sessão ativa, retorna erro 401
+	// Se não houver token, retorna 401
 	if (!sessionToken) {
 		return NextResponse.json({ message: 'Sessão não encontrada' }, { status: 401 })
 	}
 
-	// Invalida a sessão no banco de dados (a função já gera o hash internamente)
+	// Invalida a sessão no banco de dados
 	await auth.invalidateSessionToken(sessionToken)
 
 	// Remove o cookie de sessão
-	const response = NextResponse.redirect(new URL('/login', req.url))
+	const response = NextResponse.json({ success: true }, { status: 200 })
 	auth.deleteCookieSessionToken(response)
 
 	return response

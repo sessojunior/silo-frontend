@@ -5,6 +5,7 @@ import { clsx } from 'clsx'
 import { useRef } from 'react'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+	ref?: React.RefObject<HTMLInputElement | null>
 	type: 'text' | 'email'
 	mask?: 'phone'
 	value: string

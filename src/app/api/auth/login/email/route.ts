@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 		await auth.sendEmailCode({ email, type: 'sign-in', code })
 
 		// Retorna para a página o próximo passo
-		return { step: 2, email }
+		return NextResponse.json({ step: 2, email })
 	} catch (error) {
 		console.error('Erro em /api/auth/login/email:', error)
 		return NextResponse.json({ field: null, message: 'Erro interno ao fazer o login com e-mail.' }, { status: 500 })

@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 			await auth.sendEmailCode({ email, type: 'sign-in', code })
 
 			// Retorna para a página o próximo passo
-			return { step: 2, email }
+			return NextResponse.json({ step: 2, email })
 		}
 
 		// Cria a sessão
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 		}
 
 		// Cria o cookie de sessão
-		const response = NextResponse.redirect(new URL('/app/welcome', req.url))
+		const response = NextResponse.json({ success: true }, { status: 200 })
 		auth.setCookieSessionToken(response, resultCreateSessionToken.token, resultCreateSessionToken.session.expiresAt)
 
 		return response

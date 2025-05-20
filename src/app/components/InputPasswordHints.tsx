@@ -9,11 +9,11 @@ type InputPasswordHintsProps = Omit<React.InputHTMLAttributes<HTMLInputElement>,
 	setValue: (value: string) => void
 	isInvalid?: boolean
 	invalidMessage?: string
-	inputRef?: React.Ref<HTMLInputElement>
+	ref?: React.Ref<HTMLInputElement>
 	minLength?: number
 }
 
-export default function InputPasswordHints({ value, setValue, isInvalid = false, invalidMessage, inputRef, minLength = 2, className, autoFocus = false, placeholder, autoComplete, required, maxLength = 255, id, name, ...props }: InputPasswordHintsProps) {
+export default function InputPasswordHints({ value, setValue, isInvalid = false, invalidMessage, ref, minLength = 2, className, autoFocus = false, placeholder, autoComplete, required, maxLength = 255, id, name, ...props }: InputPasswordHintsProps) {
 	const [showPassword, setShowPassword] = useState(false)
 	const [strength, setStrength] = useState(0)
 	const [rules, setRules] = useState({
@@ -58,7 +58,7 @@ export default function InputPasswordHints({ value, setValue, isInvalid = false,
 				<div className='flex-1'>
 					{/* Campo de senha */}
 					<div className='relative'>
-						<input ref={inputRef} id={id} name={name} type={showPassword ? 'text' : 'password'} placeholder={placeholder} autoComplete={autoComplete} maxLength={maxLength} required={required} value={value} onChange={(e) => setValue(e.target.value)} autoFocus={autoFocus} className={twMerge(clsx('block rounded-lg py-3 ps-4 pe-10 disabled:pointer-events-none disabled:opacity-50 border-zinc-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 dark:focus:ring-zinc-600', isInvalid ? 'border-red-600 focus:border-red-600 focus:ring-red-500' : 'focus:border-blue-500 focus:ring-blue-500', className ?? 'w-full'))} {...props} />
+						<input ref={ref} id={id} name={name} type={showPassword ? 'text' : 'password'} placeholder={placeholder} autoComplete={autoComplete} maxLength={maxLength} required={required} value={value} onChange={(e) => setValue(e.target.value)} autoFocus={autoFocus} className={twMerge(clsx('block rounded-lg py-3 ps-4 pe-10 disabled:pointer-events-none disabled:opacity-50 border-zinc-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 dark:focus:ring-zinc-600', isInvalid ? 'border-red-600 focus:border-red-600 focus:ring-red-500' : 'focus:border-blue-500 focus:ring-blue-500', className ?? 'w-full'))} {...props} />
 						{/* Toggle */}
 						<button type='button' onClick={togglePasswordVisibility} aria-label='Exibir ou ocultar senha' className={twMerge(clsx('absolute inset-y-0 end-0 z-20 flex cursor-pointer items-center rounded-e-md pe-4 text-zinc-400 focus:outline-none dark:text-zinc-400', isInvalid ? 'focus:text-red-400 dark:focus:text-red-600' : 'focus:text-blue-400 dark:focus:text-blue-600'))}>
 							{showPassword ? <span className='icon-[lucide--eye-off] size-5' /> : <span className='icon-[lucide--eye] size-5' />}

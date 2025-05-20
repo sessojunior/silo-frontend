@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 		if ('error' in resultChangeUserPassword) return NextResponse.json({ field: 'password', message: resultChangeUserPassword.error ? resultChangeUserPassword.error.message : 'Ocorreu um erro ao alterar a senha.' }, { status: 400 })
 
 		// Retorna para a página o próximo passo
-		return { step: 4, user }
+		return NextResponse.json({ step: 4 })
 	} catch (error) {
 		console.error('Erro em /api/auth/send-password:', error)
 		return NextResponse.json({ field: null, message: 'Erro interno ao enviar a senha.' }, { status: 500 })

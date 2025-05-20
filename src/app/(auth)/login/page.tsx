@@ -115,6 +115,7 @@ export default function LoginPage() {
 					type: 'success',
 					title: 'Conta verificada com sucesso.',
 				})
+				// Redireciona para a página protegida
 				router.push('/admin/welcome')
 			}
 		} catch (err) {
