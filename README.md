@@ -8,16 +8,13 @@ Este aplicativo está sendo desenvolvido utilizando:
 
 - [Next.js](https://nextjs.org/) (framework full stack)
 - [React](https://react.dev/) (componentes react)
+- [Typescript](https://www.typescriptlang.org/) (sintaxe de tipos para javascript)
 - [TailwindCSS](https://tailwindcss.com/) (utilitário css com classes prontas)
 - [Iconify](https://iconify.design/docs/usage/css/tailwind/tailwind4/) (ícones)
-
-Para a API está sendo utilizado:
-
 - [Drizzle ORM](https://orm.drizzle.team/) (ORM moderno do tipo schema-first, parecido com SQL)
-- [Zod](https://zod.dev/) (validação de dados)
 - [SQLite](https://www.sqlite.org/) (banco leve para desenvolvimento)
 - [PostgreSQL](https://www.postgresql.org/) (banco robusto para produção)
-- Fetch API (comunicação cliente-servidor)
+- [Nodemailer](https://nodemailer.com/) (envio de-mails com node.js)
 
 ## Login com o Google
 
