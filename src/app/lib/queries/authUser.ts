@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm'
 export type AuthUser = typeof schema.authUser.$inferSelect
 
 // (CREATE) Criar um novo
-export async function createUser(data: Required<Partial<AuthUser>>): Promise<AuthUser> {
+export async function insertAuthUser(data: Required<Partial<AuthUser>>): Promise<AuthUser> {
 	const [user] = await (db as typeof dbProduction)
 		.insert((schema as typeof schemaProduction).authUser)
 		.values(data)
@@ -14,13 +14,13 @@ export async function createUser(data: Required<Partial<AuthUser>>): Promise<Aut
 }
 
 // (READ) Obter todos os dados
-export async function getAllUsers(): Promise<AuthUser[]> {
+export async function selectAllAuthUser(): Promise<AuthUser[]> {
 	const result = await (db as typeof dbProduction).select().from((schema as typeof schemaProduction).authUser)
 	return result
 }
 
 // (READ) Buscar pelo ID
-export async function getUserById(id: string): Promise<AuthUser | null> {
+export async function selectByIdAuthUser(id: string): Promise<AuthUser | null> {
 	const rows = await (db as typeof dbProduction)
 		.select()
 		.from((schema as typeof schemaProduction).authUser)
@@ -29,8 +29,8 @@ export async function getUserById(id: string): Promise<AuthUser | null> {
 	return rows[0] || null
 }
 
-// (UPDATE) Atualizar os dados
-export async function updateUser(id: string, data: Partial<Pick<AuthUser, 'name' | 'email'>>): Promise<AuthUser | null> {
+// (UPDATE) Atualizar os dados pelo ID
+export async function updateByIdAuthUser(id: string, data: Partial<Pick<AuthUser, 'name' | 'email'>>): Promise<AuthUser | null> {
 	const rows = await (db as typeof dbProduction)
 		.update((schema as typeof schemaProduction).authUser)
 		.set(data)
@@ -41,6 +41,6 @@ export async function updateUser(id: string, data: Partial<Pick<AuthUser, 'name'
 }
 
 // (DELETE) Remover pelo ID
-export async function deleteUser(id: string): Promise<void> {
+export async function deleteByIdAuthUser(id: string): Promise<void> {
 	await (db as typeof dbProduction).delete((schema as typeof schemaProduction).authUser).where(eq((schema as typeof schemaProduction).authUser.id, id))
 }

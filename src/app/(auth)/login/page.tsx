@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { toast } from '@/app/utils/toast'
+import { toast } from '@/app/lib/toast'
 
 import AuthHeader from '../components/AuthHeader'
 import AuthDivider from '../components/AuthDivider'
@@ -20,13 +20,34 @@ export default function LoginPage() {
 
 	const [loading, setLoading] = useState(false)
 	const [step, setStep] = useState(1)
-	const [form, setForm] = useState({ field: null, message: '' })
+	const [form, setForm] = useState({ field: null as null | string, message: '' })
 
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [code, setCode] = useState('')
 
-	// Enviar dados de login
+	const emailRef = useRef<HTMLInputElement>(null)
+	const passwordRef = useRef<HTMLInputElement>(null)
+	const codeRef = useRef<HTMLInputElement>(null)
+
+	// Foca no campo inválido quando houver erro
+	useEffect(() => {
+		if (!form.field) return
+
+		switch (form.field) {
+			case 'email':
+				emailRef.current?.focus()
+				break
+			case 'password':
+				passwordRef.current?.focus()
+				break
+			case 'code':
+				codeRef.current?.focus()
+				break
+		}
+	}, [form])
+
+	// Etapa 1: Fazer login
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault()
 
@@ -49,16 +70,12 @@ export default function LoginPage() {
 					title: data.message,
 				})
 			} else {
-				// Exemplo: caso precise verificar código, avança para etapa 2
-				if (data.requireVerification) {
-					setStep(2)
-				} else {
-					toast({
-						type: 'success',
-						title: 'Login realizado com sucesso.',
-					})
-					router.push('/admin/dashboard')
-				}
+				toast({
+					type: 'info',
+					title: 'Agora só falta verificar seu e-mail.',
+				})
+				// Redireciona para a etapa 2
+				setStep(2)
 			}
 		} catch (err) {
 			console.error(err)
@@ -72,7 +89,7 @@ export default function LoginPage() {
 		}
 	}
 
-	// Enviar código de verificação
+	// Etapa 2: Enviar código de verificação
 	const handleVerifyCode = async (e: React.FormEvent) => {
 		e.preventDefault()
 		setLoading(true)
@@ -96,13 +113,17 @@ export default function LoginPage() {
 			} else {
 				toast({
 					type: 'success',
-					title: 'Login realizado com sucesso.',
+					title: 'Conta verificada com sucesso.',
 				})
-				window.location.href = '/dashboard'
+				router.push('/admin/welcome')
 			}
 		} catch (err) {
 			console.error(err)
-			setForm({ field: null, message: 'Erro inesperado.' })
+			toast({
+				type: 'error',
+				title: 'Erro ao verificar o código.',
+			})
+			setForm({ field: null, message: 'Erro ao verificar o código.' })
 		} finally {
 			setLoading(false)
 		}
@@ -120,18 +141,18 @@ export default function LoginPage() {
 				{step === 1 && (
 					<>
 						<form onSubmit={handleLogin}>
-							<fieldset className='grid gap-5'>
+							<fieldset className='grid gap-5' disabled={loading}>
 								<div>
 									<Label htmlFor='email' isInvalid={form?.field === 'email'}>
 										E-mail
 									</Label>
-									<Input type='email' id='email' name='email' value={email} setValue={setEmail} autocomplete='email' placeholder='seuemail@inpe.br' minlength={8} maxlength={255} required autofocus isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
+									<Input ref={emailRef} type='email' id='email' name='email' value={email} setValue={setEmail} autocomplete='email' placeholder='seuemail@inpe.br' minlength={8} maxlength={255} required autofocus isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
 								</div>
 								<div>
 									<Label htmlFor='password' isInvalid={form?.field === 'password'}>
 										Senha
 									</Label>
-									<InputPassword id='password' name='password' value={password} setValue={setPassword} autocomplete='current-password' placeholder='••••••••' minlength={6} maxlength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
+									<InputPassword ref={passwordRef} id='password' name='password' value={password} setValue={setPassword} autocomplete='current-password' placeholder='••••••••' minlength={6} maxlength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
 								</div>
 								<p className='text-end'>
 									<AuthLink href='/forget-password'>Redefinir ou esqueceu a senha?</AuthLink>
@@ -168,7 +189,7 @@ export default function LoginPage() {
 				{step === 2 && (
 					<>
 						<form onSubmit={handleVerifyCode}>
-							<fieldset className='grid gap-5'>
+							<fieldset className='grid gap-5' disabled={loading}>
 								<input type='hidden' name='email' value={email} />
 								<div>
 									<Label htmlFor='code' isInvalid={form?.field === 'code'}>

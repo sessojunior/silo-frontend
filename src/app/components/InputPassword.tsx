@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function Input({ id, name, value, setValue, placeholder, autocomplete, autofocus = false, minlength = 2, maxlength = 255, className = null, required, isInvalid, invalidMessage }: { id?: string; name?: string; value: string; setValue: (value: string) => void; placeholder?: string; autocomplete?: string; autofocus?: boolean; minlength?: number; maxlength?: number; className?: string | null; required?: boolean; isInvalid?: boolean; invalidMessage?: string }) {
+export default function Input({ ref, id, name, value, setValue, placeholder, autocomplete, autofocus = false, minlength = 2, maxlength = 255, className = null, required, isInvalid, invalidMessage }: { ref?: React.RefObject<HTMLInputElement | null>; id?: string; name?: string; value: string; setValue: (value: string) => void; placeholder?: string; autocomplete?: string; autofocus?: boolean; minlength?: number; maxlength?: number; className?: string | null; required?: boolean; isInvalid?: boolean; invalidMessage?: string }) {
 	const [showPassword, setShowPassword] = useState(false)
 
 	const togglePasswordVisibility = () => {
@@ -12,6 +12,7 @@ export default function Input({ id, name, value, setValue, placeholder, autocomp
 			{/* Campo de senha com toggle */}
 			<div className='relative'>
 				<input
+					ref={ref}
 					id={id}
 					name={name}
 					type={showPassword ? 'text' : 'password'}

@@ -1,4 +1,4 @@
-export default function Input({ type, mask = null, id, name, value, setValue, placeholder, autocomplete, autofocus = false, minlength = 2, maxlength = 255, className = null, required, isInvalid, invalidMessage }: { type: 'text' | 'email'; mask?: 'phone' | null; id?: string; name?: string; value: string; setValue: (value: string) => void; placeholder?: string; autocomplete?: string; autofocus?: boolean; minlength?: number; maxlength?: number; className?: string | null; required?: boolean; isInvalid?: boolean; invalidMessage?: string }) {
+export default function Input({ ref, type, mask = null, id, name, value, setValue, placeholder, autocomplete, autofocus = false, minlength = 2, maxlength = 255, className = null, required, isInvalid, invalidMessage }: { ref?: React.RefObject<HTMLInputElement | null>; type: 'text' | 'email'; mask?: 'phone' | null; id?: string; name?: string; value: string; setValue: (value: string) => void; placeholder?: string; autocomplete?: string; autofocus?: boolean; minlength?: number; maxlength?: number; className?: string | null; required?: boolean; isInvalid?: boolean; invalidMessage?: string }) {
 	// Se o tipo do campo for 'email', converte para minúsculo o que for digitado
 	// mas se tiver mask 'phone', aplica a máscara de telefone
 	function handleInput(event: React.ChangeEvent<HTMLInputElement>) {
@@ -42,6 +42,7 @@ export default function Input({ type, mask = null, id, name, value, setValue, pl
 		<>
 			<div className='relative'>
 				<input
+					ref={ref}
 					id={id}
 					name={name}
 					type={type}

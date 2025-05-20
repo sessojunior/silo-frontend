@@ -1,6 +1,6 @@
 'use client'
 
-import { toggleTheme } from '@/app/utils/theme'
+import { toggleTheme } from '@/app/lib/theme'
 
 export default function SidebarButtonTheme() {
 	const handleChangeTheme = (newTheme: 'light' | 'dark') => {

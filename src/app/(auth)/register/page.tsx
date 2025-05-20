@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { toast } from '$lib/client/utils/toast'
+import { toast } from '@/app/lib/toast'
 
 import AuthHeader from '../components/AuthHeader'
 import AuthDivider from '../components/AuthDivider'
@@ -20,12 +20,142 @@ export default function RegisterPage() {
 
 	const [loading, setLoading] = useState(false)
 	const [step, setStep] = useState(1)
-	const [form, setForm] = useState({ field: null, message: '' })
+	const [form, setForm] = useState({ field: null as null | string, message: '' })
 
 	const [name, setName] = useState('')
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [code, setCode] = useState('')
+
+	const nameRef = useRef<HTMLInputElement>(null)
+	const emailRef = useRef<HTMLInputElement>(null)
+	const passwordRef = useRef<HTMLInputElement>(null)
+	const codeRef = useRef<HTMLInputElement>(null)
+
+	// Foca no campo inválido quando houver erro
+	useEffect(() => {
+		if (!form.field) return
+
+		switch (form.field) {
+			case 'name':
+				nameRef.current?.focus()
+				break
+			case 'email':
+				emailRef.current?.focus()
+				break
+			case 'password':
+				passwordRef.current?.focus()
+				break
+			case 'code':
+				codeRef.current?.focus()
+				break
+		}
+	}, [form])
+
+	// Etapa 1: Criar conta
+	const handleRegister = async (e: React.FormEvent) => {
+		e.preventDefault()
+
+		const formatEmail = email.trim().toLowerCase()
+
+		// Validações básicas
+		if (!name || name.length < 2) {
+			setForm({ field: 'name', message: 'Digite um nome válido.' })
+			return
+		}
+		if (!formatEmail.includes('@')) {
+			setForm({ field: 'email', message: 'Digite um e-mail válido.' })
+			return
+		}
+		if (password.length < 8) {
+			setForm({ field: 'password', message: 'A senha deve ter pelo menos 8 caracteres.' })
+			return
+		}
+
+		setLoading(true)
+		setForm({ field: null, message: '' })
+
+		try {
+			const res = await fetch('/api/auth/register', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name, email: formatEmail, password }),
+			})
+
+			const data = await res.json()
+
+			if (!res.ok) {
+				setForm({ field: data.field, message: data.message })
+				toast({
+					type: 'error',
+					title: data.message,
+				})
+			} else {
+				toast({
+					type: 'success',
+					title: 'Conta criada com sucesso. Verifique seu e-mail.',
+				})
+				setStep(2)
+			}
+		} catch (err) {
+			console.error(err)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado. Tente novamente.',
+			})
+			setForm({ field: null, message: 'Erro inesperado. Tente novamente.' })
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	// Etapa 2: Enviar código de verificação
+	const handleVerifyCode = async (e: React.FormEvent) => {
+		e.preventDefault()
+
+		const formatEmail = email.trim().toLowerCase()
+
+		if (!code || code.length !== 5) {
+			setForm({ field: 'code', message: 'Digite o código com 5 caracteres.' })
+			return
+		}
+
+		setLoading(true)
+		setForm({ field: null, message: '' })
+
+		try {
+			const res = await fetch('/api/auth/verify-code', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: formatEmail, code }),
+			})
+
+			const data = await res.json()
+
+			if (!res.ok) {
+				setForm({ field: data.field, message: data.message })
+				toast({
+					type: 'error',
+					title: data.message,
+				})
+			} else {
+				toast({
+					type: 'success',
+					title: 'Conta verificada com sucesso.',
+				})
+				router.push('/app/welcome')
+			}
+		} catch (err) {
+			console.error(err)
+			toast({
+				type: 'error',
+				title: 'Erro ao verificar o código.',
+			})
+			setForm({ field: null, message: 'Erro ao verificar o código.' })
+		} finally {
+			setLoading(false)
+		}
+	}
 
 	return (
 		<>
@@ -38,25 +168,25 @@ export default function RegisterPage() {
 				{/* Etapa 1: Inserir os dados para criar a conta */}
 				{step === 1 && (
 					<>
-						<form>
-							<fieldset className='grid gap-5'>
+						<form onSubmit={handleRegister}>
+							<fieldset className='grid gap-5' disabled={loading}>
 								<div>
 									<Label htmlFor='name' isInvalid={form?.field === 'name'}>
 										Nome
 									</Label>
-									<Input type='text' id='name' name='name' value={name} setValue={setName} autocomplete='name' placeholder='Fulano' required isInvalid={form?.field === 'name'} invalidMessage={form?.message} />
+									<Input ref={nameRef} type='text' id='name' name='name' value={name} setValue={setName} autocomplete='name' placeholder='Fulano' required isInvalid={form?.field === 'name'} invalidMessage={form?.message} />
 								</div>
 								<div>
 									<Label htmlFor='email' isInvalid={form?.field === 'email'}>
 										E-mail
 									</Label>
-									<Input type='email' id='email' name='email' value={email} setValue={setEmail} autocomplete='email' placeholder='seuemail@inpe.br' minlength={8} maxlength={255} required isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
+									<Input ref={emailRef} type='email' id='email' name='email' value={email} setValue={setEmail} autocomplete='email' placeholder='seuemail@inpe.br' minlength={8} maxlength={255} required isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
 								</div>
 								<div>
 									<Label htmlFor='password' isInvalid={form?.field === 'password'}>
 										Senha
 									</Label>
-									<InputPasswordHints id='password' name='password' value={password} setValue={setPassword} autocomplete='current-password' placeholder='••••••••' minlength={8} maxlength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
+									<InputPasswordHints ref={passwordRef} id='password' name='password' value={password} setValue={setPassword} autocomplete='current-password' placeholder='••••••••' minlength={8} maxlength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
 								</div>
 								<div>
 									<Button type='submit' disabled={loading} className='w-full'>
@@ -86,8 +216,8 @@ export default function RegisterPage() {
 				{/* Etapa 2: Se o e-mail do usuário não estiver verificado, envia o código OTP para verificar o e-mail */}
 				{step === 2 && (
 					<>
-						<form>
-							<fieldset className='grid gap-5'>
+						<form onSubmit={handleVerifyCode}>
+							<fieldset className='grid gap-5' disabled={loading}>
 								<input type='hidden' name='email' value={email} />
 								<div>
 									<Label htmlFor='code' isInvalid={form?.field === 'code'}>
