@@ -16,6 +16,49 @@ Este aplicativo está sendo desenvolvido utilizando:
 - [PostgreSQL](https://www.postgresql.org/) (banco robusto para produção)
 - [Nodemailer](https://nodemailer.com/) (envio de-mails com node.js)
 
+## Autenticação
+
+Este aplicativo utiliza um método de autenticação baseada em sessão com cookies HttpOnly. É segura e adequada para o sistema que está sendo desenvolvido. Possui segurança contra vazamento (hash no banco), boa proteção contra XSS e CSRF, capacidade de revogação, renovação automática de sessão e controle completo do ciclo de vida do login.
+
+Este método possui as seguintes vantagens:
+
+1. Token aleatório + hash (SHA-256):
+
+- Gera um token aleatório (não previsível).
+- Armazena apenas o hash no banco — isso impede vazamentos críticos.
+- Funciona como "password hashing", mas para tokens de sessão.
+
+2. Cookies com boas práticas:
+
+- **HttpOnly**: não acessível via JavaScript → proteção contra _XSS_.
+- **SameSite=Lax** ou **Strict**: proteção contra _CSRF_.
+- **Secure**: só em HTTPS.
+- **Expires** e **Path**: escopo controlado.
+
+3. Expiração e renovação automática:
+
+- Sessões expiram em 30 dias.
+- Renovação automática se o usuário estiver ativo.
+
+4. Revogação de sessão:
+
+- Dá para invalidar uma sessão específica ou todas do usuário.
+- Muito útil em casos de logout, troca de senha, etc.
+
+5. Armazenamento no servidor:
+
+- Sessões ficam no banco → você pode revogar, monitorar, auditar.
+
+Por esses motivos, optei por utilizar autenticação baseada em sessões com cookies HttpOnly e tokens aleatórios armazenados como hash no banco de dados. Diferentemente do JWT, que é um token auto-contido, essa abordagem permite revogação fácil e segura de sessões, evita o risco de vazamento de credenciais sensíveis e protege contra ataques comuns como XSS e CSRF. Além disso, o uso de JWT exigiria lógica adicional para renovação de tokens e mecanismos complexos de blacklist para revogação, sendo mais indicado para APIs públicas ou aplicações sem estado (sem precisar usar o banco de dados), o que não se aplica ao contexto desta aplicação.
+
+Observação:
+
+_XSS (Cross-Site Scripting)_ é um tipo de ataque onde scripts maliciosos podem ser inseridos em sites para roubar dados. Por exemplo, um atacante pode inserir um `<script>` que rouba dados do navegador da vítima (como cookies, tokens ou informações de formulário). Isso normalmente acontece quando a aplicação exibe dados de entrada do usuário sem a devida sanitização. XSS é perigoso principalmente quando tokens de autenticação ficam acessíveis via JavaScript, como os armazenados em localStorage.
+
+_CSRF (Cross-Site Request Forgery)_ é um ataque onde o invasor engana um usuário autenticado a executar ações indesejadas em um site onde ele está logado. Por exemplo, se um usuário estiver autenticado em um site e clicar em um link malicioso em outro, esse link pode fazer com que o navegador envie uma requisição ao site autenticado (como enviar ou alterar dados), usando automaticamente os cookies da sessão da vítima. Por isso, é essencial usar proteções como cookies com SameSite=Lax ou Strict e tokens CSRF em formulários sensíveis.
+
+Este sistema possui proteção contra ambos ataques.
+
 ## Login com o Google
 
 Para usar o Google como um provedor social, você precisa obter suas credenciais do Google.

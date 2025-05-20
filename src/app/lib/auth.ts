@@ -225,7 +225,7 @@ export async function validateCode({ email, code }: { email: string; code: strin
 }
 
 // Verifica se o e-mail do usuário é válido e existe e obtém os dados do usuário
-export async function validateUserEmail(email: string): Promise<{ success: boolean; user: { id: string; name: string; email: string } } | { error: { code: string; message: string } }> {
+export async function validateUserEmail(email: string): Promise<{ success: boolean; user: { id: string; name: string; email: string; emailVerified: number } } | { error: { code: string; message: string } }> {
 	// Formata os dados recebidos
 	const formatEmail = email.trim().toLowerCase()
 
@@ -244,7 +244,7 @@ export async function validateUserEmail(email: string): Promise<{ success: boole
 	if (!selectUser?.id) return { error: { code: 'NO_EMAIL_FOUND', message: 'Não existe um usuário com este e-mail.' } }
 
 	// Retorna os dados do usuário
-	return { success: true, user: { id: selectUser.id, name: selectUser.name, email: selectUser.email } }
+	return { success: true, user: { id: selectUser.id, name: selectUser.name, email: selectUser.email, emailVerified: selectUser.emailVerified } }
 }
 
 // Cria um usuário

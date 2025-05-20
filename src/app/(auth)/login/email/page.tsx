@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { toast } from '$lib/client/utils/toast'
+import { toast } from '@/app/lib/toast'
 
 import AuthHeader from '../../components/AuthHeader'
 import AuthDivider from '../../components/AuthDivider'
@@ -19,13 +19,113 @@ export default function LoginEmailPage() {
 
 	const [loading, setLoading] = useState(false)
 	const [step, setStep] = useState(1)
-	const [form, setForm] = useState({ field: null, message: '' })
+	const [form, setForm] = useState({ field: null as null | string, message: '' })
 
 	const [email, setEmail] = useState('')
 	const [code, setCode] = useState('')
 
+	const emailRef = useRef<HTMLInputElement>(null)
+	const codeRef = useRef<HTMLInputElement>(null)
+
+	// Foca no campo inválido quando houver erro
+	useEffect(() => {
+		if (!form.field) return
+
+		switch (form.field) {
+			case 'email':
+				emailRef.current?.focus()
+				break
+			case 'code':
+				codeRef.current?.focus()
+				break
+		}
+	}, [form])
+
+	// Etapa 1: Fazer login
+	const handleLogin = async (e: React.FormEvent) => {
+		e.preventDefault()
+
+		setLoading(true)
+		setForm({ field: null, message: '' })
+
+		try {
+			const res = await fetch('/api/auth/login/email', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email }),
+			})
+
+			const data = await res.json()
+
+			if (!res.ok) {
+				setForm({ field: data.field, message: data.message })
+				toast({
+					type: 'error',
+					title: data.message,
+				})
+			} else {
+				toast({
+					type: 'info',
+					title: 'Agora só falta verificar seu e-mail.',
+				})
+				// Redireciona para a etapa 2
+				setStep(2)
+			}
+		} catch (err) {
+			console.error(err)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado. Tente novamente.',
+			})
+			setForm({ field: null, message: 'Erro inesperado. Tente novamente.' })
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	// Etapa 2: Enviar código de verificação
+	const handleVerifyCode = async (e: React.FormEvent) => {
+		e.preventDefault()
+		setLoading(true)
+		setForm({ field: null, message: '' })
+
+		try {
+			const res = await fetch('/api/auth/verify-code', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email, code }),
+			})
+
+			const data = await res.json()
+
+			if (!res.ok) {
+				setForm({ field: data.field, message: data.message })
+				toast({
+					type: 'error',
+					title: data.message,
+				})
+			} else {
+				toast({
+					type: 'success',
+					title: 'Conta verificada com sucesso.',
+				})
+				router.push('/admin/welcome')
+			}
+		} catch (err) {
+			console.error(err)
+			toast({
+				type: 'error',
+				title: 'Erro ao verificar o código.',
+			})
+			setForm({ field: null, message: 'Erro ao verificar o código.' })
+		} finally {
+			setLoading(false)
+		}
+	}
+
 	return (
 		<>
+			{/* Header */}
 			{step === 1 && <AuthHeader icon='icon-[lucide--log-in]' title='Entrar' description='Entre para commençar a usar.' />}
 			{step === 2 && <AuthHeader icon='icon-[lucide--square-asterisk]' title='Verifique a conta' description='Precisamos verificar seu e-mail, insira o código que recebeu por e-mail.' />}
 
@@ -34,13 +134,13 @@ export default function LoginEmailPage() {
 				{/* Etapa 1: Inserir o e-mail para fazer login */}
 				{step === 1 && (
 					<>
-						<form>
-							<fieldset className='grid gap-5'>
+						<form onSubmit={handleLogin}>
+							<fieldset className='grid gap-5' disabled={loading}>
 								<div>
 									<Label htmlFor='email' isInvalid={form?.field === 'email'}>
 										E-mail
 									</Label>
-									<Input type='email' id='email' name='email' value={email} setValue={setEmail} autocomplete='email' placeholder='seuemail@inpe.br' minlength={8} maxlength={255} required autofocus isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
+									<Input ref={emailRef} type='email' id='email' name='email' value={email} setValue={setEmail} autocomplete='email' placeholder='seuemail@inpe.br' minlength={8} maxlength={255} required autofocus isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
 								</div>
 								<div>
 									<Button type='submit' disabled={loading} className='w-full'>
@@ -73,8 +173,8 @@ export default function LoginEmailPage() {
 				{/* Etapa 2: Enviar o código OTP para fazer login */}
 				{step === 2 && (
 					<>
-						<form>
-							<fieldset className='grid gap-5'>
+						<form onSubmit={handleVerifyCode}>
+							<fieldset className='grid gap-5' disabled={loading}>
 								<input type='hidden' name='email' value={email} />
 								<div>
 									<Label htmlFor='code' isInvalid={form?.field === 'code'}>
