@@ -146,13 +146,13 @@ export default function LoginPage() {
 									<Label htmlFor='email' isInvalid={form?.field === 'email'}>
 										E-mail
 									</Label>
-									<Input ref={emailRef} type='email' id='email' name='email' value={email} setValue={setEmail} autocomplete='email' placeholder='seuemail@inpe.br' minlength={8} maxlength={255} required autofocus isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
+									<Input ref={emailRef} type='email' id='email' name='email' value={email} setValue={setEmail} autoComplete='email' placeholder='seuemail@inpe.br' minLength={8} maxLength={255} required autoFocus isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
 								</div>
 								<div>
 									<Label htmlFor='password' isInvalid={form?.field === 'password'}>
 										Senha
 									</Label>
-									<InputPassword ref={passwordRef} id='password' name='password' value={password} setValue={setPassword} autocomplete='current-password' placeholder='••••••••' minlength={6} maxlength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
+									<InputPassword ref={passwordRef} id='password' name='password' value={password} setValue={setPassword} autoComplete='current-password' placeholder='••••••••' minLength={6} maxLength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
 								</div>
 								<p className='text-end'>
 									<AuthLink href='/forget-password'>Redefinir ou esqueceu a senha?</AuthLink>

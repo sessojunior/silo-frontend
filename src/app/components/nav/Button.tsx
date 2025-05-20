@@ -1,26 +1,30 @@
 'use client'
 
-import Link from 'next/link'
+import Link, { LinkProps } from 'next/link'
+import { twMerge } from 'tailwind-merge'
+import clsx from 'clsx'
 
-type NavButtonProps = {
+type NavButtonProps = Omit<LinkProps, 'href'> & {
 	children: React.ReactNode
+	href?: string | null
 	disabled?: boolean
 	icon?: string | null
-	href?: string | null
 	active?: boolean
 }
 
-export default function NavButton({ children, disabled = false, icon = null, href = null, active = false }: NavButtonProps) {
+export default function NavButton({ children, href = '#', disabled = false, icon = null, active = false, ...props }: NavButtonProps) {
+	const finalClassName = twMerge(
+		clsx('inline-flex items-center gap-x-2 rounded-lg border px-4 py-2 text-base font-medium transition-all duration-500 focus:outline-hidden', 'disabled:pointer-events-none disabled:opacity-50', 'dark:text-zinc-200', {
+			'text-zinc-800 hover:text-zinc-500': !disabled,
+			'border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-800': active && !disabled,
+			'border-transparent bg-transparent dark:bg-zinc-700': !active && !disabled,
+			'pointer-events-none opacity-50': disabled,
+		}),
+	)
+
 	return (
-		<Link
-			href={href || '#'}
-			aria-disabled={disabled}
-			role='button'
-			className={`inline-flex items-center gap-x-2 rounded-lg border px-4 py-2 text-base font-medium text-zinc-800 transition-all duration-500 hover:text-zinc-500 focus:outline-hidden disabled:pointer-events-none disabled:opacity-50
-			${active ? 'border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-800' : 'border-transparent bg-transparent dark:bg-zinc-700'}
-			${disabled ? 'pointer-events-none opacity-50' : ''} dark:text-zinc-200`}
-		>
-			{icon && <span className={`${icon} size-4 shrink-0`} aria-hidden='true' />}
+		<Link href={href || '#'} aria-disabled={disabled} role='button' className={finalClassName} {...props}>
+			{icon && <span className={clsx(icon, 'size-4 shrink-0')} aria-hidden='true' />}
 			{children}
 		</Link>
 	)

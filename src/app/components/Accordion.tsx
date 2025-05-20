@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-
+import { twMerge } from 'tailwind-merge'
+import { clsx } from 'clsx'
 import Button from './Button'
 
 export type Chapter = {
@@ -41,13 +42,7 @@ export default function Accordion({ sections }: AccordionProps) {
 
 				return (
 					<div key={section.id} className='rounded-lg'>
-						<button
-							onClick={() => toggleSection(sectionIndex)}
-							className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-semibold transition rounded-xl border border-transparent
-								${isOpenSection ? 'text-blue-600' : 'text-zinc-800 hover:bg-zinc-50 hover:border-zinc-200'}
-							`}
-							aria-expanded={isOpenSection}
-						>
+						<button onClick={() => toggleSection(sectionIndex)} className={twMerge(clsx('flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-semibold transition rounded-xl border', isOpenSection ? 'text-blue-600 border-transparent' : 'text-zinc-800 hover:bg-zinc-50 hover:border-zinc-200'))} aria-expanded={isOpenSection}>
 							<div className='flex items-center gap-2'>
 								<span className={`icon-[lucide--chevron-${isOpenSection ? 'up' : 'down'}] size-4`} />
 								{section.title}
@@ -65,13 +60,7 @@ export default function Accordion({ sections }: AccordionProps) {
 
 											return (
 												<div key={chapter.id} className='rounded-md'>
-													<button
-														onClick={() => toggleChapter(chapterIndex)}
-														className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-medium transition rounded-xl border border-transparent
-															${isOpenChapter ? 'text-blue-600' : 'text-zinc-800 hover:bg-zinc-50 hover:border-zinc-200'}
-														`}
-														aria-expanded={isOpenChapter}
-													>
+													<button onClick={() => toggleChapter(chapterIndex)} className={twMerge(clsx('flex w-full items-center justify-between gap-2 px-3 py-2 text-left font-medium transition rounded-xl border', isOpenChapter ? 'text-blue-600 border-transparent' : 'text-zinc-800 hover:bg-zinc-50 hover:border-zinc-200'))} aria-expanded={isOpenChapter}>
 														<div className='flex items-center gap-2'>
 															<span className={`icon-[lucide--chevron-${isOpenChapter ? 'up' : 'down'}] size-4`} />
 															<span className='icon-[lucide--book-text] size-4' />

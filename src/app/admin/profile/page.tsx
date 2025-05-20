@@ -59,7 +59,7 @@ export default function ProfilePage() {
 									<Label htmlFor='name' isInvalid={form?.field === 'name'}>
 										Nome
 									</Label>
-									<Input type='text' id='name' name='name' value={name} setValue={setName} autocomplete='name' placeholder='Fulano' required isInvalid={form?.field === 'name'} invalidMessage={form?.message} />
+									<Input type='text' id='name' name='name' value={name} setValue={setName} autoComplete='name' placeholder='Fulano' required isInvalid={form?.field === 'name'} invalidMessage={form?.message} />
 								</div>
 								<div className='flex gap-4'>
 									<div className='w-1/2'>
@@ -82,7 +82,7 @@ export default function ProfilePage() {
 										<Label htmlFor='phone' isInvalid={form?.field === 'phone'}>
 											Celular
 										</Label>
-										<Input type='text' id='phone' name='phone' value={phone} setValue={setPhone} autocomplete='phone' mask='phone' placeholder='(00) 00000-0000' required isInvalid={form?.field === 'phone'} invalidMessage={form?.message} />
+										<Input type='text' id='phone' name='phone' value={phone} setValue={setPhone} autoComplete='phone' mask='phone' placeholder='(00) 00000-0000' required isInvalid={form?.field === 'phone'} invalidMessage={form?.message} />
 									</div>
 								</div>
 								<div className='flex gap-4'>
@@ -125,7 +125,7 @@ export default function ProfilePage() {
 										<Label htmlFor='company' isInvalid={form?.field === 'company'}>
 											Prédio
 										</Label>
-										<Input type='text' id='company' name='company' value={company} setValue={setCompany} autocomplete='company' placeholder='Nome do prédio' required isInvalid={form?.field === 'company'} invalidMessage={form?.message} />
+										<Input type='text' id='company' name='company' value={company} setValue={setCompany} autoComplete='company' placeholder='Nome do prédio' required isInvalid={form?.field === 'company'} invalidMessage={form?.message} />
 									</div>
 									<div className='w-1/2'>
 										<Label htmlFor='location' isInvalid={form?.field === 'location'}>

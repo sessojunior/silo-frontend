@@ -1,15 +1,19 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type ReactNode, type HTMLAttributes } from 'react'
+import { twMerge } from 'tailwind-merge'
+import clsx from 'clsx'
+
+type Position = 'top-left' | 'top-right' | 'top-center' | 'bottom-left' | 'bottom-right' | 'bottom-center' | 'right-bottom' | 'left-bottom'
 
 type PopoverProps = {
-	children: React.ReactNode
-	content: React.ReactNode
-	position?: 'top-left' | 'top-right' | 'top-center' | 'bottom-left' | 'bottom-right' | 'bottom-center' | 'right-bottom' | 'left-bottom'
+	children: ReactNode
+	content: ReactNode
+	position?: Position
 	className?: string
-}
+} & HTMLAttributes<HTMLButtonElement>
 
-const positionMap: Record<string, string> = {
+const positionMap: Record<Position, string> = {
 	'top-left': 'bottom-full left-0 mb-2',
 	'top-right': 'bottom-full right-0 mb-2',
 	'top-center': 'bottom-full left-1/2 -translate-x-1/2 mb-2',
@@ -20,7 +24,7 @@ const positionMap: Record<string, string> = {
 	'left-bottom': 'right-full top-full mr-2',
 }
 
-export default function Popover({ children, content, position = 'top-center', className = '' }: PopoverProps) {
+export default function Popover({ children, content, position = 'top-center', className, ...props }: PopoverProps) {
 	const [open, setOpen] = useState(false)
 	const buttonRef = useRef<HTMLButtonElement>(null)
 	const popoverRef = useRef<HTMLDivElement>(null)
@@ -31,17 +35,19 @@ export default function Popover({ children, content, position = 'top-center', cl
 				setOpen(false)
 			}
 		}
+
 		document.addEventListener('mousedown', handleClickOutside)
 		return () => document.removeEventListener('mousedown', handleClickOutside)
 	}, [])
 
 	return (
 		<div className='relative inline-block'>
-			<button ref={buttonRef} onClick={() => setOpen((prev) => !prev)} className='focus:outline-none'>
+			<button ref={buttonRef} onClick={() => setOpen((prev) => !prev)} className='focus:outline-none' {...props}>
 				{children}
 			</button>
+
 			{open && (
-				<div ref={popoverRef} className={`absolute z-50 rounded-xl border border-zinc-200 bg-white shadow-md dark:border-zinc-700 dark:bg-zinc-800 transition-opacity ${positionMap[position]} ${className}`}>
+				<div ref={popoverRef} className={twMerge(clsx('absolute z-50 rounded-xl border bg-white shadow-md transition-opacity dark:bg-zinc-800', 'border-zinc-200 dark:border-zinc-700', positionMap[position], className))}>
 					{content}
 				</div>
 			)}

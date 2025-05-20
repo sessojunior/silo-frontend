@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import clsx from 'clsx'
+import { clsx } from 'clsx'
 
 type ToastType = 'success' | 'error' | 'info' | 'warning'
 type ToastPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'

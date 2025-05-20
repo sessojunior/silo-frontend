@@ -174,19 +174,19 @@ export default function RegisterPage() {
 									<Label htmlFor='name' isInvalid={form?.field === 'name'}>
 										Nome
 									</Label>
-									<Input ref={nameRef} type='text' id='name' name='name' value={name} setValue={setName} autocomplete='name' placeholder='Fulano' required isInvalid={form?.field === 'name'} invalidMessage={form?.message} />
+									<Input ref={nameRef} type='text' id='name' name='name' value={name} setValue={setName} autoComplete='name' placeholder='Fulano' required isInvalid={form?.field === 'name'} invalidMessage={form?.message} />
 								</div>
 								<div>
 									<Label htmlFor='email' isInvalid={form?.field === 'email'}>
 										E-mail
 									</Label>
-									<Input ref={emailRef} type='email' id='email' name='email' value={email} setValue={setEmail} autocomplete='email' placeholder='seuemail@inpe.br' minlength={8} maxlength={255} required isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
+									<Input ref={emailRef} type='email' id='email' name='email' value={email} setValue={setEmail} autoComplete='email' placeholder='seuemail@inpe.br' minLength={8} maxLength={255} required isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
 								</div>
 								<div>
 									<Label htmlFor='password' isInvalid={form?.field === 'password'}>
 										Senha
 									</Label>
-									<InputPasswordHints ref={passwordRef} id='password' name='password' value={password} setValue={setPassword} autocomplete='current-password' placeholder='••••••••' minlength={8} maxlength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
+									<InputPasswordHints ref={passwordRef} id='password' name='password' value={password} setValue={setPassword} autoComplete='current-password' placeholder='••••••••' minLength={8} maxLength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
 								</div>
 								<div>
 									<Button type='submit' disabled={loading} className='w-full'>

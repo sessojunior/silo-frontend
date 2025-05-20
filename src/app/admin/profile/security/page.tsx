@@ -41,7 +41,7 @@ export default function SecurityPage() {
 											<Label htmlFor='email' isInvalid={form?.field === 'email'}>
 												Novo e-mail
 											</Label>
-											<Input type='email' id='email' name='email' autocomplete='email' placeholder='seuemail@inpe.br' value={email} setValue={setEmail} minlength={8} maxlength={255} required isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
+											<Input type='email' id='email' name='email' autoComplete='email' placeholder='seuemail@inpe.br' value={email} setValue={setEmail} minLength={8} maxLength={255} required isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
 										</div>
 									</div>
 									<div>
@@ -72,7 +72,7 @@ export default function SecurityPage() {
 											<Label htmlFor='password' isInvalid={form?.field === 'password'}>
 												Nova senha
 											</Label>
-											<InputPasswordHints id='password' name='password' value={password} setValue={setPassword} autocomplete='current-password' placeholder='••••••••' minlength={8} maxlength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
+											<InputPasswordHints id='password' name='password' value={password} setValue={setPassword} autoComplete='current-password' placeholder='••••••••' minLength={8} maxLength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
 										</div>
 									</div>
 									<div>
