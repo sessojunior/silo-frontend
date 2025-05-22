@@ -30,9 +30,17 @@ export async function createSession(userId: string) {
 
 // Remove a sessão do banco de dados e do cookie
 export async function destroySession(token: string) {
+	// Remove a sessão do banco de dados
 	await db.delete(authSession).where(eq(authSession.token, token))
+
+	// Remove o cookie do navegador
 	const cookieStore = await cookies()
-	cookieStore.set('session_token', '', { maxAge: 0 })
+	cookieStore.set({
+		name: 'session_token',
+		value: '',
+		path: '/',
+		maxAge: 0,
+	})
 }
 
 // Remove todas as sessões de um usuário do banco de dados
