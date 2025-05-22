@@ -238,11 +238,7 @@ export default async function AdminLayout({
 	// Dados do usuário autenticado
 	// Se o usuário não estiver autenticado, redireciona para a tela de login
 	const authUser = await getAuthUser()
-
-	// TODO: REMOVER CONSOLE.LOG
-	console.log('authUser', authUser)
-
-	// if (!authUser) redirect('/login')
+	if (!authUser) redirect('/login')
 
 	const user: UserProps = {
 		...authUser,

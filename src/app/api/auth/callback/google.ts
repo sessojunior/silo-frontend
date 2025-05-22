@@ -13,7 +13,7 @@ import * as arctic from 'arctic'
 // 5. Decodifica ID token → extrai dados do usuário
 // 6. Verifica se usuário existe; se não, cria novo
 // 7. Cria sessão interna e seta cookie de sessão
-// 8. Redireciona para rota privada (/app/welcome)
+// 8. Redireciona para rota privada (/admin/welcome)
 export async function GET(request: NextRequest) {
 	// 1. Lê cookies "google_oauth_state" e "google_code_verifier"
 	const cookieStore = request.cookies
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
 	}
 
 	// Monta a resposta de redirect e adiciona o Set-Cookie da sessão
-	const response = NextResponse.redirect(new URL('/app/welcome', request.url))
+	const response = NextResponse.redirect(new URL('/admin/welcome', request.url))
 	setCookieSessionToken(response, resultSession.token, sessionToken.session.expiresAt)
 
 	return response

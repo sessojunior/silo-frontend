@@ -277,7 +277,7 @@ export default function ForgetPasswordPage() {
 					<>
 						<div className='grid gap-5'>
 							<div>
-								<Button href='/app/welcome' type='button' className='w-full'>
+								<Button href='/admin/welcome' type='button' className='w-full'>
 									Ir para o painel
 								</Button>
 							</div>
