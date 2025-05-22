@@ -209,7 +209,7 @@ export default function RegisterPage() {
 								</div>
 								<AuthDivider>ou</AuthDivider>
 								<div className='flex w-full flex-col items-center justify-center gap-3'>
-									<Button href='/login/google' type='button' style='bordered' icon='icon-[logos--google-icon]' className='w-full'>
+									<Button href='/login-google' type='button' style='bordered' icon='icon-[logos--google-icon]' className='w-full'>
 										Criar com Google
 									</Button>
 								</div>

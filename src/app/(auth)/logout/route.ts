@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { destroySession } from '@/lib/auth/session'
+import { destroySessionCookie } from '@/lib/auth/session'
 
 // Faz logout do usuário
 
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 		const token = cookieStore.get('session_token')?.value
 
 		// Remove a sessão do banco de dados e do cookie
-		if (token) await destroySession(token)
+		if (token) await destroySessionCookie(token)
 
 		// Redireciona para a página de login
 		return NextResponse.redirect(new URL('/login', req.url))

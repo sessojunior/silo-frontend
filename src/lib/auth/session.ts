@@ -6,8 +6,8 @@ import { cookies } from 'next/headers'
 
 // Criar e validar sessão
 
-// Cria sessão no banco e salva cookie HttpOnly
-export async function createSession(userId: string) {
+// Cria a sessão no banco de dados e salva num cookie
+export async function createSessionCookie(userId: string) {
 	// Gera um token aleatório e seguro
 	const token = generateToken()
 
@@ -41,7 +41,7 @@ export async function createSession(userId: string) {
 }
 
 // Remove a sessão do banco de dados e do cookie
-export async function destroySession(token: string) {
+export async function destroySessionCookie(token: string) {
 	// Remove a sessão do banco de dados
 	await db.delete(authSession).where(eq(authSession.token, token))
 

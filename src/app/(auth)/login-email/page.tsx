@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 
 import { toast } from '@/lib/toast'
 
-import AuthHeader from '../../components/AuthHeader'
-import AuthDivider from '../../components/AuthDivider'
-import AuthLink from '../../components/AuthLink'
+import AuthHeader from '../components/AuthHeader'
+import AuthDivider from '../components/AuthDivider'
+import AuthLink from '../components/AuthLink'
 
 import Label from '@/app/components/Label'
 import Button from '@/app/components/Button'
@@ -49,7 +49,7 @@ export default function LoginEmailPage() {
 		setForm({ field: null, message: '' })
 
 		try {
-			const res = await fetch('/api/auth/login/email', {
+			const res = await fetch('/api/auth/login-email', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email }),
@@ -165,7 +165,7 @@ export default function LoginEmailPage() {
 									<Button href='/login' type='button' style='bordered' icon='icon-[lucide--log-in]' className='w-full'>
 										Entrar com e-mail e senha
 									</Button>
-									<Button href='/login/google' type='button' style='bordered' icon='icon-[logos--google-icon]' className='w-full'>
+									<Button href='/login-google' type='button' style='bordered' icon='icon-[logos--google-icon]' className='w-full'>
 										Entrar com Google
 									</Button>
 								</div>

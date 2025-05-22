@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { authUser } from '@/lib/db/schema'
-import { createSession } from '@/lib/auth/session'
+import { createSessionCookie } from '@/lib/auth/session'
 import { validateCode } from '@/lib/auth/code'
 import { isValidCode, isValidEmail } from '@/lib/auth/validate'
 
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 		}
 
 		// Cria a sessão e o cookie do usuário
-		const sessionToken = await createSession(user.id)
+		const sessionToken = await createSessionCookie(user.id)
 		if ('error' in sessionToken) {
 			return NextResponse.json({ field: 'code', message: 'Ocorreu um erro ao criar a sessão.' }, { status: 400 })
 		}

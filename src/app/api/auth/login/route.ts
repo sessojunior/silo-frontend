@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { authUser } from '@/lib/db/schema'
 import { verifyPassword } from '@/lib/auth/hash'
-import { createSession } from '@/lib/auth/session'
+import { createSessionCookie } from '@/lib/auth/session'
 import { generateCode, sendEmailCode } from '@/lib/auth/code'
 import { isValidEmail, isValidPassword } from '@/lib/auth/validate'
 
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 		}
 
 		// Cria a sessão e o cookie do usuário
-		const sessionToken = await createSession(user.id)
+		const sessionToken = await createSessionCookie(user.id)
 		if ('error' in sessionToken) {
 			return NextResponse.json({ field: 'code', message: 'Ocorreu um erro ao criar a sessão.' }, { status: 400 })
 		}
