@@ -54,8 +54,15 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ step: 2, email })
 		}
 
-		// Cria a sessão
-		await createSession(user.id)
+		// Cria a sessão e o cookie do usuário
+		const sessionToken = await createSession(user.id)
+		if ('error' in sessionToken) {
+			return NextResponse.json({ field: 'code', message: 'Ocorreu um erro ao criar a sessão.' }, { status: 400 })
+		}
+
+		// TODO: REMOVER CONSOLE.LOG
+		console.log('sessionToken', sessionToken)
+		console.log('success')
 
 		return NextResponse.json({ success: true }, { status: 200 })
 	} catch (error) {

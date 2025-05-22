@@ -1,23 +1,32 @@
 import { randomUUID, createHash } from 'crypto'
 import { db } from '@/lib/db'
-import { authSession } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { authSession, authUser } from '@/lib/db/schema'
+import { eq, lt } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 
 // Criar e validar sessão
 
 // Cria sessão no banco e salva cookie HttpOnly
 export async function createSession(userId: string) {
-	// Função auxiliar para gerar um token seguro
-	const generateToken = () => {
-		return createHash('sha256').update(randomUUID()).digest('hex')
-	}
-
+	// Gera um token aleatório e seguro
 	const token = generateToken()
-	const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7) // 7 dias
 
-	await db.insert(authSession).values({ id: randomUUID(), userId, token, expiresAt })
+	// Gera o hash do token
+	const hashToken = await generateHashToken(token)
 
+	// Um dia em milissegundos
+	const DAY_IN_MS = 24 * 60 * 60 * 1000 // 86400000 ms (1 dia)
+
+	// Sessão expira em dias
+	const expiresAt = new Date(Date.now() + DAY_IN_MS * 30) // 30 dias
+
+	// Dados da sessão
+	const session = { id: randomUUID(), userId, token: hashToken, expiresAt }
+
+	// Insere a sessão no banco de dados
+	await db.insert(authSession).values(session)
+
+	// Insere o cookie de sessão no navegador
 	const cookieStore = await cookies()
 	cookieStore.set('session_token', token, {
 		httpOnly: true,
@@ -26,6 +35,9 @@ export async function createSession(userId: string) {
 		path: '/',
 		expires: expiresAt,
 	})
+
+	// Retorna a sessão e o token
+	return { session, token }
 }
 
 // Remove a sessão do banco de dados e do cookie
@@ -44,6 +56,63 @@ export async function destroySession(token: string) {
 }
 
 // Remove todas as sessões de um usuário do banco de dados
-export async function destroyAllUserSession(userId: string) {
+export async function destroyAllSession(userId: string) {
 	await db.delete(authSession).where(eq(authSession.userId, userId))
+}
+
+// Valida o token de sessão do usuário
+// 1. Verifica se a sessão existe no banco de dados
+// 2. Verifica se a sessão expirou
+// 3. Se a sessão não expirou, verifica se ela precisa ser estendida
+// 4. Apaga do banco de dados todos os tokens expirados
+export async function validateSession(token: string) {
+	// Gera o hash do token
+	const hashToken = generateHashToken(token)
+
+	// 1. Verifica se a sessão existe no banco de dados e não está expirada
+	const session = await db.query.authSession.findFirst({ where: eq(authSession.token, hashToken) })
+	if (!session) return { error: { code: 'SESSION_NOT_EXISTS', message: 'A sessão não existe.' } }
+
+	// 2. Verifica se a sessão expirou
+	// Se a sessão expirou, exclui a sessão do banco de dados
+	const sessionExpired = Date.now() >= session.expiresAt.getTime()
+	if (sessionExpired) {
+		await db.delete(authSession).where(eq(authSession.id, session.id))
+		return { error: { code: 'SESSION_EXPIRED', message: 'A sessão expirou.' } }
+	}
+
+	// Um dia em milissegundos
+	const DAY_IN_MS = 24 * 60 * 60 * 1000 // 86400000 ms (1 dia)
+
+	// 3. Se a sessão não expirou, verifica se ela precisa ser estendida
+	// Isso garante que as sessões ativas sejam persistidas, enquanto as inativas eventualmente expirarão.
+	// Verifica se há menos de 15 dias (metade da expiração de 30 dias) antes da expiração.
+	// Se a sessão precisa ser estendida, atualiza a data de expiração
+	const renewSession = Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15 // 15 dias
+	if (renewSession) {
+		session.expiresAt = new Date(Date.now() + DAY_IN_MS * 30)
+		await db.update(authSession).set({ expiresAt: session.expiresAt }).where(eq(authSession.id, session.id))
+	}
+
+	// 4. Apaga do banco de dados todos os tokens expirados
+	await db.delete(authSession).where(lt(authSession.expiresAt, new Date()))
+
+	// Obtém o usuário
+	const user = await db.query.authUser.findFirst({ where: eq(authUser.id, session.userId) })
+	if (!user) return { error: { code: 'USER_NOT_FOUND', message: 'O usuário não foi encontrado.' } }
+
+	// Retorna a sessão e o usuário
+	return { session, user }
+}
+
+// Gera o hash SHA-256 de um token
+export function generateHashToken(token: string): string {
+	const hash = createHash('sha256')
+	hash.update(token)
+	return hash.digest('hex')
+}
+
+// Função auxiliar para gerar um token seguro
+function generateToken(): string {
+	return createHash('sha256').update(randomUUID()).digest('hex')
 }

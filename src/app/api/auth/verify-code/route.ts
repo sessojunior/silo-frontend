@@ -40,9 +40,12 @@ export async function POST(req: NextRequest) {
 		}
 
 		// Cria a sessão e o cookie do usuário
-		await createSession(user.id)
+		const sessionToken = await createSession(user.id)
+		if ('error' in sessionToken) {
+			return NextResponse.json({ field: 'code', message: 'Ocorreu um erro ao criar a sessão.' }, { status: 400 })
+		}
 
-		return NextResponse.json({ success: true }, { status: 200 })
+		return NextResponse.json({ success: true, token: sessionToken.token }, { status: 200 })
 	} catch (error) {
 		console.error('Erro ao verificar o código:', error)
 		return NextResponse.json({ field: null, message: 'Erro interno ao verificar o código.' }, { status: 500 })

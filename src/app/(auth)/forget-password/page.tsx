@@ -10,7 +10,7 @@ import AuthLink from '../components/AuthLink'
 import Label from '@/app/components/Label'
 import Button from '@/app/components/Button'
 import Input from '@/app/components/Input'
-import InputPassword from '@/app/components/InputPassword'
+import InputPasswordHints from '@/app/components/InputPasswordHints'
 import Pin from '@/app/components/Pin'
 
 export default function ForgetPasswordPage() {
@@ -234,7 +234,7 @@ export default function ForgetPasswordPage() {
 									</Button>
 								</div>
 								<p className='text-center'>
-									<AuthLink href='/sign-in'>Voltar</AuthLink>
+									<AuthLink href='/login'>Voltar</AuthLink>
 								</p>
 							</fieldset>
 						</form>
@@ -246,11 +246,12 @@ export default function ForgetPasswordPage() {
 					<>
 						<form onSubmit={handleSendPassword}>
 							<fieldset className='grid gap-5' disabled={loading}>
+								<input type='hidden' name='email' value={email} />
 								<div>
 									<Label htmlFor='new-password' isInvalid={form?.field === 'password'}>
 										Nova senha
 									</Label>
-									<InputPassword id='new-password' name='password' value={password} setValue={setPassword} autoComplete='current-password' placeholder='••••••••' minLength={6} maxLength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
+									<InputPasswordHints ref={passwordRef} id='password' name='password' value={password} setValue={setPassword} autoComplete='current-password' placeholder='••••••••' minLength={8} maxLength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
 								</div>
 								<div>
 									<Button type='submit' disabled={loading} className='w-full'>
@@ -264,7 +265,7 @@ export default function ForgetPasswordPage() {
 									</Button>
 								</div>
 								<p className='text-center'>
-									<AuthLink href='/sign-in'>Voltar</AuthLink>
+									<AuthLink href='/login'>Voltar</AuthLink>
 								</p>
 							</fieldset>
 						</form>
@@ -281,7 +282,7 @@ export default function ForgetPasswordPage() {
 								</Button>
 							</div>
 							<p className='text-center'>
-								<AuthLink href='/sign-in'>Voltar</AuthLink>
+								<AuthLink href='/login'>Voltar</AuthLink>
 							</p>
 						</div>
 					</>

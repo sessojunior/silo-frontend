@@ -5,7 +5,7 @@ import { authCode, authUser } from '@/lib/db/schema'
 import * as schema from '@/lib/db/schema'
 import { isValidEmail } from '@/lib/auth/validate'
 import { sendEmail } from '@/lib/sendEmail'
-import { destroyAllUserSession } from './session'
+import { destroyAllSession } from './session'
 
 // Funções de geração de código OTP e envio de e-mail com o código OTP
 
@@ -131,7 +131,7 @@ export async function validateCode({ email, code }: { email: string; code: strin
 
 	// Por seguranca, todas as sessões devem ser invalidadas após o e-mail ser verificado
 	// Será criado depois uma nova sessão para o usuário
-	await destroyAllUserSession(otpCode.userId)
+	await destroyAllSession(otpCode.userId)
 
 	// Código válido
 	return { success: true }

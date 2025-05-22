@@ -61,15 +61,15 @@ export async function GET(request: NextRequest) {
 	// 8. Se não existir, cria um novo usuário com os dados do Google
 	const user = existingUser.user ?? (await createUserFromGoogleId(googleId, email, name, picture))
 
-	// 9. Cria a sessão interna e seta o cookie de sessão
-	const resultSession = await auth.createSessionToken(user.id)
-	if ('error' in resultSession) {
-		return NextResponse.json({ message: 'Ocorreu um erro ao criar a sessão.' }, { status: 400 })
+	// 9. Cria a sessão e o cookie do usuário
+	const sessionToken = await createSession(user.id)
+	if ('error' in sessionToken) {
+		return NextResponse.json({ field: 'code', message: 'Ocorreu um erro ao criar a sessão.' }, { status: 400 })
 	}
 
 	// Monta a resposta de redirect e adiciona o Set-Cookie da sessão
 	const response = NextResponse.redirect(new URL('/app/welcome', request.url))
-	setCookieSessionToken(response, resultSession.token, resultSession.session.expiresAt)
+	setCookieSessionToken(response, resultSession.token, sessionToken.session.expiresAt)
 
 	return response
 }

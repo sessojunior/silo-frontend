@@ -73,7 +73,7 @@ Para isso siga as seguintes etapas:
 
 2. Na tela a seguir, com o título `Criar ID do cliente do OAuth`, você deve selecionar o tipo de aplicativo. Selecione `Aplicativo da Web`. Depois dissom digite o nome como `Better Auth` (mas pode ser o nome que quiser, utilize um que identifique melhor o seu aplicativo).
 
-3. Em URIs de redirecionamento autorizados, adicione a seguinte URL: `http://localhost:5173/sign-in/google/callback` (se estiver em ambiente de desenvolvimento).
+3. Em URIs de redirecionamento autorizados, adicione a seguinte URL: `http://localhost:3000/api/auth/callback/google` (se estiver em ambiente de desenvolvimento).
 
 4. Irá exibir um modal, com o título `Cliente OAuth criado`. Irá exibir o `ID do cliente` e a `Chave secreta do cliente`. Você irá precisar copiar ambos.
 

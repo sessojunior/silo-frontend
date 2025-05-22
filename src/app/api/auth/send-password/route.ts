@@ -1,32 +1,47 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import * as auth from '@/lib/auth'
+import { NextRequest, NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { authUser } from '@/lib/db/schema'
+import { hashPassword } from '@/lib/auth/hash'
+import { validateSession } from '@/lib/auth/session'
+import { isValidPassword } from '@/lib/auth/validate'
 
-// Envia a nova senha do usuário para alterar
 export async function POST(req: NextRequest) {
 	try {
-		const { token, password } = await req.json()
+		const body = await req.json()
+		const token = body.token as string
+		const password = body.password as string
 
 		if (!token || !password) {
-			return NextResponse.json({ field: null, message: 'O token e a senha são obrigatórios.' }, { status: 400 })
+			return NextResponse.json({ field: null, message: 'Todos os campos são obrigatórios.' }, { status: 400 })
+		}
+
+		if (!isValidPassword(password)) {
+			return NextResponse.json({ field: 'password', message: 'A senha é inválida.' }, { status: 400 })
 		}
 
 		// Valida o token de sessão e obtém a sessão e o usuário
-		// Se a sessão for inválida, redireciona o usuário para a etapa 1
-		const resultValidateSessionToken = await auth.validateSessionToken(token as string)
-		if ('error' in resultValidateSessionToken) return NextResponse.json({ step: 1 }, { status: 400 })
+		const sessionUser = await validateSession(token)
+		if ('error' in sessionUser) {
+			// Token inválido
+			return NextResponse.json({ step: 1 }, { status: 400 })
+		}
 
-		// Obtém os dados do usuário
-		const user = resultValidateSessionToken.user
+		// Obtém o usuário
+		const { user } = sessionUser
 
-		// Altera a senha
-		const resultChangeUserPassword = await auth.changeUserPassword({ userId: user.id, password })
-		if ('error' in resultChangeUserPassword) return NextResponse.json({ field: 'password', message: resultChangeUserPassword.error ? resultChangeUserPassword.error.message : 'Ocorreu um erro ao alterar a senha.' }, { status: 400 })
+		// Criptografa a senha
+		const hashedPassword = await hashPassword(password)
 
+		// Altera a senha do usuário no banco de dados
+		const updatePassword = await db.update(authUser).set({ password: hashedPassword }).where(eq(authUser.email, user.email))
+		if ('error' in updatePassword) return NextResponse.json({ field: 'password', message: 'Ocorreu um erro ao alterar a senha.' }, { status: 400 })
+
+		// Senha redefinida com sucesso
 		// Retorna para a página o próximo passo
 		return NextResponse.json({ step: 4 })
-	} catch (error) {
-		console.error('Erro em /api/auth/send-password:', error)
+	} catch (err) {
+		console.error('Erro ao enviar a senha:', err)
 		return NextResponse.json({ field: null, message: 'Erro interno ao enviar a senha.' }, { status: 500 })
 	}
 }
