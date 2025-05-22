@@ -39,7 +39,7 @@ const welcome: WelcomeProps[] = [
 
 export default function WelcomePage() {
 	return (
-		<div className='container flex h-full flex-col items-center justify-center p-8 text-zinc-600 dark:text-zinc-200'>
+		<div className='w-full flex min-h-full flex-col items-center justify-center p-8 text-zinc-600 dark:text-zinc-200'>
 			<div className='mb-4 max-w-2xl'>
 				<h1 className='text-center text-3xl font-bold tracking-tight'>
 					Bem-vindo <span className='text-blue-600'>Fulano</span> 👋

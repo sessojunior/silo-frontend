@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { toast } from '@/app/lib/toast'
+import { toast } from '@/lib/toast'
 
 import AuthHeader from '../components/AuthHeader'
 import AuthDivider from '../components/AuthDivider'
@@ -70,12 +70,20 @@ export default function LoginPage() {
 					title: data.message,
 				})
 			} else {
-				toast({
-					type: 'info',
-					title: 'Agora só falta verificar seu e-mail.',
-				})
-				// Redireciona para a etapa 2
-				setStep(2)
+				if (data.step && data.step === 2) {
+					toast({
+						type: 'info',
+						title: 'Agora só falta verificar seu e-mail.',
+					})
+					// Redireciona para a etapa 2
+					setStep(2)
+					return
+				}
+
+				if (data.success) {
+					// Redireciona para a página protegida
+					router.push('/admin/welcome')
+				}
 			}
 		} catch (err) {
 			console.error(err)
@@ -115,8 +123,11 @@ export default function LoginPage() {
 					type: 'success',
 					title: 'Conta verificada com sucesso.',
 				})
-				// Redireciona para a página protegida
-				router.push('/admin/welcome')
+
+				if (data.success) {
+					// Redireciona para a página protegida
+					router.push('/admin/welcome')
+				}
 			}
 		} catch (err) {
 			console.error(err)

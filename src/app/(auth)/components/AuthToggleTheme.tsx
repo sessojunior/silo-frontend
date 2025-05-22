@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { toggleTheme, applySavedTheme } from '@/app/lib/theme'
+import { toggleTheme, applySavedTheme } from '@/lib/theme'
 
 export default function AuthToggleTheme() {
 	useEffect(() => {

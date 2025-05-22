@@ -28,7 +28,7 @@ export default function AdminWrapper({ user, sidebar, account, children }: { use
 			<Sidebar user={user} sidebar={sidebar} isOpen={isOpen} onClose={() => setIsOpen(false)} />
 
 			{/* Barra do topo */}
-			<Topbar title='Bem-vindo ao Silo' account={account} />
+			<Topbar title='Bem-vindo ao Silo' account={account} user={user} />
 
 			{/* Conteúdo */}
 			<div className='w-full transition-all duration-300 lg:pl-[260px]'>

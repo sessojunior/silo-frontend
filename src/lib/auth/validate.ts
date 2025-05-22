@@ -1,5 +1,7 @@
+// Validação de entrada de dados do formulário de autenticação
+
 // Valida o e-mail
-export function validateEmail(email: string): boolean {
+export function isValidEmail(email: string): boolean {
 	// 1. Verifica se o valor é uma string
 	if (typeof email !== 'string') return false
 
@@ -45,7 +47,7 @@ export function validateEmail(email: string): boolean {
 }
 
 // Valida a senha
-export function validatePassword(password: string): boolean {
+export function isValidPassword(password: string): boolean {
 	// 1. Verifica se é uma string
 	if (typeof password !== 'string') return false
 
@@ -70,7 +72,7 @@ export function validatePassword(password: string): boolean {
 }
 
 // Valida o nome do usuário
-export function validateUserName(name: string): boolean {
+export function isValidName(name: string): boolean {
 	// 1. Verifica se o valor é uma string
 	if (typeof name !== 'string') return false
 
@@ -86,5 +88,17 @@ export function validateUserName(name: string): boolean {
 	if (!validNameRegex.test(trimmed)) return false
 
 	// Se passou por todas as verificações, o nome é válido
+	return true
+}
+
+// Valida o código OTP
+export function isValidCode(code: string): boolean {
+	// 1. Verifica se o valor é uma string
+	if (typeof code !== 'string') return false
+
+	// 2. Verifica se o código tem 5 caracteres
+	if (code.length !== 5) return false
+
+	// 3. Se passou por todas as verificações, o código é valido
 	return true
 }

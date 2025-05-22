@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import * as auth from '@/app/lib/auth'
+import * as auth from '@/lib/auth'
 
 // Faz login do usuário com e-mail
 export async function POST(req: NextRequest) {

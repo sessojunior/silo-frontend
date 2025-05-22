@@ -1,42 +1,74 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import * as auth from '@/app/lib/auth'
+import { NextRequest, NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { authUser } from '@/lib/db/schema'
+import { hashPassword } from '@/lib/auth/hash'
+import { generateCode, sendEmailCode } from '@/lib/auth/code'
+import { isValidEmail, isValidPassword, isValidName } from '@/lib/auth/validate'
+import { randomUUID } from 'crypto'
 
-// Faz o cadastro do usuário
+// Cadastra um novo usuário
 export async function POST(req: NextRequest) {
 	try {
-		const { name: reqName, email: reqEmail, password: reqPassword } = await req.json()
-		const name = reqName as string
-		const email = (reqEmail as string).trim().toLowerCase()
-		const password = reqPassword as string
+		const body = await req.json()
+		const name = (body.name as string)?.trim()
+		const email = (body.email as string)?.trim().toLowerCase()
+		const password = body.password as string
 
+		// Validação básica dos campos
 		if (!name || !email || !password) {
 			return NextResponse.json({ field: null, message: 'Todos os campos são obrigatórios.' }, { status: 400 })
 		}
 
-		// Cria a conta do usuário
-		// Caso o usuário já exista, será exibido um erro que já existe. O usuário precisará fazer login.
-		const resultSignUp = await auth.signUp(name, email, password)
-		if ('error' in resultSignUp) {
-			return NextResponse.json({ field: resultSignUp.error.field, message: resultSignUp.error.message ?? 'Ocorreu um erro ao criar o usuário.' }, { status: 400 })
+		if (!isValidName(name)) {
+			return NextResponse.json({ field: 'name', message: 'O nome precisa ser completo e conter apenas letras.' }, { status: 400 })
 		}
 
-		// Obtém um código OTP e salva-o no banco de dados
-		const resultGenerateCode = await auth.generateCode(email)
-		if ('error' in resultGenerateCode) {
-			return NextResponse.json({ field: null, message: resultGenerateCode.error.message ?? 'Erro ao gerar o código para enviar por e-mail.' }, { status: 400 })
+		if (!isValidEmail(email)) {
+			return NextResponse.json({ field: 'email', message: 'O e-mail é inválido.' }, { status: 400 })
 		}
 
+		if (!isValidPassword(password)) {
+			return NextResponse.json({ field: 'password', message: 'A senha é inválida.' }, { status: 400 })
+		}
+
+		// Verifica se já existe um usuário com o e-mail
+		const existingUser = await db.query.authUser.findFirst({
+			where: eq(authUser.email, email),
+		})
+		if (existingUser) {
+			return NextResponse.json({ field: 'email', message: 'Já existe uma conta com este e-mail. Faça login para continuar.' }, { status: 400 })
+		}
+
+		// Criptografa a senha
+		const hashedPassword = await hashPassword(password)
+
+		// Cria o novo usuário no banco de dados
+		const userId = randomUUID()
+		await db.insert(authUser).values({
+			id: userId,
+			name,
+			email,
+			emailVerified: 0,
+			password: hashedPassword,
+			createdAt: new Date(Date.now()),
+		})
+
+		// Gera e envia código de verificação por e-mail
+		const otp = await generateCode(email)
+		if ('error' in otp) {
+			return NextResponse.json({ field: 'email', message: otp.error.message ?? 'Erro ao gerar o código de verificação para enviar por e-mail.' }, { status: 500 })
+		}
 		// Código OTP
-		const code = resultGenerateCode.code
+		const code = otp.code
 
 		// Envia o código OTP por e-mail
-		await auth.sendEmailCode({ email, type: 'email-verification', code })
+		await sendEmailCode({ email, type: 'sign-up', code })
 
-		// Retorna os dados e o próximo passo
-		return NextResponse.json({ step: 2, name, email })
+		// Retorna para a página o próximo passo
+		return NextResponse.json({ step: 2, email }, { status: 200 })
 	} catch (error) {
-		console.error('Erro em /api/auth/register:', error)
+		console.error('Erro ao criar conta de usuário:', error)
 		return NextResponse.json({ field: null, message: 'Erro interno ao criar a conta do usuário.' }, { status: 500 })
 	}
 }

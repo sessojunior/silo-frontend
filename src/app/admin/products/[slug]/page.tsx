@@ -312,21 +312,21 @@ const docs: TreeItemProps[] = [
 // Dados de contatos
 const contacts = [
 	{
-		image: '/uploads/avatar/10.jpg',
+		image: '/uploads/profile/10.jpg',
 		name: 'Marcelo Silvano',
 		role: 'Analista técnico',
 		team: 'CGCT',
 		email: 'marcelo.silvano@inpe.br',
 	},
 	{
-		image: '/uploads/avatar/20.jpg',
+		image: '/uploads/profile/20.jpg',
 		name: 'José Santana',
 		role: 'Metereologista',
 		team: 'DIPTC',
 		email: 'jose.santana@inpe.br',
 	},
 	{
-		image: '/uploads/avatar/30.jpg',
+		image: '/uploads/profile/30.jpg',
 		name: 'Aline Mendez',
 		role: 'Pesquisador',
 		team: 'DIPTC',

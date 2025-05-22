@@ -35,7 +35,7 @@ export default function ChartDonut() {
 		legend: {
 			show: true,
 			position: 'left',
-			formatter: function (val: string, opts: any) {
+			formatter: function (val, opts) {
 				const value = opts.w.globals.series[opts.seriesIndex]
 				return `${val}: ${value}`
 			},

@@ -3,14 +3,15 @@ import TopbarButton from './TopbarButton'
 import TopbarDivider from './TopbarDivider'
 import TopbarTitle from './TopbarTitle'
 
-import { AccountProps } from '../../layout'
+import { AccountProps, UserProps } from '../../layout'
 
 interface TopbarProps {
 	title: string
 	account: AccountProps
+	user: UserProps
 }
 
-export default function Topbar({ title, account }: TopbarProps) {
+export default function Topbar({ title, account, user }: TopbarProps) {
 	return (
 		<>
 			<header className='sticky inset-x-0 top-0 z-40 flex h-16 w-full flex-shrink-0 flex-wrap border-b border-b-zinc-200 bg-white py-2.5 md:flex-nowrap md:justify-start lg:ps-[260px] dark:border-zinc-700 dark:bg-zinc-900'>
@@ -44,7 +45,7 @@ export default function Topbar({ title, account }: TopbarProps) {
 								Mensagens
 							</TopbarButton>
 							<TopbarDivider />
-							<TopbarDropdown account={account} />
+							<TopbarDropdown account={account} user={user} />
 						</div>
 					</div>
 				</nav>

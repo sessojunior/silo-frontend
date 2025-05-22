@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 
-import { toast } from '@/app/lib/toast'
+import { toast } from '@/lib/toast'
 
 import AuthHeader from '../components/AuthHeader'
 import AuthLink from '../components/AuthLink'

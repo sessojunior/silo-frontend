@@ -1,4 +1,4 @@
-import { db, dbProduction, schema, schemaProduction } from '@/app/lib/db'
+import { db, dbProduction, schema, schemaProduction } from '@/lib/db'
 import { eq } from 'drizzle-orm'
 
 // Tipos

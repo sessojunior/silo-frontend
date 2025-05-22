@@ -15,7 +15,7 @@ type ProblemProps = {
 type UserProps = {
 	id: string
 	name: string
-	avatar: string
+	image: string
 }
 
 // Screenshot de um problema
@@ -95,7 +95,7 @@ const problem: ProblemWithSolutionsProps = {
 			user: {
 				id: '1',
 				name: 'Ronaldo Gaúcho',
-				avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
+				image: 'https://randomuser.me/api/portraits/men/1.jpg',
 			},
 			description: 'Praesent eget tempor lectus, sed placerat turpis. Phasellus sit amet mauris id ipsum interdum dapibus eu et sem. Vivamus vestibulum mi nisl, eu rutrum quam cursus in. Cras consequat et lacus et suscipit. Morbi finibus tellus vel turpis fermentum, nec iaculis nisi posuere. Suspendisse sit amet blandit ligula.',
 			verified: false,
@@ -107,7 +107,7 @@ const problem: ProblemWithSolutionsProps = {
 			user: {
 				id: '2',
 				name: 'Angélica Carioca',
-				avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
+				image: 'https://randomuser.me/api/portraits/women/2.jpg',
 			},
 			description: 'Phasellus sit amet mauris id ipsum interdum dapibus eu et sem. Morbi finibus tellus vel turpis fermentum, nec iaculis nisi posuere. Suspendisse sit amet blandit ligula.',
 			verified: false,
@@ -119,7 +119,7 @@ const problem: ProblemWithSolutionsProps = {
 			user: {
 				id: '3',
 				name: 'Rafael Dias',
-				avatar: 'https://randomuser.me/api/portraits/men/3.jpg',
+				image: 'https://randomuser.me/api/portraits/men/3.jpg',
 			},
 			description: 'Quisque eget est ipsum. Phasellus a augue a nibh placerat facilisis?',
 			verified: false,
@@ -131,7 +131,7 @@ const problem: ProblemWithSolutionsProps = {
 			user: {
 				id: '4',
 				name: 'Anderson Santos',
-				avatar: 'https://randomuser.me/api/portraits/men/4.jpg',
+				image: 'https://randomuser.me/api/portraits/men/4.jpg',
 			},
 			description: 'Ut id libero non tortor ullamcorper porta sit amet eget justo. Proin viverra vitae nibh vel placerat. Donec sed pellentesque libero, ac ultrices felis.',
 			verified: true,
@@ -143,7 +143,7 @@ const problem: ProblemWithSolutionsProps = {
 			user: {
 				id: '5',
 				name: 'Mateus Gonçalves',
-				avatar: 'https://randomuser.me/api/portraits/men/5.jpg',
+				image: 'https://randomuser.me/api/portraits/men/5.jpg',
 			},
 			description: 'Aenean vehicula placerat lectus, vel facilisis odio gravida non. Suspendisse nisi nisl, venenatis vitae laoreet vel, tempor sit amet velit. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.',
 			verified: false,
@@ -155,7 +155,7 @@ const problem: ProblemWithSolutionsProps = {
 			user: {
 				id: '6',
 				name: 'Carlitos Dantes',
-				avatar: 'https://randomuser.me/api/portraits/men/6.jpg',
+				image: 'https://randomuser.me/api/portraits/men/6.jpg',
 			},
 			description: 'Morbi finibus tellus vel turpis fermentum.',
 			verified: false,
@@ -283,7 +283,7 @@ export default function ProblemsPage() {
 								.map((solution) => (
 									<div key={solution.id} className='flex gap-x-2'>
 										<div className='size-12 shrink-0'>
-											<img src={solution.user.avatar} alt={solution.user.name} className='size-full rounded-full' />
+											<img src={solution.user.image} alt={solution.user.name} className='size-full rounded-full' />
 										</div>
 										<div className='flex flex-col'>
 											<div className='flex flex-col gap-y-1'>
@@ -311,7 +311,7 @@ export default function ProblemsPage() {
 													.map((reply) => (
 														<div key={reply.id} className='flex gap-x-2 ml-4 mt-2'>
 															<div className='size-12 shrink-0'>
-																<img src={reply.user.avatar} alt={reply.user.name} className='size-full rounded-full' />
+																<img src={reply.user.image} alt={reply.user.name} className='size-full rounded-full' />
 															</div>
 															<div className='flex flex-col'>
 																<div className='flex flex-col gap-y-1'>

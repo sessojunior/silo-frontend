@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import * as auth from '@/app/lib/auth'
+import * as auth from '@/lib/auth'
 
 // Recupera a senha do usuário
 export async function POST(req: NextRequest) {

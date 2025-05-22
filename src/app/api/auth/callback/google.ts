@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { createUserFromGoogleId, getUserFromGoogleId, google } from '@/app/lib/oauth'
-import * as auth from '@/app/lib/auth'
+import { createUserFromGoogleId, getUserFromGoogleId, google } from '@/lib/auth/oauth'
+import * as auth from '@/lib/auth'
+import { setCookieSessionToken } from '@/lib/auth/cookies'
 import * as arctic from 'arctic'
 
 // Callback do Google OAuth2 (PKCE) que:
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
 
 	// Monta a resposta de redirect e adiciona o Set-Cookie da sessão
 	const response = NextResponse.redirect(new URL('/app/welcome', request.url))
-	auth.setCookieSessionToken(response, resultSession.token, resultSession.session.expiresAt)
+	setCookieSessionToken(response, resultSession.token, resultSession.session.expiresAt)
 
 	return response
 }

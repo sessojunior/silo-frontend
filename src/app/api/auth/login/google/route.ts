@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { google } from '@/app/lib/oauth'
+import { google } from '@/lib/auth/oauth'
 import * as arctic from 'arctic'
 
 // Cria a URL de autorização do Google

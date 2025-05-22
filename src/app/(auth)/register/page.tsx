@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { toast } from '@/app/lib/toast'
+import { toast } from '@/lib/toast'
 
 import AuthHeader from '../components/AuthHeader'
 import AuthDivider from '../components/AuthDivider'
@@ -91,11 +91,15 @@ export default function RegisterPage() {
 					title: data.message,
 				})
 			} else {
-				toast({
-					type: 'success',
-					title: 'Conta criada com sucesso. Verifique seu e-mail.',
-				})
-				setStep(2)
+				if (data.step && data.step === 2) {
+					toast({
+						type: 'success',
+						title: 'Conta criada com sucesso. Verifique seu e-mail.',
+					})
+					// Redireciona para a etapa 2
+					setStep(2)
+					return
+				}
 			}
 		} catch (err) {
 			console.error(err)
@@ -143,8 +147,11 @@ export default function RegisterPage() {
 					type: 'success',
 					title: 'Conta verificada com sucesso.',
 				})
-				// Redireciona para a página protegida
-				router.push('/admin/welcome')
+
+				if (data.success) {
+					// Redireciona para a página protegida
+					router.push('/admin/welcome')
+				}
 			}
 		} catch (err) {
 			console.error(err)

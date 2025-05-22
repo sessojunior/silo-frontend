@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer'
 
 // Envia um e-mail
+
 export async function sendEmail({ to, subject, text }: { to: string; subject: string; text: string }): Promise<{ success: boolean } | { error: { code: string; message: string } }> {
 	// Configuração do SMTP
 	const transporter = nodemailer.createTransport({

@@ -611,12 +611,20 @@ const month2 = {
 	],
 }
 
-export default function Product({ id, name, progress, priority, date }) {
+interface ProductProps {
+	id: string
+	name: string
+	progress: number
+	priority: string
+	date: string
+}
+
+export default function Product({ id, name, progress, priority, date }: ProductProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false)
 
 	return (
 		<>
-			<div className='flex flex-col rounded-lg border border-dashed border-zinc-200 bg-white p-4 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800'>
+			<div key={id} className='flex flex-col rounded-lg border border-dashed border-zinc-200 bg-white p-4 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800'>
 				<div className='flex items-center justify-between'>
 					{/* Produto */}
 					<div className='flex flex-col'>
