@@ -75,9 +75,9 @@ export const userPreferences = sqliteTable('user_preferences', {
 })
 export type UserPreferences = typeof userPreferences.$inferSelect
 
-export const products = sqliteTable('products', {
+export const product = sqliteTable('product', {
 	id: text('id').primaryKey(),
 	name: text('name').notNull(),
 	available: integer({ mode: 'boolean' }).notNull(),
 })
-export type Products = typeof products.$inferSelect
+export type Product = typeof product.$inferSelect

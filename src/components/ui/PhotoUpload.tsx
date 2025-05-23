@@ -42,7 +42,7 @@ export default function PhotoUpload({ image, className, ...props }: PhotoUploadP
 		const formData = new FormData()
 		formData.append('intent', 'delete-profile-image')
 
-		const res = await fetch('/api/profile-image', {
+		const res = await fetch('/api/user-profile-image', {
 			method: 'DELETE',
 			body: formData,
 		})
@@ -72,7 +72,7 @@ export default function PhotoUpload({ image, className, ...props }: PhotoUploadP
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 		const formData = new FormData(e.currentTarget)
-		const res = await fetch('/api/profile-image', {
+		const res = await fetch('/api/user-profile-image', {
 			method: 'POST',
 			body: formData,
 		})
@@ -99,7 +99,7 @@ export default function PhotoUpload({ image, className, ...props }: PhotoUploadP
 	}
 
 	return (
-		<form method='post' action='/api/profile-image' encType='multipart/form-data' onSubmit={handleSubmit} className={twMerge(clsx('flex w-full', className))} {...props}>
+		<form method='post' action='/api/user-profile-image' encType='multipart/form-data' onSubmit={handleSubmit} className={twMerge(clsx('flex w-full', className))} {...props}>
 			<div className='flex w-full gap-4'>
 				{/* Avatar/Preview */}
 				<div className='flex items-center justify-center'>

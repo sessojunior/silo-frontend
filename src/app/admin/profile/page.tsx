@@ -34,7 +34,7 @@ export default function ProfilePage() {
 		const fetchUserProfile = async () => {
 			setLoading(true)
 			try {
-				const res = await fetch('/api/profile')
+				const res = await fetch('/api/user-profile')
 				const data = await res.json()
 
 				if (!res.ok) {
@@ -104,7 +104,7 @@ export default function ProfilePage() {
 		setForm({ field: null, message: '' })
 
 		try {
-			const res = await fetch('/api/profile', {
+			const res = await fetch('/api/user-profile', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ ...format }),
