@@ -201,7 +201,7 @@ export default function LoginEmailPage() {
 									</Button>
 								</div>
 								<p className='text-center'>
-									<AuthLink href='/login'>Voltar</AuthLink>
+									<AuthLink onClick={() => setStep(1)}>Voltar</AuthLink>
 								</p>
 							</fieldset>
 						</form>

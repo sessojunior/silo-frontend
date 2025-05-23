@@ -40,6 +40,16 @@ export const authProvider = sqliteTable('auth_provider', {
 })
 export type AuthProvider = typeof authProvider.$inferSelect
 
+export const rateLimit = sqliteTable('rate_limit', {
+	id: text('id').primaryKey(),
+	route: text('route').notNull(),
+	email: text('email').notNull(),
+	ip: text('ip').notNull(),
+	count: integer('count').notNull(),
+	lastRequest: integer('last_request', { mode: 'timestamp' }).notNull(),
+})
+export type RateLimit = typeof rateLimit.$inferSelect
+
 export const userProfile = sqliteTable('user_profile', {
 	id: text('id').primaryKey(),
 	userId: text('user_id')

@@ -2,10 +2,10 @@ import { randomUUID } from 'crypto'
 import { eq, and, gt, lt } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { authCode, authUser } from '@/lib/db/schema'
-import * as schema from '@/lib/db/schema'
 import { isValidEmail } from '@/lib/auth/validate'
 import { sendEmail } from '@/lib/sendEmail'
 import { destroyAllSession } from './session'
+import { isRateLimited, recordRateLimit } from '@/lib/rateLimit'
 
 // Funções de geração de código OTP e envio de e-mail com o código OTP
 
@@ -20,8 +20,8 @@ export async function generateCode(email: string): Promise<{ success: boolean; c
 	// Verifica se o usuário existe no banco de dados pelo e-mail
 	const user = await db
 		.select()
-		.from(schema.authUser)
-		.where(eq(schema.authUser.email, formatEmail))
+		.from(authUser)
+		.where(eq(authUser.email, formatEmail))
 		.limit(1)
 		.then((results) => results.at(0))
 
@@ -57,7 +57,7 @@ export async function generateCode(email: string): Promise<{ success: boolean; c
 	const code = randomCode({ allowedCharacters: '347AEFHJKMNPRTWY', numberCharacters: 5 })
 
 	// Remove códigos anteriores do mesmo usuário
-	await db.delete(schema.authCode).where(eq(schema.authCode.userId, user.id))
+	await db.delete(authCode).where(eq(authCode.userId, user.id))
 
 	// Um minuto em milissegundos
 	const MINUTE_IN_MS = 60 * 1000 // 60000 ms (1 minuto)
@@ -67,7 +67,7 @@ export async function generateCode(email: string): Promise<{ success: boolean; c
 
 	// Insere o novo código no banco de dados
 	const [insertCode] = await db
-		.insert(schema.authCode)
+		.insert(authCode)
 		.values({
 			id: codeId,
 			code,
@@ -80,23 +80,6 @@ export async function generateCode(email: string): Promise<{ success: boolean; c
 
 	// Retorna o código OTP
 	return { success: true, code }
-}
-
-// Envia o código de verificação OTP para o e-mail do usuário
-export async function sendEmailCode({ email, type, code }: { email: string; type: string; code: string }): Promise<{ success: boolean } | { error: { code: string; message: string } }> {
-	// Formata os dados recebidos
-	const formatEmail = email.trim().toLowerCase()
-
-	// Verifica se o e-mail é invalido
-	if (!isValidEmail(formatEmail)) return { error: { code: 'INVALID_EMAIL', message: 'E-mail inválido.' } }
-
-	// Envia o e-mail com o código OTP
-	// Retorna um objeto: { success: boolean, error?: { code, message } }
-	return await sendEmail({
-		to: email,
-		subject: `Código de verificação: ${code}`,
-		text: `Utilize o seguinte código de verificação ${type === 'sign-in' ? 'para fazer login' : type === 'email-verification' ? 'para verificar seu e-mail' : type === 'forget-password' ? 'para recuperar sua senha' : 'a seguir'}: ${code}`,
-	})
 }
 
 // Verifica se o código de verificação OTP enviado para o usuário é válido e se não expirou
@@ -135,4 +118,32 @@ export async function validateCode({ email, code }: { email: string; code: strin
 
 	// Código válido
 	return { success: true }
+}
+
+// Envia o código de verificação OTP para o e-mail do usuário
+export async function sendEmailCode({ email, type, code, ip }: { email: string; type: string; code: string; ip: string }): Promise<{ success: boolean } | { error: { code: string; message: string } }> {
+	// Formata os dados recebidos
+	const formatEmail = email.trim().toLowerCase()
+
+	// Verifica se o e-mail é invalido
+	if (!isValidEmail(formatEmail)) return { error: { code: 'INVALID_EMAIL', message: 'E-mail inválido.' } }
+
+	// Limitação de taxa de envio de e-mail
+
+	// Aplica limitação: no máximo 3 envios por minuto por IP + email + tipo
+	const blocked = await isRateLimited({ email: formatEmail, ip, route: type })
+	if (blocked) return { error: { code: 'RATE_LIMITED', message: 'Muitas tentativas. Tente novamente em instantes.' } }
+
+	// Registra esta tentativa no banco
+	await recordRateLimit({ email: formatEmail, ip, route: type })
+
+	// Envia o e-mail
+
+	// Envia o e-mail com o código OTP
+	// Retorna um objeto: { success: boolean, error?: { code, message } }
+	return await sendEmail({
+		to: email,
+		subject: `Código de verificação: ${code}`,
+		text: `Utilize o seguinte código de verificação ${type === 'sign-in' ? 'para fazer login' : type === 'email-verification' ? 'para verificar seu e-mail' : type === 'forget-password' ? 'para recuperar sua senha' : 'a seguir'}: ${code}`,
+	})
 }

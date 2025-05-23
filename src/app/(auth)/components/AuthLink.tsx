@@ -2,9 +2,9 @@
 
 import NextLink from 'next/link'
 
-export default function AuthLink({ children, href }: { children: React.ReactNode; href: string }) {
+export default function AuthLink({ children, href = '', onClick = () => {} }: { children: React.ReactNode; href?: string; onClick?: () => void }) {
 	return (
-		<NextLink href={href} className='font-semibold underline-offset-2 hover:underline'>
+		<NextLink href={href} onClick={onClick} className='font-semibold underline-offset-2 hover:underline'>
 			{children}
 		</NextLink>
 	)

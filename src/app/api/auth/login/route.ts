@@ -47,8 +47,11 @@ export async function POST(req: NextRequest) {
 			// Código OTP
 			const code = otp.code
 
+			// Extrai IP do cabeçalho
+			const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1'
+
 			// Envia o código OTP por e-mail
-			await sendEmailCode({ email, type: 'sign-in', code })
+			await sendEmailCode({ email, type: 'sign-in', code, ip })
 
 			// Retorna para a página o próximo passo
 			return NextResponse.json({ step: 2, email })
