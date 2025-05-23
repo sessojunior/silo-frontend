@@ -51,7 +51,8 @@ export async function POST(req: NextRequest) {
 			const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1'
 
 			// Envia o código OTP por e-mail
-			await sendEmailCode({ email, type: 'sign-in', code, ip })
+			const sendEmailOtp = await sendEmailCode({ email, type: 'sign-in', code, ip })
+			if ('error' in sendEmailOtp) return NextResponse.json({ field: 'email', message: sendEmailOtp.error.message ?? 'Erro ao enviar o código de verificação por e-mail.' }, { status: 400 })
 
 			// Retorna para a página o próximo passo
 			return NextResponse.json({ step: 2, email })
