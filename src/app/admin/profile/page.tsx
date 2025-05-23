@@ -12,7 +12,10 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import PhotoUpload from '@/components/ui/PhotoUpload'
 
+import { useUser } from '@/context/UserContext'
+
 export default function ProfilePage() {
+	const user = useUser()
 	const [loading, setLoading] = useState(false)
 	const [form, setForm] = useState({ field: null as null | string, message: '' })
 
@@ -23,7 +26,7 @@ export default function ProfilePage() {
 	const [company, setCompany] = useState('')
 	const [location, setLocation] = useState('')
 	const [team, setTeam] = useState('')
-	const [image, setImage] = useState('')
+	const [image, setImage] = useState(user?.image || '')
 
 	const [googleLinked, setGoogleLinked] = useState(false)
 
@@ -52,7 +55,6 @@ export default function ProfilePage() {
 				setCompany(userProfile?.company || '')
 				setLocation(userProfile?.location || '')
 				setTeam(userProfile?.team || '')
-				setImage(user?.image || '')
 			} catch (error) {
 				console.error('Erro ao carregar os dados do perfil do usuário:', error)
 				toast({

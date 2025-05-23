@@ -243,7 +243,7 @@ export default async function AdminLayout({
 
 	const user: UserProps = {
 		...authUser,
-		image: getProfileImagePath(authUser.id) ? `/uploads/profile/${getProfileImagePath(authUser.id)}.png` : '/images/profile.png',
+		image: getProfileImagePath(authUser.id) ?? '/images/profile.png',
 	}
 
 	// Dados da conta para o dropdown da barra do topo

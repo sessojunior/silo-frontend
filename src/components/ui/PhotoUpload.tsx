@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { toast } from '@/lib/toast'
 
 type PhotoUploadProps = {
 	image?: string
@@ -41,8 +42,8 @@ export default function PhotoUpload({ image, className, ...props }: PhotoUploadP
 		const formData = new FormData()
 		formData.append('intent', 'delete-profile-image')
 
-		const res = await fetch('?/delete-profile-image', {
-			method: 'POST',
+		const res = await fetch('/api/profile-image', {
+			method: 'DELETE',
 			body: formData,
 		})
 
@@ -50,33 +51,55 @@ export default function PhotoUpload({ image, className, ...props }: PhotoUploadP
 			setPreviewUrl(null)
 			if (fileInputRef.current) fileInputRef.current.value = ''
 			setIsInvalid(false)
+
+			toast({
+				type: 'success',
+				title: 'Imagem removida',
+				description: 'Sua imagem de perfil foi removida com sucesso.',
+			})
 		} else {
 			const { message } = await res.json()
-			setInvalidMessage(message ?? 'Erro ao apagar imagem.')
+			setInvalidMessage(message ?? 'Erro ao remover a imagem de perfil.')
 			setIsInvalid(true)
+
+			toast({
+				type: 'error',
+				title: 'Não foi possível remover a imagem de perfil.',
+			})
 		}
 	}
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 		const formData = new FormData(e.currentTarget)
-		const res = await fetch('?/upload-profile-image', {
+		const res = await fetch('/api/profile-image', {
 			method: 'POST',
 			body: formData,
 		})
 
 		if (res.ok) {
 			setIsInvalid(false)
+
+			toast({
+				type: 'success',
+				title: 'Imagem atualizada',
+				description: 'Sua imagem de perfil foi alterada com sucesso.',
+			})
 		} else {
 			const result = await res.json()
 			setIsInvalid(true)
 			setInvalidMessage(result.message ?? 'Erro ao atualizar imagem de perfil.')
 			setPreviewUrl(image ? `${image}?timestamp=${Date.now()}` : null)
+
+			toast({
+				type: 'error',
+				title: result.message ?? 'Não foi possível alterar a imagem de perfil.',
+			})
 		}
 	}
 
 	return (
-		<form method='post' action='?/upload-profile-image' encType='multipart/form-data' onSubmit={handleSubmit} className={twMerge(clsx('flex w-full', className))} {...props}>
+		<form method='post' action='/api/profile-image' encType='multipart/form-data' onSubmit={handleSubmit} className={twMerge(clsx('flex w-full', className))} {...props}>
 			<div className='flex w-full gap-4'>
 				{/* Avatar/Preview */}
 				<div className='flex items-center justify-center'>
@@ -101,7 +124,7 @@ export default function PhotoUpload({ image, className, ...props }: PhotoUploadP
 						</button>
 					</div>
 
-					<p className={twMerge(clsx('mt-1 text-xs', isInvalid ? 'text-red-500' : 'text-zinc-400'))}>{isInvalid ? invalidMessage : 'Formatos aceitos: JPEG, PNG e WEBP.'}</p>
+					<p className={twMerge(clsx('mt-1 text-xs', isInvalid ? 'text-red-500' : 'text-zinc-400'))}>{isInvalid ? invalidMessage : 'Formatos aceitos: jpg, png ou webp.'}</p>
 				</div>
 
 				{/* Input oculto */}

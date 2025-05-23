@@ -33,7 +33,6 @@ export async function PUT(req: NextRequest) {
 
 		// Obtem os dados recebidos
 		const body = await req.json()
-		console.log('body', body)
 		const name = (body.name as string)?.trim()
 		const phone = (body.phone as string)?.trim()
 		const company = (body.company as string)?.trim()

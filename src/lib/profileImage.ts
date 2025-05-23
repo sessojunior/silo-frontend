@@ -1,4 +1,4 @@
-import { existsSync, writeFileSync } from 'fs'
+import { existsSync, writeFileSync, unlinkSync } from 'fs'
 import { Buffer } from 'buffer'
 import sharp from 'sharp'
 import fs from 'fs'
@@ -63,10 +63,10 @@ export async function uploadProfileImageFromUrl(url: string, userId: string): Pr
 // redimensiona e converte para o formato WebP, e salva localmente no diretório especificado.
 export async function uploadProfileImageFromInput(file: File, userId: string): Promise<{ success: boolean } | { error: { code: string; message: string } }> {
 	// Configurações da imagem
-	const IMAGE_DIRECTORY = 'static/uploads/profile'
+	const IMAGE_DIRECTORY = 'public/uploads/profile'
 	const OUTPUT_PATH = `${IMAGE_DIRECTORY}/${userId}.webp`
-	const IMAGE_WIDTH = 64
-	const IMAGE_HEIGHT = 64
+	const IMAGE_WIDTH = 128
+	const IMAGE_HEIGHT = 128
 	const IMAGE_QUALITY = 85
 	const IMAGE_SIZE_UPLOAD = 32 * 1024 * 1024 // 32 MB
 	const IMAGE_ALLOWED_FORMATS = ['jpeg', 'png', 'webp']
@@ -128,7 +128,7 @@ export async function uploadProfileImageFromInput(file: File, userId: string): P
 
 // Retorna o caminho relativo para a imagem de perfil do usuário
 export function getProfileImagePath(userId: string): string | null {
-	const profileImageFile = `${userId}.png`
+	const profileImageFile = `${userId}.webp`
 	const profileImagePath = path.resolve('./public/uploads/profile', profileImageFile)
 
 	// Verifica se a imagem de perfil do usuário existe no diretório
@@ -138,4 +138,22 @@ export function getProfileImagePath(userId: string): string | null {
 	}
 
 	return null
+}
+
+// Apaga a imagem de perfil
+export function deleteUserProfileImage(userId: string): { success: boolean } | { error: { code: string; message: string } } {
+	const imagePath = path.resolve('public/uploads/profile', `${userId}.webp`)
+
+	if (!existsSync(imagePath)) {
+		return { error: { code: 'IMAGE_NOT_FOUND', message: 'Imagem de perfil não encontrada.' } }
+	}
+
+	try {
+		unlinkSync(imagePath)
+	} catch (error) {
+		console.error(error)
+		return { error: { code: 'DELETE_ERROR', message: 'Erro ao apagar a imagem de perfil.' } }
+	}
+
+	return { success: true }
 }
