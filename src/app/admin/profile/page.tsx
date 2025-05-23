@@ -45,10 +45,12 @@ export default function ProfilePage() {
 					return
 				}
 
-				const { user, userProfile } = data
+				const { user, userProfile, googleId } = data
 
 				// Seta os dados vindos do backend
 				setName(user?.name || '')
+				setImage(user?.image || '')
+				setGoogleLinked(googleId || false)
 				setGenre(userProfile?.genre || '')
 				setRole(userProfile?.role || '')
 				setPhone(userProfile?.phone || '')
@@ -134,14 +136,6 @@ export default function ProfilePage() {
 		}
 	}
 
-	function linkGoogle() {
-		return false
-	}
-
-	function unlinkGoogle() {
-		return false
-	}
-
 	return (
 		<>
 			{/* Cabecalho */}
@@ -153,8 +147,8 @@ export default function ProfilePage() {
 			</div>
 
 			{/* Cartões */}
-			<div className='flex w-full max-w-7xl gap-8'>
-				<div className='flex flex-grow flex-col self-start rounded-xl border border-zinc-200 bg-white shadow-2xs'>
+			<div className='flex flex-col lg:flex-row w-full max-w-7xl gap-8'>
+				<div className='flex w-full lg:w-96 flex-col flex-grow self-start rounded-xl border border-zinc-200 bg-white shadow-2xs'>
 					<div className='flex items-center rounded-t-xl border-b border-zinc-200 bg-zinc-100 px-6 py-4'>
 						<h3 className='text-xl font-bold'>Informações pessoais</h3>
 					</div>
@@ -272,7 +266,7 @@ export default function ProfilePage() {
 				</div>
 
 				<div className='flex flex-col gap-8'>
-					<div className='flex w-96 flex-col self-start rounded-xl border border-zinc-200 bg-white shadow-2xs'>
+					<div className='flex w-full lg:w-96 flex-col self-start rounded-xl border border-zinc-200 bg-white shadow-2xs'>
 						<div className='flex items-center rounded-t-xl border-b border-zinc-200 bg-zinc-100 px-6 py-4'>
 							<h3 className='text-xl font-bold'>Sua foto</h3>
 						</div>
@@ -282,7 +276,7 @@ export default function ProfilePage() {
 						</div>
 					</div>
 
-					<div className='flex w-96 flex-col self-start rounded-xl border border-zinc-200 bg-white shadow-2xs'>
+					<div className='flex w-full lg:w-96 flex-col self-start rounded-xl border border-zinc-200 bg-white shadow-2xs'>
 						<div className='flex flex-col p-6'>
 							<div className='flex w-full items-center justify-between'>
 								<div>
@@ -290,15 +284,15 @@ export default function ProfilePage() {
 								</div>
 								<div>
 									{googleLinked ? (
-										<button onClick={() => linkGoogle()} className='flex w-full cursor-not-allowed items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-400'>
+										<button disabled className='flex w-full cursor-not-allowed items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-400'>
 											<span className='icon-[logos--google-icon] size-4 shrink-0'></span>
-											Conectar
+											Conectado
 										</button>
 									) : (
-										<button onClick={() => unlinkGoogle()} className='flex w-full items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-red-400 hover:text-white'>
+										<a href='/login-google' className='flex w-full items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-red-400 hover:text-white'>
 											<span className='icon-[logos--google-icon] size-4 shrink-0'></span>
-											Desconectar
-										</button>
+											Conectar
+										</a>
 									)}
 								</div>
 							</div>

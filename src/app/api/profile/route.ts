@@ -5,6 +5,8 @@ import { authUser, userProfile } from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
 import { isValidName } from '@/lib/auth/validate'
 import { randomUUID } from 'crypto'
+import { getGoogleIdFromUserId } from '@/lib/auth/oauth'
+import { getProfileImagePath } from '@/lib/profileImage'
 
 // Obtém os dados do perfil do usuário logado
 export async function GET() {
@@ -16,8 +18,14 @@ export async function GET() {
 		// Busca os dados do perfil do usuário no banco de dados
 		const findUserProfile = await db.query.userProfile.findFirst({ where: eq(userProfile.userId, user.id) })
 
+		// Imagem de perfil
+		const image = getProfileImagePath(user.id) ?? null
+
+		// ID do usuário no Google
+		const { googleId } = await getGoogleIdFromUserId(user.id)
+
 		// Retorna os dados do perfil do usuário
-		return NextResponse.json({ user, userProfile: findUserProfile ?? {} }, { status: 200 })
+		return NextResponse.json({ user: { ...user, image }, userProfile: findUserProfile ?? {}, googleId }, { status: 200 })
 	} catch (error) {
 		console.error('Erro ao buscar os dados do perfil do usuário:', error)
 		return NextResponse.json({ field: null, message: 'Ocorreu um erro ao obter os dados do usuário.' }, { status: 500 })
