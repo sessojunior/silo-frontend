@@ -21,17 +21,17 @@ export interface SelectProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onCha
 	invalidMessage?: string
 }
 
-export default function Select({ placeholder = 'Selecione uma opção...', id, name, selected = null, isInvalid = false, invalidMessage, options, required = false, onChange, ...props }: SelectProps) {
+export default function Select({ placeholder = 'Selecione...', id, name, selected = null, isInvalid = false, invalidMessage, options, required = false, onChange, ...props }: SelectProps) {
 	const [isOpen, setIsOpen] = useState(false)
 	const [search, setSearch] = useState('')
 	const [highlight, setHighlight] = useState(0)
-	const [value, setValue] = useState<string | null>(selected)
-
-	const filtered = options.filter((opt) => opt.label.toLowerCase().includes(search.toLowerCase()))
 	const [openUpwards, setOpenUpwards] = useState(false)
 
 	const containerRef = useRef<HTMLDivElement>(null)
 	const dropdownRef = useRef<HTMLDivElement>(null)
+
+	const filtered = options.filter((opt) => opt.label.toLowerCase().includes(search.toLowerCase()))
+	const selectedLabel = options.find((opt) => opt.value === selected)?.label || ''
 
 	useEffect(() => {
 		function onClickOutside(e: MouseEvent) {
@@ -44,10 +44,6 @@ export default function Select({ placeholder = 'Selecione uma opção...', id, n
 	}, [])
 
 	useEffect(() => {
-		setValue(selected)
-	}, [selected])
-
-	useEffect(() => {
 		if (isOpen && containerRef.current) {
 			const rect = containerRef.current.getBoundingClientRect()
 			const viewportHeight = window.innerHeight
@@ -56,11 +52,7 @@ export default function Select({ placeholder = 'Selecione uma opção...', id, n
 			const spaceBelow = viewportHeight - rect.bottom
 			const spaceAbove = rect.top
 
-			if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
-				setOpenUpwards(true)
-			} else {
-				setOpenUpwards(false)
-			}
+			setOpenUpwards(spaceBelow < dropdownHeight && spaceAbove > dropdownHeight)
 		}
 	}, [isOpen])
 
@@ -68,8 +60,9 @@ export default function Select({ placeholder = 'Selecione uma opção...', id, n
 
 	const selectOption = (opt: SelectOption) => {
 		if (opt.disabled) return
-		setValue(opt.value)
-		onChange?.(opt.value)
+		if (opt.value !== selected) {
+			onChange?.(opt.value)
+		}
 		setIsOpen(false)
 		setSearch('')
 		setHighlight(0)
@@ -82,24 +75,19 @@ export default function Select({ placeholder = 'Selecione uma opção...', id, n
 			e.preventDefault()
 			setHighlight((h) => Math.min(h + 1, filtered.length - 1))
 		}
-
 		if (e.key === 'ArrowUp') {
 			e.preventDefault()
 			setHighlight((h) => Math.max(h - 1, 0))
 		}
-
 		if (e.key === 'Enter') {
 			e.preventDefault()
 			selectOption(filtered[highlight])
 		}
-
 		if (e.key === 'Escape') {
 			e.preventDefault()
 			setIsOpen(false)
 		}
 	}
-
-	const selectedLabel = options.find((opt) => opt.value === value)?.label || ''
 
 	return (
 		<div ref={containerRef} onKeyDown={onKeyDown} className='relative w-full' {...props}>
@@ -117,7 +105,7 @@ export default function Select({ placeholder = 'Selecione uma opção...', id, n
 					}),
 				)}
 			>
-				<span className='block w-full truncate'>{value ? selectedLabel : <span className='text-zinc-400'>{placeholder}</span>}</span>
+				<span className='block w-full truncate'>{selected ? selectedLabel : <span className='text-zinc-400'>{placeholder}</span>}</span>
 
 				{/* Ícone */}
 				<span className='pointer-events-none absolute inset-y-0 right-3 flex items-center text-zinc-400 dark:text-zinc-500'>
@@ -150,7 +138,7 @@ export default function Select({ placeholder = 'Selecione uma opção...', id, n
 								<li
 									key={opt.value}
 									role='option'
-									aria-selected={value === opt.value}
+									aria-selected={selected === opt.value}
 									onClick={() => selectOption(opt)}
 									onMouseEnter={() => setHighlight(idx)}
 									className={twMerge(
@@ -161,7 +149,7 @@ export default function Select({ placeholder = 'Selecione uma opção...', id, n
 									)}
 								>
 									<span className={twMerge(clsx({ 'group-hover:text-zinc-600': !opt.disabled }))}>{opt.label}</span>
-									{value === opt.value && <span className='icon-[lucide--check] size-4 text-blue-600 dark:text-blue-500' />}
+									{selected === opt.value && <span className='icon-[lucide--check] size-4 text-blue-600 dark:text-blue-500' />}
 								</li>
 							))
 						) : (
@@ -172,7 +160,7 @@ export default function Select({ placeholder = 'Selecione uma opção...', id, n
 			)}
 
 			{/* Input hidden para formulário */}
-			<input type='hidden' name={name} value={value || ''} required={required} />
+			<input type='hidden' name={name} value={selected || ''} required={required} />
 
 			{isInvalid && <Message>{invalidMessage}</Message>}
 		</div>

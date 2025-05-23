@@ -11,8 +11,10 @@ import { isValidEmail, isValidPassword } from '@/lib/auth/validate'
 export async function POST(req: NextRequest) {
 	try {
 		const body = await req.json()
-		const email = (body.email as string).trim().toLowerCase()
+		const email = (body.email as string)?.trim().toLowerCase()
 		const password = body.password as string
+
+		// Validação básica dos campos
 
 		if (!email || !password) {
 			return NextResponse.json({ field: null, message: 'Todos os campos são obrigatórios.' }, { status: 400 })

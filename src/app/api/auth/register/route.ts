@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
 		const password = body.password as string
 
 		// Validação básica dos campos
+
 		if (!name || !email || !password) {
 			return NextResponse.json({ field: null, message: 'Todos os campos são obrigatórios.' }, { status: 400 })
 		}
@@ -59,6 +60,7 @@ export async function POST(req: NextRequest) {
 		if ('error' in otp) {
 			return NextResponse.json({ field: 'email', message: otp.error.message ?? 'Erro ao gerar o código de verificação para enviar por e-mail.' }, { status: 500 })
 		}
+
 		// Código OTP
 		const code = otp.code
 

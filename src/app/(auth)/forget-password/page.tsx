@@ -218,7 +218,7 @@ export default function ForgetPasswordPage() {
 								<input type='hidden' name='email' value={email} />
 								<div>
 									<Label htmlFor='code' isInvalid={form?.field === 'code'}>
-										Código que recebeu por e-mail
+										Código recebdio por e-mail
 									</Label>
 									<Pin id='code' name='code' length={5} value={code} setValue={setCode} isInvalid={form?.field === 'code'} invalidMessage={form?.message ?? ''} />
 								</div>

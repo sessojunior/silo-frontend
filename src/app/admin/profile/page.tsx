@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { isValidName } from '@/lib/auth/validate'
 
@@ -14,8 +13,6 @@ import Select from '@/components/ui/Select'
 import PhotoUpload from '@/components/ui/PhotoUpload'
 
 export default function ProfilePage() {
-	const router = useRouter()
-
 	const [loading, setLoading] = useState(false)
 	const [form, setForm] = useState({ field: null as null | string, message: '' })
 
@@ -30,13 +27,45 @@ export default function ProfilePage() {
 
 	const [googleLinked, setGoogleLinked] = useState(false)
 
-	function linkGoogle() {
-		return false
-	}
+	useEffect(() => {
+		const fetchUserProfile = async () => {
+			setLoading(true)
+			try {
+				const res = await fetch('/api/profile')
+				const data = await res.json()
 
-	function unlinkGoogle() {
-		return false
-	}
+				if (!res.ok) {
+					toast({
+						type: 'error',
+						title: data.message || 'Erro ao carregar os dados do perfil do usuário.',
+					})
+					return
+				}
+
+				const { user, userProfile } = data
+
+				// Seta os dados vindos do backend
+				setName(user?.name || '')
+				setGenre(userProfile?.genre || '')
+				setRole(userProfile?.role || '')
+				setPhone(userProfile?.phone || '')
+				setCompany(userProfile?.company || '')
+				setLocation(userProfile?.location || '')
+				setTeam(userProfile?.team || '')
+				setImage(user?.image || '')
+			} catch (error) {
+				console.error('Erro ao carregar os dados do perfil do usuário:', error)
+				toast({
+					type: 'error',
+					title: 'Erro inesperado ao carregar os dados do perfil do usuário.',
+				})
+			} finally {
+				setLoading(false)
+			}
+		}
+
+		fetchUserProfile()
+	}, [])
 
 	const handleUpdate = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -72,7 +101,7 @@ export default function ProfilePage() {
 
 		try {
 			const res = await fetch('/api/profile', {
-				method: 'POST',
+				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ ...format }),
 			})
@@ -103,6 +132,14 @@ export default function ProfilePage() {
 		}
 	}
 
+	function linkGoogle() {
+		return false
+	}
+
+	function unlinkGoogle() {
+		return false
+	}
+
 	return (
 		<>
 			{/* Cabecalho */}
@@ -123,7 +160,7 @@ export default function ProfilePage() {
 						<form onSubmit={handleUpdate}>
 							<fieldset className='grid w-full gap-5' disabled={loading}>
 								<div>
-									<Label htmlFor='name' isInvalid={form?.field === 'name'}>
+									<Label htmlFor='name' isInvalid={form?.field === 'name'} required>
 										Nome
 									</Label>
 									<Input type='text' id='name' name='name' value={name} setValue={setName} autoComplete='name' placeholder='Fulano' required isInvalid={form?.field === 'name'} invalidMessage={form?.message} />
@@ -137,7 +174,7 @@ export default function ProfilePage() {
 											name='genre'
 											id='genre'
 											selected={genre}
-											placeholder='Selecione o sexo...'
+											onChange={(value) => setGenre(value)}
 											options={[
 												{ label: 'Masculino', value: 'male' },
 												{ label: 'Feminino', value: 'female' },
@@ -150,7 +187,7 @@ export default function ProfilePage() {
 										<Label htmlFor='phone' isInvalid={form?.field === 'phone'}>
 											Celular
 										</Label>
-										<Input type='text' id='phone' name='phone' value={phone} setValue={setPhone} autoComplete='phone' mask='phone' placeholder='(00) 00000-0000' required isInvalid={form?.field === 'phone'} invalidMessage={form?.message} />
+										<Input type='text' id='phone' name='phone' value={phone} setValue={setPhone} autoComplete='phone' mask='phone' placeholder='(00) 00000-0000' isInvalid={form?.field === 'phone'} invalidMessage={form?.message} />
 									</div>
 								</div>
 								<div className='flex gap-4'>
@@ -162,7 +199,7 @@ export default function ProfilePage() {
 											name='role'
 											id='role'
 											selected={role}
-											placeholder='Selecione sua função...'
+											onChange={(value) => setRole(value)}
 											options={[
 												{ label: 'Suporte técnico', value: 'support' },
 												{ label: 'Desenvolvedor', value: 'developer' },
@@ -180,7 +217,7 @@ export default function ProfilePage() {
 											name='team'
 											id='team'
 											selected={team}
-											placeholder='Selecione sua equipe...'
+											onChange={(value) => setTeam(value)}
 											options={[
 												{ label: 'DIPTC', value: 'DIPTC' },
 												{ label: 'Outros', value: 'Outros' },
@@ -195,7 +232,7 @@ export default function ProfilePage() {
 										<Label htmlFor='company' isInvalid={form?.field === 'company'}>
 											Prédio
 										</Label>
-										<Input type='text' id='company' name='company' value={company} setValue={setCompany} autoComplete='company' placeholder='Nome do prédio' required isInvalid={form?.field === 'company'} invalidMessage={form?.message} />
+										<Input type='text' id='company' name='company' value={company} setValue={setCompany} autoComplete='company' placeholder='Nome do prédio' isInvalid={form?.field === 'company'} invalidMessage={form?.message} />
 									</div>
 									<div className='w-1/2'>
 										<Label htmlFor='location' isInvalid={form?.field === 'location'}>
@@ -205,7 +242,7 @@ export default function ProfilePage() {
 											name='location'
 											id='location'
 											selected={location}
-											placeholder='Selecione sua localização...'
+											onChange={(value) => setLocation(value)}
 											options={[
 												{ label: 'Cachoeira Paulista', value: 'Cachoeira Paulista' },
 												{ label: 'São José dos Campos', value: 'São José dos Campos' },
