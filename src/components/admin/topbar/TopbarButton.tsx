@@ -1,9 +1,9 @@
 'use client'
 
-import { useSidebar } from '../AdminWrapper'
+import { useSidebar } from '@/context/SidebarContext'
 
 export default function TopbarButton({ children, disabled = false, icon = '', href = '', style = null }: { children: React.ReactNode; disabled?: boolean; icon?: string; href?: string; style?: string | null }) {
-	const { isOpen, setIsOpen } = useSidebar()
+	const { toggleSidebar } = useSidebar()
 
 	if (style === 'alert') {
 		return (
@@ -22,7 +22,7 @@ export default function TopbarButton({ children, disabled = false, icon = '', hr
 
 	if (style === 'menu') {
 		return (
-			<button type='button' onClick={() => setIsOpen(!isOpen)} className='relative inline-flex size-[38px] items-center justify-center gap-x-2 rounded-full border border-transparent text-zinc-800 transition-all duration-500 hover:bg-zinc-100 focus:bg-zinc-100 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:text-white dark:hover:bg-zinc-700 dark:focus:bg-zinc-700' aria-label='Exibir ou ocultar menu lateral'>
+			<button type='button' onClick={() => toggleSidebar()} className='relative inline-flex size-[38px] items-center justify-center gap-x-2 rounded-full border border-transparent text-zinc-800 transition-all duration-500 hover:bg-zinc-100 focus:bg-zinc-100 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:text-white dark:hover:bg-zinc-700 dark:focus:bg-zinc-700' aria-label='Exibir ou ocultar menu lateral'>
 				<span className='sr-only'>{children}</span>
 				<span className={`${icon} size-5 shrink-0`}></span>
 			</button>

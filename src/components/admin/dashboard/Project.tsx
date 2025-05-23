@@ -1,6 +1,6 @@
-import ProgressBar from './ProgressBar'
+import ProgressBar from '@/components/admin/dashboard/ProgressBar'
 
-export default function Project({ name, progress, time }: any) {
+export default function Project({ name, progress, time }: { name: string; progress: number; time: string }) {
 	return (
 		<div className='flex flex-col rounded-lg border border-dashed border-zinc-200 bg-white p-4 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-zinc-300'>
 			<div className='flex w-full flex-row items-center'>

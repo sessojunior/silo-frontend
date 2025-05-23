@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 import { authCode, authUser } from '@/lib/db/schema'
 import { isValidEmail } from '@/lib/auth/validate'
 import { sendEmail } from '@/lib/sendEmail'
-import { destroyAllSession } from './session'
+import { destroyAllSession } from '@/lib/auth/session'
 import { isRateLimited, recordRateLimit } from '@/lib/rateLimit'
 
 // Funções de geração de código OTP e envio de e-mail com o código OTP

@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 
-import ProductTimeline from './ProductTimeline'
-import ProductTurn from './ProductTurn'
-import ProductCalendar from './ProductCalendar'
-import Modal from '@/app/components/Modal'
+import ProductTimeline from '@/components/admin/dashboard/ProductTimeline'
+import ProductTurn from '@/components/admin/dashboard/ProductTurn'
+import ProductCalendar from '@/components/admin/dashboard/ProductCalendar'
+import Modal from '@/components/ui/Modal'
 
 const month1 = {
 	month: 1,

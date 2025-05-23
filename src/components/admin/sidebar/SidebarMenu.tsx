@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import NextLink from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import type { SidebarMenuProps } from '../../layout'
+import type { SidebarMenuProps } from '@/app/admin/layout'
 
 export default function SidebarMenu({ menu }: { menu: SidebarMenuProps[] }) {
 	return (

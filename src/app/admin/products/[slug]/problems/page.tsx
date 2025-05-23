@@ -1,6 +1,6 @@
 import ReactMarkdown from 'react-markdown'
 
-import Button from '@/app/components/Button'
+import Button from '@/components/ui/Button'
 
 // Tipagem base de um problema (sem soluções detalhadas)
 type ProblemProps = {

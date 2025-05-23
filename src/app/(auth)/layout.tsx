@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 
-import AuthToggleTheme from './components/AuthToggleTheme'
+import AuthToggleTheme from '@/components/auth/AuthToggleTheme'
 
-import Toast from '@/app/components/Toast'
+import Toast from '@/components/ui/Toast'
 
 export const metadata: Metadata = {
 	title: 'Autenticação do Silo',

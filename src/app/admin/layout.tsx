@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth/token'
 import { getProfileImagePath } from '@/lib/profileImage'
-import AdminWrapper from './components/AdminWrapper'
+import { UserProvider } from '@/context/UserContext'
+import AdminWrapper from '@/components/admin/AdminWrapper'
 
 export type UserProps = {
 	id: string
@@ -11,7 +12,7 @@ export type UserProps = {
 	emailVerified: number
 	password: string
 	createdAt: Date
-	image: string | null
+	image: string
 }
 
 export type SidebarMenuProps = {
@@ -242,7 +243,7 @@ export default async function AdminLayout({
 
 	const user: UserProps = {
 		...authUser,
-		image: getProfileImagePath(authUser.id),
+		image: getProfileImagePath(authUser.id) ? `/uploads/profile/${getProfileImagePath(authUser.id)}.png` : '/images/profile.png',
 	}
 
 	// Dados da conta para o dropdown da barra do topo
@@ -277,8 +278,10 @@ export default async function AdminLayout({
 	// Você pode passar `resultValidateSessionToken.user` ou
 	// `resultValidateSessionToken.session` via context ou props se desejar.
 	return (
-		<AdminWrapper sidebar={sidebar} user={user} account={account}>
-			{children}
-		</AdminWrapper>
+		<UserProvider user={user}>
+			<AdminWrapper sidebar={sidebar} account={account}>
+				{children}
+			</AdminWrapper>
+		</UserProvider>
 	)
 }

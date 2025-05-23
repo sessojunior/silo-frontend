@@ -3,14 +3,15 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { isValidName } from '@/lib/auth/validate'
 
 import { toast } from '@/lib/toast'
 
-import Label from '@/app/components/Label'
-import Button from '@/app/components/Button'
-import Input from '@/app/components/Input'
-import Select from '@/app/components/Select'
-import PhotoUpload from '@/app/components/PhotoUpload'
+import Label from '@/components/ui/Label'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import Select from '@/components/ui/Select'
+import PhotoUpload from '@/components/ui/PhotoUpload'
 
 export default function ProfilePage() {
 	const router = useRouter()
@@ -37,8 +38,69 @@ export default function ProfilePage() {
 		return false
 	}
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleUpdate = async (e: React.FormEvent) => {
 		e.preventDefault()
+
+		const format = {
+			name: name.trim(),
+			genre,
+			role,
+			phone: phone.trim(),
+			company: company.trim(),
+			location,
+			team,
+		}
+
+		// Validações de campos obrigatórios
+		if (!isValidName(format.name)) {
+			setForm({ field: 'name', message: 'Digite seu nome completo corretamente.' })
+			return
+		}
+
+		// Validações de campos opcionais
+		if (format.phone && format.phone.length < 2) {
+			setForm({ field: 'role', message: 'Digite seu celular corretamente.' })
+			return
+		}
+		if (format.company && format.company.length < 2) {
+			setForm({ field: 'company', message: 'Digite o prédio corretamente.' })
+			return
+		}
+
+		setLoading(true)
+		setForm({ field: null, message: '' })
+
+		try {
+			const res = await fetch('/api/profile', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ ...format }),
+			})
+
+			const data = await res.json()
+
+			if (!res.ok) {
+				setForm({ field: data.field, message: data.message })
+				toast({
+					type: 'error',
+					title: data.message,
+				})
+			} else {
+				toast({
+					type: 'success',
+					title: 'Dados do perfil alterados com sucesso.',
+				})
+			}
+		} catch (error) {
+			console.error(error)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado. Tente novamente.',
+			})
+			setForm({ field: null, message: 'Erro inesperado. Tente novamente.' })
+		} finally {
+			setLoading(false)
+		}
 	}
 
 	return (
@@ -58,8 +120,8 @@ export default function ProfilePage() {
 						<h3 className='text-xl font-bold'>Informações pessoais</h3>
 					</div>
 					<div className='flex flex-col gap-4 p-6'>
-						<form>
-							<fieldset className='grid w-full gap-5'>
+						<form onSubmit={handleUpdate}>
+							<fieldset className='grid w-full gap-5' disabled={loading}>
 								<div>
 									<Label htmlFor='name' isInvalid={form?.field === 'name'}>
 										Nome
@@ -73,6 +135,7 @@ export default function ProfilePage() {
 										</Label>
 										<Select
 											name='genre'
+											id='genre'
 											selected={genre}
 											placeholder='Selecione o sexo...'
 											options={[
@@ -97,6 +160,7 @@ export default function ProfilePage() {
 										</Label>
 										<Select
 											name='role'
+											id='role'
 											selected={role}
 											placeholder='Selecione sua função...'
 											options={[
@@ -114,6 +178,7 @@ export default function ProfilePage() {
 										</Label>
 										<Select
 											name='team'
+											id='team'
 											selected={team}
 											placeholder='Selecione sua equipe...'
 											options={[
@@ -138,6 +203,7 @@ export default function ProfilePage() {
 										</Label>
 										<Select
 											name='location'
+											id='location'
 											selected={location}
 											placeholder='Selecione sua localização...'
 											options={[

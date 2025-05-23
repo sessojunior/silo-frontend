@@ -21,28 +21,48 @@ export interface SelectProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onCha
 	invalidMessage?: string
 }
 
-export default function Select({ placeholder = 'Selecione uma opção...', name, selected = null, isInvalid = false, invalidMessage, options, required = false, onChange, ...props }: SelectProps) {
+export default function Select({ placeholder = 'Selecione uma opção...', id, name, selected = null, isInvalid = false, invalidMessage, options, required = false, onChange, ...props }: SelectProps) {
 	const [isOpen, setIsOpen] = useState(false)
 	const [search, setSearch] = useState('')
 	const [highlight, setHighlight] = useState(0)
 	const [value, setValue] = useState<string | null>(selected)
-	const containerRef = useRef<HTMLDivElement>(null)
 
 	const filtered = options.filter((opt) => opt.label.toLowerCase().includes(search.toLowerCase()))
+	const [openUpwards, setOpenUpwards] = useState(false)
 
-	useEffect(() => {
-		setValue(selected)
-	}, [selected])
+	const containerRef = useRef<HTMLDivElement>(null)
+	const dropdownRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
 		function onClickOutside(e: MouseEvent) {
-			if (!containerRef.current?.contains(e.target as Node)) {
+			if (!containerRef.current?.contains(e.target as Node) && !dropdownRef.current?.contains(e.target as Node)) {
 				setIsOpen(false)
 			}
 		}
 		document.addEventListener('mousedown', onClickOutside)
 		return () => document.removeEventListener('mousedown', onClickOutside)
 	}, [])
+
+	useEffect(() => {
+		setValue(selected)
+	}, [selected])
+
+	useEffect(() => {
+		if (isOpen && containerRef.current) {
+			const rect = containerRef.current.getBoundingClientRect()
+			const viewportHeight = window.innerHeight
+			const dropdownHeight = 240 // altura aproximada: search (40px) + lista (200px)
+
+			const spaceBelow = viewportHeight - rect.bottom
+			const spaceAbove = rect.top
+
+			if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+				setOpenUpwards(true)
+			} else {
+				setOpenUpwards(false)
+			}
+		}
+	}, [isOpen])
 
 	const toggle = () => setIsOpen((prev) => !prev)
 
@@ -85,6 +105,7 @@ export default function Select({ placeholder = 'Selecione uma opção...', name,
 		<div ref={containerRef} onKeyDown={onKeyDown} className='relative w-full' {...props}>
 			{/* Toggle */}
 			<button
+				id={id}
 				type='button'
 				onClick={toggle}
 				aria-haspopup='listbox'
@@ -106,11 +127,12 @@ export default function Select({ placeholder = 'Selecione uma opção...', name,
 
 			{/* Dropdown */}
 			{isOpen && (
-				<div className='absolute z-50 mt-1 max-h-60 w-full overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900'>
+				<div ref={dropdownRef} className={twMerge(clsx('absolute z-50 w-full max-h-60 overflow-hidden rounded-lg bg-white shadow-lg dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700', openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'))}>
 					{/* Search */}
 					<div className='px-3 py-2'>
 						<input
 							type='text'
+							name='search'
 							value={search}
 							onChange={(e) => {
 								setSearch(e.target.value)
@@ -132,13 +154,13 @@ export default function Select({ placeholder = 'Selecione uma opção...', name,
 									onClick={() => selectOption(opt)}
 									onMouseEnter={() => setHighlight(idx)}
 									className={twMerge(
-										clsx('flex cursor-pointer items-center justify-between px-4 py-2 text-base transition', {
+										clsx('flex cursor-pointer items-center justify-between px-4 py-2 text-base transition group', {
 											'bg-blue-100 dark:bg-zinc-700': idx === highlight,
 											'opacity-50 cursor-not-allowed': opt.disabled,
 										}),
 									)}
 								>
-									<span className={twMerge(clsx({ 'hover:text-blue-600': !opt.disabled }))}>{opt.label}</span>
+									<span className={twMerge(clsx({ 'group-hover:text-zinc-600': !opt.disabled }))}>{opt.label}</span>
 									{value === opt.value && <span className='icon-[lucide--check] size-4 text-blue-600 dark:text-blue-500' />}
 								</li>
 							))

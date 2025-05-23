@@ -3,9 +3,12 @@
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import type { AccountProps, UserProps } from '../../layout'
+import { useUser } from '@/context/UserContext'
+import type { AccountProps } from '@/app/admin/layout'
 
-export default function TopbarDropdown({ account, user }: { account: AccountProps; user: UserProps }) {
+export default function TopbarDropdown({ account }: { account: AccountProps }) {
+	const user = useUser()
+
 	const [isOpen, setIsOpen] = useState(false)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const pathname = usePathname()
@@ -28,7 +31,7 @@ export default function TopbarDropdown({ account, user }: { account: AccountProp
 		<div className='relative inline-block' ref={dropdownRef}>
 			<button onClick={toggleDropdown} type='button' className='group inline-flex items-center justify-center gap-x-2 rounded-full border border-transparent text-sm font-semibold text-zinc-800 focus:outline-none dark:text-white' aria-haspopup='menu' aria-expanded={isOpen}>
 				<div className='relative inline-block'>
-					<Image src={user.image ? `/uploads/profile/${user.id}.png` : '/images/profile.png'} alt='Avatar' width={46} height={46} className='rounded-full border-2 border-zinc-200 transition-all duration-100 group-hover:border-4 group-focus:border-4 dark:border-zinc-700' />
+					<Image src={user.image} alt='Avatar' width={46} height={46} className='rounded-full border-2 border-zinc-200 transition-all duration-100 group-hover:border-4 group-focus:border-4 dark:border-zinc-700' />
 					<span className='absolute right-0 bottom-0 block h-3 w-3 rounded-full bg-teal-400 ring-2 ring-white dark:ring-zinc-800' />
 				</div>
 				<div className='flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all duration-500 group-hover:bg-zinc-100 group-focus:bg-zinc-100 dark:group-hover:bg-zinc-700 dark:group-focus:bg-zinc-700'>

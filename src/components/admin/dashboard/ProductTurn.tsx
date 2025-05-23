@@ -1,4 +1,4 @@
-import Popover from '@/app/components/Popover'
+import Popover from '@/components/ui/Popover'
 
 const turns = {
 	product: 'SMEC',

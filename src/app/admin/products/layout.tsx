@@ -2,8 +2,8 @@
 
 import { usePathname } from 'next/navigation'
 
-import Button from '@/app/components/nav/Button'
-import Content from '@/app/components/nav/Content'
+import Button from '@/components/admin/nav/Button'
+import Content from '@/components/admin/nav/Content'
 
 const tabs = [
 	{ label: 'Base de conhecimento', url: '/admin/products/brams-ams-15-km' },

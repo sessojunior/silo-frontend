@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 
-import Select from '@/app/components/Select'
-import Button from '@/app/components/Button'
-import Switch from '@/app/components/Switch'
+import Select from '@/components/ui/Select'
+import Button from '@/components/ui/Button'
+import Switch from '@/components/ui/Switch'
 
 export default function PreferencesPage() {
 	const [loading, setLoading] = useState(false)

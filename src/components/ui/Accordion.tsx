@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { clsx } from 'clsx' // Usado para juntar classes condicionalmente
 import { twMerge } from 'tailwind-merge' // Junta classes do Tailwind com priorização de estilos
-import Button from './Button'
+import Button from '@/components/ui/Button'
 
 export type Chapter = {
 	id: string | number

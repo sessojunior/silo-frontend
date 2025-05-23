@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 
-import Label from '@/app/components/Label'
-import Input from '@/app/components/Input'
-import InputPasswordHints from '@/app/components/InputPasswordHints'
-import Button from '@/app/components/Button'
+import Label from '@/components/ui/Label'
+import Input from '@/components/ui/Input'
+import InputPasswordHints from '@/components/ui/InputPasswordHints'
+import Button from '@/components/ui/Button'
 
 import { toast } from '$lib/client/utils/toast'
 

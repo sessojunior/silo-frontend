@@ -1,12 +1,12 @@
-import Product from './components/Product'
-import ChartColumn from './components/ChartColumn'
-import ChartLine from './components/ChartLine'
-import ChartDonut from './components/ChartDonut'
+import Product from '@/components/admin/dashboard/Product'
+import ChartColumn from '@/components/admin/dashboard/ChartColumn'
+import ChartLine from '@/components/admin/dashboard/ChartLine'
+import ChartDonut from '@/components/admin/dashboard/ChartDonut'
 
-import CircleProgress from './components/CircleProgress'
-import Stats from './components/Stats'
-import Radial from './components/Radial'
-import Project from './components/Project'
+import CircleProgress from '@/components/admin/dashboard/CircleProgress'
+import Stats from '@/components/admin/dashboard/Stats'
+import Radial from '@/components/admin/dashboard/Radial'
+import Project from '@/components/admin/dashboard/Project'
 
 export default function DashboardPage() {
 	return (

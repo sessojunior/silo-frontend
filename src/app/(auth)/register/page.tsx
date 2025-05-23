@@ -5,15 +5,15 @@ import { useRouter } from 'next/navigation'
 
 import { toast } from '@/lib/toast'
 
-import AuthHeader from '../components/AuthHeader'
-import AuthDivider from '../components/AuthDivider'
-import AuthLink from '../components/AuthLink'
+import AuthHeader from '@/components/auth/AuthHeader'
+import AuthDivider from '@/components/auth/AuthDivider'
+import AuthLink from '@/components/auth/AuthLink'
 
-import Label from '@/app/components/Label'
-import Button from '@/app/components/Button'
-import Input from '@/app/components/Input'
-import InputPasswordHints from '@/app/components/InputPasswordHints'
-import Pin from '@/app/components/Pin'
+import Label from '@/components/ui/Label'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import InputPasswordHints from '@/components/ui/InputPasswordHints'
+import Pin from '@/components/ui/Pin'
 
 export default function RegisterPage() {
 	const router = useRouter()

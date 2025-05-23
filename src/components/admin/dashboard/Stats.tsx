@@ -1,6 +1,6 @@
-import ProgressBarMultiple from './ProgressBarMultiple'
+import ProgressBarMultiple from '@/components/admin/dashboard/ProgressBarMultiple'
 
-export default function Stats({ items }: any) {
+export default function Stats({ items }: { items: { name: string; progress: number; color: string; colorDark: string; incidents: number }[] }) {
 	const totalProgress = items.reduce((sum, item) => sum + item.progress, 0)
 	const totalIncidents = items.reduce((sum, item) => sum + item.incidents, 0)
 

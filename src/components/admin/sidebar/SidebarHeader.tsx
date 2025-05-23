@@ -1,6 +1,6 @@
-import SidebarButtonTheme from './SidebarButtonTheme'
-import SidebarButtonClose from './SidebarButtonClose'
-import Logo from './SidebarLogo'
+import SidebarButtonTheme from '@/components/admin/sidebar/SidebarButtonTheme'
+import SidebarButtonClose from '@/components/admin/sidebar/SidebarButtonClose'
+import Logo from '@/components/admin/sidebar/SidebarLogo'
 
 export default function SidebarHeader({ onClose }: { onClose: () => void }) {
 	return (

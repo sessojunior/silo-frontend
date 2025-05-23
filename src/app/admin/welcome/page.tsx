@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 
-import Label from '@/app/components/Label'
-import InputCheckbox from '@/app/components/InputCheckbox'
+import Label from '@/components/ui/Label'
+import InputCheckbox from '@/components/ui/InputCheckbox'
 
 interface WelcomeProps {
 	icon: string

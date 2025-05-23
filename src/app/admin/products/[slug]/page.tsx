@@ -1,8 +1,8 @@
 import Image from 'next/image'
 
-import Tree, { type TreeItemProps } from '@/app/components/Tree'
-import Accordion, { type Section } from '@/app/components/Accordion'
-import Button from '@/app/components/Button'
+import Tree, { type TreeItemProps } from '@/components/ui/Tree'
+import Accordion, { type Section } from '@/components/ui/Accordion'
+import Button from '@/components/ui/Button'
 
 // Dados de documentos
 const docs: TreeItemProps[] = [
