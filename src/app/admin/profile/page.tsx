@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
-import { toast } from '$lib/client/utils/toast'
+import { toast } from '@/lib/toast'
 
 import Label from '@/app/components/Label'
 import Button from '@/app/components/Button'
@@ -16,7 +16,8 @@ export default function ProfilePage() {
 	const router = useRouter()
 
 	const [loading, setLoading] = useState(false)
-	const [form, setForm] = useState({ field: null, message: '' })
+	const [form, setForm] = useState({ field: null as null | string, message: '' })
+
 	const [name, setName] = useState('')
 	const [genre, setGenre] = useState('')
 	const [role, setRole] = useState('')
@@ -34,6 +35,10 @@ export default function ProfilePage() {
 
 	function unlinkGoogle() {
 		return false
+	}
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault()
 	}
 
 	return (

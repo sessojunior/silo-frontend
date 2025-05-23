@@ -1,48 +1,43 @@
 'use client'
 
 import { useRef, useState, useEffect, InputHTMLAttributes } from 'react'
-import { clsx } from 'clsx' // Usado para juntar classes condicionalmente
-import { twMerge } from 'tailwind-merge' // Junta classes do Tailwind com priorização de estilos
+import { clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
-// Props esperadas para o componente Pin
 interface PinProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'name' | 'id'> {
-	id: string // ID para agrupamento dos inputs
-	name: string // Nome base dos inputs
-	length: number // Quantidade de dígitos
-	value?: string // Valor externo do código
-	setValue?: (value: string) => void // Setter externo para atualizar o valor completo
-	isInvalid?: boolean // Define estado de erro (validação)
-	invalidMessage?: string // Mensagem de erro
+	id: string
+	name: string
+	length: number
+	value?: string
+	setValue?: (value: string) => void
+	isInvalid?: boolean
+	invalidMessage?: string
 	placeholder?: string
 }
 
-// Componente de input dividido para inserção de PIN, OTP ou código de verificação
 export default function Pin({ id, name, value = '', setValue, length, isInvalid = false, invalidMessage = '', className, ...props }: PinProps) {
-	// Estado local que armazena cada dígito separadamente
 	const [values, setValues] = useState<string[]>(() => Array.from({ length }, (_, i) => value[i]?.toUpperCase() || ''))
 
-	// Referência para os inputs, usada para controlar foco
 	const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
-	// Efeito que atualiza o valor externo sempre que os valores internos mudam
+	// Atualiza valor externo (concatenado)
 	useEffect(() => {
 		const joined = values.join('')
 		if (joined !== value) {
 			setValue?.(joined)
 		}
+		// eslint quer todas dependências usadas na função
 	}, [values, value, setValue])
 
-	// Refs para armazenar o valor anterior (usado para sincronizar quando valor externo muda)
 	const prevValueRef = useRef(value)
 	const prevValuesRef = useRef(values)
 
-	// Efeito para sincronizar quando valor externo for atualizado (ex: colado de fora)
+	// Atualiza inputs se valor externo mudar (ex: colar o código)
 	useEffect(() => {
 		const incoming = Array.from({ length }, (_, i) => value[i]?.toUpperCase() || '')
 		const current = prevValuesRef.current.join('')
 		const next = incoming.join('')
 
-		// Atualiza valores locais apenas se todos os dígitos forem preenchidos
 		if (value.length === length && current !== next) {
 			setValues(incoming)
 		}
@@ -51,31 +46,25 @@ export default function Pin({ id, name, value = '', setValue, length, isInvalid 
 		prevValuesRef.current = values
 	}, [value, length, values])
 
-	// Manipula alterações de um único campo
 	const handleChange = (index: number, val: string) => {
-		// Ignora caracteres não alfanuméricos
 		if (!/^[0-9a-zA-Z]?$/.test(val)) return
 		const upperVal = val.toUpperCase()
 
-		// Atualiza o valor da posição atual
 		setValues((prev) => {
 			const next = [...prev]
 			next[index] = upperVal
 			return next
 		})
 
-		// Move o foco para o próximo campo se o valor foi preenchido
 		if (val && index < length - 1) {
 			inputRefs.current[index + 1]?.focus()
 		}
 	}
 
-	// Manipula eventos de teclado como Backspace e setas
 	const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
 		switch (e.key) {
 			case 'Backspace':
 				if (!values[index] && index > 0) {
-					// Limpa campo anterior se o atual estiver vazio e volta o foco
 					inputRefs.current[index - 1]?.focus()
 					setValues((prev) => {
 						const next = [...prev]
@@ -100,12 +89,10 @@ export default function Pin({ id, name, value = '', setValue, length, isInvalid 
 		}
 	}
 
-	// Manipula o evento de colar (clipboard)
 	const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
 		const paste = e.clipboardData.getData('text')
 		if (!paste) return
 
-		// Limpa caracteres inválidos e limita ao número de campos
 		const sanitized = paste
 			.slice(0, length)
 			.toUpperCase()
@@ -114,7 +101,6 @@ export default function Pin({ id, name, value = '', setValue, length, isInvalid 
 
 		if (chars.length === 0) return
 
-		// Atualiza todos os campos de uma vez com os caracteres colados
 		setValues((prev) => {
 			const next = [...prev]
 			for (let i = 0; i < length; i++) {
@@ -123,7 +109,7 @@ export default function Pin({ id, name, value = '', setValue, length, isInvalid 
 			return next
 		})
 
-		// Move o foco para o último campo preenchido
+		// Move foco para o último campo preenchido
 		const lastIndex = Math.min(chars.length - 1, length - 1)
 		setTimeout(() => {
 			inputRefs.current[lastIndex]?.focus()
@@ -157,13 +143,11 @@ export default function Pin({ id, name, value = '', setValue, length, isInvalid 
 					/>
 				))}
 			</div>
-			{/* Mensagem de erro exibida abaixo dos campos */}
 			{isInvalid && <Message>{invalidMessage}</Message>}
 		</>
 	)
 }
 
-// Componente auxiliar para exibir mensagens de erro
 function Message({ children }: { children: React.ReactNode }) {
 	return <p className='mt-2 text-xs text-red-500 dark:text-red-600'>{children}</p>
 }
