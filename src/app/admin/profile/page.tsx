@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { useState, useEffect } from 'react'
 import { isValidName } from '@/lib/auth/validate'
 
 import { toast } from '@/lib/toast'
@@ -47,7 +47,7 @@ export default function ProfilePage() {
 
 				const { user, userProfile, googleId } = data
 
-				// Seta os dados vindos do backend
+				// Atualiza os dados vindos da API
 				setName(user?.name || '')
 				setImage(user?.image || '')
 				setGoogleLinked(googleId || false)

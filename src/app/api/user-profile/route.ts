@@ -27,7 +27,7 @@ export async function GET() {
 		// Retorna os dados do perfil do usuário
 		return NextResponse.json({ user: { ...user, image }, userProfile: findUserProfile ?? {}, googleId }, { status: 200 })
 	} catch (error) {
-		console.error('Erro ao buscar os dados do perfil do usuário:', error)
+		console.error('Erro ao obter os dados do perfil do usuário:', error)
 		return NextResponse.json({ field: null, message: 'Ocorreu um erro ao obter os dados do usuário.' }, { status: 500 })
 	}
 }
@@ -71,7 +71,7 @@ export async function PUT(req: NextRequest) {
 		if (!findUserProfile) {
 			// Insere o perfil do usuário no banco de dados
 			const [insertUserProfile] = await db.insert(userProfile).values({ id: randomUUID(), userId: user.id, genre, phone, role, team, company, location }).returning()
-			if (!insertUserProfile) return { error: { field: null, code: 'INSERT_USER_ERROR', message: 'Erro ao salvar os dados de perfil do usuário no banco de dados.' } }
+			if (!insertUserProfile) return NextResponse.json({ field: null, message: 'Ocorreu um erro ao salvar os dados de perfil do usuário no banco de dados.' }, { status: 500 })
 
 			// Retorna a resposta com sucesso
 			return NextResponse.json({ success: true }, { status: 200 })

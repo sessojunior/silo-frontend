@@ -69,7 +69,6 @@ export const userPreferences = sqliteTable('user_preferences', {
 	userId: text('user_id')
 		.notNull()
 		.references(() => authUser.id),
-	theme: text('theme').notNull(),
 	notifyUpdates: integer({ mode: 'boolean' }).notNull(),
 	sendNewsletters: integer({ mode: 'boolean' }).notNull(),
 })
