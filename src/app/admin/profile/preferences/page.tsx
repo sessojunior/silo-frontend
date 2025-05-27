@@ -24,7 +24,8 @@ export default function PreferencesPage() {
 				if (!res.ok) {
 					toast({
 						type: 'error',
-						title: data.message || 'Erro ao carregar as preferências do usuário.',
+						title:
+							data.message || 'Erro ao carregar as preferências do usuário.',
 					})
 					return
 				}
@@ -102,15 +103,36 @@ export default function PreferencesPage() {
 						<h3 className='text-xl font-bold'>Permissões gerais</h3>
 					</div>
 					<form onSubmit={handleUpdate} className='space-y-6 px-6 py-4'>
-						<Switch id='notify-updates' name='notifyUpdates' checked={notifyUpdates} onChange={setNotifyUpdates} size='lg' title='Notificar quando houver novas atualizações' description='Notifique-me quando houver novas atualizações no sistema ou novas versões.' isInvalid={form?.field === 'notifyUpdates'} invalidMessage={form?.message} />
+						<Switch
+							id='notify-updates'
+							name='notifyUpdates'
+							checked={notifyUpdates}
+							onChange={setNotifyUpdates}
+							size='lg'
+							title='Notificar quando houver novas atualizações'
+							description='Notifique-me quando houver novas atualizações no sistema ou novas versões.'
+							isInvalid={form?.field === 'notifyUpdates'}
+							invalidMessage={form?.message}
+						/>
 
-						<Switch id='send-newsletters' name='sendNewsletters' checked={sendNewsletters} onChange={setSendNewsletters} size='lg' title='Enviar e-mails semanalmente' description='Enviar e-mails semanalmente com novidades e atualizações.' isInvalid={form?.field === 'sendNewsletters'} invalidMessage={form?.message} />
+						<Switch
+							id='send-newsletters'
+							name='sendNewsletters'
+							checked={sendNewsletters}
+							onChange={setSendNewsletters}
+							size='lg'
+							title='Enviar e-mails semanalmente'
+							description='Enviar e-mails semanalmente com novidades e atualizações.'
+							isInvalid={form?.field === 'sendNewsletters'}
+							invalidMessage={form?.message}
+						/>
 
 						<div>
 							<Button type='submit' disabled={loading} className='w-auto'>
 								{loading ? (
 									<>
-										<span className='icon-[lucide--loader-circle] animate-spin'></span> Aguarde...
+										<span className='icon-[lucide--loader-circle] animate-spin'></span>{' '}
+										Aguarde...
 									</>
 								) : (
 									<>Salvar</>
@@ -129,21 +151,28 @@ export default function PreferencesPage() {
 						{[
 							{
 								title: 'Alterar senha',
-								description: 'Sua senha não é alterada há 605 dias. É recomendável alterar a senha para manter sua conta segura.',
+								description:
+									'Sua senha não é alterada há 605 dias. É recomendável alterar a senha para manter sua conta segura.',
 							},
 							{
 								title: 'Adicionar produtos',
-								description: 'Você ainda não adicionou nenhum produto para monitoramento. É recomendável adicionar ao menos algum produto.',
+								description:
+									'Você ainda não adicionou nenhum produto para monitoramento. É recomendável adicionar ao menos algum produto.',
 							},
 							{
 								title: 'Adicionar projetos',
-								description: 'Você ainda não adicionou nenhum projeto para monitoramento. É recomendável adicionar ao menos algum projeto.',
+								description:
+									'Você ainda não adicionou nenhum projeto para monitoramento. É recomendável adicionar ao menos algum projeto.',
 							},
 						].map((item, i) => (
 							<div key={i}>
 								<div className='p-6 flex flex-col gap-2'>
-									<h3 className='text-lg font-bold tracking-tight text-zinc-600 dark:text-zinc-200'>{item.title}</h3>
-									<p className='text-base text-zinc-400 dark:text-zinc-200'>{item.description}</p>
+									<h3 className='text-lg font-bold tracking-tight text-zinc-600 dark:text-zinc-200'>
+										{item.title}
+									</h3>
+									<p className='text-base text-zinc-400 dark:text-zinc-200'>
+										{item.description}
+									</p>
 								</div>
 								{i < 2 && <div className='h-px w-full bg-zinc-200'></div>}
 							</div>
