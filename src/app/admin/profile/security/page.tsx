@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { isValidEmail } from '@/lib/auth/validate'
+import { isValidEmail, isValidPassword } from '@/lib/auth/validate'
 
 import Label from '@/components/ui/Label'
 import Input from '@/components/ui/Input'
@@ -17,13 +17,13 @@ export default function SecurityPage() {
 	const [loading, setLoading] = useState(false)
 	const [form, setForm] = useState({ field: null as null | string, message: '' })
 
-	const [email, setEmail] = useState('')
+	const [email, setEmail] = useState(user.email)
 	const [password, setPassword] = useState('')
 
 	const handleUpdateEmail = async (e: React.FormEvent) => {
 		e.preventDefault()
 
-		const formatEmail = email.trim().toLocaleLowerCase()
+		const formatEmail = email ? email.trim().toLowerCase() : ''
 
 		// Validações de campos obrigatórios
 		if (!isValidEmail(formatEmail)) {
@@ -35,10 +35,10 @@ export default function SecurityPage() {
 		setForm({ field: null, message: '' })
 
 		try {
-			const res = await fetch('/api/user-security', {
+			const res = await fetch('/api/user-email', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ formatEmail }),
+				body: JSON.stringify({ email: formatEmail }),
 			})
 
 			const data = await res.json()
@@ -69,6 +69,47 @@ export default function SecurityPage() {
 
 	const handleUpdatePassword = async (e: React.FormEvent) => {
 		e.preventDefault()
+
+		// Validações de campos obrigatórios
+		if (!isValidPassword(password)) {
+			setForm({ field: 'password', message: 'Digite a senha corretamente.' })
+			return
+		}
+
+		setLoading(true)
+		setForm({ field: null, message: '' })
+
+		try {
+			const res = await fetch('/api/user-password', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ password }),
+			})
+
+			const data = await res.json()
+
+			if (!res.ok) {
+				setForm({ field: data.field, message: data.message })
+				toast({
+					type: 'error',
+					title: data.message,
+				})
+			} else {
+				toast({
+					type: 'success',
+					title: 'A senha foi alterada com sucesso.',
+				})
+			}
+		} catch (error) {
+			console.error(error)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado. Tente novamente.',
+			})
+			setForm({ field: null, message: 'Erro inesperado. Tente novamente.' })
+		} finally {
+			setLoading(false)
+		}
 	}
 
 	return (
@@ -104,7 +145,7 @@ export default function SecurityPage() {
 												name='email'
 												autoComplete='email'
 												placeholder='seuemail@inpe.br'
-												value={user.email}
+												value={email}
 												setValue={setEmail}
 												minLength={8}
 												maxLength={255}

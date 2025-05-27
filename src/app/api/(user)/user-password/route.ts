@@ -1,0 +1,58 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { authUser } from '@/lib/db/schema'
+import { getAuthUser } from '@/lib/auth/token'
+import { isValidPassword } from '@/lib/auth/validate'
+import { sendEmail } from '@/lib/sendEmail'
+
+// Altera os dados do perfil do usuário logado
+export async function PUT(req: NextRequest) {
+	try {
+		// Verifica se o usuário está logado e obtém os dados do usuário
+		const user = await getAuthUser()
+		if (!user)
+			return NextResponse.json({ field: null, message: 'Usuário não logado.' }, { status: 400 })
+
+		// Obtem os dados recebidos
+		const body = await req.json()
+		const password = body.password as string
+
+		if (!isValidPassword(password)) {
+			return NextResponse.json({ field: 'email', message: 'A senha é inválida.' }, { status: 400 })
+		}
+
+		// Atualiza a senha do usuário no banco de dados
+		const [updateUser] = await db
+			.update(authUser)
+			.set({ password })
+			.where(eq(authUser.id, user.id))
+			.returning()
+		if (!updateUser) {
+			return NextResponse.json(
+				{ field: null, message: 'Ocorreu um erro ao alterar a senha do usuário.' },
+				{ status: 500 },
+			)
+		}
+
+		// Envia um e-mail avisando que a senha foi alterada
+		// Retorna um objeto: { success: boolean, error?: { code, message } }
+		await sendEmail({
+			to: user.email,
+			subject: `Senha alterada`,
+			text: `Sua senha no Silo foi alterada com sucesso.`,
+		})
+
+		// Retorna a resposta com sucesso
+		return NextResponse.json({ success: true }, { status: 200 })
+	} catch (error) {
+		console.error('Erro ao alterar o e-mail do usuário:', error)
+		return NextResponse.json(
+			{
+				field: null,
+				message: 'Erro interno ao alterar o e-mail do usuário.',
+			},
+			{ status: 500 },
+		)
+	}
+}
