@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { authUser } from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
+import { hashPassword } from '@/lib/auth/hash'
 import { isValidPassword } from '@/lib/auth/validate'
 import { sendEmail } from '@/lib/sendEmail'
 
@@ -22,18 +23,19 @@ export async function PUT(req: NextRequest) {
 			return NextResponse.json({ field: 'email', message: 'A senha é inválida.' }, { status: 400 })
 		}
 
-		// Atualiza a senha do usuário no banco de dados
-		const [updateUser] = await db
+		// Criptografa a senha
+		const hashedPassword = await hashPassword(password)
+
+		// Altera a senha do usuário no banco de dados
+		const updatePassword = await db
 			.update(authUser)
-			.set({ password })
-			.where(eq(authUser.id, user.id))
-			.returning()
-		if (!updateUser) {
+			.set({ password: hashedPassword })
+			.where(eq(authUser.email, user.email))
+		if ('error' in updatePassword)
 			return NextResponse.json(
-				{ field: null, message: 'Ocorreu um erro ao alterar a senha do usuário.' },
-				{ status: 500 },
+				{ field: 'password', message: 'Ocorreu um erro ao alterar a senha.' },
+				{ status: 400 },
 			)
-		}
 
 		// Envia um e-mail avisando que a senha foi alterada
 		// Retorna um objeto: { success: boolean, error?: { code, message } }
