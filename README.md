@@ -15,6 +15,8 @@ Este aplicativo está sendo desenvolvido utilizando:
 - [SQLite](https://www.sqlite.org/) (banco leve para desenvolvimento)
 - [PostgreSQL](https://www.postgresql.org/) (banco robusto para produção)
 - [Nodemailer](https://nodemailer.com/) (envio de-mails com node.js)
+- [prettier-plugin-tailwindcss](https://www.npmjs.com/package/prettier-plugin-tailwindcss)
+- [eslint-plugin-simple-import-sort](https://www.npmjs.com/package/eslint-plugin-simple-import-sort)
 
 ## Autenticação
 
@@ -90,3 +92,11 @@ Para proteger o envio de e-mails com códigos OTP e outros fluxos sensíveis con
 O aplicativo possui limite de envio de 3 e-mails por minuto por IP, e-mail e tipo de requisição (login, recuperação de senha e verificação de código). Após 3 tentativas, exibe erro de limitação de taxa.
 
 Registro é refeito após o tempo da janela. É feito um limpeza automática dos registros antigos (com tempo maior que 60 minutos).
+
+## Banco de dados
+
+Iremos utilizar provisoriamente o SQLite. O SQLite funciona muito bem como banco de dados para a maioria de sites de tráfego baixo a médio (o que significa a maioria dos sites). A quantidade de tráfego da web que o SQLite pode lidar depende de quão intensamente o site usa o banco de dados.
+
+De modo geral, qualquer site que recebe menos de 100 mil acessos por dia funciona bem com o SQLite. O número de 100 mil acessos por dia é uma estimativa conservadora, não um limite superior rígido. O SQLite foi demonstrado para funcionar com 10 vezes essa quantidade de tráfego.
+
+O site do [SQLite](https://www.sqlite.org/) usa o próprio SQLite, é claro, e ele lida com cerca de 500 mil solicitações HTTP por dia. Cerca de 15 a 20% das suas páginas são dinâmicas e usam o banco de dados. O conteúdo dinâmico usa cerca de 200 instruções SQL por página da web. Essa configuração é executada em uma única máquina virtual que compartilha um servidor físico com outros 23 e ainda mantém a média de carga abaixo de 0,1 na maioria das vezes.
