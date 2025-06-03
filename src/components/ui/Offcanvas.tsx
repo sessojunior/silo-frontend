@@ -10,7 +10,7 @@ const WIDTH_MAP = {
 interface OffcanvasProps {
 	open: boolean
 	onClose: () => void
-	title?: string
+	title?: React.ReactNode
 	children: React.ReactNode
 	side?: 'right' | 'left'
 	width?: 'sm' | 'md' | 'lg' | 'xl' | string
@@ -41,7 +41,7 @@ export default function Offcanvas({ open, onClose, title, children, side = 'righ
 	if (!panelWidth) panelWidth = '480px'
 
 	return (
-		<div ref={ref} className='fixed inset-0 z-50 flex' style={{ justifyContent: side === 'right' ? 'flex-end' : 'flex-start' }} onClick={handleOverlayClick} aria-modal='true' role='dialog' tabIndex={-1}>
+		<div ref={ref} className='fixed inset-0 z-[70] flex' style={{ justifyContent: side === 'right' ? 'flex-end' : 'flex-start' }} onClick={handleOverlayClick} aria-modal='true' role='dialog' tabIndex={-1}>
 			<div
 				className={`h-full bg-white shadow-xl flex flex-col transition-transform duration-300 ease-in-out ` + (side === 'right' ? 'animate-slide-in-right' : 'animate-slide-in-left')}
 				style={{
@@ -49,11 +49,16 @@ export default function Offcanvas({ open, onClose, title, children, side = 'righ
 					maxWidth: '100vw',
 				}}
 			>
-				{title && <div className='p-4 border-b font-semibold text-lg'>{title}</div>}
+				<div className='flex items-center justify-between p-4 border-b'>
+					{title && <div className='font-semibold text-lg'>{title}</div>}
+					<button onClick={onClose} className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition' aria-label='Fechar painel'>
+						<span className='icon-[lucide--x] size-5 text-zinc-500' />
+					</button>
+				</div>
 				<div className='flex-1 overflow-y-auto p-4'>{children}</div>
 			</div>
 			{/* Overlay */}
-			<div className='fixed inset-0 bg-black/40 -z-10' />
+			<div className='fixed inset-0 bg-black/40 -z-10'></div>
 			<style>{`
         @media (max-width: 768px) {
           .h-full.bg-white.shadow-xl.flex.flex-col {

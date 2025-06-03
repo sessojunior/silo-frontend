@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import ProductTable from './components/ProductTable'
 import ProductFilter from './components/ProductFilter'
 import ProductForm from './components/ProductForm'
 import Offcanvas from '@/components/ui/Offcanvas'
 import Dialog from '@/components/ui/Dialog'
 import { toast } from '@/lib/toast'
+import Button from '@/components/ui/Button'
 
 interface Product {
 	id: string
@@ -30,17 +31,30 @@ export default function SettingsProductsPage() {
 	const [deleting, setDeleting] = useState<Product | null>(null)
 	const [formLoading, setFormLoading] = useState(false)
 
+	// Ref para controlar se é reset ou scroll
+	const isResetRef = useRef(false)
+
 	// Carregar produtos (paginado)
 	const fetchProducts = useCallback(
 		async (reset = false, filterName = filterValue) => {
 			setLoading(true)
+			const currentPage = reset ? 1 : page
 			try {
-				const res = await fetch(`/api/product?page=${reset ? 1 : page}&limit=${PAGE_SIZE}&name=${encodeURIComponent(filterName)}`)
+				const res = await fetch(`/api/product?page=${currentPage}&limit=${PAGE_SIZE}&name=${encodeURIComponent(filterName)}`)
 				const data = await res.json()
 				if (res.ok) {
-					setProducts((prev) => (reset ? data.items : [...prev, ...data.items]))
+					if (reset) {
+						setProducts(data.items)
+						setPage(2)
+					} else {
+						setProducts((prev) => {
+							const ids = new Set(prev.map((p) => p.id))
+							const novos = data.items.filter((item: Product) => !ids.has(item.id))
+							return [...prev, ...novos]
+						})
+						setPage(currentPage + 1)
+					}
 					setHasMore(data.items.length === PAGE_SIZE)
-					setPage((prev) => (reset ? 2 : prev + 1))
 				} else {
 					toast({ type: 'error', title: 'Erro', description: data.message })
 				}
@@ -50,11 +64,13 @@ export default function SettingsProductsPage() {
 				setLoading(false)
 			}
 		},
-		[page, filterValue],
+		[filterValue, page],
 	)
 
 	// Inicial e ao filtrar
 	useEffect(() => {
+		setLoading(true)
+		isResetRef.current = true
 		setPage(1)
 		fetchProducts(true, filterValue)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,8 +101,9 @@ export default function SettingsProductsPage() {
 			if (res.ok) {
 				setOffcanvasOpen(false)
 				setEditing(null)
+				isResetRef.current = true
+				setLoading(true)
 				setPage(1)
-				setProducts([])
 				fetchProducts(true)
 			} else {
 				throw new Error(resp.message)
@@ -108,8 +125,9 @@ export default function SettingsProductsPage() {
 			if (res.ok) {
 				setDialogOpen(false)
 				setDeleting(null)
+				isResetRef.current = true
+				setLoading(true)
 				setPage(1)
-				setProducts([])
 				fetchProducts(true)
 				toast({ type: 'success', title: 'Produto excluído' })
 			} else {
@@ -128,58 +146,102 @@ export default function SettingsProductsPage() {
 	}
 
 	return (
-		<div className='max-w-4xl mx-auto py-8'>
-			<div className='flex items-center gap-2 mb-4'>
-				<button className='px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition' onClick={() => setFilterOpen((v) => !v)}>
-					Filtrar
-				</button>
-				<button className='px-4 py-2 rounded bg-green-600 text-white font-semibold hover:bg-green-700 transition' onClick={handleAdd}>
-					Adicionar novo produto
-				</button>
+		<>
+			{/* Cabecalho */}
+			<div className='flex w-full'>
+				<div className='flex w-full flex-wrap items-start justify-between gap-4 sm:flex-nowrap'>
+					{/* Título e descrição */}
+					<div className='flex-grow'>
+						<h1 className='text-3xl font-bold tracking-tight'>Produtos & tasks</h1>
+						<p className='mt-1 text-base text-muted-foreground'>Lista de produtos e tasks cadastrados no sistema.</p>
+					</div>
+
+					{/* Botões */}
+					<div className='flex gap-2 shrink-0'>
+						<Button onClick={() => setFilterOpen((v) => !v)} icon='icon-[lucide--filter]' className='shrink-0'>
+							Filtrar
+						</Button>
+						<Button type='submit' icon='icon-[lucide--plus]' onClick={handleAdd} className='shrink-0'>
+							Novo produto
+						</Button>
+					</div>
+				</div>
 			</div>
-			{filterOpen && <ProductFilter value={filter} onChange={setFilter} onSubmit={handleFilterSubmit} loading={loading} />}
-			<ProductTable
-				products={products}
-				onEdit={handleEdit}
-				onDelete={(product) => {
-					setDeleting(product)
-					setDialogOpen(true)
-				}}
-				onLoadMore={() => {
-					if (!loading && hasMore) fetchProducts()
-				}}
-				loading={loading}
-				hasMore={hasMore}
-			/>
-			<Offcanvas
-				open={offcanvasOpen}
-				onClose={() => {
-					setOffcanvasOpen(false)
-					setEditing(null)
-				}}
-				title={editing ? 'Editar produto' : 'Adicionar produto'}
-				width='md'
-			>
-				<ProductForm
-					initialData={editing ? editing : undefined}
-					onSubmit={handleFormSubmit}
-					onCancel={() => {
+
+			{/* Conteúdo principal */}
+			<div className='w-full'>
+				{/* Tabela de Produtos */}
+				<div className='w-full'>
+					{/* Filtro (condicional) */}
+					{filterOpen && (
+						<div className='mb-4'>
+							<ProductFilter value={filter} onChange={setFilter} onSubmit={handleFilterSubmit} loading={loading} />
+						</div>
+					)}
+
+					<ProductTable
+						products={products}
+						onEdit={handleEdit}
+						onDelete={(product) => {
+							setDeleting(product)
+							setDialogOpen(true)
+						}}
+						onLoadMore={() => {
+							if (!loading && hasMore) fetchProducts()
+						}}
+						loading={loading}
+						hasMore={hasMore}
+					/>
+				</div>
+
+				{/* Offcanvas para formulário */}
+				<Offcanvas
+					open={offcanvasOpen}
+					onClose={() => {
 						setOffcanvasOpen(false)
 						setEditing(null)
 					}}
-					loading={formLoading}
-				/>
-			</Offcanvas>
-			<Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} title='Excluir produto' description='Tem certeza que deseja excluir este produto? Esta ação não poderá ser desfeita.'>
-				<div className='flex gap-2 justify-end mt-4'>
-					<button onClick={() => setDialogOpen(false)} className='px-4 py-2 rounded bg-zinc-200 text-zinc-700 hover:bg-zinc-300 transition'>
-						Cancelar
-					</button>
-					<button onClick={handleDelete} className='px-4 py-2 rounded bg-red-600 text-white font-semibold hover:bg-red-700 transition' disabled={formLoading}>
-						{formLoading ? 'Excluindo...' : 'Excluir'}
-					</button>
-				</div>
-			</Dialog>
-		</div>
+					title={
+						<div className='flex items-center gap-2'>
+							<span className={`icon-[lucide--${editing ? 'pencil' : 'plus'}] size-4`} />
+							{editing ? 'Editar produto' : 'Adicionar produto'}
+						</div>
+					}
+					width='md'
+				>
+					<ProductForm
+						initialData={editing || undefined}
+						onSubmit={handleFormSubmit}
+						onCancel={() => {
+							setOffcanvasOpen(false)
+							setEditing(null)
+						}}
+						loading={formLoading}
+					/>
+				</Offcanvas>
+
+				{/* Dialog de confirmação */}
+				<Dialog
+					open={dialogOpen}
+					onClose={() => setDialogOpen(false)}
+					title={
+						<div className='flex items-center gap-2 text-red-600'>
+							<span className='icon-[lucide--triangle-alert] size-4' />
+							Excluir produto
+						</div>
+					}
+					description='Tem certeza que deseja excluir este produto? Esta ação não poderá ser desfeita.'
+				>
+					<div className='flex gap-2 justify-end mt-6'>
+						<button onClick={() => setDialogOpen(false)} className='px-4 py-2 rounded-lg bg-zinc-200 text-zinc-700 hover:bg-zinc-300 transition'>
+							Cancelar
+						</button>
+						<button onClick={handleDelete} className='px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition disabled:opacity-50' disabled={formLoading}>
+							{formLoading ? 'Excluindo...' : 'Excluir'}
+						</button>
+					</div>
+				</Dialog>
+			</div>
+		</>
 	)
 }

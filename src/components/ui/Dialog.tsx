@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react'
 interface DialogProps {
 	open: boolean
 	onClose: () => void
-	title?: string
+	title?: React.ReactNode
 	description?: string
 	children?: React.ReactNode
 }
