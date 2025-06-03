@@ -80,3 +80,49 @@ export const product = sqliteTable('product', {
 	available: integer({ mode: 'boolean' }).notNull(),
 })
 export type Product = typeof product.$inferSelect
+
+export const productProblem = sqliteTable('product_problem', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => authUser.id),
+	title: text('title').notNull(),
+	description: text('description').notNull(),
+	createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+	updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+})
+export type ProductProblem = typeof productProblem.$inferSelect
+
+export const productProblemImage = sqliteTable('product_problem_image', {
+	id: text('id').primaryKey(),
+	productProblemId: text('product_problem_id')
+		.notNull()
+		.references(() => productProblem.id),
+	image: text('image').notNull(),
+	description: text('description').notNull(),
+})
+export type ProductProblemImage = typeof productProblemImage.$inferSelect
+
+export const productSolution = sqliteTable('product_solution', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => authUser.id),
+	productProblemId: text('product_problem_id')
+		.notNull()
+		.references(() => productProblem.id),
+	createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+	updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+})
+export type ProductSolution = typeof productSolution.$inferSelect
+
+export const productSolutionChecked = sqliteTable('product_solution_checked', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => authUser.id),
+	productSolutionId: text('product_solution_id')
+		.notNull()
+		.references(() => productSolution.id),
+})
+export type ProductSolutionChecked = typeof productSolutionChecked.$inferSelect

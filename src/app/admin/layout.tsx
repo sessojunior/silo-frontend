@@ -163,13 +163,6 @@ const sidebar: SidebarProps = {
 			title: 'Outros',
 			items: [
 				{
-					id: '2.1',
-					title: 'Agenda',
-					icon: 'icon-[lucide--calendar-clock]',
-					url: '#',
-					items: null,
-				},
-				{
 					id: '2.2',
 					title: 'Bate-papo',
 					icon: 'icon-[lucide--messages-square]',
