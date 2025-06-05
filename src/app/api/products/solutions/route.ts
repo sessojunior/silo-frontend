@@ -44,12 +44,12 @@ export async function GET(req: NextRequest) {
 				? {
 						id: solution.userId,
 						name: users.find((u) => u.id === solution.userId)?.name ?? '',
-						image: '/uploads/profile/default.jpg', // ajuste se tiver campo de imagem
+						image: '/images/profile.png', // ajuste se tiver campo de imagem
 					}
 				: {
 						id: solution.userId,
 						name: 'Usuário desconhecido',
-						image: '/uploads/profile/default.jpg',
+						image: '/images/profile.png',
 					},
 		}))
 

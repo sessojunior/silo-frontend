@@ -6,6 +6,11 @@ import { useEffect, useState, useRef } from 'react'
 import type { ProductProblem, ProductProblemImage, ProductSolution } from '@/lib/db/schema'
 import { useParams, useRouter } from 'next/navigation'
 import Lightbox from '@/components/ui/Lightbox'
+import Offcanvas from '@/components/ui/Offcanvas'
+import Input from '@/components/ui/Input'
+import Label from '@/components/ui/Label'
+import { toast } from '@/lib/toast'
+import clsx from 'clsx'
 
 export default function ProblemsPage() {
 	const { slug } = useParams()
@@ -21,6 +26,13 @@ export default function ProblemsPage() {
 	const listRef = useRef<HTMLDivElement>(null)
 	const [lightboxOpen, setLightboxOpen] = useState(false)
 	const [lightboxImage, setLightboxImage] = useState<{ src: string; alt?: string } | null>(null)
+	const [offcanvasOpen, setOffcanvasOpen] = useState(false)
+	const [formTitle, setFormTitle] = useState('')
+	const [formDescription, setFormDescription] = useState('')
+	const [formLoading, setFormLoading] = useState(false)
+	const [formError, setFormError] = useState<string | null>(null)
+	const [form, setForm] = useState<{ field: string | null; message: string | null }>({ field: null, message: null })
+	const [productId, setProductId] = useState<string | null>(null)
 
 	// Função para selecionar um problema e buscar seus dados
 	const handleSelectProblem = async (selected: ProductProblem) => {
@@ -43,11 +55,16 @@ export default function ProblemsPage() {
 			const data = await response.json()
 
 			if (!data.items || data.items.length === 0) {
+				// Se não há problemas, buscar o productId pelo slug
+				const prodRes = await fetch(`/api/products/by-slug?slug=${slug}`)
+				const prodData = await prodRes.json()
+				if (prodData?.id) setProductId(prodData.id)
 				router.replace('/404')
 				return
 			}
 
 			setProblems(data.items)
+			setProductId(data.items[0].productId) // <-- Salva o productId do primeiro problema
 
 			// Busca a contagem de soluções para cada problema
 			const counts: Record<string, number> = {}
@@ -74,7 +91,6 @@ export default function ProblemsPage() {
 		const handleScroll = () => {
 			if (!listRef.current) return
 			const { scrollTop, scrollHeight, clientHeight } = listRef.current
-			console.log('scroll', scrollTop, scrollHeight, clientHeight)
 			if (scrollTop + clientHeight >= scrollHeight - 10) {
 				setVisibleCount((prev) => prev + 10)
 			}
@@ -89,6 +105,62 @@ export default function ProblemsPage() {
 	const filteredProblems = problems.filter((p) => filter.trim().length === 0 || p.title.toLowerCase().includes(filter.toLowerCase()) || p.description.toLowerCase().includes(filter.toLowerCase()))
 	const problemsToShow = filteredProblems.slice(0, visibleCount)
 
+	// Função para submeter o formulário
+	async function handleAddProblem(e: React.FormEvent) {
+		e.preventDefault()
+		setFormError(null)
+		if (formTitle.trim().length < 5) {
+			setFormError('O título deve ter pelo menos 5 caracteres.')
+			return
+		}
+		if (formDescription.trim().length < 20) {
+			setFormError('A descrição deve ter pelo menos 20 caracteres.')
+			return
+		}
+		setFormLoading(true)
+		try {
+			const res = await fetch('/api/products/problems', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					productId,
+					title: formTitle,
+					description: formDescription,
+				}),
+			})
+			const data = await res.json()
+			if (res.ok) {
+				toast({ type: 'success', title: 'Problema cadastrado', description: 'O problema foi adicionado com sucesso.' })
+				setOffcanvasOpen(false)
+				setFormTitle('')
+				setFormDescription('')
+				// Atualiza a lista de problemas
+				// Refaz o fetch dos problemas
+				const response = await fetch(`/api/products/problems?slug=${slug}`)
+				const data = await response.json()
+				setProblems(data.items)
+				// Atualiza a contagem de soluções
+				const counts: Record<string, number> = {}
+				await Promise.all(
+					data.items.map(async (problem: ProductProblem) => {
+						const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
+						const solData = await res.json()
+						counts[problem.id] = solData.items.length
+					}),
+				)
+				setSolutionsCount(counts)
+			} else {
+				setFormError(data.error || 'Erro ao cadastrar problema.')
+				toast({ type: 'error', title: 'Erro', description: data.error || 'Erro ao cadastrar problema.' })
+			}
+		} catch (e) {
+			setFormError('Erro ao cadastrar problema.')
+			toast({ type: 'error', title: 'Erro', description: 'Erro ao cadastrar problema.' })
+		} finally {
+			setFormLoading(false)
+		}
+	}
+
 	return (
 		<div className='flex w-full'>
 			{/* Coluna da esquerda */}
@@ -102,7 +174,7 @@ export default function ProblemsPage() {
 								<span className='icon-[lucide--search] ml-1 size-4 shrink-0 text-zinc-400 dark:text-zinc-500'></span>
 							</div>
 						</div>
-						<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='flex size-10' title='Adicionar problema' aria-label='Adicionar problema'></Button>
+						<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='flex size-10' title='Adicionar problema' aria-label='Adicionar problema' onClick={() => setOffcanvasOpen(true)} />
 					</div>
 
 					{filteredProblems.length > 0 ? (
@@ -125,7 +197,7 @@ export default function ProblemsPage() {
 
 					<div className='px-8 py-4'>
 						<div className='flex justify-center'>
-							<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='py-2'>
+							<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='py-2' onClick={() => setOffcanvasOpen(true)}>
 								Adicionar problema
 							</Button>
 						</div>
@@ -264,6 +336,34 @@ export default function ProblemsPage() {
 					)}
 				</div>
 			</div>
+
+			{/* Offcanvas para adicionar problema */}
+			<Offcanvas open={offcanvasOpen} onClose={() => setOffcanvasOpen(false)} title='Adicionar problema' width='xl'>
+				<form onSubmit={handleAddProblem} className='flex flex-col gap-6'>
+					<div>
+						<Label htmlFor='problem-title' required>
+							Título do problema
+						</Label>
+						<Input id='problem-title' type='text' value={formTitle} setValue={setFormTitle} minLength={5} maxLength={120} required placeholder='Ex: Erro ao processar dados meteorológicos' isInvalid={form.field === 'title'} invalidMessage={form.field === 'title' ? (form.message ?? undefined) : undefined} />
+					</div>
+					<div>
+						<Label htmlFor='problem-description' required>
+							Descrição detalhada
+						</Label>
+						<textarea id='problem-description' value={formDescription} onChange={(e) => setFormDescription(e.target.value)} minLength={20} maxLength={3000} required className={clsx('block w-full rounded-lg border-zinc-200 px-4 py-3 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500', form.field === 'description' && 'border-red-400')} rows={20} placeholder='Descreva o problema detalhadamente para facilitar o suporte e a resolução.' />
+					</div>
+					{form.field === 'description' && <div className='text-red-600 text-sm'>{form.message}</div>}
+					<div className='text-sm text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/30 rounded-lg'>Imagens poderão ser adicionadas após o cadastro do problema, na tela de edição.</div>
+					<div className='flex justify-end gap-2'>
+						<Button type='button' style='bordered' onClick={() => setOffcanvasOpen(false)}>
+							Cancelar
+						</Button>
+						<Button type='submit' disabled={formLoading}>
+							{formLoading ? 'Adicionando...' : 'Adicionar'}
+						</Button>
+					</div>
+				</form>
+			</Offcanvas>
 		</div>
 	)
 }
