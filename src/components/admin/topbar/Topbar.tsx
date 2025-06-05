@@ -3,9 +3,44 @@ import TopbarButton from '@/components/admin/topbar/TopbarButton'
 import TopbarDivider from '@/components/admin/topbar/TopbarDivider'
 import TopbarTitle from '@/components/admin/topbar/TopbarTitle'
 
-import { AccountProps } from '@/app/admin/layout'
+export type AccountLinkProps = {
+	id: string
+	icon: string
+	title: string
+	url: string
+}
 
-export default function Topbar({ title, account }: { title: string; account: AccountProps }) {
+export type AccountProps = AccountLinkProps[]
+
+export default function Topbar({ title }: { title: string }) {
+	// Dados da conta para o dropdown da barra do topo
+	const account: AccountProps = [
+		{
+			id: '1',
+			icon: 'icon-[lucide--user-round-pen]',
+			title: 'Alterar perfil',
+			url: '/admin/profile',
+		},
+		{
+			id: '2',
+			icon: 'icon-[lucide--settings-2]',
+			title: 'Preferências',
+			url: '/admin/profile/preferences',
+		},
+		{
+			id: '3',
+			icon: 'icon-[lucide--shield-check]',
+			title: 'Segurança',
+			url: '/admin/profile/security',
+		},
+		{
+			id: '4',
+			icon: 'icon-[lucide--log-out]',
+			title: 'Sair',
+			url: '/logout',
+		},
+	]
+
 	return (
 		<>
 			<header className='sticky inset-x-0 top-0 z-40 flex h-16 w-full flex-shrink-0 flex-wrap border-b border-b-zinc-200 bg-white py-2.5 md:flex-nowrap md:justify-start lg:ps-[260px] dark:border-zinc-700 dark:bg-zinc-900'>

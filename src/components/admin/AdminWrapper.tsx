@@ -1,20 +1,18 @@
 import { SidebarProvider } from '@/context/SidebarContext'
-import type { SidebarProps, AccountProps } from '@/app/admin/layout'
 
 import Sidebar from '@/components/admin/sidebar/Sidebar'
 import Topbar from '@/components/admin/topbar/Topbar'
-
 import Toast from '@/components/ui/Toast'
 
-export default function AdminWrapper({ sidebar, account, children }: { sidebar: SidebarProps; account: AccountProps; children: React.ReactNode }) {
+export default function AdminWrapper({ children }: { children: React.ReactNode }) {
 	return (
 		<>
 			<SidebarProvider>
 				{/* Barra lateral */}
-				<Sidebar sidebar={sidebar} />
+				<Sidebar />
 
 				{/* Barra do topo */}
-				<Topbar title='Bem-vindo ao Silo' account={account} />
+				<Topbar title='Bem-vindo ao Silo' />
 			</SidebarProvider>
 
 			{/* Conteúdo */}

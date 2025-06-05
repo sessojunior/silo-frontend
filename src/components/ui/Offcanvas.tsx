@@ -49,7 +49,7 @@ export default function Offcanvas({ open, onClose, title, children, side = 'righ
 					maxWidth: '100vw',
 				}}
 			>
-				<div className='flex items-center justify-between p-4 border-b'>
+				<div className='flex items-center justify-between p-4 border-b border-zinc-200'>
 					{title && <div className='font-semibold text-lg'>{title}</div>}
 					<button onClick={onClose} className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition' aria-label='Fechar painel'>
 						<span className='icon-[lucide--x] size-5 text-zinc-500' />

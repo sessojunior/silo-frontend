@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, integer, SQLiteTableWithColumns } from 'drizzle-orm/sqlite-core'
 
 export const authUser = sqliteTable('auth_user', {
 	id: text('id').primaryKey(),
@@ -77,12 +77,16 @@ export type UserPreferences = typeof userPreferences.$inferSelect
 export const product = sqliteTable('product', {
 	id: text('id').primaryKey(),
 	name: text('name').notNull(),
+	slug: text('slug').notNull(),
 	available: integer({ mode: 'boolean' }).notNull(),
 })
 export type Product = typeof product.$inferSelect
 
 export const productProblem = sqliteTable('product_problem', {
 	id: text('id').primaryKey(),
+	productId: text('product_problem_id')
+		.notNull()
+		.references(() => product.id),
 	userId: text('user_id')
 		.notNull()
 		.references(() => authUser.id),
@@ -103,7 +107,7 @@ export const productProblemImage = sqliteTable('product_problem_image', {
 })
 export type ProductProblemImage = typeof productProblemImage.$inferSelect
 
-export const productSolution = sqliteTable('product_solution', {
+const _productSolution: SQLiteTableWithColumns<any> = sqliteTable('product_solution', {
 	id: text('id').primaryKey(),
 	userId: text('user_id')
 		.notNull()
@@ -111,9 +115,12 @@ export const productSolution = sqliteTable('product_solution', {
 	productProblemId: text('product_problem_id')
 		.notNull()
 		.references(() => productProblem.id),
+	description: text('description').notNull(),
+	replyId: text('reply_id').references(() => _productSolution.id),
 	createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
 	updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 })
+export const productSolution = _productSolution
 export type ProductSolution = typeof productSolution.$inferSelect
 
 export const productSolutionChecked = sqliteTable('product_solution_checked', {

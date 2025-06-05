@@ -4,6 +4,7 @@ import Switch from '@/components/ui/Switch'
 interface Product {
 	id: string
 	name: string
+	slug: string
 	available: boolean
 }
 
@@ -46,6 +47,7 @@ export default function ProductTable({ products, onEdit, onDelete, onLoadMore, l
 					<thead>
 						<tr className='bg-zinc-100 dark:bg-zinc-800'>
 							<th className='px-4 py-3 text-left font-semibold'>Nome</th>
+							<th className='px-4 py-3 text-left font-semibold'>Slug</th>
 							<th className='px-4 py-3 text-left font-semibold'>Disponível</th>
 							<th className='px-4 py-3 text-right font-semibold'>Ações</th>
 						</tr>

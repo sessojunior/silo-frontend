@@ -1,14 +1,162 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+
 import { useSidebar } from '@/context/SidebarContext'
-import type { SidebarProps } from '@/app/admin/layout'
 import SidebarHeader from '@/components/admin/sidebar/SidebarHeader'
 import SidebarFooter from '@/components/admin/sidebar/SidebarFooter'
 import SidebarMenu from '@/components/admin/sidebar/SidebarMenu'
 import SidebarBlocks from '@/components/admin/sidebar/SidebarBlocks'
+import type { Product } from '@/lib/db/schema'
 
-export default function Sidebar({ sidebar }: { sidebar: SidebarProps }) {
+export type SidebarMenuProps = {
+	id: string
+	title: string
+	icon?: string | null
+	url?: string | null
+	items: SidebarMenuProps[] | null
+}
+
+export type SidebarBlockProps = {
+	id: string
+	title: string
+	description: string
+}
+
+export type SidebarProps = {
+	menu: SidebarMenuProps[]
+	blocks: SidebarBlockProps[]
+}
+
+export default function Sidebar() {
 	const { isOpenSidebar, closeSidebar } = useSidebar()
+	const [products, setProducts] = useState<Product[]>([])
+
+	// Obter dados dos produtos
+	useEffect(() => {
+		const fetchProducts = async () => {
+			const response = await fetch('/api/products')
+			const data = await response.json()
+			// Filtrar apenas produtos disponíveis
+			const availableProducts = data.items.filter((product: Product) => product.available)
+			setProducts(availableProducts)
+		}
+
+		fetchProducts()
+	}, [])
+
+	// Dados para o menu lateral
+	const sidebar: SidebarProps = {
+		menu: [
+			{
+				id: '1',
+				title: 'Menu principal',
+				items: [
+					{
+						id: '1.1',
+						title: 'Visão geral',
+						icon: 'icon-[lucide--house]',
+						url: '/admin/dashboard',
+						items: null,
+					},
+					{
+						id: '1.2',
+						title: 'Produtos & tasks',
+						icon: 'icon-[lucide--folder-git-2]',
+						url: '#',
+						items: [
+							...products
+								.sort((a, b) => a.name.localeCompare(b.name))
+								.map((product) => ({
+									id: product.id,
+									title: product.name,
+									icon: null,
+									url: `/admin/products/${product.slug}`,
+									items: null,
+								})),
+						],
+					},
+					{
+						id: '1.3',
+						title: 'Projetos',
+						icon: 'icon-[lucide--square-chart-gantt]',
+						url: '#',
+						items: null,
+					},
+					{
+						id: '1.4',
+						title: 'Grupos',
+						icon: 'icon-[lucide--users-round]',
+						url: '#',
+						items: null,
+					},
+				],
+			},
+			{
+				id: '2',
+				title: 'Outros',
+				items: [
+					{
+						id: '2.2',
+						title: 'Bate-papo',
+						icon: 'icon-[lucide--messages-square]',
+						url: '#',
+						items: null,
+					},
+					{
+						id: '2.3',
+						title: 'Configurações',
+						icon: 'icon-[lucide--settings-2]',
+						url: '/admin/settings',
+						items: [
+							{
+								id: '2.3.1',
+								title: 'Config. gerais',
+								icon: null,
+								url: '/admin/settings/general',
+								items: null,
+							},
+							{
+								id: '2.3.2',
+								title: 'Produtos & tasks',
+								icon: null,
+								url: '/admin/settings/products',
+								items: null,
+							},
+							{
+								id: '2.3.3',
+								title: 'Projetos',
+								icon: null,
+								url: '/admin/settings/projects',
+								items: null,
+							},
+							{
+								id: '2.3.4',
+								title: 'Grupos',
+								icon: null,
+								url: '/admin/settings/groups',
+								items: null,
+							},
+						],
+					},
+					{
+						id: '2.4',
+						title: 'Ajuda',
+						icon: 'icon-[lucide--life-buoy]',
+						url: '#',
+						items: null,
+					},
+				],
+			},
+		],
+		blocks: [
+			{
+				id: '1',
+				title: 'O que há de novo?',
+				description: 'Você pode conferir todas as novidades dessa nova versão do dashboard no aplicativo Silo.',
+			},
+		],
+	}
 
 	return (
 		<div

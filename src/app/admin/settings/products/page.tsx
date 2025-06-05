@@ -8,12 +8,7 @@ import Offcanvas from '@/components/ui/Offcanvas'
 import Dialog from '@/components/ui/Dialog'
 import { toast } from '@/lib/toast'
 import Button from '@/components/ui/Button'
-
-interface Product {
-	id: string
-	name: string
-	available: boolean
-}
+import type { Product } from '@/lib/db/schema'
 
 const PAGE_SIZE = 40
 
@@ -40,7 +35,7 @@ export default function SettingsProductsPage() {
 			setLoading(true)
 			const currentPage = reset ? 1 : page
 			try {
-				const res = await fetch(`/api/product?page=${currentPage}&limit=${PAGE_SIZE}&name=${encodeURIComponent(filterName)}`)
+				const res = await fetch(`/api/products?page=${currentPage}&limit=${PAGE_SIZE}&name=${encodeURIComponent(filterName)}`)
 				const data = await res.json()
 				if (res.ok) {
 					if (reset) {
@@ -92,7 +87,7 @@ export default function SettingsProductsPage() {
 	async function handleFormSubmit(data: { id?: string; name: string; available: boolean }) {
 		setFormLoading(true)
 		try {
-			const res = await fetch('/api/product', {
+			const res = await fetch('/api/products', {
 				method: data.id ? 'PUT' : 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(data),
@@ -120,7 +115,7 @@ export default function SettingsProductsPage() {
 		if (!deleting) return
 		setFormLoading(true)
 		try {
-			const res = await fetch(`/api/product?id=${deleting.id}`, { method: 'DELETE' })
+			const res = await fetch(`/api/products?id=${deleting.id}`, { method: 'DELETE' })
 			const resp = await res.json()
 			if (res.ok) {
 				setDialogOpen(false)
