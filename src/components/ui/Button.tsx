@@ -8,7 +8,7 @@ import { twMerge } from 'tailwind-merge' // Junta classes do Tailwind com priori
 type ButtonStyle = 'filled' | 'bordered' | 'unstyled'
 
 interface CommonProps {
-	children: ReactNode
+	children?: ReactNode
 	icon?: string | null
 	style?: ButtonStyle
 	className?: string

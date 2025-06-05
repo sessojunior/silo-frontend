@@ -2,9 +2,10 @@
 
 import ReactMarkdown from 'react-markdown'
 import Button from '@/components/ui/Button'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import type { ProductProblem, ProductProblemImage, ProductSolution } from '@/lib/db/schema'
 import { useParams, useRouter } from 'next/navigation'
+import Lightbox from '@/components/ui/Lightbox'
 
 export default function ProblemsPage() {
 	const { slug } = useParams()
@@ -15,6 +16,11 @@ export default function ProblemsPage() {
 	const [images, setImages] = useState<ProductProblemImage[]>([])
 	const [solutionsCount, setSolutionsCount] = useState<Record<string, number>>({})
 	const [loadingDetail, setLoadingDetail] = useState(false)
+	const [filter, setFilter] = useState('')
+	const [visibleCount, setVisibleCount] = useState(10)
+	const listRef = useRef<HTMLDivElement>(null)
+	const [lightboxOpen, setLightboxOpen] = useState(false)
+	const [lightboxImage, setLightboxImage] = useState<{ src: string; alt?: string } | null>(null)
 
 	// Função para selecionar um problema e buscar seus dados
 	const handleSelectProblem = async (selected: ProductProblem) => {
@@ -64,23 +70,43 @@ export default function ProblemsPage() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [slug])
 
+	useEffect(() => {
+		const handleScroll = () => {
+			if (!listRef.current) return
+			const { scrollTop, scrollHeight, clientHeight } = listRef.current
+			console.log('scroll', scrollTop, scrollHeight, clientHeight)
+			if (scrollTop + clientHeight >= scrollHeight - 10) {
+				setVisibleCount((prev) => prev + 10)
+			}
+		}
+		const el = listRef.current
+		if (el) el.addEventListener('scroll', handleScroll)
+		return () => {
+			if (el) el.removeEventListener('scroll', handleScroll)
+		}
+	}, [])
+
+	const filteredProblems = problems.filter((p) => filter.trim().length === 0 || p.title.toLowerCase().includes(filter.toLowerCase()) || p.description.toLowerCase().includes(filter.toLowerCase()))
+	const problemsToShow = filteredProblems.slice(0, visibleCount)
+
 	return (
 		<div className='flex w-full'>
 			{/* Coluna da esquerda */}
 			<div className='flex w-full flex-shrink-0 flex-col border-r border-zinc-200 sm:w-[480px] dark:border-zinc-700'>
-				<div className='scrollbar size-full h-[calc(100vh-131px)] overflow-y-auto'>
+				<div ref={listRef} className='scrollbar size-full h-[calc(100vh-131px)] overflow-y-auto'>
 					{/* Campo de busca */}
-					<div className='border-b border-zinc-200 px-8 py-4'>
-						<div className='relative'>
-							<input type='text' name='problem' className='block w-full rounded-lg border-zinc-200 px-4 py-2.5 pe-11 sm:py-3 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500' placeholder='Procurar problema...' />
+					<div className='border-b border-zinc-200 px-8 py-4 flex items-center gap-2'>
+						<div className='relative flex flex-1 h-10'>
+							<input type='text' name='problem' value={filter} onChange={(e) => setFilter(e.target.value)} className='block w-full rounded-lg border-zinc-200 px-4 py-2.5 pe-11 sm:py-3 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500' placeholder='Procurar problema...' />
 							<div className='pointer-events-none absolute inset-y-0 end-0 z-20 flex items-center pe-4'>
 								<span className='icon-[lucide--search] ml-1 size-4 shrink-0 text-zinc-400 dark:text-zinc-500'></span>
 							</div>
 						</div>
+						<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='flex size-10' title='Adicionar problema' aria-label='Adicionar problema'></Button>
 					</div>
 
-					{problems.length > 0 ? (
-						<ListProblems problems={problems} solutionsCount={solutionsCount} onSelect={handleSelectProblem} selectedId={problem?.id ?? null} loadingDetail={loadingDetail} />
+					{filteredProblems.length > 0 ? (
+						<ListProblems problems={problemsToShow} solutionsCount={solutionsCount} onSelect={handleSelectProblem} selectedId={problem?.id ?? null} loadingDetail={loadingDetail} />
 					) : (
 						<div className='border-b border-zinc-200 p-8'>
 							<div className='rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-800 dark:border-zinc-600 dark:bg-yellow-800/10 dark:text-zinc-500' role='alert'>
@@ -97,7 +123,6 @@ export default function ProblemsPage() {
 						</div>
 					)}
 
-					{/* Botão adicionar problema */}
 					<div className='px-8 py-4'>
 						<div className='flex justify-center'>
 							<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='py-2'>
@@ -127,7 +152,7 @@ export default function ProblemsPage() {
 										)}
 									</div>
 									{problem && (
-										<Button type='button' icon='icon-[lucide--edit]' style='unstyled' className='py-2'>
+										<Button type='button' icon='icon-[lucide--edit]' style='unstyled' className='shrink-0 py-2'>
 											Editar problema
 										</Button>
 									)}
@@ -142,7 +167,15 @@ export default function ProblemsPage() {
 									{images.length > 0 &&
 										images.map(({ id, image, description }) => (
 											<div key={id}>
-												<img className='h-32 w-auto rounded-lg' src={image} alt={description} />
+												<img
+													className='h-32 w-auto rounded-lg cursor-pointer transition hover:brightness-90'
+													src={image}
+													alt={description}
+													onClick={() => {
+														setLightboxImage({ src: image, alt: description })
+														setLightboxOpen(true)
+													}}
+												/>
 											</div>
 										))}
 								</div>
@@ -160,7 +193,7 @@ export default function ProblemsPage() {
 												</span>
 											</div>
 										</div>
-										<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='py-2'>
+										<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='shrink-0 py-2'>
 											Adicionar solução
 										</Button>
 									</div>
@@ -225,6 +258,8 @@ export default function ProblemsPage() {
 									</div>
 								</div>
 							)}
+							{/* Lightbox para imagem em destaque */}
+							<Lightbox open={lightboxOpen} image={lightboxImage?.src || ''} alt={lightboxImage?.alt} onClose={() => setLightboxOpen(false)} />
 						</>
 					)}
 				</div>
@@ -241,11 +276,15 @@ function ListProblems({ problems, solutionsCount, onSelect, selectedId, loadingD
 					<div key={problem.id} className={`flex flex-col border-b border-zinc-200 cursor-pointer ${selectedId === problem.id ? 'bg-zinc-100 dark:bg-zinc-800' : ''} ${loadingDetail ? 'opacity-50 pointer-events-none' : ''}`} onClick={() => !loadingDetail && onSelect(problem)}>
 						<div className='flex w-full flex-col gap-y-1 p-8 hover:bg-zinc-100'>
 							<div className='flex w-full items-center justify-between gap-x-2'>
-								<span className='text-base font-semibold text-zinc-700'>{problem.title}</span>
+								<span className='text-base font-semibold text-zinc-700 line-clamp-2' style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+									{problem.title}
+								</span>
 								<span className='ms-1 shrink-0 rounded-full bg-zinc-100 px-1.5 py-0.5 text-xs font-medium text-zinc-600'>{solutionsCount[problem.id] ?? 0}</span>
 							</div>
 							<div className='flex text-sm text-zinc-600'>
-								<p>{problem.description}</p>
+								<p className='line-clamp-4' style={{ display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+									{problem.description}
+								</p>
 							</div>
 						</div>
 					</div>
