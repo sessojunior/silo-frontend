@@ -160,7 +160,7 @@ export default function Sidebar() {
 
 	return (
 		<div
-			className={`fixed inset-y-0 start-0 z-40 h-full w-[260px] transform border-e border-zinc-200 bg-white transition-all duration-300 dark:border-zinc-700 dark:bg-zinc-900 lg:block lg:translate-x-0 
+			className={`fixed inset-y-0 start-0 z-[60] h-full w-[260px] transform border-e border-zinc-200 bg-white transition-all duration-300 dark:border-zinc-700 dark:bg-zinc-900 lg:block lg:translate-x-0 
 					${isOpenSidebar ? 'translate-x-0' : '-translate-x-full'}
 				`}
 			role='dialog'
