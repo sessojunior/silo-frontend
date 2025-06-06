@@ -11,6 +11,8 @@ import Input from '@/components/ui/Input'
 import Label from '@/components/ui/Label'
 import { toast } from '@/lib/toast'
 import clsx from 'clsx'
+import Dialog from '@/components/ui/Dialog'
+import PhotoUpload from '@/components/ui/PhotoUpload'
 
 export default function ProblemsPage() {
 	const { slug } = useParams()
@@ -33,6 +35,12 @@ export default function ProblemsPage() {
 	const [formError, setFormError] = useState<string | null>(null)
 	const [form, setForm] = useState<{ field: string | null; message: string | null }>({ field: null, message: null })
 	const [productId, setProductId] = useState<string | null>(null)
+	const [editing, setEditing] = useState<ProductProblem | null>(null)
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+	const [deleteLoading, setDeleteLoading] = useState(false)
+	const [previewFile, setPreviewFile] = useState<File | null>(null)
+	const [deleteImageId, setDeleteImageId] = useState<string | null>(null)
+	const [deleteImageLoading, setDeleteImageLoading] = useState(false)
 
 	// Função para selecionar um problema e buscar seus dados
 	const handleSelectProblem = async (selected: ProductProblem) => {
@@ -105,8 +113,18 @@ export default function ProblemsPage() {
 	const filteredProblems = problems.filter((p) => filter.trim().length === 0 || p.title.toLowerCase().includes(filter.toLowerCase()) || p.description.toLowerCase().includes(filter.toLowerCase()))
 	const problemsToShow = filteredProblems.slice(0, visibleCount)
 
-	// Função para submeter o formulário
-	async function handleAddProblem(e: React.FormEvent) {
+	// Função para abrir o Offcanvas para editar
+	function handleEditProblem() {
+		if (problem) {
+			setEditing(problem)
+			setFormTitle(problem.title)
+			setFormDescription(problem.description)
+			setOffcanvasOpen(true)
+		}
+	}
+
+	// Função para submeter o formulário (cadastrar ou editar)
+	async function handleAddOrEditProblem(e: React.FormEvent) {
 		e.preventDefault()
 		setFormError(null)
 		if (formTitle.trim().length < 5) {
@@ -119,27 +137,120 @@ export default function ProblemsPage() {
 		}
 		setFormLoading(true)
 		try {
+			let res, data
+			if (editing) {
+				// Editar
+				res = await fetch('/api/products/problems', {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						id: editing.id,
+						title: formTitle,
+						description: formDescription,
+					}),
+				})
+				data = await res.json()
+				if (res.ok) {
+					toast({ type: 'success', title: 'Problema atualizado', description: 'O problema foi atualizado com sucesso.' })
+					setOffcanvasOpen(false)
+					setEditing(null)
+					setFormTitle('')
+					setFormDescription('')
+					// Atualiza a lista de problemas
+					const response = await fetch(`/api/products/problems?slug=${slug}`)
+					const data = await response.json()
+					setProblems(data.items)
+					const counts: Record<string, number> = {}
+					await Promise.all(
+						data.items.map(async (problem: ProductProblem) => {
+							const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
+							const solData = await res.json()
+							counts[problem.id] = solData.items.length
+						}),
+					)
+					setSolutionsCount(counts)
+					// Após atualizar a lista de problemas
+					const updatedProblems: ProductProblem[] = data.items ?? []
+					const updated = updatedProblems.find((p: ProductProblem) => p.id === editing.id)
+					if (updated) handleSelectProblem(updated)
+				} else {
+					setFormError(data.message || 'Erro ao atualizar problema.')
+					toast({ type: 'error', title: 'Erro', description: data.message || 'Erro ao atualizar problema.' })
+				}
+			} else {
+				// Cadastrar
+				if (!productId) {
+					setFormError('Produto não encontrado. Recarregue a página ou tente novamente.')
+					toast({ type: 'error', title: 'Produto não encontrado.' })
+					return
+				}
+				res = await fetch('/api/products/problems', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						productId,
+						title: formTitle,
+						description: formDescription,
+					}),
+				})
+				data = await res.json()
+				if (res.ok) {
+					toast({ type: 'success', title: 'Problema cadastrado', description: 'O problema foi adicionado com sucesso.' })
+					setOffcanvasOpen(false)
+					setFormTitle('')
+					setFormDescription('')
+					// Atualiza a lista de problemas
+					const response = await fetch(`/api/products/problems?slug=${slug}`)
+					const data = await response.json()
+					setProblems(data.items)
+					const counts: Record<string, number> = {}
+					await Promise.all(
+						data.items.map(async (problem: ProductProblem) => {
+							const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
+							const solData = await res.json()
+							counts[problem.id] = solData.items.length
+						}),
+					)
+					setSolutionsCount(counts)
+					// Após atualizar a lista de problemas
+					const updatedProblems: ProductProblem[] = data.items ?? []
+					const novo = updatedProblems[0]
+					if (novo) handleSelectProblem(novo)
+				} else {
+					setFormError(data.message || 'Erro ao cadastrar problema.')
+					toast({ type: 'error', title: 'Erro', description: data.message || 'Erro ao cadastrar problema.' })
+				}
+			}
+		} catch (e) {
+			setFormError('Erro ao salvar problema.')
+			toast({ type: 'error', title: 'Erro', description: 'Erro ao salvar problema.' })
+		} finally {
+			setFormLoading(false)
+		}
+	}
+
+	// Função para excluir problema
+	async function handleDeleteProblem() {
+		if (!editing) return
+		setDeleteLoading(true)
+		try {
 			const res = await fetch('/api/products/problems', {
-				method: 'POST',
+				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					productId,
-					title: formTitle,
-					description: formDescription,
-				}),
+				body: JSON.stringify({ id: editing.id }),
 			})
 			const data = await res.json()
 			if (res.ok) {
-				toast({ type: 'success', title: 'Problema cadastrado', description: 'O problema foi adicionado com sucesso.' })
+				toast({ type: 'success', title: 'Problema excluído', description: 'O problema e todos os dados relacionados foram removidos.' })
 				setOffcanvasOpen(false)
+				setDeleteDialogOpen(false)
+				setEditing(null)
 				setFormTitle('')
 				setFormDescription('')
 				// Atualiza a lista de problemas
-				// Refaz o fetch dos problemas
 				const response = await fetch(`/api/products/problems?slug=${slug}`)
 				const data = await response.json()
 				setProblems(data.items)
-				// Atualiza a contagem de soluções
 				const counts: Record<string, number> = {}
 				await Promise.all(
 					data.items.map(async (problem: ProductProblem) => {
@@ -149,15 +260,21 @@ export default function ProblemsPage() {
 					}),
 				)
 				setSolutionsCount(counts)
+				// Seleciona o primeiro problema, se houver
+				if (data.items[0]) {
+					handleSelectProblem(data.items[0])
+				} else {
+					setProblem(null)
+					setSolutions([])
+					setImages([])
+				}
 			} else {
-				setFormError(data.error || 'Erro ao cadastrar problema.')
-				toast({ type: 'error', title: 'Erro', description: data.error || 'Erro ao cadastrar problema.' })
+				toast({ type: 'error', title: 'Erro', description: data.message || 'Erro ao excluir problema.' })
 			}
 		} catch (e) {
-			setFormError('Erro ao cadastrar problema.')
-			toast({ type: 'error', title: 'Erro', description: 'Erro ao cadastrar problema.' })
+			toast({ type: 'error', title: 'Erro', description: 'Erro ao excluir problema.' })
 		} finally {
-			setFormLoading(false)
+			setDeleteLoading(false)
 		}
 	}
 
@@ -224,7 +341,7 @@ export default function ProblemsPage() {
 										)}
 									</div>
 									{problem && (
-										<Button type='button' icon='icon-[lucide--edit]' style='unstyled' className='shrink-0 py-2'>
+										<Button type='button' icon='icon-[lucide--edit]' style='unstyled' className='shrink-0 py-2' onClick={handleEditProblem}>
 											Editar problema
 										</Button>
 									)}
@@ -338,8 +455,16 @@ export default function ProblemsPage() {
 			</div>
 
 			{/* Offcanvas para adicionar problema */}
-			<Offcanvas open={offcanvasOpen} onClose={() => setOffcanvasOpen(false)} title='Adicionar problema' width='xl'>
-				<form onSubmit={handleAddProblem} className='flex flex-col gap-6'>
+			<Offcanvas
+				open={offcanvasOpen}
+				onClose={() => {
+					setOffcanvasOpen(false)
+					setEditing(null)
+				}}
+				title={editing ? 'Editar problema' : 'Adicionar problema'}
+				width='xl'
+			>
+				<form onSubmit={handleAddOrEditProblem} className='flex flex-col gap-6'>
 					<div>
 						<Label htmlFor='problem-title' required>
 							Título do problema
@@ -350,19 +475,190 @@ export default function ProblemsPage() {
 						<Label htmlFor='problem-description' required>
 							Descrição detalhada
 						</Label>
-						<textarea id='problem-description' value={formDescription} onChange={(e) => setFormDescription(e.target.value)} minLength={20} maxLength={3000} required className={clsx('block w-full rounded-lg border-zinc-200 px-4 py-3 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500', form.field === 'description' && 'border-red-400')} rows={20} placeholder='Descreva o problema detalhadamente para facilitar o suporte e a resolução.' />
+						<textarea id='problem-description' value={formDescription} onChange={(e) => setFormDescription(e.target.value)} minLength={20} maxLength={3000} required className={clsx('block w-full rounded-lg border-zinc-200 px-4 py-3 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500', form.field === 'description' && 'border-red-400')} rows={16} placeholder='Descreva o problema detalhadamente para facilitar o suporte e a resolução.' />
 					</div>
 					{form.field === 'description' && <div className='text-red-600 text-sm'>{form.message}</div>}
-					<div className='text-sm text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/30 rounded-lg'>Imagens poderão ser adicionadas após o cadastro do problema, na tela de edição.</div>
-					<div className='flex justify-end gap-2'>
-						<Button type='button' style='bordered' onClick={() => setOffcanvasOpen(false)}>
-							Cancelar
-						</Button>
-						<Button type='submit' disabled={formLoading}>
-							{formLoading ? 'Adicionando...' : 'Adicionar'}
-						</Button>
+					{!editing && <div className='text-sm text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/30 rounded-lg'>Imagens poderão ser adicionadas após o cadastro do problema, na tela de edição.</div>}
+					{editing && (
+						<div className='flex flex-col gap-4'>
+							<div className='font-semibold'>Imagens do problema</div>
+							<div className='flex gap-4 items-center flex-wrap'>
+								{/* Grid de imagens existentes */}
+								{images.length > 0 &&
+									images.map((img) => (
+										<div key={img.id} className='relative flex flex-col items-center justify-center'>
+											{/* Miniatura com Lightbox */}
+											<div
+												className='group cursor-pointer flex items-center justify-center h-32 w-32 bg-zinc-50 border border-zinc-200 rounded-lg overflow-hidden relative'
+												onClick={() => {
+													setLightboxImage({ src: img.image, alt: img.description })
+													setLightboxOpen(true)
+												}}
+											>
+												<img src={img.image} alt={img.description} className='object-contain h-full w-full transition-transform duration-200 group-hover:scale-105' style={{ maxHeight: '8rem', maxWidth: '8rem' }} />
+												{/* Botão de apagar no canto superior direito */}
+												<button
+													type='button'
+													className='absolute top-1 right-1 z-10 flex items-center justify-center size-8 bg-red-100/80 rounded-full p-0.5 text-red-600 shadow hover:bg-red-200 transition'
+													title='Excluir imagem'
+													onClick={(e) => {
+														e.stopPropagation()
+														setDeleteImageId(img.id)
+													}}
+												>
+													<span className='icon-[lucide--trash] size-4 flex items-center justify-center' />
+												</button>
+											</div>
+										</div>
+									))}
+								{/* Botão de upload (div quadrada) */}
+								<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-zinc-300 rounded-lg cursor-pointer hover:border-blue-400 transition group relative'>
+									<input
+										type='file'
+										name='file-upload'
+										accept='image/png, image/jpeg, image/webp'
+										className='absolute inset-0 opacity-0 cursor-pointer z-10'
+										style={{ width: '100%', height: '100%' }}
+										onChange={(e) => {
+											const file = e.target.files?.[0]
+											if (file) {
+												setPreviewFile(file)
+											}
+										}}
+									/>
+									<span className='icon-[lucide--plus] size-10 text-zinc-400 group-hover:text-blue-500' />
+									<span className='text-xs text-zinc-400 mt-2'>Adicionar</span>
+								</div>
+								{/* Preview da imagem selecionada */}
+								{previewFile && (
+									<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-blue-400 rounded-lg relative'>
+										<img src={URL.createObjectURL(previewFile)} alt='Preview' className='object-contain h-full w-full rounded-lg' style={{ maxHeight: '8rem', maxWidth: '8rem' }} />
+										<button
+											type='button'
+											className='absolute bottom-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white rounded-full px-3 py-1 text-xs font-semibold shadow hover:bg-blue-700 transition'
+											onClick={async () => {
+												const formData = new FormData()
+												formData.append('file', previewFile)
+												formData.append('productProblemId', editing.id)
+												const res = await fetch('/api/products/images', {
+													method: 'POST',
+													body: formData,
+												})
+												if (res.ok) {
+													toast({ type: 'success', title: 'Imagem enviada' })
+													setPreviewFile(null)
+													// Atualiza lista de imagens
+													const imagesRes = await fetch(`/api/products/images?problemId=${editing.id}`)
+													const imagesData = await imagesRes.json()
+													setImages(imagesData.items)
+												} else {
+													toast({ type: 'error', title: 'Erro ao enviar imagem' })
+												}
+											}}
+										>
+											Enviar
+										</button>
+										<button type='button' className='absolute top-2 right-2 bg-white/80 text-red-500 rounded-full p-1 hover:bg-red-100 transition' onClick={() => setPreviewFile(null)}>
+											<span className='icon-[lucide--x] size-4' />
+										</button>
+									</div>
+								)}
+							</div>
+							<Lightbox open={lightboxOpen} image={lightboxImage?.src || ''} alt={lightboxImage?.alt} onClose={() => setLightboxOpen(false)} />
+						</div>
+					)}
+					{formError && <div className='text-red-600 text-sm'>{formError}</div>}
+					<div className='flex justify-between gap-2'>
+						{editing && (
+							<Button type='button' style='bordered' className='text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20' onClick={() => setDeleteDialogOpen(true)}>
+								Excluir problema
+							</Button>
+						)}
+						<div className='flex gap-2'>
+							<Button
+								type='button'
+								style='bordered'
+								onClick={() => {
+									setOffcanvasOpen(false)
+									setEditing(null)
+								}}
+							>
+								Cancelar
+							</Button>
+							<Button type='submit' disabled={formLoading}>
+								{formLoading ? (editing ? 'Salvando...' : 'Adicionando...') : editing ? 'Salvar' : 'Adicionar'}
+							</Button>
+						</div>
 					</div>
 				</form>
+				{/* Dialog de confirmação de exclusão */}
+				<Dialog
+					open={deleteDialogOpen}
+					onClose={() => setDeleteDialogOpen(false)}
+					title={
+						<div className='flex items-center gap-2 text-red-600'>
+							<span className='icon-[lucide--trash-2] size-4' />
+							Excluir problema
+						</div>
+					}
+					description='Tem certeza que deseja excluir este problema? Todas as soluções, imagens e dados relacionados serão removidos permanentemente.'
+				>
+					<div className='flex gap-2 justify-end mt-6'>
+						<Button type='button' style='bordered' onClick={() => setDeleteDialogOpen(false)}>
+							Cancelar
+						</Button>
+						<Button type='button' className='bg-red-600 text-white hover:bg-red-700' disabled={deleteLoading} onClick={handleDeleteProblem}>
+							{deleteLoading ? 'Excluindo...' : 'Excluir'}
+						</Button>
+					</div>
+				</Dialog>
+				{/* Dialog de confirmação de exclusão de imagem */}
+				<Dialog
+					open={!!deleteImageId}
+					onClose={() => setDeleteImageId(null)}
+					title={
+						<div className='flex items-center gap-2 text-red-600'>
+							<span className='icon-[lucide--trash] size-4' />
+							Excluir imagem
+						</div>
+					}
+					description='Tem certeza que deseja excluir esta imagem? Esta ação não poderá ser desfeita.'
+				>
+					<div className='flex gap-2 justify-end mt-6'>
+						<Button type='button' style='bordered' onClick={() => setDeleteImageId(null)}>
+							Cancelar
+						</Button>
+						<Button
+							type='button'
+							className='bg-red-600 text-white hover:bg-red-700'
+							disabled={deleteImageLoading}
+							onClick={async () => {
+								if (!deleteImageId) return
+								setDeleteImageLoading(true)
+								const res = await fetch('/api/products/images', {
+									method: 'DELETE',
+									headers: { 'Content-Type': 'application/json' },
+									body: JSON.stringify({ id: deleteImageId }),
+								})
+								setDeleteImageLoading(false)
+								setDeleteImageId(null)
+								if (res.ok) {
+									toast({ type: 'success', title: 'Imagem excluída' })
+									// Atualiza lista de imagens
+									if (editing) {
+										const imagesRes = await fetch(`/api/products/images?problemId=${editing.id}`)
+										const imagesData = await imagesRes.json()
+										setImages(imagesData.items)
+									}
+								} else {
+									toast({ type: 'error', title: 'Erro ao excluir imagem' })
+								}
+							}}
+						>
+							{deleteImageLoading ? 'Excluindo...' : 'Excluir'}
+						</Button>
+					</div>
+				</Dialog>
 			</Offcanvas>
 		</div>
 	)
