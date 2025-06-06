@@ -133,3 +133,13 @@ export const productSolutionChecked = sqliteTable('product_solution_checked', {
 		.references(() => productSolution.id),
 })
 export type ProductSolutionChecked = typeof productSolutionChecked.$inferSelect
+
+export const productSolutionImage = sqliteTable('product_solution_image', {
+	id: text('id').primaryKey(),
+	productSolutionId: text('product_solution_id')
+		.notNull()
+		.references(() => productSolution.id),
+	image: text('image').notNull(),
+	description: text('description').notNull(),
+})
+export type productSolutionImage = typeof productSolutionImage.$inferSelect
