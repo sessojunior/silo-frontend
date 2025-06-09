@@ -2,6 +2,7 @@
 
 import ReactMarkdown from 'react-markdown'
 import Button from '@/components/ui/Button'
+import { getMarkdownClasses } from '@/lib/markdown'
 import { useEffect, useState, useRef } from 'react'
 import type { ProductProblem, ProductProblemImage, ProductSolution } from '@/lib/db/schema'
 import { useParams, useRouter } from 'next/navigation'
@@ -26,6 +27,7 @@ export default function ProblemsPage() {
 	const [images, setImages] = useState<ProductProblemImage[]>([])
 	const [solutionsCount, setSolutionsCount] = useState<Record<string, number>>({})
 	const [loadingDetail, setLoadingDetail] = useState(false)
+	const [initialLoading, setInitialLoading] = useState(true)
 	const [filter, setFilter] = useState('')
 	const [visibleCount, setVisibleCount] = useState(10)
 	const listRef = useRef<HTMLDivElement>(null)
@@ -81,35 +83,40 @@ export default function ProblemsPage() {
 
 	useEffect(() => {
 		const fetchProblems = async () => {
-			const response = await fetch(`/api/products/problems?slug=${slug}`)
-			const data = await response.json()
+			setInitialLoading(true)
+			try {
+				const response = await fetch(`/api/products/problems?slug=${slug}`)
+				const data = await response.json()
 
-			if (!data.items || data.items.length === 0) {
-				// Se não há problemas, buscar o productId pelo slug
-				const prodRes = await fetch(`/api/products/by-slug?slug=${slug}`)
-				const prodData = await prodRes.json()
-				if (prodData?.id) setProductId(prodData.id)
-				router.replace('/404')
-				return
-			}
+				if (!data.items || data.items.length === 0) {
+					// Se não há problemas, buscar o productId pelo slug
+					const prodRes = await fetch(`/api/products/by-slug?slug=${slug}`)
+					const prodData = await prodRes.json()
+					if (prodData?.id) setProductId(prodData.id)
+					router.replace('/404')
+					return
+				}
 
-			setProblems(data.items)
-			setProductId(data.items[0].productId) // <-- Salva o productId do primeiro problema
+				setProblems(data.items)
+				setProductId(data.items[0].productId) // <-- Salva o productId do primeiro problema
 
-			// Busca a contagem de soluções para cada problema
-			const counts: Record<string, number> = {}
-			await Promise.all(
-				data.items.map(async (problem: ProductProblem) => {
-					const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
-					const solData = await res.json()
-					counts[problem.id] = solData.items.length
-				}),
-			)
-			setSolutionsCount(counts)
+				// Busca a contagem de soluções para cada problema
+				const counts: Record<string, number> = {}
+				await Promise.all(
+					data.items.map(async (problem: ProductProblem) => {
+						const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
+						const solData = await res.json()
+						counts[problem.id] = solData.items.length
+					}),
+				)
+				setSolutionsCount(counts)
 
-			// Seleciona e carrega o primeiro problema
-			if (data.items[0]) {
-				handleSelectProblem(data.items[0])
+				// Seleciona e carrega o primeiro problema
+				if (data.items[0]) {
+					handleSelectProblem(data.items[0])
+				}
+			} finally {
+				setInitialLoading(false)
 			}
 		}
 
@@ -439,6 +446,17 @@ export default function ProblemsPage() {
 		setExpandedSolutionIds((prev) => (prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]))
 	}
 
+	if (initialLoading) {
+		return (
+			<div className='flex h-[calc(100vh-131px)] w-full items-center justify-center'>
+				<div className='text-center'>
+					<div className='animate-spin text-4xl'>⏳</div>
+					<p className='mt-2 text-zinc-600 dark:text-zinc-400'>Carregando problemas e soluções...</p>
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		<>
 			<div className='flex w-full'>
@@ -488,7 +506,12 @@ export default function ProblemsPage() {
 				<div className='flex w-full flex-grow flex-col'>
 					<div className='scrollbar size-full h-[calc(100vh-131px)] overflow-y-auto'>
 						{loadingDetail ? (
-							<div className='flex items-center justify-center h-full'>Carregando detalhes...</div>
+							<div className='flex items-center justify-center h-full'>
+								<div className='text-center'>
+									<div className='animate-spin text-4xl'>⏳</div>
+									<p className='mt-2 text-zinc-600 dark:text-zinc-400'>Carregando detalhes...</p>
+								</div>
+							</div>
 						) : (
 							<>
 								{/* Descrição do problema */}
@@ -509,7 +532,7 @@ export default function ProblemsPage() {
 										)}
 									</div>
 
-									<div className='flex flex-col gap-y-2 text-zinc-800'>
+									<div className={getMarkdownClasses('base', 'text-zinc-800 dark:text-zinc-200')}>
 										{/* Uso de Markdown para a descrição */}
 										<ReactMarkdown>{problem ? problem.description : 'Nenhum problema registrado para este produto.'}</ReactMarkdown>
 									</div>
@@ -573,8 +596,8 @@ export default function ProblemsPage() {
 																		)}
 																	</div>
 																	{/* Descrição truncada/expandida */}
-																	<div className={clsx('text-sm font-medium text-zinc-600', !isExpanded && 'line-clamp-4')} style={{ display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-																		{solution.description}
+																	<div className={clsx(getMarkdownClasses('compact', 'text-zinc-600 dark:text-zinc-300'), !isExpanded && 'line-clamp-4')} style={{ display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+																		<ReactMarkdown>{solution.description}</ReactMarkdown>
 																	</div>
 																	{/* Link leia mais/ver menos */}
 																	{shouldTruncate && (
@@ -637,8 +660,8 @@ export default function ProblemsPage() {
 																								)}
 																							</div>
 																							{/* Descrição truncada/expandida para reply */}
-																							<div className={clsx('text-sm font-medium text-zinc-600', !isReplyExpanded && 'line-clamp-4')} style={{ display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-																								{reply.description}
+																							<div className={clsx(getMarkdownClasses('compact', 'text-zinc-600 dark:text-zinc-300'), !isReplyExpanded && 'line-clamp-4')} style={{ display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+																								<ReactMarkdown>{reply.description}</ReactMarkdown>
 																							</div>
 																							{shouldReplyTruncate && (
 																								<button type='button' className='text-xs text-blue-600 hover:underline mt-1 self-start' onClick={() => toggleExpandSolution(reply.id)}>

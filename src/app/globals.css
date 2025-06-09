@@ -18,7 +18,6 @@
 
 /* Plugins do Tailwind */
 @plugin '@tailwindcss/forms';
-@plugin '@tailwindcss/typography';
 
 /* Plugin: Iconify: https://iconify.design/docs/usage/css/tailwind/tailwind4/ */
 @plugin "@iconify/tailwind4" {

@@ -10,6 +10,7 @@ export type TreeItemProps = {
 	url?: string
 	icon?: string
 	children?: TreeItemProps[]
+	onClick?: () => void
 }
 
 export type TreeProps = {
@@ -46,6 +47,15 @@ export default function Tree({ item, level = 0, defaultOpen = true, activeUrl, l
 			}),
 		)
 
+		if (item.onClick) {
+			return (
+				<div onClick={item.onClick} className={linkClass}>
+					{item.icon && <span className={clsx(item.icon, 'block size-4 text-zinc-500')} />}
+					<span>{item.label}</span>
+				</div>
+			)
+		}
+
 		return (
 			<Link href={item.url ?? '#'} className={linkClass} {...linkProps}>
 				{item.icon && <span className={clsx(item.icon, 'block size-4 text-zinc-500')} />}
@@ -57,12 +67,14 @@ export default function Tree({ item, level = 0, defaultOpen = true, activeUrl, l
 	// Componente com filhos (recursivo)
 	return (
 		<div className='w-full py-0.5' {...props}>
-			<div onClick={() => setIsOpen((prev) => !prev)} className={twMerge(clsx('group flex w-full cursor-pointer items-center gap-x-2 rounded-md px-2 py-1 transition hover:bg-zinc-100', indentClass))}>
+			<div className={twMerge(clsx('group flex w-full cursor-pointer items-center gap-x-2 rounded-md px-2 py-1 transition hover:bg-zinc-100', indentClass))}>
 				{/* Ícone de expansão */}
-				<div className='flex size-6 items-center justify-center'>{isOpen ? <span className='icon-[lucide--minus] size-4 text-zinc-800' /> : <span className='icon-[lucide--plus] size-4 text-zinc-800' />}</div>
+				<div onClick={() => setIsOpen((prev) => !prev)} className='flex size-6 items-center justify-center'>
+					{isOpen ? <span className='icon-[lucide--minus] size-4 text-zinc-800' /> : <span className='icon-[lucide--plus] size-4 text-zinc-800' />}
+				</div>
 
 				{/* Label e ícone */}
-				<div className='flex grow items-center gap-x-2 overflow-hidden'>
+				<div onClick={item.onClick || (() => setIsOpen((prev) => !prev))} className='flex grow items-center gap-x-2 overflow-hidden'>
 					{item.icon && <span className={clsx(item.icon, 'block size-4 text-zinc-500')} />}
 					<span className='truncate text-sm font-medium text-zinc-800'>{item.label}</span>
 				</div>
@@ -72,13 +84,7 @@ export default function Tree({ item, level = 0, defaultOpen = true, activeUrl, l
 			</div>
 
 			{/* Renderização recursiva dos filhos */}
-			{isOpen && (
-				<div className='ml-4 border-l border-zinc-100'>
-					{item.children?.map((child, index) => (
-						<Tree key={index} item={child} level={level + 1} defaultOpen={defaultOpen} activeUrl={activeUrl} />
-					))}
-				</div>
-			)}
+			{isOpen && <div className='ml-4 border-l border-zinc-100'>{item.children?.map((child, index) => <Tree key={index} item={child} level={level + 1} defaultOpen={defaultOpen} activeUrl={activeUrl} />)}</div>}
 		</div>
 	)
 }

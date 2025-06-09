@@ -40,6 +40,437 @@ const problemDescriptions = [
 
 const solutionDescriptions = ['Verifique se os dados meteorológicos estão no formato esperado.', 'Confirme se os arquivos possuem as permissões corretas.', 'Reinicie o sistema e tente novamente.', 'Otimize os parâmetros de simulação para melhorar a performance.', 'Siga o passo a passo do manual de configuração.', 'Ajuste as permissões dos diretórios de trabalho.', 'Compare os resultados com execuções anteriores para identificar padrões.', 'Limpe o cache do navegador e recarregue a página.', 'Verifique o caminho de destino dos logs no arquivo de configuração.', 'Consulte a documentação para os parâmetros aceitos.', 'Atualize o software para a versão mais recente.', 'Aumente o tempo limite de execução nas configurações.', 'Verifique a conexão com a internet e serviços externos.', 'Reimporte os dados de entrada após validação.', 'Instale as dependências compatíveis com seu sistema operacional.', 'Libere memória ou feche outros aplicativos antes de executar.', 'Execute o comando de atualização de dependências novamente.', 'Revise os dados utilizados para gerar os gráficos.', 'Corrija os parâmetros conforme as mensagens de erro.', 'Acesse o manual diretamente pelo site oficial.', 'Sincronize os dados manualmente se necessário.', 'Salve as configurações e reinicie o sistema.', 'Verifique as credenciais do usuário e tente novamente.', 'Ajuste o timezone nas configurações do sistema.', 'Reinstale os plugins e reinicie o software.', 'Limpe o cache do sistema e tente novamente.', 'Configure corretamente o serviço de notificações.', 'Restaure o backup em um ambiente limpo.', 'Renomeie os arquivos conforme o padrão exigido.', 'Recrie o ambiente virtual seguindo o tutorial oficial.']
 
+// Base de Conhecimento - Estrutura de dependências
+const dependencyStructure = [
+	{
+		type: 'equipamento',
+		category: 'equipamentos',
+		name: 'Equipamentos',
+		icon: null,
+		children: [
+			{
+				type: 'equipamento',
+				category: 'maquinas',
+				name: 'Máquinas',
+				icon: null,
+				children: [
+					{ type: 'equipamento', category: 'maquina', name: 'Servidor Principal', icon: 'icon-[lucide--server]' },
+					{ type: 'equipamento', category: 'maquina', name: 'Workstation Linux', icon: 'icon-[lucide--computer]' },
+					{ type: 'equipamento', category: 'maquina', name: 'Cluster de Processamento', icon: 'icon-[lucide--cpu]' },
+				],
+			},
+			{
+				type: 'equipamento',
+				category: 'redes',
+				name: 'Redes internas',
+				icon: null,
+				children: [
+					{ type: 'equipamento', category: 'rede', name: 'Rede CPTEC', icon: 'icon-[lucide--network]' },
+					{ type: 'equipamento', category: 'rede', name: 'Rede Laboratório', icon: 'icon-[lucide--network]' },
+				],
+			},
+			{
+				type: 'equipamento',
+				category: 'redes_externas',
+				name: 'Redes externas',
+				icon: null,
+				children: [
+					{ type: 'equipamento', category: 'rede', name: 'Internet INPE', icon: 'icon-[lucide--globe]' },
+					{ type: 'equipamento', category: 'rede', name: 'VPN Científica', icon: 'icon-[lucide--shield]' },
+				],
+			},
+		],
+	},
+	{
+		type: 'dependencia',
+		category: 'dependencias',
+		name: 'Dependências',
+		icon: null,
+		children: [
+			{
+				type: 'dependencia',
+				category: 'sistema',
+				name: 'Sistema',
+				icon: null,
+				children: [
+					{
+						type: 'dependencia',
+						category: 'hosts',
+						name: 'Hosts',
+						icon: null,
+						children: [
+							{ type: 'dependencia', category: 'host', name: 'met01.cptec.inpe.br', icon: 'icon-[lucide--computer]' },
+							{ type: 'dependencia', category: 'host', name: 'model02.cptec.inpe.br', icon: 'icon-[lucide--computer]' },
+						],
+					},
+					{
+						type: 'dependencia',
+						category: 'softwares',
+						name: 'Softwares',
+						icon: null,
+						children: [
+							{ type: 'dependencia', category: 'software', name: 'Python 3.9+', icon: 'icon-[lucide--code]' },
+							{ type: 'dependencia', category: 'software', name: 'NetCDF4', icon: 'icon-[lucide--database]' },
+							{ type: 'dependencia', category: 'software', name: 'GrADS', icon: 'icon-[lucide--bar-chart]' },
+						],
+					},
+				],
+			},
+			{
+				type: 'dependencia',
+				category: 'recursos_humanos',
+				name: 'Recursos humanos',
+				icon: null,
+				children: [
+					{
+						type: 'dependencia',
+						category: 'responsaveis',
+						name: 'Responsáveis técnicos do INPE',
+						icon: null,
+						children: [
+							{ type: 'dependencia', category: 'pessoa', name: 'Dr. João Silva', icon: 'icon-[lucide--user-round]' },
+							{ type: 'dependencia', category: 'pessoa', name: 'Dra. Maria Santos', icon: 'icon-[lucide--user-round]' },
+						],
+					},
+					{
+						type: 'dependencia',
+						category: 'suporte',
+						name: 'Suporte',
+						icon: null,
+						children: [
+							{ type: 'dependencia', category: 'pessoa', name: 'Carlos Tech', icon: 'icon-[lucide--headphones]' },
+							{ type: 'dependencia', category: 'pessoa', name: 'Ana Support', icon: 'icon-[lucide--headphones]' },
+						],
+					},
+				],
+			},
+		],
+	},
+	{
+		type: 'elemento_afetado',
+		category: 'elementos_afetados',
+		name: 'Elementos afetados',
+		icon: null,
+		children: [
+			{
+				type: 'elemento_afetado',
+				category: 'recursos',
+				name: 'Recursos',
+				icon: null,
+				children: [
+					{
+						type: 'elemento_afetado',
+						category: 'hosts_afetados',
+						name: 'Hosts',
+						icon: null,
+						children: [
+							{ type: 'elemento_afetado', category: 'host', name: 'weather01.inpe.br', icon: 'icon-[lucide--computer]' },
+							{ type: 'elemento_afetado', category: 'host', name: 'data02.inpe.br', icon: 'icon-[lucide--computer]' },
+						],
+					},
+					{
+						type: 'elemento_afetado',
+						category: 'softwares_afetados',
+						name: 'Softwares',
+						icon: null,
+						children: [
+							{ type: 'elemento_afetado', category: 'software', name: 'Sistema de Coleta', icon: 'icon-[lucide--download]' },
+							{ type: 'elemento_afetado', category: 'software', name: 'Interface Web', icon: 'icon-[lucide--monitor]' },
+						],
+					},
+				],
+			},
+			{
+				type: 'elemento_afetado',
+				category: 'grupos',
+				name: 'Grupos',
+				icon: null,
+				children: [
+					{ type: 'elemento_afetado', category: 'grupo', name: 'Meteorologistas', icon: 'icon-[lucide--users-round]' },
+					{ type: 'elemento_afetado', category: 'grupo', name: 'Pesquisadores', icon: 'icon-[lucide--users-round]' },
+					{ type: 'elemento_afetado', category: 'grupo', name: 'Operadores', icon: 'icon-[lucide--users-round]' },
+				],
+			},
+			{
+				type: 'elemento_afetado',
+				category: 'clientes_externos',
+				name: 'Clientes externos',
+				icon: null,
+				children: [
+					{
+						type: 'elemento_afetado',
+						category: 'inpe',
+						name: 'INPE',
+						icon: null,
+						children: [
+							{ type: 'elemento_afetado', category: 'cliente', name: 'CPTEC Operacional', icon: 'icon-[lucide--building]' },
+							{ type: 'elemento_afetado', category: 'cliente', name: 'DIPTC', icon: 'icon-[lucide--building]' },
+						],
+					},
+					{
+						type: 'elemento_afetado',
+						category: 'outros',
+						name: 'Outros',
+						icon: null,
+						children: [
+							{ type: 'elemento_afetado', category: 'cliente', name: 'INMET', icon: 'icon-[lucide--cloud]' },
+							{ type: 'elemento_afetado', category: 'cliente', name: 'Marinha do Brasil', icon: 'icon-[lucide--anchor]' },
+							{ type: 'elemento_afetado', category: 'cliente', name: 'Universidades Parceiras', icon: 'icon-[lucide--graduation-cap]' },
+						],
+					},
+				],
+			},
+		],
+	},
+]
+
+// Contatos para os produtos
+const productContacts = [
+	{
+		name: 'Dr. Marcelo Silvano',
+		role: 'Coordenador Técnico',
+		team: 'CGCT',
+		email: 'marcelo.silvano@inpe.br',
+		phone: '+55 12 3186-8000',
+		image: '/uploads/profile/10.jpg',
+	},
+	{
+		name: 'José Santana',
+		role: 'Meteorologista Sênior',
+		team: 'DIPTC',
+		email: 'jose.santana@inpe.br',
+		phone: '+55 12 3186-8001',
+		image: '/uploads/profile/20.jpg',
+	},
+	{
+		name: 'Dra. Aline Mendez',
+		role: 'Pesquisadora Principal',
+		team: 'DIPTC',
+		email: 'aline.mendez@inpe.br',
+		phone: '+55 12 3186-8002',
+		image: '/uploads/profile/30.jpg',
+	},
+]
+
+// Seções e capítulos do manual
+const manualData = [
+	{
+		title: '1. Introdução',
+		description: 'Visão geral do sistema e conceitos fundamentais',
+		chapters: [
+			{
+				title: '1.1. Como funciona o modelo',
+				content: `O modelo meteorológico funciona através de uma série de cálculos complexos que simulam o comportamento da atmosfera. Este capítulo explica os conceitos fundamentais.
+
+# Princípios básicos
+
+O modelo utiliza equações diferenciais parciais para simular:
+- Dinâmica dos fluidos atmosféricos
+- Termodinâmica
+- Radiação solar e terrestre
+- Microfísica de nuvens
+
+# Estrutura do código
+
+O sistema está organizado em módulos funcionais que processam diferentes aspectos da simulação.
+
+## Inicialização
+- Leitura de dados observacionais
+- Interpolação para a grade do modelo
+- Verificação de consistência
+
+## Processamento
+- Integração temporal das equações
+- Cálculos de física atmosférica
+- Aplicação de condições de contorno
+
+## Saída
+- Geração de campos meteorológicos
+- Formatação em NetCDF
+- Disponibilização via web`,
+			},
+			{
+				title: '1.2. Descrição do funcionamento interno',
+				content: `Este capítulo detalha a arquitetura interna e o fluxo de dados do sistema.
+
+# Arquitetura do sistema
+
+O sistema é composto por várias camadas:
+
+1. **Camada de dados**: Responsável pelo acesso e gerenciamento dos dados meteorológicos
+2. **Camada de processamento**: Executa os cálculos do modelo numérico
+3. **Camada de apresentação**: Interface para visualização e análise
+
+# Fluxo de dados
+
+## Entrada de dados
+- Dados observacionais (estações, radiossondas, satélites)
+- Condições de contorno (modelos globais)
+- Parâmetros de configuração
+
+## Processamento
+- Pré-processamento e controle de qualidade
+- Assimilação de dados
+- Integração do modelo
+- Pós-processamento
+
+## Saída
+- Campos meteorológicos em grade regular
+- Produtos específicos para usuários
+- Arquivos de verificação e diagnóstico`,
+			},
+		],
+	},
+	{
+		title: '2. Funcionamento',
+		description: 'Procedimentos operacionais e configuração do sistema',
+		chapters: [
+			{
+				title: '2.1. Pré-processamento',
+				content: `O pré-processamento é uma etapa crucial que prepara os dados para a simulação numérica.
+
+# Controle de qualidade
+
+## Verificação de consistência
+- Análise de valores extremos
+- Verificação temporal e espacial
+- Detecção de erros sistemáticos
+
+## Correção de dados
+- Interpolação de dados faltantes
+- Correção de bias sistemático
+- Filtragem de ruído
+
+# Interpolação
+
+## Métodos de interpolação
+- Interpolação bilinear para dados em grade
+- Interpolação cúbica para suavização
+- Interpolação ótima para assimilação
+
+## Transformação de coordenadas
+- Conversão entre sistemas de projeção
+- Interpolação vertical entre níveis
+- Ajuste para topografia local`,
+			},
+			{
+				title: '2.2. Operações realizadas',
+				content: `Este capítulo descreve as principais operações realizadas durante a execução do modelo.
+
+# Integração temporal
+
+## Esquemas numéricos
+- Método de Runge-Kutta de 4ª ordem
+- Esquema semi-implícito para ondas gravitacionais
+- Filtro temporal para estabilidade
+
+## Passo de tempo
+- Determinação automática do passo de tempo
+- Critério de estabilidade CFL
+- Adaptação dinâmica para eficiência
+
+# Cálculos físicos
+
+## Radiação
+- Cálculo de radiação solar direta e difusa
+- Radiação terrestre de onda longa
+- Interação com nuvens e aerossóis
+
+## Convecção
+- Parametrização de convecção profunda
+- Convecção rasa e turbulência
+- Liberação de calor latente
+
+## Microfísica
+- Formação e evolução de nuvens
+- Processos de precipitação
+- Conversão entre fases da água`,
+			},
+			{
+				title: '2.3. Pós-processamento',
+				content: `O pós-processamento transforma as saídas brutas do modelo em produtos úteis para os usuários.
+
+# Interpolação de saída
+
+## Grades de saída
+- Interpolação para grades regulares
+- Projeção para diferentes sistemas de coordenadas
+- Recorte para regiões específicas
+
+## Níveis verticais
+- Interpolação para níveis de pressão
+- Cálculo de variáveis derivadas
+- Extração de perfis verticais
+
+# Produtos meteorológicos
+
+## Campos básicos
+- Temperatura, umidade, vento
+- Pressão ao nível do mar
+- Altura geopotencial
+
+## Produtos derivados
+- Índices de instabilidade
+- Parâmetros de convecção
+- Variáveis de superfície
+
+# Formatação de dados
+
+## Formatos de arquivo
+- NetCDF para dados científicos
+- GRIB para intercâmbio operacional
+- CSV para análise estatística
+
+## Metadados
+- Informações sobre a simulação
+- Coordenadas e projeção
+- Unidades e convenções`,
+			},
+		],
+	},
+	{
+		title: '3. Resolução de conflitos',
+		description: 'Procedimentos para solução de problemas comuns',
+		chapters: [
+			{
+				title: '3.1. Problemas de inicialização',
+				content: `Este capítulo aborda os problemas mais comuns durante a inicialização do modelo.
+
+# Dados de entrada
+
+## Verificação de arquivos
+- Conferir se todos os arquivos necessários estão presentes
+- Verificar permissões de leitura
+- Validar formato e estrutura dos dados
+
+## Diagnóstico de problemas
+- Análise de logs de erro
+- Verificação de integridade dos dados
+- Teste com dados alternativos
+
+# Configuração
+
+## Parâmetros do modelo
+- Verificar consistência dos parâmetros
+- Validar domain e resolução
+- Conferir configurações de física
+
+## Ambiente computacional
+- Verificar recursos disponíveis (CPU, memória)
+- Configurar variáveis de ambiente
+- Testar conectividade de rede
+
+# Soluções comuns
+
+## Reinicialização
+- Procedimentos para reinício limpo
+- Recuperação de estado anterior
+- Backup e restauração de configurações`,
+			},
+		],
+	},
+]
+
 function generateProblems() {
 	return problemTitles.map((title, i) => {
 		const paragraphs = problemDescriptions[i % problemDescriptions.length]
@@ -55,6 +486,31 @@ function generateSolutions() {
 	return solutionDescriptions.map((description) => ({
 		description,
 	}))
+}
+
+async function insertDependencies(productId: string, dependencies: any[], parentId: string | null = null, order = 0) {
+	for (const dep of dependencies) {
+		const depId = randomUUID()
+		await db.insert(schema.productDependency).values({
+			id: depId,
+			productId,
+			name: dep.name,
+			type: dep.type,
+			category: dep.category,
+			icon: dep.icon,
+			description: dep.description || null,
+			url: dep.url || null,
+			parentId,
+			order,
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		})
+
+		if (dep.children) {
+			await insertDependencies(productId, dep.children, depId, 0)
+		}
+		order++
+	}
 }
 
 async function seed() {
@@ -81,61 +537,122 @@ async function seed() {
 	for (const { slug } of products) {
 		const productId = productMap.get(slug)!
 
+		console.log(`🔄 Inserindo dados para o produto: ${slug.toUpperCase()}`)
+
+		// 2. Dependências hierárquicas
+		console.log(`🔄 Inserindo dependências para ${slug}...`)
+		const existingDeps = await db.select().from(schema.productDependency).where(eq(schema.productDependency.productId, productId)).limit(1)
+		if (existingDeps.length === 0) {
+			await insertDependencies(productId, dependencyStructure)
+		}
+
+		// 3. Contatos
+		console.log(`🔄 Inserindo contatos para ${slug}...`)
+		const existingContacts = await db.select().from(schema.productContact).where(eq(schema.productContact.productId, productId)).limit(1)
+		if (existingContacts.length === 0) {
+			await db.insert(schema.productContact).values(
+				productContacts.map((contact, index) => ({
+					id: randomUUID(),
+					productId,
+					...contact,
+					order: index,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				})),
+			)
+		}
+
+		// 4. Manual - Seções e Capítulos
+		console.log(`🔄 Inserindo manual para ${slug}...`)
+		const existingSections = await db.select().from(schema.productManualSection).where(eq(schema.productManualSection.productId, productId)).limit(1)
+		if (existingSections.length === 0) {
+			for (let i = 0; i < manualData.length; i++) {
+				const section = manualData[i]
+				const sectionId = randomUUID()
+
+				await db.insert(schema.productManualSection).values({
+					id: sectionId,
+					productId,
+					title: section.title,
+					description: section.description,
+					order: i,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				})
+
+				for (let j = 0; j < section.chapters.length; j++) {
+					const chapter = section.chapters[j]
+					await db.insert(schema.productManualChapter).values({
+						id: randomUUID(),
+						sectionId,
+						title: chapter.title,
+						content: chapter.content,
+						order: j,
+						createdAt: new Date(),
+						updatedAt: new Date(),
+					})
+				}
+			}
+		}
+
+		// 5. Problemas e Soluções (código existente)
 		console.log(`🔄 Inserindo problemas para o produto: ${slug.toUpperCase()}`)
-
-		const problems = generateProblems()
-		const problemRows = problems.map((p) => ({
-			id: randomUUID(),
-			productId,
-			userId: USER_ID,
-			title: p.title,
-			description: p.description,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		}))
-
-		const insertedProblems = await db.insert(schema.productProblem).values(problemRows).returning()
-
-		for (const problem of insertedProblems) {
-			console.log(`🔄 Inserindo soluções para o problema: ${problem.title}`)
-
-			// Gera um número aleatório de soluções entre 2 e 10
-			const numSolutions = Math.floor(Math.random() * 9) + 2 // 2 a 10
-			const solutions = generateSolutions().slice(0, numSolutions)
-			const solutionRows = solutions.map((s, i) => ({
+		const existingProblems = await db.select().from(schema.productProblem).where(eq(schema.productProblem.productId, productId)).limit(1)
+		if (existingProblems.length === 0) {
+			const problems = generateProblems()
+			const problemRows = problems.map((p) => ({
 				id: randomUUID(),
+				productId,
 				userId: USER_ID,
-				productProblemId: problem.id,
-				description: s.description,
-				replyId: null,
+				title: p.title,
+				description: p.description,
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			}))
 
-			await db.insert(schema.productSolution).values(solutionRows)
+			const insertedProblems = await db.insert(schema.productProblem).values(problemRows).returning()
 
-			// Checar a primeira solução
-			await db.insert(schema.productSolutionChecked).values({
-				id: randomUUID(),
-				userId: USER_ID,
-				productSolutionId: solutionRows[0].id,
-			})
+			for (const problem of insertedProblems) {
+				console.log(`🔄 Inserindo soluções para o problema: ${problem.title}`)
 
-			// Adicionar imagens exemplo
-			await db.insert(schema.productProblemImage).values([
-				{
+				// Gera um número aleatório de soluções entre 2 e 10
+				const numSolutions = Math.floor(Math.random() * 9) + 2 // 2 a 10
+				const solutions = generateSolutions().slice(0, numSolutions)
+				const solutionRows = solutions.map((s, i) => ({
 					id: randomUUID(),
+					userId: USER_ID,
 					productProblemId: problem.id,
-					image: '/uploads/products/problems/erro1.jpg',
-					description: 'Imagem demonstrando o erro',
-				},
-				{
+					description: s.description,
+					replyId: null,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				}))
+
+				await db.insert(schema.productSolution).values(solutionRows)
+
+				// Checar a primeira solução
+				await db.insert(schema.productSolutionChecked).values({
 					id: randomUUID(),
-					productProblemId: problem.id,
-					image: '/uploads/products/problems/erro2.jpg',
-					description: 'Outra imagem do erro',
-				},
-			])
+					userId: USER_ID,
+					productSolutionId: solutionRows[0].id,
+				})
+
+				// Adicionar imagens exemplo
+				await db.insert(schema.productProblemImage).values([
+					{
+						id: randomUUID(),
+						productProblemId: problem.id,
+						image: '/uploads/products/problems/erro1.jpg',
+						description: 'Imagem demonstrando o erro',
+					},
+					{
+						id: randomUUID(),
+						productProblemId: problem.id,
+						image: '/uploads/products/problems/erro2.jpg',
+						description: 'Outra imagem do erro',
+					},
+				])
+			}
 		}
 	}
 

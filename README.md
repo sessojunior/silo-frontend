@@ -2,6 +2,10 @@
 
 Silo é um aplicativo de gerenciamento de produtos e tarefas para o CPTEC/INPE.
 
+## Informação importante
+
+Este projeto usa o diretório `/memory-bank` como única fonte de verdade de documentação para o projeto. Todo o andamento do projeto, contexto, briefing, padrões de sistema e contexto técnico estão em arquivos markdown nesse diretório.
+
 ## Dependências
 
 Este aplicativo está sendo desenvolvido utilizando:

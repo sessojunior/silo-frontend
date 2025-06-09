@@ -5,9 +5,22 @@ import { eq, like, asc } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { formatSlug } from '@/lib/utils'
 
-// Listar produtos com paginação e filtro por nome
+// Listar produtos com paginação e filtro por nome ou buscar por slug
 export async function GET(request: Request) {
 	const { searchParams } = new URL(request.url)
+	const slug = searchParams.get('slug')?.trim()
+
+	// Se tem slug, busca produto específico
+	if (slug) {
+		try {
+			const products = await db.select().from(product).where(eq(product.slug, slug)).limit(1)
+			return NextResponse.json({ products }, { status: 200 })
+		} catch (e) {
+			return NextResponse.json({ field: null, message: 'Erro ao buscar produto.' }, { status: 500 })
+		}
+	}
+
+	// Senão, lista produtos com paginação
 	const page = Number(searchParams.get('page') || '1')
 	const limit = Number(searchParams.get('limit') || '40')
 	const name = searchParams.get('name')?.trim() || ''
