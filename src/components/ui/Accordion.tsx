@@ -71,7 +71,7 @@ export default function Accordion({ sections }: AccordionProps) {
 													</button>
 
 													{isOpenChapter && (
-														<div className='px-4 py-2'>
+														<div className='px-5 py-2'>
 															<div className={getMarkdownClasses('base', 'text-zinc-700 dark:text-zinc-200 pl-3')}>
 																<ReactMarkdown>{chapter.description}</ReactMarkdown>
 															</div>
