@@ -138,7 +138,8 @@ export default function ProductsPage() {
 			label: dep.name,
 			url: dep.url || undefined,
 			children: dep.children ? convertToTreeItems(dep.children) : undefined,
-			onClick: () => handleDependencyClick(dep),
+			// Só adiciona onClick para itens que não têm filhos (folhas da árvore)
+			onClick: dep.children && dep.children.length > 0 ? undefined : () => handleDependencyClick(dep),
 		}))
 	}
 
