@@ -168,58 +168,92 @@
 	color: rgb(244 244 245) !important; /* zinc-100 dark mode */
 }
 
-/* Preview */
+/* Preview do markdown - usando os mesmos estilos da base de conhecimento */
 .md-editor-custom .w-md-editor-preview {
-	@apply bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100;
+	@apply bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200;
 	@apply border-zinc-200 dark:border-zinc-700;
 }
 
-/* Área do preview markdown */
+/* Área do preview markdown - aplicando estilos consistentes com a base de conhecimento */
 .md-editor-custom .w-md-editor-preview .wmde-markdown {
-	@apply bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100;
+	@apply bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200;
+	@apply text-sm;
 }
 
-/* Títulos no preview */
-.md-editor-custom .w-md-editor-preview .wmde-markdown h1,
-.md-editor-custom .w-md-editor-preview .wmde-markdown h2,
-.md-editor-custom .w-md-editor-preview .wmde-markdown h3,
+/* Elementos de markdown com espaçamento consistente */
+.md-editor-custom .w-md-editor-preview .wmde-markdown > * {
+	@apply mb-3;
+}
+
+/* Títulos seguindo a hierarquia da base de conhecimento */
+.md-editor-custom .w-md-editor-preview .wmde-markdown h1 {
+	@apply text-lg font-bold text-zinc-700 dark:text-zinc-200;
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.md-editor-custom .w-md-editor-preview .wmde-markdown h2 {
+	@apply text-base font-semibold text-zinc-700 dark:text-zinc-200;
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.md-editor-custom .w-md-editor-preview .wmde-markdown h3 {
+	@apply text-sm font-medium text-zinc-700 dark:text-zinc-200;
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
 .md-editor-custom .w-md-editor-preview .wmde-markdown h4,
 .md-editor-custom .w-md-editor-preview .wmde-markdown h5,
 .md-editor-custom .w-md-editor-preview .wmde-markdown h6 {
-	@apply text-zinc-900 dark:text-zinc-100;
+	@apply text-sm font-medium text-zinc-700 dark:text-zinc-200;
+	border-bottom: none;
+	padding-bottom: 0;
 }
 
-/* Parágrafos no preview */
+/* Parágrafos */
 .md-editor-custom .w-md-editor-preview .wmde-markdown p {
-	@apply text-zinc-800 dark:text-zinc-200;
+	@apply leading-relaxed text-zinc-700 dark:text-zinc-200;
 }
 
-/* Links no preview */
+/* Listas */
+.md-editor-custom .w-md-editor-preview .wmde-markdown ul {
+	@apply pl-4 list-disc;
+}
+
+.md-editor-custom .w-md-editor-preview .wmde-markdown ol {
+	@apply pl-4 list-decimal;
+}
+
+/* Links */
 .md-editor-custom .w-md-editor-preview .wmde-markdown a {
 	@apply text-blue-600 dark:text-blue-400;
 }
 
-/* Código inline no preview */
-.md-editor-custom .w-md-editor-preview .wmde-markdown code {
-	@apply bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100;
+/* Citações */
+.md-editor-custom .w-md-editor-preview .wmde-markdown blockquote {
+	@apply border-l-4 border-zinc-300 pl-4 italic text-zinc-700;
+	@apply dark:border-zinc-700 dark:text-zinc-200;
 }
 
-/* Blocos de código no preview */
+/* Código inline */
+.md-editor-custom .w-md-editor-preview .wmde-markdown code {
+	@apply bg-zinc-100 px-1 py-0.5 rounded text-xs text-zinc-700;
+	@apply dark:bg-zinc-800 dark:text-zinc-200;
+}
+
+/* Blocos de código */
 .md-editor-custom .w-md-editor-preview .wmde-markdown pre {
-	@apply bg-zinc-100 dark:bg-zinc-800;
+	@apply bg-zinc-100 p-3 rounded;
+	@apply dark:bg-zinc-800;
 }
 
 .md-editor-custom .w-md-editor-preview .wmde-markdown pre code {
-	@apply bg-transparent text-zinc-900 dark:text-zinc-100;
+	@apply bg-transparent text-zinc-700 dark:text-zinc-200;
 }
 
-/* Citações no preview */
-.md-editor-custom .w-md-editor-preview .wmde-markdown blockquote {
-	@apply border-l-zinc-300 bg-zinc-50 text-zinc-700;
-	@apply dark:border-l-zinc-600 dark:bg-zinc-800 dark:text-zinc-300;
-}
-
-/* Tabelas no preview */
+/* Tabelas */
 .md-editor-custom .w-md-editor-preview .wmde-markdown table {
 	@apply border-zinc-200 dark:border-zinc-700;
 }
