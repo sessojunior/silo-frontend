@@ -1,39 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { product, productProblem, productProblemImage, productSolution, productSolutionChecked } from '@/lib/db/schema'
-import { eq, inArray } from 'drizzle-orm'
+import { product, productProblem, productProblemImage, productSolution, productSolutionChecked, authUser } from '@/lib/db/schema'
+import { eq, inArray, desc } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { getAuthUser } from '@/lib/auth/token'
 import fs from 'fs'
 import path from 'path'
 
 export async function GET(req: NextRequest) {
-	const user = await getAuthUser()
-	if (!user) {
-		return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
-	}
-
-	const { searchParams } = new URL(req.url)
-	const slug = searchParams.get('slug')
-
-	if (!slug) {
-		return NextResponse.json({ field: null, message: 'Parâmetro slug é obrigatório.' }, { status: 400 })
-	}
-
 	try {
+		const { searchParams } = new URL(req.url)
+		const slug = searchParams.get('slug')
+		const page = parseInt(searchParams.get('page') ?? '1')
+		const limit = parseInt(searchParams.get('limit') ?? '20')
+
+		if (!slug) {
+			return NextResponse.json({ field: null, message: 'Parâmetro slug é obrigatório.' }, { status: 400 })
+		}
+
 		// Busca o produto pelo slug
-		const prod = await db.select().from(product).where(eq(product.slug, slug)).limit(1)
-		console.log('prod', prod)
-		if (!prod.length) {
+		const foundProduct = await db.select().from(product).where(eq(product.slug, slug)).limit(1)
+
+		if (!foundProduct.length) {
 			return NextResponse.json({ field: null, message: 'Produto não encontrado.' }, { status: 404 })
 		}
-		const productId = prod[0].id
 
-		// Busca os problemas desse produto
-		const problems = await db.select().from(productProblem).where(eq(productProblem.productId, productId))
+		const productId = foundProduct[0].id
+
+		// Busca os problemas desse produto com informações do usuário
+		const problems = await db
+			.select({
+				id: productProblem.id,
+				productId: productProblem.productId,
+				userId: productProblem.userId,
+				title: productProblem.title,
+				description: productProblem.description,
+				createdAt: productProblem.createdAt,
+				updatedAt: productProblem.updatedAt,
+				userName: authUser.name,
+			})
+			.from(productProblem)
+			.leftJoin(authUser, eq(productProblem.userId, authUser.id))
+			.where(eq(productProblem.productId, productId))
+			.orderBy(desc(productProblem.createdAt))
+			.limit(limit)
+			.offset((page - 1) * limit)
 
 		return NextResponse.json({ items: problems })
 	} catch (e) {
+		console.error('Erro ao buscar problemas:', e)
 		return NextResponse.json({ field: null, message: 'Erro ao buscar problemas.' }, { status: 500 })
 	}
 }

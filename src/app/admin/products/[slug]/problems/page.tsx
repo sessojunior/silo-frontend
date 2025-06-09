@@ -5,6 +5,25 @@ import Button from '@/components/ui/Button'
 import { getMarkdownClasses } from '@/lib/markdown'
 import { useEffect, useState, useRef } from 'react'
 import type { ProductProblem, ProductProblemImage, ProductSolution } from '@/lib/db/schema'
+
+// Tipo customizado para soluções retornadas pela API
+interface SolutionWithDetails {
+	id: string
+	replyId: string | null
+	date: Date
+	description: string
+	verified: boolean
+	user: {
+		id: string
+		name: string
+		image: string
+	}
+	image: {
+		image: string
+		description: string
+	} | null
+	isMine: boolean
+}
 import { useParams, useRouter } from 'next/navigation'
 import Lightbox from '@/components/ui/Lightbox'
 import Offcanvas from '@/components/ui/Offcanvas'
@@ -23,7 +42,7 @@ export default function ProblemsPage() {
 	const user = useUser()
 	const [problems, setProblems] = useState<ProductProblem[]>([])
 	const [problem, setProblem] = useState<ProductProblem | null>(null)
-	const [solutions, setSolutions] = useState<ProductSolution[]>([])
+	const [solutions, setSolutions] = useState<SolutionWithDetails[]>([])
 	const [images, setImages] = useState<ProductProblemImage[]>([])
 	const [solutionsCount, setSolutionsCount] = useState<Record<string, number>>({})
 	const [loadingDetail, setLoadingDetail] = useState(false)
@@ -48,15 +67,15 @@ export default function ProblemsPage() {
 	const [deleteImageLoading, setDeleteImageLoading] = useState(false)
 	const [solutionModalOpen, setSolutionModalOpen] = useState(false)
 	const [solutionMode, setSolutionMode] = useState<'create' | 'edit' | 'reply'>('create')
-	const [editingSolution, setEditingSolution] = useState<ProductSolution | null>(null)
+	const [editingSolution, setEditingSolution] = useState<SolutionWithDetails | null>(null)
 	const [solutionDescription, setSolutionDescription] = useState('')
 	const [solutionImage, setSolutionImage] = useState<File | null>(null)
 	const [solutionImagePreview, setSolutionImagePreview] = useState<string | null>(null)
 	const [solutionLoading, setSolutionLoading] = useState(false)
 	const [solutionError, setSolutionError] = useState<string | null>(null)
-	const [replyTo, setReplyTo] = useState<ProductSolution | null>(null)
+	const [replyTo, setReplyTo] = useState<SolutionWithDetails | null>(null)
 	const [deleteSolutionDialogOpen, setDeleteSolutionDialogOpen] = useState(false)
-	const [solutionToDelete, setSolutionToDelete] = useState<ProductSolution | null>(null)
+	const [solutionToDelete, setSolutionToDelete] = useState<SolutionWithDetails | null>(null)
 	const [deleteSolutionLoading, setDeleteSolutionLoading] = useState(false)
 	const [expandedSolutionIds, setExpandedSolutionIds] = useState<string[]>([])
 
@@ -88,33 +107,34 @@ export default function ProblemsPage() {
 				const response = await fetch(`/api/products/problems?slug=${slug}`)
 				const data = await response.json()
 
-				if (!data.items || data.items.length === 0) {
-					// Se não há problemas, buscar o productId pelo slug
-					const prodRes = await fetch(`/api/products/by-slug?slug=${slug}`)
-					const prodData = await prodRes.json()
-					if (prodData?.id) setProductId(prodData.id)
-					router.replace('/404')
+				if (!response.ok) {
+					console.error('Erro ao buscar problemas:', data)
+					toast({ type: 'error', title: 'Erro ao carregar problemas' })
 					return
 				}
 
-				setProblems(data.items)
-				setProductId(data.items[0].productId) // <-- Salva o productId do primeiro problema
+				setProblems(data.items || [])
 
-				// Busca a contagem de soluções para cada problema
-				const counts: Record<string, number> = {}
-				await Promise.all(
-					data.items.map(async (problem: ProductProblem) => {
-						const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
-						const solData = await res.json()
-						counts[problem.id] = solData.items.length
-					}),
-				)
-				setSolutionsCount(counts)
+				if (data.items && data.items.length > 0) {
+					setProductId(data.items[0].productId) // Salva o productId do primeiro problema
 
-				// Seleciona e carrega o primeiro problema
-				if (data.items[0]) {
+					// Busca a contagem de soluções para cada problema
+					const counts: Record<string, number> = {}
+					await Promise.all(
+						data.items.map(async (problem: ProductProblem) => {
+							const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
+							const solData = await res.json()
+							counts[problem.id] = solData.items?.length || 0
+						}),
+					)
+					setSolutionsCount(counts)
+
+					// Seleciona e carrega o primeiro problema
 					handleSelectProblem(data.items[0])
 				}
+			} catch (error) {
+				console.error('Erro ao buscar problemas:', error)
+				toast({ type: 'error', title: 'Erro ao carregar problemas' })
 			} finally {
 				setInitialLoading(false)
 			}
@@ -188,15 +208,17 @@ export default function ProblemsPage() {
 					// Atualiza a lista de problemas
 					const response = await fetch(`/api/products/problems?slug=${slug}`)
 					const data = await response.json()
-					setProblems(data.items)
+					setProblems(data.items || [])
 					const counts: Record<string, number> = {}
-					await Promise.all(
-						data.items.map(async (problem: ProductProblem) => {
-							const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
-							const solData = await res.json()
-							counts[problem.id] = solData.items.length
-						}),
-					)
+					if (data.items && data.items.length > 0) {
+						await Promise.all(
+							data.items.map(async (problem: ProductProblem) => {
+								const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
+								const solData = await res.json()
+								counts[problem.id] = solData.items?.length || 0
+							}),
+						)
+					}
 					setSolutionsCount(counts)
 					// Após atualizar a lista de problemas
 					const updatedProblems: ProductProblem[] = data.items ?? []
@@ -231,15 +253,17 @@ export default function ProblemsPage() {
 					// Atualiza a lista de problemas
 					const response = await fetch(`/api/products/problems?slug=${slug}`)
 					const data = await response.json()
-					setProblems(data.items)
+					setProblems(data.items || [])
 					const counts: Record<string, number> = {}
-					await Promise.all(
-						data.items.map(async (problem: ProductProblem) => {
-							const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
-							const solData = await res.json()
-							counts[problem.id] = solData.items.length
-						}),
-					)
+					if (data.items && data.items.length > 0) {
+						await Promise.all(
+							data.items.map(async (problem: ProductProblem) => {
+								const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
+								const solData = await res.json()
+								counts[problem.id] = solData.items?.length || 0
+							}),
+						)
+					}
 					setSolutionsCount(counts)
 					// Após atualizar a lista de problemas
 					const updatedProblems: ProductProblem[] = data.items ?? []
@@ -279,15 +303,17 @@ export default function ProblemsPage() {
 				// Atualiza a lista de problemas
 				const response = await fetch(`/api/products/problems?slug=${slug}`)
 				const data = await response.json()
-				setProblems(data.items)
+				setProblems(data.items || [])
 				const counts: Record<string, number> = {}
-				await Promise.all(
-					data.items.map(async (problem: ProductProblem) => {
-						const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
-						const solData = await res.json()
-						counts[problem.id] = solData.items.length
-					}),
-				)
+				if (data.items && data.items.length > 0) {
+					await Promise.all(
+						data.items.map(async (problem: ProductProblem) => {
+							const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
+							const solData = await res.json()
+							counts[problem.id] = solData.items?.length || 0
+						}),
+					)
+				}
 				setSolutionsCount(counts)
 				// Seleciona o primeiro problema, se houver
 				if (data.items[0]) {
@@ -308,7 +334,7 @@ export default function ProblemsPage() {
 	}
 
 	// Função para abrir modal de solução
-	function openSolutionModal(mode: 'create' | 'edit' | 'reply', solution?: ProductSolution) {
+	function openSolutionModal(mode: 'create' | 'edit' | 'reply', solution?: SolutionWithDetails) {
 		setSolutionMode(mode)
 		setSolutionModalOpen(true)
 		setSolutionError(null)
@@ -397,7 +423,7 @@ export default function ProblemsPage() {
 	}
 
 	// Função para abrir o Dialog de confirmação de exclusão de solução
-	function openDeleteSolutionDialog(solution: ProductSolution) {
+	function openDeleteSolutionDialog(solution: SolutionWithDetails) {
 		setSolutionToDelete(solution)
 		setDeleteSolutionDialogOpen(true)
 	}
