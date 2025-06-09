@@ -228,7 +228,7 @@ export default function SettingsProductsPage() {
 					description='Tem certeza que deseja excluir este produto? Esta ação não poderá ser desfeita.'
 				>
 					<div className='flex gap-2 justify-end mt-6'>
-						<button onClick={() => setDialogOpen(false)} className='px-4 py-2 rounded-lg bg-zinc-200 text-zinc-700 hover:bg-zinc-300 transition'>
+						<button onClick={() => setDialogOpen(false)} className='px-4 py-2 rounded-lg bg-zinc-200 text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600 transition'>
 							Cancelar
 						</button>
 						<button onClick={handleDelete} className='px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition disabled:opacity-50' disabled={formLoading}>

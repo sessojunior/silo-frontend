@@ -49,7 +49,7 @@ export default function ProductForm({ initialData, onSubmit, onCancel, loading }
 				<Switch id='product-available' name='available' checked={available} onChange={setAvailable} title='Disponível' size='md' disabled={loading} />
 			</div>
 			<div className='flex gap-2 justify-end'>
-				<button type='button' onClick={onCancel} className='px-4 py-2 rounded bg-zinc-200 text-zinc-700 hover:bg-zinc-300 transition' disabled={loading}>
+				<button type='button' onClick={onCancel} className='px-4 py-2 rounded bg-zinc-200 text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600 transition' disabled={loading}>
 					Cancelar
 				</button>
 				<button type='submit' className='px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-60' disabled={loading}>

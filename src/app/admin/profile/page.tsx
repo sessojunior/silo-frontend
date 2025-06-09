@@ -289,7 +289,7 @@ export default function ProfilePage() {
 											Conectado
 										</button>
 									) : (
-										<a href='/login-google' className='flex w-full items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-red-400 hover:text-white'>
+										<a href='/login-google' className='flex w-full items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-red-400 hover:text-white dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-red-600'>
 											<span className='icon-[logos--google-icon] size-4 shrink-0'></span>
 											Conectar
 										</a>

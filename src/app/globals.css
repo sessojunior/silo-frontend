@@ -86,3 +86,149 @@
 		animation: toast-out 0.5s ease forwards;
 	}
 }
+
+/* MD Editor customizations */
+.md-editor-custom .w-md-editor {
+	@apply border-zinc-200 dark:border-zinc-700;
+}
+
+/* Toolbar styling */
+.md-editor-custom .w-md-editor-toolbar {
+	@apply border-b-zinc-200 bg-zinc-50 dark:border-b-zinc-700 dark:bg-zinc-800;
+}
+
+.md-editor-custom .w-md-editor-toolbar ul {
+	@apply flex items-center;
+}
+
+.md-editor-custom .w-md-editor-toolbar-divider {
+	@apply bg-zinc-200 dark:bg-zinc-600;
+	align-self: center;
+}
+
+/* Dividers dos grupos de botões */
+.md-editor-custom .w-md-editor-toolbar ul li.w-md-editor-toolbar-divider {
+	@apply bg-zinc-200 dark:bg-zinc-600;
+	align-self: center;
+	margin: 0 4px;
+	height: 20px;
+	width: 1px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.md-editor-custom .w-md-editor-toolbar ul li .w-md-editor-toolbar-divider {
+	@apply bg-zinc-200 dark:bg-zinc-600;
+	align-self: center;
+	margin: 0 4px;
+	height: 16px;
+	width: 2px;
+	display: block;
+	vertical-align: middle;
+}
+
+/* Botões da toolbar - aumentados e centralizados */
+.md-editor-custom .w-md-editor-toolbar ul li button,
+.md-editor-custom .w-md-editor-toolbar ul li .w-md-editor-toolbar-item {
+	@apply h-10 w-10 text-base flex items-center justify-center bg-transparent border-0 rounded-lg;
+	@apply text-zinc-700 hover:bg-zinc-200 hover:text-zinc-900;
+	@apply dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-zinc-100;
+}
+
+.md-editor-custom .w-md-editor-toolbar ul li button svg {
+	@apply h-5 w-5;
+}
+
+/* Botão ativo */
+.md-editor-custom .w-md-editor-toolbar ul li button.active {
+	@apply bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100 rounded-lg;
+}
+
+/* Editor de texto - Background separado do texto */
+.md-editor-custom .w-md-editor-text-input,
+.md-editor-custom .w-md-editor-text-textarea,
+.md-editor-custom .w-md-editor-text {
+	@apply border-zinc-200 dark:border-zinc-700;
+	background-color: transparent;
+}
+
+.dark .md-editor-custom .w-md-editor-text-input,
+.dark .md-editor-custom .w-md-editor-text-textarea,
+.dark .md-editor-custom .w-md-editor-text {
+	background-color: transparent;
+}
+
+/* Cor do texto específica para textarea */
+.md-editor-custom .w-md-editor-text-input {
+	color: rgb(24 24 27) !important; /* zinc-900 light mode */
+}
+
+.dark .md-editor-custom .w-md-editor-text-input {
+	color: rgb(244 244 245) !important; /* zinc-100 dark mode */
+}
+
+/* Preview */
+.md-editor-custom .w-md-editor-preview {
+	@apply bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100;
+	@apply border-zinc-200 dark:border-zinc-700;
+}
+
+/* Área do preview markdown */
+.md-editor-custom .w-md-editor-preview .wmde-markdown {
+	@apply bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100;
+}
+
+/* Títulos no preview */
+.md-editor-custom .w-md-editor-preview .wmde-markdown h1,
+.md-editor-custom .w-md-editor-preview .wmde-markdown h2,
+.md-editor-custom .w-md-editor-preview .wmde-markdown h3,
+.md-editor-custom .w-md-editor-preview .wmde-markdown h4,
+.md-editor-custom .w-md-editor-preview .wmde-markdown h5,
+.md-editor-custom .w-md-editor-preview .wmde-markdown h6 {
+	@apply text-zinc-900 dark:text-zinc-100;
+}
+
+/* Parágrafos no preview */
+.md-editor-custom .w-md-editor-preview .wmde-markdown p {
+	@apply text-zinc-800 dark:text-zinc-200;
+}
+
+/* Links no preview */
+.md-editor-custom .w-md-editor-preview .wmde-markdown a {
+	@apply text-blue-600 dark:text-blue-400;
+}
+
+/* Código inline no preview */
+.md-editor-custom .w-md-editor-preview .wmde-markdown code {
+	@apply bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100;
+}
+
+/* Blocos de código no preview */
+.md-editor-custom .w-md-editor-preview .wmde-markdown pre {
+	@apply bg-zinc-100 dark:bg-zinc-800;
+}
+
+.md-editor-custom .w-md-editor-preview .wmde-markdown pre code {
+	@apply bg-transparent text-zinc-900 dark:text-zinc-100;
+}
+
+/* Citações no preview */
+.md-editor-custom .w-md-editor-preview .wmde-markdown blockquote {
+	@apply border-l-zinc-300 bg-zinc-50 text-zinc-700;
+	@apply dark:border-l-zinc-600 dark:bg-zinc-800 dark:text-zinc-300;
+}
+
+/* Tabelas no preview */
+.md-editor-custom .w-md-editor-preview .wmde-markdown table {
+	@apply border-zinc-200 dark:border-zinc-700;
+}
+
+.md-editor-custom .w-md-editor-preview .wmde-markdown th,
+.md-editor-custom .w-md-editor-preview .wmde-markdown td {
+	@apply border-zinc-200 dark:border-zinc-700;
+}
+
+.md-editor-custom .w-md-editor-preview .wmde-markdown th {
+	@apply bg-zinc-50 dark:bg-zinc-800;
+}

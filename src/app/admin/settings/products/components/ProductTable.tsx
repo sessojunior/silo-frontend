@@ -60,10 +60,10 @@ export default function ProductTable({ products, onEdit, onDelete, onLoadMore, l
 									<Switch id={`switch-${product.id}`} name={`switch-${product.id}`} checked={product.available} disabled size='sm' />
 								</td>
 								<td className='px-4 py-2 text-right space-x-2'>
-									<button onClick={() => onEdit(product)} className='inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition'>
+									<button onClick={() => onEdit(product)} className='inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-800/30 dark:text-blue-400 dark:hover:bg-blue-700/40 transition'>
 										Editar
 									</button>
-									<button onClick={() => onDelete(product)} className='inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-700 hover:bg-red-200 transition'>
+									<button onClick={() => onDelete(product)} className='inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-800/30 dark:text-red-400 dark:hover:bg-red-700/40 transition'>
 										Excluir
 									</button>
 								</td>

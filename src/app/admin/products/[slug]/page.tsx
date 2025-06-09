@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 
 import Tree, { type TreeItemProps } from '@/components/ui/Tree'
 import Accordion, { type Section } from '@/components/ui/Accordion'
@@ -12,6 +13,9 @@ import Dialog from '@/components/ui/Dialog'
 import Label from '@/components/ui/Label'
 import Input from '@/components/ui/Input'
 import { toast } from '@/lib/toast'
+
+// Importação dinâmica do MDEditor para evitar problemas de SSR
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false })
 
 // Tipos para os dados da API
 interface ProductDependency {
@@ -55,6 +59,7 @@ export default function ProductsPage() {
 	const slug = params.slug as string
 
 	const [productId, setProductId] = useState<string | null>(null)
+	const [isDarkMode, setIsDarkMode] = useState(false)
 	const [dependencies, setDependencies] = useState<ProductDependency[]>([])
 	const [contacts, setContacts] = useState<ProductContact[]>([])
 	const [sections, setSections] = useState<ProductManualSection[]>([])
@@ -72,6 +77,26 @@ export default function ProductsPage() {
 	const [formLoading, setFormLoading] = useState(false)
 	const [editingSection, setEditingSection] = useState<ProductManualSection | null>(null)
 	const [editingChapter, setEditingChapter] = useState<ProductManualChapter | null>(null)
+
+	// Detecta tema dark/light
+	useEffect(() => {
+		const checkTheme = () => {
+			const isDark = document.documentElement.classList.contains('dark')
+			setIsDarkMode(isDark)
+		}
+
+		// Verifica tema inicial
+		checkTheme()
+
+		// Observer para mudanças no tema
+		const observer = new MutationObserver(checkTheme)
+		observer.observe(document.documentElement, {
+			attributes: true,
+			attributeFilter: ['class'],
+		})
+
+		return () => observer.disconnect()
+	}, [])
 
 	// Busca o ID do produto pelo slug
 	useEffect(() => {
@@ -111,13 +136,13 @@ export default function ProductsPage() {
 
 				// Buscar e contar soluções
 				if (problems.length > 0) {
-					const solutionsPromises = problems.map((problem: any) => fetch(`/api/products/solutions?problemId=${problem.id}`).then((res) => res.json()))
+					const solutionsPromises = problems.map((problem: { id: string }) => fetch(`/api/products/solutions?problemId=${problem.id}`).then((res) => res.json()))
 					const solutionsResults = await Promise.all(solutionsPromises)
 					const totalSolutions = solutionsResults.reduce((total, result) => total + (result.items?.length || 0), 0)
 					setSolutionsCount(totalSolutions)
 
 					// Encontrar data de atualização mais recente
-					const allDates = problems.map((p: any) => new Date(p.updatedAt))
+					const allDates = problems.map((p: { updatedAt: string }) => new Date(p.updatedAt))
 					const latestDate = new Date(Math.max(...allDates.map((d: Date) => d.getTime())))
 					setLastUpdated(latestDate)
 				}
@@ -210,7 +235,7 @@ export default function ProductsPage() {
 				try {
 					const error = await res.json()
 					errorMessage = error.message || errorMessage
-				} catch (e) {
+				} catch {
 					// Se não conseguir parsear JSON, usar status text
 					errorMessage = `Erro ${res.status}: ${res.statusText}`
 				}
@@ -285,7 +310,7 @@ export default function ProductsPage() {
 				try {
 					const error = await res.json()
 					errorMessage = error.message || errorMessage
-				} catch (e) {
+				} catch {
 					// Se não conseguir parsear JSON, usar status text
 					errorMessage = `Erro ${res.status}: ${res.statusText}`
 				}
@@ -430,7 +455,7 @@ export default function ProductsPage() {
 							<div>
 								<h3 className='text-xl font-medium'>Contatos em caso de problemas</h3>
 								<div>
-									<span className='text-sm font-medium'>{contacts.length} responsáveis técnicos</span>
+									<span className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>{contacts.length} responsáveis técnicos</span>
 								</div>
 							</div>
 							<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='py-2'>
@@ -446,11 +471,11 @@ export default function ProductsPage() {
 									</div>
 									<div className='flex flex-col'>
 										<div className='text-base font-bold'>{contact.name}</div>
-										<div className='text-sm font-medium'>
-											{contact.role} <span className='text-zinc-300'>•</span> {contact.team}
+										<div className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>
+											{contact.role} <span className='text-zinc-300 dark:text-zinc-600'>•</span> {contact.team}
 										</div>
 										<div className='text-sm font-medium'>
-											<a href={`mailto:${contact.email}`} className='text-zinc-400 hover:text-zinc-500'>
+											<a href={`mailto:${contact.email}`} className='text-zinc-500 hover:text-zinc-600 dark:text-zinc-400 dark:hover:text-zinc-300'>
 												{contact.email}
 											</a>
 										</div>
@@ -466,8 +491,8 @@ export default function ProductsPage() {
 							<div>
 								<h3 className='text-xl font-medium'>Manual do produto</h3>
 								<div>
-									<span className='text-sm font-medium'>
-										{sections.length} seções <span className='text-zinc-300'>•</span> {totalChapters} capítulos
+									<span className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>
+										{sections.length} seções <span className='text-zinc-300 dark:text-zinc-600'>•</span> {totalChapters} capítulos
 									</span>
 								</div>
 							</div>
@@ -483,7 +508,7 @@ export default function ProductsPage() {
 								<div className='flex flex-col items-center justify-center py-12 text-center'>
 									<span className='icon-[lucide--book-open] mb-4 text-4xl text-zinc-400'></span>
 									<h4 className='text-lg font-medium text-zinc-600 dark:text-zinc-300'>Nenhum manual encontrado</h4>
-									<p className='text-sm text-zinc-500'>Adicione seções e capítulos para começar a documentar este produto.</p>
+									<p className='text-sm text-zinc-500 dark:text-zinc-400'>Adicione seções e capítulos para começar a documentar este produto.</p>
 								</div>
 							)}
 						</div>
@@ -513,7 +538,9 @@ export default function ProductsPage() {
 							<Label htmlFor='form-content' required>
 								Conteúdo do capítulo
 							</Label>
-							<textarea id='form-content' value={formContent} onChange={(e) => setFormContent(e.target.value)} required className='block w-full rounded-lg border-zinc-200 px-4 py-3 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500' rows={16} placeholder='Digite o conteúdo do capítulo em Markdown...' />
+							<div className='md-editor-custom'>
+								<MDEditor value={formContent} onChange={(val) => setFormContent(val || '')} height={400} preview='edit' data-color-mode={isDarkMode ? 'dark' : 'light'} />
+							</div>
 						</div>
 					)}
 

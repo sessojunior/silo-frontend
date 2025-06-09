@@ -59,9 +59,9 @@ export default function WelcomePage() {
 
 					<div className='flex flex-col gap-4 p-6'>
 						{welcome.map((item, index) => (
-							<Link key={index} href={item.link} className={`group flex items-center gap-x-4 rounded-lg border p-4 transition-colors ${item.completed ? 'border-blue-200 bg-blue-50 hover:bg-blue-100' : 'border-zinc-200 bg-zinc-50 hover:border-blue-200 hover:bg-blue-50'}`}>
+							<Link key={index} href={item.link} className={`group flex items-center gap-x-4 rounded-lg border p-4 transition-colors ${item.completed ? 'border-blue-200 bg-blue-50 hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-900/30 dark:hover:bg-blue-800/40' : 'border-zinc-200 bg-zinc-50 hover:border-blue-200 hover:bg-blue-50 dark:border-zinc-700 dark:bg-zinc-800/50 dark:hover:border-blue-700 dark:hover:bg-blue-900/30'}`}>
 								<div>
-									<div className={`flex size-14 items-center justify-center rounded-lg border transition-colors ${item.completed ? 'border-blue-300 bg-blue-300 group-hover:bg-blue-400' : 'border-zinc-200 bg-zinc-100 group-hover:border-blue-200 group-hover:bg-blue-100'}`}>{item.completed ? <span className='icon-[lucide--check-check] size-8 shrink-0 text-white'></span> : <span className={`${item.icon} size-8 shrink-0 text-zinc-400 group-hover:text-blue-400`}></span>}</div>
+									<div className={`flex size-14 items-center justify-center rounded-lg border transition-colors ${item.completed ? 'border-blue-300 bg-blue-300 group-hover:bg-blue-400 dark:border-blue-600 dark:bg-blue-600 dark:group-hover:bg-blue-500' : 'border-zinc-200 bg-zinc-100 group-hover:border-blue-200 group-hover:bg-blue-100 dark:border-zinc-600 dark:bg-zinc-700 dark:group-hover:border-blue-600 dark:group-hover:bg-blue-800/50'}`}>{item.completed ? <span className='icon-[lucide--check-check] size-8 shrink-0 text-white'></span> : <span className={`${item.icon} size-8 shrink-0 text-zinc-400 group-hover:text-blue-400`}></span>}</div>
 								</div>
 								<div>
 									<h3 className='text-lg font-medium'>{item.title}</h3>

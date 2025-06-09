@@ -510,8 +510,8 @@ export default function ProblemsPage() {
 											<span className='icon-[lucide--search-x] size-12 shrink-0 text-zinc-300 dark:text-zinc-500'></span>
 										</div>
 										<div className='flex flex-col'>
-											<h3 className='text-center text-base font-semibold text-zinc-600'>Nenhum resultado</h3>
-											<div className='text-center text-sm text-zinc-700'>Nenhum resultado para o texto informado.</div>
+											<h3 className='text-center text-base font-semibold text-zinc-600 dark:text-zinc-300'>Nenhum resultado</h3>
+											<div className='text-center text-sm text-zinc-700 dark:text-zinc-400'>Nenhum resultado para o texto informado.</div>
 										</div>
 									</div>
 								</div>
@@ -547,7 +547,7 @@ export default function ProblemsPage() {
 											<h3 className='text-xl font-medium'>{problem ? problem.title : 'Sem problemas'}</h3>
 											{problem && solutions.length > 0 && (
 												<div className='text-base'>
-													<span className='text-sm font-medium'>{solutions.length} soluções</span> <span className='text-zinc-300'>•</span> <span className='text-sm text-zinc-400'>Registrado em {formatDate(problem.createdAt)}</span>
+													<span className='text-sm font-medium'>{solutions.length} soluções</span> <span className='text-zinc-300 dark:text-zinc-600'>•</span> <span className='text-sm text-zinc-400'>Registrado em {formatDate(problem.createdAt)}</span>
 												</div>
 											)}
 										</div>
@@ -589,7 +589,7 @@ export default function ProblemsPage() {
 												<h3 className='text-xl font-medium'>Soluções</h3>
 												<div>
 													<span className='text-sm font-medium'>
-														{solutions.length} soluções para o problema <span className='text-zinc-300'>•</span> {solutions.filter((s) => s.verified).length} foram verificadas
+														{solutions.length} soluções para o problema <span className='text-zinc-300 dark:text-zinc-600'>•</span> {solutions.filter((s) => s.verified).length} foram verificadas
 													</span>
 												</div>
 											</div>
@@ -613,7 +613,7 @@ export default function ProblemsPage() {
 															<div className='flex flex-col'>
 																<div className='flex flex-col gap-y-1'>
 																	<div className='text-base'>
-																		<span className='font-bold text-zinc-700'>{solution.user.name}</span> <span className='text-zinc-300'>•</span> <span className='text-sm text-zinc-400'>{formatDate(solution.date)}</span>
+																		<span className='font-bold text-zinc-700 dark:text-zinc-200'>{solution.user.name}</span> <span className='text-zinc-300 dark:text-zinc-600'>•</span> <span className='text-sm text-zinc-400'>{formatDate(solution.date)}</span>
 																		{solution.verified && (
 																			<span className='ml-2 inline-flex items-center gap-x-1 rounded-lg bg-green-100 px-2 py-1 text-xs font-medium text-green-800 dark:bg-green-500/10 dark:text-green-500'>
 																				<span className='icon-[lucide--check] size-3 shrink-0'></span>
@@ -655,10 +655,10 @@ export default function ProblemsPage() {
 																	</Button>
 																	{solution.isMine && (
 																		<>
-																			<Button type='button' icon='icon-[lucide--edit]' style='unstyled' className='py-2 text-zinc-600 hover:bg-zinc-100' onClick={() => openSolutionModal('edit', solution)}>
+																			<Button type='button' icon='icon-[lucide--edit]' style='unstyled' className='py-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-300' onClick={() => openSolutionModal('edit', solution)}>
 																				Editar
 																			</Button>
-																			<Button type='button' icon='icon-[lucide--trash]' style='unstyled' className='py-2 text-red-600 hover:bg-red-100' onClick={() => openDeleteSolutionDialog(solution)}>
+																			<Button type='button' icon='icon-[lucide--trash]' style='unstyled' className='py-2 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-800/30 dark:hover:text-red-300' onClick={() => openDeleteSolutionDialog(solution)}>
 																				Excluir
 																			</Button>
 																		</>
@@ -679,7 +679,7 @@ export default function ProblemsPage() {
 																					<div className='flex flex-col'>
 																						<div className='flex flex-col gap-y-1'>
 																							<div className='text-base'>
-																								<span className='font-bold text-zinc-700'>{reply.user.name}</span> <span className='text-zinc-300'>•</span> <span className='text-sm text-zinc-400'>{formatDate(reply.date)}</span>
+																								<span className='font-bold text-zinc-700 dark:text-zinc-200'>{reply.user.name}</span> <span className='text-zinc-300 dark:text-zinc-600'>•</span> <span className='text-sm text-zinc-400'>{formatDate(reply.date)}</span>
 																								{reply.verified && (
 																									<span className='ml-2 inline-flex items-center gap-x-1 rounded-lg bg-green-100 px-2 py-1 text-xs font-medium text-green-800 dark:bg-green-500/10 dark:text-green-500'>
 																										<span className='icon-[lucide--check] size-3 shrink-0'></span>
@@ -717,10 +717,10 @@ export default function ProblemsPage() {
 																							</Button>
 																							{reply.isMine && (
 																								<>
-																									<Button type='button' icon='icon-[lucide--edit]' style='unstyled' className='py-2 text-zinc-600 hover:bg-zinc-100' onClick={() => openSolutionModal('edit', reply)}>
+																									<Button type='button' icon='icon-[lucide--edit]' style='unstyled' className='py-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-300' onClick={() => openSolutionModal('edit', reply)}>
 																										Editar
 																									</Button>
-																									<Button type='button' icon='icon-[lucide--trash]' style='unstyled' className='py-2 text-red-600 hover:bg-red-100' onClick={() => openDeleteSolutionDialog(reply)}>
+																									<Button type='button' icon='icon-[lucide--trash]' style='unstyled' className='py-2 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-800/30 dark:hover:text-red-300' onClick={() => openDeleteSolutionDialog(reply)}>
 																										Excluir
 																									</Button>
 																								</>
@@ -804,7 +804,7 @@ export default function ProblemsPage() {
 										</div>
 									))}
 								{/* Botão de upload (div quadrada) */}
-								<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-zinc-300 rounded-lg cursor-pointer hover:border-blue-400 transition group relative'>
+								<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-zinc-300 rounded-lg cursor-pointer hover:border-blue-400 dark:border-zinc-600 dark:hover:border-blue-500 transition group relative'>
 									<input
 										type='file'
 										name='file-upload'
@@ -818,8 +818,8 @@ export default function ProblemsPage() {
 											}
 										}}
 									/>
-									<span className='icon-[lucide--plus] size-10 text-zinc-400 group-hover:text-blue-500' />
-									<span className='text-xs text-zinc-400 mt-2'>Adicionar</span>
+									<span className='icon-[lucide--plus] size-10 text-zinc-400 group-hover:text-blue-500 dark:text-zinc-500 dark:group-hover:text-blue-400' />
+									<span className='text-xs text-zinc-400 dark:text-zinc-500 mt-2'>Adicionar</span>
 								</div>
 								{/* Preview da imagem selecionada */}
 								{previewFile && (
@@ -850,7 +850,7 @@ export default function ProblemsPage() {
 										>
 											Enviar
 										</button>
-										<button type='button' className='absolute top-2 right-2 size-8 flex items-center justify-center bg-white/80 text-red-500 rounded-full hover:bg-red-100 transition' onClick={() => setPreviewFile(null)}>
+										<button type='button' className='absolute top-2 right-2 size-8 flex items-center justify-center bg-white/80 text-red-500 rounded-full hover:bg-red-100 dark:bg-zinc-800/80 dark:text-red-400 dark:hover:bg-red-800/30 transition' onClick={() => setPreviewFile(null)}>
 											<span className='icon-[lucide--x] size-5' />
 										</button>
 									</div>
@@ -971,7 +971,7 @@ export default function ProblemsPage() {
 								<img src={editingSolution.image.image} alt={editingSolution.image.description || 'Imagem da solução'} className='object-contain h-full w-full rounded-lg' style={{ maxHeight: '8rem', maxWidth: '8rem' }} />
 								<button
 									type='button'
-									className='absolute top-1 right-1 bg-red-100/75 hover:bg-red-100 text-red-500 rounded-full size-8 flex items-center justify-center transition'
+									className='absolute top-1 right-1 bg-red-100/75 hover:bg-red-100 dark:bg-red-800/30 dark:hover:bg-red-700/40 text-red-500 dark:text-red-400 rounded-full size-8 flex items-center justify-center transition'
 									onClick={async () => {
 										// Remove imagem da solução via API
 										const formData = new FormData()
@@ -1000,7 +1000,7 @@ export default function ProblemsPage() {
 							// Se não há imagem associada ou já foi removida, exibe campo de upload normalmente
 							<>
 								{!solutionImagePreview && (
-									<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-zinc-300 rounded-lg cursor-pointer hover:border-blue-400 transition group relative'>
+									<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-zinc-300 rounded-lg cursor-pointer hover:border-blue-400 dark:border-zinc-600 dark:hover:border-blue-500 transition group relative'>
 										<input
 											type='file'
 											accept='image/png, image/jpeg, image/webp'
@@ -1019,8 +1019,8 @@ export default function ProblemsPage() {
 												}
 											}}
 										/>
-										<span className='icon-[lucide--plus] size-10 text-zinc-400 group-hover:text-blue-500' />
-										<span className='text-xs text-zinc-400 mt-2'>Adicionar imagem</span>
+										<span className='icon-[lucide--plus] size-10 text-zinc-400 group-hover:text-blue-500 dark:text-zinc-500 dark:group-hover:text-blue-400' />
+										<span className='text-xs text-zinc-400 dark:text-zinc-500 mt-2'>Adicionar imagem</span>
 									</div>
 								)}
 								{solutionImagePreview && (
@@ -1028,7 +1028,7 @@ export default function ProblemsPage() {
 										<img src={solutionImagePreview} alt='Preview' className='object-contain h-full w-full rounded-lg' style={{ maxHeight: '8rem', maxWidth: '8rem' }} />
 										<button
 											type='button'
-											className='absolute top-1 right-1 bg-red-100/75 hover:bg-red-100 text-red-500 rounded-full size-8 flex items-center justify-center transition'
+											className='absolute top-1 right-1 bg-red-100/75 hover:bg-red-100 dark:bg-red-800/30 dark:hover:bg-red-700/40 text-red-500 dark:text-red-400 rounded-full size-8 flex items-center justify-center transition'
 											onClick={() => {
 												setSolutionImage(null)
 												setSolutionImagePreview(null)
@@ -1101,15 +1101,15 @@ function ListProblems({ problems, solutionsCount, onSelect, selectedId, loadingD
 		<div className='flex flex-col'>
 			{problems.length > 0 &&
 				problems.map((problem) => (
-					<div key={problem.id} className={`flex flex-col border-b border-zinc-200 cursor-pointer ${selectedId === problem.id ? 'bg-zinc-100 dark:bg-zinc-800' : ''} ${loadingDetail ? 'opacity-50 pointer-events-none' : ''}`} onClick={() => !loadingDetail && onSelect(problem)}>
-						<div className='flex w-full flex-col gap-y-1 p-8 hover:bg-zinc-100'>
+					<div key={problem.id} className={`flex flex-col border-b border-zinc-200 dark:border-zinc-700 cursor-pointer ${selectedId === problem.id ? 'bg-zinc-100 dark:bg-zinc-800' : ''} ${loadingDetail ? 'opacity-50 pointer-events-none' : ''}`} onClick={() => !loadingDetail && onSelect(problem)}>
+						<div className='flex w-full flex-col gap-y-1 p-8 hover:bg-zinc-50 dark:hover:bg-zinc-800'>
 							<div className='flex w-full items-center justify-between gap-x-2'>
-								<span className='text-base font-semibold text-zinc-700 line-clamp-2' style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+								<span className='text-base font-semibold text-zinc-700 dark:text-zinc-300 line-clamp-2' style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
 									{problem.title}
 								</span>
-								<span className='ms-1 shrink-0 rounded-full bg-zinc-100 px-1.5 py-0.5 text-xs font-medium text-zinc-600'>{solutionsCount[problem.id] ?? 0}</span>
+								<span className='ms-1 shrink-0 rounded-full bg-zinc-100 dark:bg-zinc-700 px-1.5 py-0.5 text-xs font-medium text-zinc-600 dark:text-zinc-400'>{solutionsCount[problem.id] ?? 0}</span>
 							</div>
-							<div className='flex text-sm text-zinc-600'>
+							<div className='flex text-sm text-zinc-600 dark:text-zinc-400'>
 								<p className='line-clamp-4' style={{ display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
 									{problem.description}
 								</p>

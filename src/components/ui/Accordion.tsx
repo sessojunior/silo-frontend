@@ -45,7 +45,7 @@ export default function Accordion({ sections }: AccordionProps) {
 
 				return (
 					<div key={section.id} className='rounded-lg'>
-						<button onClick={() => toggleSection(sectionIndex)} className={twMerge(clsx('flex w-full items-center justify-between gap-2 py-2 text-left font-semibold transition rounded-xl', isOpenSection ? 'text-blue-600' : 'text-zinc-800'))} aria-expanded={isOpenSection}>
+						<button onClick={() => toggleSection(sectionIndex)} className={twMerge(clsx('flex w-full items-center justify-between gap-2 py-2 text-left font-semibold transition rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800', isOpenSection ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-800 dark:text-zinc-200'))} aria-expanded={isOpenSection}>
 							<div className='flex items-center gap-2 text-lg'>
 								<span className={`${isOpenSection ? 'icon-[lucide--chevron-up]' : 'icon-[lucide--chevron-down]'} size-4`} />
 								{section.title}
@@ -53,8 +53,8 @@ export default function Accordion({ sections }: AccordionProps) {
 						</button>
 
 						{isOpenSection && (
-							<div className='px-4 pb-4 pt-1 text-zinc-800'>
-								{section.description && <p className='pl-2 mb-4 text-base'>{section.description}</p>}
+							<div className='px-4 pb-4 pt-1 text-zinc-800 dark:text-zinc-200'>
+								{section.description && <p className='pl-2 mb-4 text-base text-zinc-600 dark:text-zinc-400'>{section.description}</p>}
 
 								{section.chapters.length > 0 ? (
 									<div className='flex flex-col gap-2'>
@@ -63,7 +63,7 @@ export default function Accordion({ sections }: AccordionProps) {
 
 											return (
 												<div key={chapter.id} className='rounded-md'>
-													<button onClick={() => toggleChapter(chapterIndex)} className={twMerge(clsx('flex w-full items-center justify-between gap-2 pl-2 py-2 text-left font-medium transition rounded-xl border border-transparent', isOpenChapter ? 'text-blue-600' : 'text-zinc-800'))} aria-expanded={isOpenChapter}>
+													<button onClick={() => toggleChapter(chapterIndex)} className={twMerge(clsx('flex w-full items-center justify-between gap-2 pl-2 py-2 text-left font-medium transition rounded-xl border border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-700/50', isOpenChapter ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-800 dark:text-zinc-200'))} aria-expanded={isOpenChapter}>
 														<div className='flex items-center gap-2'>
 															<span className='icon-[lucide--book-text] size-4' />
 															{chapter.title}
@@ -76,7 +76,7 @@ export default function Accordion({ sections }: AccordionProps) {
 																<ReactMarkdown>{chapter.description}</ReactMarkdown>
 															</div>
 															<div className='mt-4'>
-																<Button type='button' icon='icon-[lucide--edit]' style='unstyled' className='py-2' onClick={chapter.onEdit}>
+																<Button type='button' icon='icon-[lucide--edit]' style='unstyled' className='py-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-300' onClick={chapter.onEdit}>
 																	Editar capítulo
 																</Button>
 															</div>
