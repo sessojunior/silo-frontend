@@ -63,11 +63,12 @@ Silo é um aplicativo de gerenciamento de produtos e tarefas desenvolvido especi
 
 - **Frontend**: Next.js 15+ com App Router
 - **Backend**: Next.js API Routes
-- **Banco**: SQLite (desenvolvimento) / PostgreSQL (produção)
+- **Banco**: PostgreSQL (desenvolvimento e produção)
 - **ORM**: Drizzle ORM
 - **Autenticação**: Sessões com cookies HttpOnly
 - **Email**: Nodemailer
 - **Estilização**: Tailwind CSS 4
+- **Upload**: nginx para arquivos estáticos
 
 ### Características Únicas
 
@@ -75,6 +76,7 @@ Silo é um aplicativo de gerenciamento de produtos e tarefas desenvolvido especi
 - **Autenticação Personalizada**: Sistema próprio de sessões
 - **Rate Limiting**: Proteção contra spam de emails
 - **PWA Ready**: Configuração para Progressive Web App
+- **Upload Otimizado**: nginx serve arquivos diretamente
 
 ## Requisitos Não-Funcionais
 
@@ -87,9 +89,9 @@ Silo é um aplicativo de gerenciamento de produtos e tarefas desenvolvido especi
 
 ### Performance
 
-- Suporte até 100k acessos/dia com SQLite
+- **PostgreSQL**: Suporte a milhões de registros com connection pooling
+- **nginx**: Upload e download otimizado de arquivos
 - Paginação para listagens grandes
-- Otimização de imagens
 - Lazy loading de componentes
 
 ### Usabilidade

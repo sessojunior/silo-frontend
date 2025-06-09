@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 		}
 
 		// Se o e-mail do usuário ainda não tiver sido verificado
-		if (user.emailVerified === 0) {
+		if (user.emailVerified === false) {
 			// Obtém um código OTP e salva-o no banco de dados
 			const otp = await generateCode(email)
 			if ('error' in otp) return NextResponse.json({ field: 'email', message: otp.error.message ?? 'Erro ao gerar o código de verificação para enviar por e-mail.' }, { status: 400 })

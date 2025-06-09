@@ -50,9 +50,8 @@ export async function POST(req: NextRequest) {
 			id: userId,
 			name,
 			email,
-			emailVerified: 0,
+			emailVerified: false,
 			password: hashedPassword,
-			createdAt: new Date(Date.now()),
 		})
 
 		// Gera e envia código de verificação por e-mail

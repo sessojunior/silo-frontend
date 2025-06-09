@@ -26,10 +26,10 @@
 
 ### Banco de Dados
 
-- **SQLite 3**: Desenvolvimento (com `sqlite3` driver)
-- **PostgreSQL**: Produção (futuro)
+- **PostgreSQL**: Banco de dados principal (produção e desenvolvimento)
 - **Drizzle ORM 0.43.1+**: ORM TypeScript-first
 - **Drizzle Kit**: Migrations e studio
+- **node-postgres (pg)**: Driver oficial PostgreSQL
 
 ### Autenticação e Segurança
 
@@ -90,7 +90,6 @@
 
 ```json
 {
-	"@libsql/client": "^0.15.6", // SQLite client
 	"apexcharts": "^4.7.0", // Charts library
 	"arctic": "^3.7.0", // OAuth providers
 	"bcryptjs": "^3.0.2", // Password hashing
@@ -99,11 +98,11 @@
 	"drizzle-orm": "^0.43.1", // ORM
 	"next": "15.3.2", // Framework
 	"nodemailer": "^7.0.3", // Email sending
+	"pg": "^8.12.0", // PostgreSQL driver
 	"react": "^19.0.0", // UI library
 	"react-apexcharts": "^1.7.0", // Charts React wrapper
 	"react-dom": "^19.0.0", // DOM bindings
 	"react-markdown": "^10.1.0", // Markdown rendering
-	"sqlite3": "^5.1.7", // SQLite driver
 	"tailwind-merge": "^3.3.0" // Tailwind class merging
 }
 ```
@@ -119,6 +118,7 @@
 	"@tailwindcss/typography": "^0.5.16", // Typography plugin
 	"@types/node": "^20", // Node.js types
 	"@types/nodemailer": "^6.4.17", // Nodemailer types
+	"@types/pg": "^8.11.10", // PostgreSQL types
 	"@types/react": "^19", // React types
 	"@types/react-dom": "^19", // React DOM types
 	"drizzle-kit": "^0.31.1", // Database toolkit
@@ -128,6 +128,7 @@
 	"prettier": "^3.5.3", // Code formatting
 	"prettier-plugin-tailwindcss": "^0.6.11", // Tailwind Prettier plugin
 	"tailwindcss": "^4", // CSS framework
+	"tsx": "^4.19.2", // TypeScript execution
 	"typescript": "^5" // TypeScript compiler
 }
 ```
@@ -140,11 +141,26 @@
 // drizzle.config.ts
 export default {
 	schema: './src/lib/db/schema.ts',
-	dialect: 'sqlite',
+	dialect: 'postgresql',
 	dbCredentials: {
-		url: './database.db',
+		url: process.env.DATABASE_URL!,
 	},
 }
+```
+
+### Conexão PostgreSQL
+
+```typescript
+// src/lib/db/index.ts
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
+import * as schema from './schema'
+
+const pool = new Pool({
+	connectionString: process.env.DATABASE_URL!,
+})
+
+export const db = drizzle(pool, { schema })
 ```
 
 ### Next.js Configuration
@@ -181,113 +197,180 @@ const nextConfig: NextConfig = {
 ### Ambiente Desenvolvimento
 
 ```env
-# Database
-DATABASE_URL="file:./database.db"
+# Database PostgreSQL
+DATABASE_URL="postgresql://user:password@localhost:5432/silo_dev"
 
 # Authentication
-NEXTAUTH_SECRET="development-secret"
-NEXTAUTH_URL="http://localhost:3000"
+AUTH_SECRET="your-auth-secret-key"
 
 # Google OAuth
 GOOGLE_CLIENT_ID="your-google-client-id"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
+GOOGLE_REDIRECT_URI="http://localhost:3000/api/auth/callback/google"
 
-# Email (Development)
-EMAIL_SERVER_HOST="localhost"
-EMAIL_SERVER_PORT="1025"
-EMAIL_SERVER_USER=""
-EMAIL_SERVER_PASSWORD=""
-EMAIL_FROM="noreply@silo.local"
+# Email Service
+EMAIL_HOST="smtp.gmail.com"
+EMAIL_PORT="587"
+EMAIL_USER="your-email@gmail.com"
+EMAIL_PASS="your-app-password"
+EMAIL_FROM="SILO <your-email@gmail.com>"
+
+# Upload Configuration
+UPLOAD_DIR="/var/uploads/silo"
+NGINX_UPLOAD_URL="https://uploads.silo.inpe.br"
 ```
 
 ### Ambiente Produção
 
 ```env
-# Database (PostgreSQL)
-DATABASE_URL="postgresql://user:password@host:port/database"
+# Database PostgreSQL
+DATABASE_URL="postgresql://silo_user:strong_password@postgres-server:5432/silo_prod"
 
-# Authentication
-NEXTAUTH_SECRET="production-secure-secret"
-NEXTAUTH_URL="https://silo.inpe.br"
+# Security
+AUTH_SECRET="production-secret-with-32-chars"
+NODE_ENV="production"
 
-# Google OAuth
-GOOGLE_CLIENT_ID="production-google-client-id"
-GOOGLE_CLIENT_SECRET="production-google-client-secret"
+# SSL Configuration
+DATABASE_SSL="true"
 
-# Email (Production SMTP)
-EMAIL_SERVER_HOST="smtp.inpe.br"
-EMAIL_SERVER_PORT="587"
-EMAIL_SERVER_USER="silo@inpe.br"
-EMAIL_SERVER_PASSWORD="secure-password"
-EMAIL_FROM="silo@inpe.br"
+# Upload nginx
+UPLOAD_DIR="/var/uploads/silo"
+NGINX_UPLOAD_URL="https://uploads.silo.inpe.br"
 ```
 
-## Restrições e Limitações
+## Configuração PostgreSQL
 
-### Performance
-
-- **SQLite Limitation**: ~100k requests/day (migração para PostgreSQL quando necessário)
-- **File Upload**: Limite de 5MB por imagem
-- **Rate Limiting**: 3 requests/minute para operações sensíveis
-
-### Browser Support
-
-- **Modern browsers only**: ES2017+ features
-- **Mobile responsive**: Touch-first design
-- **Progressive Enhancement**: Funcionalidade básica sem JavaScript
-
-### Security Constraints
-
-- **HTTPS only**: Em produção
-- **HttpOnly cookies**: Tokens não acessíveis via JS
-- **Content Security Policy**: Headers restritivos
-- **CORS**: Configuração específica para domínio
-
-## Padrões de Deployment
-
-### Development
+### Instalação e Setup
 
 ```bash
-npm run dev          # Servidor local com hot reload
-npm run db:studio    # Interface visual do banco
-npm run db:seed      # Popular com dados de teste
+# Instalar PostgreSQL
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+
+# Criar usuário e banco
+sudo -u postgres psql
+CREATE USER silo_user WITH PASSWORD 'strong_password';
+CREATE DATABASE silo_dev OWNER silo_user;
+CREATE DATABASE silo_prod OWNER silo_user;
+GRANT ALL PRIVILEGES ON DATABASE silo_dev TO silo_user;
+GRANT ALL PRIVILEGES ON DATABASE silo_prod TO silo_user;
 ```
 
-### Production Build
+### Comandos de Desenvolvimento
 
 ```bash
-npm run build        # Build otimizado
-npm run start        # Servidor de produção
-npm run db:migrate   # Aplicar migrations
+# Aplicar schema ao banco
+npm run db:push
+
+# Gerar migrations
+npm run db:generate
+
+# Executar migrations
+npm run db:migrate
+
+# Abrir Drizzle Studio
+npm run db:studio
+
+# Popular banco com dados
+npm run db:seed
 ```
 
-### Database Management
+### Vantagens do PostgreSQL
 
-```bash
-npm run db:generate  # Criar nova migration
-npm run db:push      # Sync schema (development only)
-npm run db:studio    # Visual database browser
+- **Performance**: 10x mais rápido para queries complexas
+- **Escalabilidade**: Suporte a milhões de registros
+- **Integridade**: ACID compliant com foreign keys rígidas
+- **Funcionalidades**: JSON, full-text search, índices avançados
+- **Produção**: Backup incremental, replicação, monitoring
+
+## Configuração Upload com nginx
+
+### Estrutura de Uploads Externa
+
+```
+/var/uploads/silo/
+├── profile/              # Fotos de perfil de usuários
+├── products/             # Arquivos relacionados a produtos
+│   ├── problems/         # Imagens de problemas reportados
+│   ├── solutions/        # Imagens de soluções
+│   └── manual/           # Documentos do manual (futuro)
+└── system/               # Arquivos do sistema (logos, etc)
 ```
 
-## Ferramentas de Desenvolvimento
+### Configuração nginx
 
-### IDE Recommended Extensions
+```nginx
+# /etc/nginx/sites-available/silo-uploads
+server {
+    listen 80;
+    server_name uploads.silo.inpe.br;
 
-- **TypeScript**: Suporte nativo
-- **Tailwind CSS IntelliSense**: Autocomplete de classes
-- **ES7+ React/Redux Snippets**: Snippets úteis
-- **Prettier**: Formatação automática
-- **ESLint**: Linting em tempo real
+    # Security headers
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options DENY;
+    add_header X-XSS-Protection "1; mode=block";
 
-### Debugging
+    # Upload location
+    location / {
+        root /var/uploads/silo;
 
-- **React DevTools**: Debug de componentes
-- **Network Tab**: Monitoring de APIs
-- **Drizzle Studio**: Visualização do banco
-- **Console.log**: Debug tradicional (removido em produção)
+        # Security restrictions
+        location ~* \.(php|asp|jsp|cgi)$ {
+            deny all;
+        }
 
-### Performance Monitoring
+        # Only allow specific file types
+        location ~* \.(jpg|jpeg|png|gif|webp|svg|pdf|doc|docx)$ {
+            expires 30d;
+            add_header Cache-Control "public, immutable";
+            try_files $uri =404;
+        }
 
-- **Next.js Analytics**: Métricas de build
-- **Web Vitals**: Core performance metrics
-- **Bundle Analyzer**: Análise de tamanho do bundle
+        # Block access to hidden files
+        location ~ /\. {
+            deny all;
+        }
+    }
+
+    # Health check
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+}
+```
+
+### Vantagens do Upload via nginx
+
+- **Performance**: nginx serve arquivos 10x mais rápido que Node.js
+- **Escalabilidade**: Milhares de downloads simultâneos
+- **Cache**: Headers otimizados para CDN
+- **Segurança**: Restrições de tipo de arquivo no proxy
+- **Monitoring**: Logs separados do aplicação
+- **Bandwidth**: Reduz carga na aplicação Node.js
+
+## Schema PostgreSQL
+
+### Principais Diferenças do SQLite
+
+```typescript
+// Antes (SQLite)
+integer('created_at', { mode: 'timestamp' })
+integer('email_verified', { mode: 'boolean' })
+integer({ mode: 'boolean' }).default(false)
+
+// Depois (PostgreSQL)
+timestamp('created_at').defaultNow()
+boolean('email_verified').default(false)
+boolean().default(false)
+```
+
+### Relacionamentos Otimizados
+
+- Foreign keys com ON DELETE CASCADE onde apropriado
+- Índices automáticos em todas as chaves estrangeiras
+- Self-references simplificadas para evitar ciclos
+- Constraints de unicidade para slugs e emails
+
+A migração para PostgreSQL garante que o sistema seja robusto e escalável para atender às demandas do CPTEC/INPE.

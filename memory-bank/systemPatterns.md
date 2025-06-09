@@ -116,41 +116,98 @@ export default function Component({
 
 ## Padrões de Database
 
-### Schema Design (Drizzle ORM)
+### Schema Design (Drizzle ORM + PostgreSQL)
 
 - **Type-safe**: Schema TypeScript-first
 - **Relational**: Foreign keys com integridade referencial
 - **Timestamps**: created_at/updated_at em entidades relevantes
-- **Soft Deletes**: Quando histórico é importante
+- **Connection Pooling**: Pool de conexões para performance
 
 ### Principais Entidades
 
 ```typescript
-// Padrão de relacionamentos
-export const product = sqliteTable('product', {
+// Padrão de relacionamentos PostgreSQL
+export const product = pgTable('product', {
 	id: text('id').primaryKey(),
 	name: text('name').notNull(),
 	slug: text('slug').notNull(),
-	available: integer({ mode: 'boolean' }).notNull(),
+	available: boolean('available').notNull().default(true),
 })
 
-export const productProblem = sqliteTable('product_problem', {
+export const productProblem = pgTable('product_problem', {
 	id: text('id').primaryKey(),
-	productId: text('product_id').references(() => product.id),
-	userId: text('user_id').references(() => authUser.id),
+	productId: text('product_problem_id')
+		.notNull()
+		.references(() => product.id),
+	userId: text('user_id')
+		.notNull()
+		.references(() => authUser.id),
 	title: text('title').notNull(),
 	description: text('description').notNull(),
-	createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-	updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 ```
 
-### Query Patterns
+### Tipos PostgreSQL Utilizados
+
+- **text**: Para strings de tamanho variável (nomes, descrições, URLs)
+- **boolean**: Para flags e estados (available, email_verified)
+- **timestamp**: Para datas com timezone (created_at, updated_at, expires_at)
+- **integer**: Para contadores e IDs numéricos (count, order)
+- **serial**: Para auto-incremento (quando necessário)
+
+### Connection Pooling Pattern
+
+```typescript
+// src/lib/db/index.ts
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
+import * as schema from './schema'
+
+const pool = new Pool({
+	connectionString: process.env.DATABASE_URL!,
+})
+
+export const db = drizzle(pool, { schema })
+```
+
+### Query Patterns PostgreSQL
 
 - **Joins**: Relacionamentos carregados eficientemente
 - **Pagination**: Offset/limit para listas grandes
 - **Filtering**: WHERE clauses dinâmicas
 - **Ordering**: Sempre especificado para consistência
+- **Transactions**: Para operações complexas
+
+### Self-References Otimizadas
+
+```typescript
+// Padrão para estruturas hierárquicas
+export const productDependency = pgTable('product_dependency', {
+	id: text('id').primaryKey(),
+	productId: text('product_id')
+		.notNull()
+		.references(() => product.id),
+	name: text('name').notNull(),
+	parentId: text('parent_id'), // self-reference simplificada
+	order: integer('order').notNull().default(0),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+```
+
+### Migration Patterns
+
+- **Schema first**: Definir no Drizzle, aplicar com `db:push`
+- **Seed data**: Verificar existência antes de inserir
+- **Rollback safe**: Sempre testável e reversível
+
+### Performance Optimizations
+
+- **Índices automáticos**: Primary keys e foreign keys
+- **Connection reuse**: Pool mantém conexões ativas
+- **Query optimization**: PostgreSQL query planner
+- **Batch operations**: Para inserções múltiplas
 
 ## Padrões de API
 

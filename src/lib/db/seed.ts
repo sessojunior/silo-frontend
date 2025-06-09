@@ -1,10 +1,10 @@
+import 'dotenv/config'
 import { randomUUID } from 'crypto'
 import { eq } from 'drizzle-orm'
 
 import { db } from '@/lib/db'
 import * as schema from '@/lib/db/schema'
-
-const USER_ID = 'a5c0b6e7-2c76-4447-a512-a095fb78e4d7'
+import { hashPassword } from '@/lib/auth/hash'
 
 const products = [
 	{ name: 'BAM', slug: 'bam' },
@@ -502,8 +502,6 @@ async function insertDependencies(productId: string, dependencies: any[], parent
 			url: dep.url || null,
 			parentId,
 			order,
-			createdAt: new Date(),
-			updatedAt: new Date(),
 		})
 
 		if (dep.children) {
@@ -516,23 +514,53 @@ async function insertDependencies(productId: string, dependencies: any[], parent
 async function seed() {
 	console.log('✅ Iniciando seed...')
 
-	// 1. Produtos
-	const existingProducts = await db.select().from(schema.product).limit(1)
+	// 1. Criar usuário de teste Mario Junior
+	console.log('🔄 Criando usuário de teste: Mario Junior...')
+
+	const userId = randomUUID()
+	const hashedPassword = await hashPassword('#Admin123')
+
+	// Criar usuário
+	await db.insert(schema.authUser).values({
+		id: userId,
+		name: 'Mario Junior',
+		email: 'sessojunior@gmail.com',
+		emailVerified: true,
+		password: hashedPassword,
+	})
+
+	// Criar perfil do usuário
+	await db.insert(schema.userProfile).values({
+		id: randomUUID(),
+		userId: userId,
+		genre: 'Masculino',
+		phone: '+55 11 99999-9999',
+		role: 'Administrador',
+		team: 'CPTEC',
+		company: 'INPE',
+		location: 'São José dos Campos, SP',
+	})
+
+	// Criar preferências do usuário
+	await db.insert(schema.userPreferences).values({
+		id: randomUUID(),
+		userId: userId,
+		notifyUpdates: true,
+		sendNewsletters: false,
+	})
+
+	console.log('✅ Usuário Mario Junior criado com sucesso!')
+
+	// 2. Produtos
+	console.log('🔄 Inserindo produtos...')
 	const productMap = new Map<string, string>()
 
-	if (existingProducts.length === 0) {
-		console.log('🔄 Inserindo produtos...')
-		const inserted = await db
-			.insert(schema.product)
-			.values(products.map((p) => ({ id: randomUUID(), ...p, available: true })))
-			.returning()
+	const inserted = await db
+		.insert(schema.product)
+		.values(products.map((p) => ({ id: randomUUID(), ...p, available: true })))
+		.returning()
 
-		inserted.forEach((p) => productMap.set(p.slug, p.id))
-	} else {
-		console.log('✅ Produtos já existentes.')
-		const all = await db.select().from(schema.product)
-		all.forEach((p) => productMap.set(p.slug, p.id))
-	}
+	inserted.forEach((p) => productMap.set(p.slug, p.id))
 
 	for (const { slug } of products) {
 		const productId = productMap.get(slug)!
@@ -541,118 +569,96 @@ async function seed() {
 
 		// 2. Dependências hierárquicas
 		console.log(`🔄 Inserindo dependências para ${slug}...`)
-		const existingDeps = await db.select().from(schema.productDependency).where(eq(schema.productDependency.productId, productId)).limit(1)
-		if (existingDeps.length === 0) {
-			await insertDependencies(productId, dependencyStructure)
-		}
+		await insertDependencies(productId, dependencyStructure)
 
 		// 3. Contatos
 		console.log(`🔄 Inserindo contatos para ${slug}...`)
-		const existingContacts = await db.select().from(schema.productContact).where(eq(schema.productContact.productId, productId)).limit(1)
-		if (existingContacts.length === 0) {
-			await db.insert(schema.productContact).values(
-				productContacts.map((contact, index) => ({
-					id: randomUUID(),
-					productId,
-					...contact,
-					order: index,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				})),
-			)
-		}
+		await db.insert(schema.productContact).values(
+			productContacts.map((contact, index) => ({
+				id: randomUUID(),
+				productId,
+				...contact,
+				order: index,
+			})),
+		)
 
 		// 4. Manual - Seções e Capítulos
 		console.log(`🔄 Inserindo manual para ${slug}...`)
-		const existingSections = await db.select().from(schema.productManualSection).where(eq(schema.productManualSection.productId, productId)).limit(1)
-		if (existingSections.length === 0) {
-			for (let i = 0; i < manualData.length; i++) {
-				const section = manualData[i]
-				const sectionId = randomUUID()
+		for (let i = 0; i < manualData.length; i++) {
+			const section = manualData[i]
+			const sectionId = randomUUID()
 
-				await db.insert(schema.productManualSection).values({
-					id: sectionId,
-					productId,
-					title: section.title,
-					description: section.description,
-					order: i,
-					createdAt: new Date(),
-					updatedAt: new Date(),
+			await db.insert(schema.productManualSection).values({
+				id: sectionId,
+				productId,
+				title: section.title,
+				description: section.description,
+				order: i,
+			})
+
+			for (let j = 0; j < section.chapters.length; j++) {
+				const chapter = section.chapters[j]
+				await db.insert(schema.productManualChapter).values({
+					id: randomUUID(),
+					sectionId,
+					title: chapter.title,
+					content: chapter.content,
+					order: j,
 				})
-
-				for (let j = 0; j < section.chapters.length; j++) {
-					const chapter = section.chapters[j]
-					await db.insert(schema.productManualChapter).values({
-						id: randomUUID(),
-						sectionId,
-						title: chapter.title,
-						content: chapter.content,
-						order: j,
-						createdAt: new Date(),
-						updatedAt: new Date(),
-					})
-				}
 			}
 		}
 
-		// 5. Problemas e Soluções (código existente)
+		// 5. Problemas e Soluções
 		console.log(`🔄 Inserindo problemas para o produto: ${slug.toUpperCase()}`)
-		const existingProblems = await db.select().from(schema.productProblem).where(eq(schema.productProblem.productId, productId)).limit(1)
-		if (existingProblems.length === 0) {
-			const problems = generateProblems()
-			const problemRows = problems.map((p) => ({
+		const problems = generateProblems()
+		const problemRows = problems.map((p) => ({
+			id: randomUUID(),
+			productId,
+			userId: userId,
+			title: p.title,
+			description: p.description,
+		}))
+
+		const insertedProblems = await db.insert(schema.productProblem).values(problemRows).returning()
+
+		for (const problem of insertedProblems) {
+			console.log(`🔄 Inserindo soluções para o problema: ${problem.title}`)
+
+			// Gera um número aleatório de soluções entre 2 e 10
+			const numSolutions = Math.floor(Math.random() * 9) + 2 // 2 a 10
+			const solutions = generateSolutions().slice(0, numSolutions)
+			const solutionRows = solutions.map((s, i) => ({
 				id: randomUUID(),
-				productId,
-				userId: USER_ID,
-				title: p.title,
-				description: p.description,
-				createdAt: new Date(),
-				updatedAt: new Date(),
+				userId: userId,
+				productProblemId: problem.id,
+				description: s.description,
+				replyId: null,
 			}))
 
-			const insertedProblems = await db.insert(schema.productProblem).values(problemRows).returning()
+			await db.insert(schema.productSolution).values(solutionRows)
 
-			for (const problem of insertedProblems) {
-				console.log(`🔄 Inserindo soluções para o problema: ${problem.title}`)
+			// Checar a primeira solução
+			await db.insert(schema.productSolutionChecked).values({
+				id: randomUUID(),
+				userId: userId,
+				productSolutionId: solutionRows[0].id,
+			})
 
-				// Gera um número aleatório de soluções entre 2 e 10
-				const numSolutions = Math.floor(Math.random() * 9) + 2 // 2 a 10
-				const solutions = generateSolutions().slice(0, numSolutions)
-				const solutionRows = solutions.map((s, i) => ({
+			// Adicionar imagens exemplo
+			await db.insert(schema.productProblemImage).values([
+				{
 					id: randomUUID(),
-					userId: USER_ID,
 					productProblemId: problem.id,
-					description: s.description,
-					replyId: null,
-					createdAt: new Date(),
-					updatedAt: new Date(),
-				}))
-
-				await db.insert(schema.productSolution).values(solutionRows)
-
-				// Checar a primeira solução
-				await db.insert(schema.productSolutionChecked).values({
+					image: '/uploads/products/problems/erro1.jpg',
+					description: 'Imagem demonstrando o erro',
+				},
+				{
 					id: randomUUID(),
-					userId: USER_ID,
-					productSolutionId: solutionRows[0].id,
-				})
-
-				// Adicionar imagens exemplo
-				await db.insert(schema.productProblemImage).values([
-					{
-						id: randomUUID(),
-						productProblemId: problem.id,
-						image: '/uploads/products/problems/erro1.jpg',
-						description: 'Imagem demonstrando o erro',
-					},
-					{
-						id: randomUUID(),
-						productProblemId: problem.id,
-						image: '/uploads/products/problems/erro2.jpg',
-						description: 'Outra imagem do erro',
-					},
-				])
-			}
+					productProblemId: problem.id,
+					image: '/uploads/products/problems/erro2.jpg',
+					description: 'Outra imagem do erro',
+				},
+			])
 		}
 	}
 

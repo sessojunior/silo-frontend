@@ -86,7 +86,7 @@ export async function createUserFromGoogleId(googleId: string, email: string, na
 
 	// Cria um novo usuário
 	const userId = randomUUID()
-	await db.insert(authUser).values({ id: userId, name: formatName, email: formatEmail, emailVerified: 1, password: '', createdAt: new Date(Date.now()) })
+	await db.insert(authUser).values({ id: userId, name: formatName, email: formatEmail, emailVerified: true, password: '' })
 
 	// Vincula o usuário ao provedor com o googleId
 	const providerId = randomUUID()
@@ -96,7 +96,7 @@ export async function createUserFromGoogleId(googleId: string, email: string, na
 	await uploadProfileImageFromUrl(picture, userId)
 
 	// Retorna os dados do usuário
-	return { id: userId, name: formatName, email: formatEmail, emailVerified: 1, googleId }
+	return { id: userId, name: formatName, email: formatEmail, emailVerified: true, googleId }
 }
 
 // Obtém o Google ID vinculado ao ID do usuário

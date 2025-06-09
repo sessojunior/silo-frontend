@@ -9,7 +9,7 @@ export type UserProps = {
 	id: string
 	name: string
 	email: string
-	emailVerified: number
+	emailVerified: boolean
 	password: string
 	createdAt: Date
 	image: string

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -14,7 +14,6 @@
     "db:seed": "npx tsx src/lib/db/seed.ts"
   },
   "dependencies": {
-    "@libsql/client": "^0.15.6",
     "apexcharts": "^4.7.0",
     "arctic": "^3.7.0",
     "bcryptjs": "^3.0.2",
@@ -23,15 +22,14 @@
     "drizzle-orm": "^0.43.1",
     "next": "15.3.2",
     "nodemailer": "^7.0.3",
+    "pg": "^8.12.0",
     "react": "^19.0.0",
     "react-apexcharts": "^1.7.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
-    "sqlite3": "^5.1.7",
     "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@iconify/json": "^2.2.336",
     "@iconify/tailwind4": "^1.0.6",
     "@tailwindcss/forms": "^0.5.10",
@@ -39,6 +37,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20",
     "@types/nodemailer": "^6.4.17",
+    "@types/pg": "^8.11.10",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.1",
@@ -48,6 +47,7 @@
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }

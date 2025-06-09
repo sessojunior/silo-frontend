@@ -110,7 +110,7 @@ export async function validateCode({ email, code }: { email: string; code: strin
 	await db.delete(authCode).where(eq(authCode.email, formatEmail))
 
 	// Define o e-mail do usuário como verificado (1) na tabela 'authUser' do banco de dados
-	await db.update(authUser).set({ emailVerified: 1 }).where(eq(authUser.email, formatEmail))
+	await db.update(authUser).set({ emailVerified: true }).where(eq(authUser.email, formatEmail))
 
 	// Por seguranca, todas as sessões devem ser invalidadas após o e-mail ser verificado
 	// Será criado depois uma nova sessão para o usuário

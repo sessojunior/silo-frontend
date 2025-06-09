@@ -16,8 +16,7 @@ Este aplicativo está sendo desenvolvido utilizando:
 - [TailwindCSS](https://tailwindcss.com/) (utilitário css com classes prontas)
 - [Iconify](https://iconify.design/docs/usage/css/tailwind/tailwind4/) (ícones)
 - [Drizzle ORM](https://orm.drizzle.team/) (ORM moderno do tipo schema-first, parecido com SQL)
-- [SQLite](https://www.sqlite.org/) (banco leve para desenvolvimento)
-- [PostgreSQL](https://www.postgresql.org/) (banco robusto para produção)
+- [PostgreSQL](https://www.postgresql.org/) (banco de dados robusto e escalável)
 - [Nodemailer](https://nodemailer.com/) (envio de-mails com node.js)
 - [prettier-plugin-tailwindcss](https://www.npmjs.com/package/prettier-plugin-tailwindcss)
 - [eslint-plugin-simple-import-sort](https://www.npmjs.com/package/eslint-plugin-simple-import-sort)
@@ -99,8 +98,108 @@ Registro é refeito após o tempo da janela. É feito um limpeza automática dos
 
 ## Banco de dados
 
-Iremos utilizar provisoriamente o SQLite. O SQLite funciona muito bem como banco de dados para a maioria de sites de tráfego baixo a médio (o que significa a maioria dos sites). A quantidade de tráfego da web que o SQLite pode lidar depende de quão intensamente o site usa o banco de dados.
+O projeto utiliza **PostgreSQL** como banco de dados principal, oferecendo robustez, escalabilidade e suporte completo para aplicações de produção.
 
-De modo geral, qualquer site que recebe menos de 100 mil acessos por dia funciona bem com o SQLite. O número de 100 mil acessos por dia é uma estimativa conservadora, não um limite superior rígido. O SQLite foi demonstrado para funcionar com 10 vezes essa quantidade de tráfego.
+### Configuração do PostgreSQL
 
-O site do [SQLite](https://www.sqlite.org/) usa o próprio SQLite, é claro, e ele lida com cerca de 500 mil solicitações HTTP por dia. Cerca de 15 a 20% das suas páginas são dinâmicas e usam o banco de dados. O conteúdo dinâmico usa cerca de 200 instruções SQL por página da web. Essa configuração é executada em uma única máquina virtual que compartilha um servidor físico com outros 23 e ainda mantém a média de carga abaixo de 0,1 na maioria das vezes.
+Para configurar o banco de dados, você precisa:
+
+1. **Instalar PostgreSQL**: Baixe e instale o PostgreSQL em seu sistema
+2. **Criar banco de dados**: Crie um banco específico para o projeto
+3. **Configurar variáveis de ambiente**: Defina a `DATABASE_URL` no arquivo `.env`
+
+### Variável de ambiente
+
+```env
+DATABASE_URL="postgresql://usuario:senha@localhost:5432/silo_db"
+```
+
+### Comandos úteis
+
+```bash
+# Visualizar banco no Drizzle Studio
+npm run db:studio
+
+# Sincronizar schema com o banco
+npm run db:push
+
+# Gerar migrations
+npm run db:generate
+
+# Executar migrations
+npm run db:migrate
+
+# Popular banco com dados de exemplo
+npm run db:seed
+```
+
+### Vantagens do PostgreSQL
+
+- **Escalabilidade**: Suporta milhões de registros e transações
+- **Integridade de dados**: ACID compliance e constraints robustas
+- **Extensibilidade**: Suporte para JSON, arrays e tipos customizados
+- **Performance**: Índices avançados e otimizações de query
+- **Backup e recovery**: Ferramentas nativas para backup automático
+- **Segurança**: Controle granular de permissões e criptografia
+
+### Estrutura do Schema
+
+O banco está organizado em módulos funcionais:
+
+- **Auth**: Usuários, sessões, códigos de verificação
+- **Products**: Produtos meteorológicos e suas configurações
+- **Knowledge Base**: Dependências, contatos e manuais
+- **Problems & Solutions**: Sistema colaborativo de problemas
+- **File Management**: Upload e gestão de arquivos
+
+O PostgreSQL permite que o sistema escale facilmente conforme o crescimento da demanda do CPTEC/INPE.
+
+## Upload de Imagens
+
+O sistema de upload de imagens está configurado para trabalhar com pasta externa gerenciada pelo nginx, oferecendo melhor performance e escalabilidade.
+
+### Configuração nginx
+
+As imagens são servidas diretamente pelo nginx através de uma pasta externa ao projeto, evitando sobrecarga no servidor Node.js e permitindo cache otimizado.
+
+### Estrutura de arquivos
+
+```
+/var/uploads/silo/
+├── profile/              # Fotos de perfil dos usuários
+├── products/
+│   ├── problems/         # Imagens anexas aos problemas
+│   └── solutions/        # Imagens anexas às soluções
+└── manual/               # Imagens dos manuais técnicos
+```
+
+### Configuração no nginx
+
+```nginx
+server {
+    listen 80;
+    server_name silo.inpe.br;
+
+    # Servir uploads diretamente
+    location /uploads/ {
+        alias /var/uploads/silo/;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Proxy para o Next.js
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+### Vantagens desta abordagem
+
+- **Performance**: nginx serve arquivos estáticos muito mais eficientemente
+- **Escalabilidade**: Reduz carga no servidor Node.js
+- **Cache**: Controle otimizado de cache para imagens
+- **Segurança**: Separação entre aplicação e arquivos estáticos
+- **Backup**: Pasta de uploads pode ser facilmente replicada
