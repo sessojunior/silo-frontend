@@ -59,6 +59,9 @@ export default function ProductsPage() {
 	const [contacts, setContacts] = useState<ProductContact[]>([])
 	const [sections, setSections] = useState<ProductManualSection[]>([])
 	const [loading, setLoading] = useState(true)
+	const [problemsCount, setProblemsCount] = useState<number>(0)
+	const [solutionsCount, setSolutionsCount] = useState<number>(0)
+	const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 	const [offcanvasOpen, setOffcanvasOpen] = useState(false)
 	const [dialogOpen, setDialogOpen] = useState(false)
 	const [selectedDependency, setSelectedDependency] = useState<ProductDependency | null>(null)
@@ -94,13 +97,30 @@ export default function ProductsPage() {
 		const fetchData = async () => {
 			setLoading(true)
 			try {
-				const [depsRes, contactsRes, manualRes] = await Promise.all([fetch(`/api/products/dependencies?productId=${productId}`), fetch(`/api/products/contacts?productId=${productId}`), fetch(`/api/products/manual?productId=${productId}`)])
+				const [depsRes, contactsRes, manualRes, problemsRes] = await Promise.all([fetch(`/api/products/dependencies?productId=${productId}`), fetch(`/api/products/contacts?productId=${productId}`), fetch(`/api/products/manual?productId=${productId}`), fetch(`/api/products/problems?slug=${slug}`)])
 
-				const [depsData, contactsData, manualData] = await Promise.all([depsRes.json(), contactsRes.json(), manualRes.json()])
+				const [depsData, contactsData, manualData, problemsData] = await Promise.all([depsRes.json(), contactsRes.json(), manualRes.json(), problemsRes.json()])
 
 				setDependencies(depsData.dependencies || [])
 				setContacts(contactsData.contacts || [])
 				setSections(manualData.sections || [])
+
+				// Contagem de problemas
+				const problems = problemsData.items || []
+				setProblemsCount(problems.length)
+
+				// Buscar e contar soluções
+				if (problems.length > 0) {
+					const solutionsPromises = problems.map((problem: any) => fetch(`/api/products/solutions?problemId=${problem.id}`).then((res) => res.json()))
+					const solutionsResults = await Promise.all(solutionsPromises)
+					const totalSolutions = solutionsResults.reduce((total, result) => total + (result.items?.length || 0), 0)
+					setSolutionsCount(totalSolutions)
+
+					// Encontrar data de atualização mais recente
+					const allDates = problems.map((p: any) => new Date(p.updatedAt))
+					const latestDate = new Date(Math.max(...allDates.map((d: Date) => d.getTime())))
+					setLastUpdated(latestDate)
+				}
 			} catch (error) {
 				console.error('Erro ao buscar dados:', error)
 			} finally {
@@ -109,7 +129,7 @@ export default function ProductsPage() {
 		}
 
 		fetchData()
-	}, [productId])
+	}, [productId, slug])
 
 	// Converte as dependências para o formato do Tree
 	const convertToTreeItems = (deps: ProductDependency[]): TreeItemProps[] => {
@@ -305,6 +325,27 @@ export default function ProductsPage() {
 	// Conta estatísticas do manual
 	const totalChapters = sections.reduce((acc, section) => acc + section.chapters.length, 0)
 
+	// Função para formatar tempo desde última atualização
+	const formatTimeAgo = (date: Date | null): string => {
+		if (!date) return 'Nunca atualizado'
+
+		const now = new Date()
+		const diffMs = now.getTime() - date.getTime()
+		const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+		if (diffDays === 0) return 'Hoje'
+		if (diffDays === 1) return 'Há 1 dia'
+		if (diffDays < 30) return `Há ${diffDays} dias`
+
+		const diffMonths = Math.floor(diffDays / 30)
+		if (diffMonths === 1) return 'Há 1 mês'
+		if (diffMonths < 12) return `Há ${diffMonths} meses`
+
+		const diffYears = Math.floor(diffDays / 365)
+		if (diffYears === 1) return 'Há 1 ano'
+		return `Há ${diffYears} anos`
+	}
+
 	if (loading) {
 		return (
 			<div className='flex h-[calc(100vh-131px)] w-full items-center justify-center'>
@@ -361,7 +402,7 @@ export default function ProductsPage() {
 								<span className='icon-[lucide--triangle-alert] size-4'></span>
 							</div>
 							<div className='flex'>
-								<span>Problemas reportados: 5</span>
+								<span>Problemas reportados: {problemsCount}</span>
 							</div>
 						</div>
 						<div className='flex'>
@@ -369,7 +410,7 @@ export default function ProductsPage() {
 								<span className='icon-[lucide--book-check] size-4'></span>
 							</div>
 							<div className='flex'>
-								<span>Soluções encontradas: 4</span>
+								<span>Soluções encontradas: {solutionsCount}</span>
 							</div>
 						</div>
 						<div className='flex'>
@@ -377,7 +418,7 @@ export default function ProductsPage() {
 								<span className='icon-[lucide--clock-4] size-4'></span>
 							</div>
 							<div className='flex'>
-								<span>Atualizado há 69 dias</span>
+								<span>Atualizado {formatTimeAgo(lastUpdated)}</span>
 							</div>
 						</div>
 					</div>
@@ -498,7 +539,7 @@ export default function ProductsPage() {
 				}
 			>
 				{selectedDependency && (
-					<div className='flex flex-col gap-4 p-2'>
+					<div className='flex flex-col gap-4 pt-2'>
 						<div>
 							<div className='text-sm font-medium text-zinc-500 dark:text-zinc-400'>Tipo</div>
 							<div className='text-base capitalize'>{selectedDependency.type}</div>

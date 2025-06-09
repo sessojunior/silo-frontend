@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import Button from '@/components/ui/Button'
 import { getMarkdownClasses } from '@/lib/markdown'
 import { useEffect, useState, useRef } from 'react'
-import type { ProductProblem, ProductProblemImage, ProductSolution } from '@/lib/db/schema'
+import type { ProductProblem, ProductProblemImage } from '@/lib/db/schema'
 
 // Tipo customizado para soluções retornadas pela API
 interface SolutionWithDetails {
@@ -639,8 +639,10 @@ export default function ProblemsPage() {
 																				alt={solution.image.description || 'Imagem da solução'}
 																				className='mt-2 h-32 w-auto rounded-lg border border-zinc-200 shadow-sm cursor-pointer hover:brightness-90'
 																				onClick={() => {
-																					setLightboxImage({ src: solution.image.image, alt: solution.image.description })
-																					setLightboxOpen(true)
+																					if (solution.image && solution.image.image) {
+																						setLightboxImage({ src: solution.image.image, alt: solution.image.description || '' })
+																						setLightboxOpen(true)
+																					}
 																				}}
 																			/>
 																		</div>
@@ -701,7 +703,8 @@ export default function ProblemsPage() {
 																									alt={reply.image.description || 'Imagem da solução'}
 																									className='mt-2 h-32 w-auto rounded-lg border border-zinc-200 shadow-sm cursor-pointer hover:brightness-90'
 																									onClick={() => {
-																										setLightboxImage({ src: reply.image.image, alt: reply.image.description })
+																										// Já verificado que image existe no conditional acima
+																										setLightboxImage({ src: reply.image!.image, alt: reply.image!.description || '' })
 																										setLightboxOpen(true)
 																									}}
 																								/>
