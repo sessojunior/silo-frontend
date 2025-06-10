@@ -335,3 +335,45 @@ export function validateInput(data: unknown): ValidationResult {
 - **Future-proof**: Direção oficial do Next.js
 - **Performance**: Server Components por padrão
 - **Developer Experience**: Colocation e organização melhorada
+
+## Padrões de CSS e Estilização
+
+### CSS Specificity for Third-Party Libraries
+
+- **Overriding external styles**: CSS puro tem maior especificidade que @apply
+- **Conflict resolution**: Separar propriedades `background-color` e `color` em regras distintas
+- **Targeted selectors**: Usar seletores específicos para components de bibliotecas
+
+### Markdown Editor Customization Pattern
+
+```css
+/* Pattern para sobrescrever biblioteca externa */
+.md-editor-custom .w-md-editor-preview .wmde-markdown h1 {
+	@apply text-lg font-bold text-zinc-700 dark:text-zinc-200;
+	border-bottom: none; /* CSS puro para sobrescrever biblioteca */
+	padding-bottom: 0;
+}
+
+/* Separar background de color para evitar conflitos */
+.md-editor-custom .w-md-editor-text-input {
+	background-color: transparent; /* CSS puro */
+}
+
+.dark .md-editor-custom .w-md-editor-text-input {
+	color: rgb(244 244 245) !important; /* Específico quando necessário */
+}
+```
+
+### CSS Organization Principles
+
+- **Library overrides**: CSS puro para especificidade máxima
+- **Theme consistency**: Paleta zinc padronizada em todo sistema
+- **Hierarchy preservation**: H1 (lg) → H2 (base) → H3+ (sm)
+- **Dark mode support**: Sempre incluir variantes dark:
+
+### Performance CSS Patterns
+
+- **Avoid !important**: Usar apenas quando específico para overrides
+- **Efficient selectors**: Evitar nested selectors muito profundos
+- **Grouped rules**: Agrupar propriedades relacionadas
+- **Clean separation**: background vs color em regras separadas

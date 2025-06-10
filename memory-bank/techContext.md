@@ -374,3 +374,47 @@ boolean().default(false)
 - Constraints de unicidade para slugs e emails
 
 A migração para PostgreSQL garante que o sistema seja robusto e escalável para atender às demandas do CPTEC/INPE.
+
+## Editor Markdown
+
+### @uiw/react-md-editor
+
+**Versão**: Latest
+**Purpose**: Editor WYSIWYG markdown com preview em tempo real
+
+**Configuração Customizada**:
+
+- **Tema dinâmico**: Suporte completo dark/light mode
+- **Toolbar expandida**: Botões 40px (250% maiores) com ícones 20px
+- **Preview otimizado**: Títulos sem bordas, consistente com base de conhecimento
+- **CSS customizado**: Especificidade correta para sobrescrever biblioteca
+
+```tsx
+// Configuração no componente
+<MDEditor value={value} onChange={setValue} preview='edit' className='md-editor-custom' data-color-mode={theme} />
+```
+
+**CSS Patterns para Customização**:
+
+```css
+/* Overrides com especificidade correta */
+.md-editor-custom .w-md-editor-preview .wmde-markdown h1 {
+	@apply text-lg font-bold text-zinc-700 dark:text-zinc-200;
+	border-bottom: none; /* CSS puro para override */
+	padding-bottom: 0;
+}
+
+/* Background e color separados para evitar conflitos */
+.md-editor-custom .w-md-editor-text-input {
+	background-color: transparent;
+}
+```
+
+**Características**:
+
+- Preview limpo sem bordas em títulos
+- Background transparente em textareas
+- Cores zinc padronizadas
+- Dividers centralizados verticalmente
+
+### Markdown Rendering

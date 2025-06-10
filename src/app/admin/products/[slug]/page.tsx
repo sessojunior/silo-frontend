@@ -7,11 +7,22 @@ import dynamic from 'next/dynamic'
 
 import Tree, { type TreeItemProps } from '@/components/ui/Tree'
 import Accordion, { type Section } from '@/components/ui/Accordion'
+
+// Estender TreeItemProps para incluir actions
+interface ExtendedTreeItemProps extends TreeItemProps {
+	actions?: Array<{
+		icon: string
+		title: string
+		onClick: () => void
+		className?: string
+	}>
+}
 import Button from '@/components/ui/Button'
 import Offcanvas from '@/components/ui/Offcanvas'
 import Dialog from '@/components/ui/Dialog'
 import Label from '@/components/ui/Label'
 import Input from '@/components/ui/Input'
+import Select from '@/components/ui/Select'
 import { toast } from '@/lib/toast'
 
 // Importação dinâmica do MDEditor para evitar problemas de SSR
@@ -77,6 +88,21 @@ export default function ProductsPage() {
 	const [formLoading, setFormLoading] = useState(false)
 	const [editingSection, setEditingSection] = useState<ProductManualSection | null>(null)
 	const [editingChapter, setEditingChapter] = useState<ProductManualChapter | null>(null)
+
+	// Estados para gerenciar dependências
+	const [dependencyDialogOpen, setDependencyDialogOpen] = useState(false)
+	const [dependencyOffcanvasOpen, setDependencyOffcanvasOpen] = useState(false)
+	const [dependencyFormMode, setDependencyFormMode] = useState<'add' | 'edit'>('add')
+	const [selectedParentDependency, setSelectedParentDependency] = useState<ProductDependency | null>(null)
+	const [editingDependency, setEditingDependency] = useState<ProductDependency | null>(null)
+	const [dependencyFormData, setDependencyFormData] = useState({
+		name: '',
+		type: '',
+		category: '',
+		icon: '',
+		description: '',
+		url: '',
+	})
 
 	// Detecta tema dark/light
 	useEffect(() => {
@@ -156,8 +182,8 @@ export default function ProductsPage() {
 		fetchData()
 	}, [productId, slug])
 
-	// Converte as dependências para o formato do Tree
-	const convertToTreeItems = (deps: ProductDependency[]): TreeItemProps[] => {
+	// Converte as dependências para o formato do Tree com ações
+	const convertToTreeItems = (deps: ProductDependency[]): ExtendedTreeItemProps[] => {
 		return deps.map((dep) => ({
 			icon: dep.icon || undefined,
 			label: dep.name,
@@ -165,6 +191,25 @@ export default function ProductsPage() {
 			children: dep.children ? convertToTreeItems(dep.children) : undefined,
 			// Só adiciona onClick para itens que não têm filhos (folhas da árvore)
 			onClick: dep.children && dep.children.length > 0 ? undefined : () => handleDependencyClick(dep),
+			// Adiciona actions para todas as dependências
+			actions: [
+				{
+					icon: 'icon-[lucide--plus]',
+					title: 'Adicionar item filho',
+					onClick: () => handleAddDependency(dep),
+				},
+				{
+					icon: 'icon-[lucide--edit-3]',
+					title: 'Editar',
+					onClick: () => handleEditDependency(dep),
+				},
+				{
+					icon: 'icon-[lucide--trash-2]',
+					title: 'Excluir',
+					onClick: () => handleDeleteDependency(dep),
+					className: 'text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300',
+				},
+			],
 		}))
 	}
 
@@ -172,6 +217,44 @@ export default function ProductsPage() {
 	const handleDependencyClick = (dependency: ProductDependency) => {
 		setSelectedDependency(dependency)
 		setDialogOpen(true)
+	}
+
+	// Função para adicionar dependência filha
+	const handleAddDependency = (parentDependency: ProductDependency | null = null) => {
+		setDependencyFormMode('add')
+		setSelectedParentDependency(parentDependency)
+		setEditingDependency(null)
+		setDependencyFormData({
+			name: '',
+			type: parentDependency?.type || '',
+			category: parentDependency?.category || '',
+			icon: '',
+			description: '',
+			url: '',
+		})
+		setDependencyOffcanvasOpen(true)
+	}
+
+	// Função para editar dependência
+	const handleEditDependency = (dependency: ProductDependency) => {
+		setDependencyFormMode('edit')
+		setSelectedParentDependency(null)
+		setEditingDependency(dependency)
+		setDependencyFormData({
+			name: dependency.name,
+			type: dependency.type,
+			category: dependency.category,
+			icon: dependency.icon || '',
+			description: dependency.description || '',
+			url: dependency.url || '',
+		})
+		setDependencyOffcanvasOpen(true)
+	}
+
+	// Função para excluir dependência
+	const handleDeleteDependency = (dependency: ProductDependency) => {
+		setSelectedDependency(dependency)
+		setDependencyDialogOpen(true)
 	}
 
 	// Função para abrir formulário de seção
@@ -330,6 +413,141 @@ export default function ProductsPage() {
 		}
 	}
 
+	// Função para submeter formulário de dependência
+	const handleSubmitDependency = async (e: React.FormEvent) => {
+		e.preventDefault()
+		if (!productId) return
+		if (!dependencyFormData.name.trim()) {
+			toast({
+				type: 'error',
+				title: 'Nome é obrigatório',
+			})
+			return
+		}
+
+		setFormLoading(true)
+		try {
+			if (dependencyFormMode === 'add') {
+				const res = await fetch('/api/products/dependencies', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						productId,
+						name: dependencyFormData.name,
+						type: dependencyFormData.type,
+						category: dependencyFormData.category,
+						icon: dependencyFormData.icon || null,
+						description: dependencyFormData.description || null,
+						url: dependencyFormData.url || null,
+						parentId: selectedParentDependency?.id || null,
+					}),
+				})
+
+				if (res.ok) {
+					toast({
+						type: 'success',
+						title: 'Dependência adicionada com sucesso!',
+					})
+					setDependencyOffcanvasOpen(false)
+					// Recarregar dependências
+					await refreshDependencies()
+				} else {
+					const error = await res.json()
+					toast({
+						type: 'error',
+						title: error.message || 'Erro ao adicionar dependência',
+					})
+				}
+			} else if (dependencyFormMode === 'edit') {
+				const res = await fetch('/api/products/dependencies', {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						id: editingDependency?.id,
+						name: dependencyFormData.name,
+						type: dependencyFormData.type,
+						category: dependencyFormData.category,
+						icon: dependencyFormData.icon || null,
+						description: dependencyFormData.description || null,
+						url: dependencyFormData.url || null,
+					}),
+				})
+
+				if (res.ok) {
+					toast({
+						type: 'success',
+						title: 'Dependência atualizada com sucesso!',
+					})
+					setDependencyOffcanvasOpen(false)
+					// Recarregar dependências
+					await refreshDependencies()
+				} else {
+					const error = await res.json()
+					toast({
+						type: 'error',
+						title: error.message || 'Erro ao atualizar dependência',
+					})
+				}
+			}
+		} catch (error) {
+			console.error('Erro ao submeter dependência:', error)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado',
+			})
+		} finally {
+			setFormLoading(false)
+		}
+	}
+
+	// Função para confirmar exclusão de dependência
+	const handleConfirmDeleteDependency = async () => {
+		if (!selectedDependency) return
+
+		setFormLoading(true)
+		try {
+			const res = await fetch(`/api/products/dependencies?id=${selectedDependency.id}`, {
+				method: 'DELETE',
+			})
+
+			if (res.ok) {
+				toast({
+					type: 'success',
+					title: 'Dependência excluída com sucesso!',
+				})
+				setDependencyDialogOpen(false)
+				// Recarregar dependências
+				await refreshDependencies()
+			} else {
+				const error = await res.json()
+				toast({
+					type: 'error',
+					title: error.message || 'Erro ao excluir dependência',
+				})
+			}
+		} catch (error) {
+			console.error('Erro ao excluir dependência:', error)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado',
+			})
+		} finally {
+			setFormLoading(false)
+		}
+	}
+
+	// Função para recarregar dependências
+	const refreshDependencies = async () => {
+		if (!productId) return
+		try {
+			const res = await fetch(`/api/products/dependencies?productId=${productId}`)
+			const data = await res.json()
+			setDependencies(data.dependencies || [])
+		} catch (error) {
+			console.error('Erro ao recarregar dependências:', error)
+		}
+	}
+
 	// Converte as seções do manual para o formato do Accordion
 	const convertToAccordionSections = (sections: ProductManualSection[]): Section[] => {
 		return sections.map((section) => ({
@@ -390,9 +608,15 @@ export default function ProductsPage() {
 				<div className='scrollbar size-full h-[calc(100vh-131px)] overflow-y-auto'>
 					{/* Tree */}
 					<div className='px-8 pt-8' role='tree' aria-orientation='vertical'>
+						<div className='flex w-full items-center justify-between pb-6'>
+							<h3 className='text-xl font-medium'>Base de Conhecimento</h3>
+							<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='py-2' onClick={() => handleAddDependency(null)}>
+								Adicionar categoria
+							</Button>
+						</div>
 						{treeItems.map((category, index) => (
 							<div key={index} className='pb-8'>
-								<h3 className='pb-4 text-xl font-medium'>{category.label}</h3>
+								<h4 className='pb-4 text-lg font-medium'>{category.label}</h4>
 								{category.children?.map((child, childIndex) => <Tree key={childIndex} item={child as TreeItemProps} defaultOpen={false} activeUrl={`/admin/products/${slug}`} />)}
 							</div>
 						))}
@@ -554,6 +778,123 @@ export default function ProductsPage() {
 					</div>
 				</form>
 			</Offcanvas>
+
+			{/* Offcanvas para gerenciar dependências */}
+			<Offcanvas open={dependencyOffcanvasOpen} onClose={() => setDependencyOffcanvasOpen(false)} title={dependencyFormMode === 'add' ? (selectedParentDependency ? `Adicionar item em "${selectedParentDependency.name}"` : 'Adicionar categoria principal') : 'Editar dependência'} width='lg'>
+				<form className='flex flex-col gap-6' onSubmit={handleSubmitDependency}>
+					<div>
+						<Label htmlFor='dependency-name' required>
+							Nome
+						</Label>
+						<Input id='dependency-name' type='text' value={dependencyFormData.name} setValue={(value) => setDependencyFormData({ ...dependencyFormData, name: value })} required placeholder='Ex: Python 3.9+, met01.cptec.inpe.br' />
+					</div>
+
+					<div>
+						<Label htmlFor='dependency-type' required>
+							Tipo
+						</Label>
+						<Select
+							id='dependency-type'
+							name='dependency-type'
+							selected={dependencyFormData.type}
+							onChange={(value: string) => setDependencyFormData({ ...dependencyFormData, type: value, category: '' })}
+							required
+							options={[
+								{ value: 'equipamento', label: 'Equipamento' },
+								{ value: 'dependencia', label: 'Dependência' },
+								{ value: 'elemento_afetado', label: 'Elemento Afetado' },
+							]}
+							placeholder='Selecione o tipo'
+						/>
+					</div>
+
+					<div>
+						<Label htmlFor='dependency-category' required>
+							Categoria
+						</Label>
+						<Select
+							id='dependency-category'
+							name='dependency-category'
+							selected={dependencyFormData.category}
+							onChange={(value: string) => setDependencyFormData({ ...dependencyFormData, category: value })}
+							required
+							options={
+								dependencyFormData.type === 'equipamento'
+									? [
+											{ value: 'maquinas', label: 'Máquinas' },
+											{ value: 'redes_internas', label: 'Redes Internas' },
+											{ value: 'hosts', label: 'Hosts' },
+											{ value: 'servidores', label: 'Servidores' },
+										]
+									: dependencyFormData.type === 'dependencia'
+										? [
+												{ value: 'softwares', label: 'Softwares' },
+												{ value: 'sistema', label: 'Sistema' },
+												{ value: 'recursos_humanos', label: 'Recursos Humanos' },
+												{ value: 'responsaveis', label: 'Responsáveis' },
+												{ value: 'suporte', label: 'Suporte' },
+											]
+										: dependencyFormData.type === 'elemento_afetado'
+											? [
+													{ value: 'produtos', label: 'Produtos' },
+													{ value: 'servicos', label: 'Serviços' },
+													{ value: 'processos', label: 'Processos' },
+												]
+											: []
+							}
+							placeholder='Selecione a categoria'
+							disabled={!dependencyFormData.type}
+						/>
+					</div>
+
+					<div>
+						<Label htmlFor='dependency-icon'>Ícone (opcional)</Label>
+						<Input id='dependency-icon' type='text' value={dependencyFormData.icon} setValue={(value) => setDependencyFormData({ ...dependencyFormData, icon: value })} placeholder='Ex: icon-[lucide--computer], icon-[lucide--code]' />
+						<p className='mt-1 text-sm text-zinc-500 dark:text-zinc-400'>Use classes de ícones Lucide: icon-[lucide--nome-do-icone]</p>
+					</div>
+
+					<div>
+						<Label htmlFor='dependency-description'>Descrição (opcional)</Label>
+						<textarea id='dependency-description' value={dependencyFormData.description} onChange={(e) => setDependencyFormData({ ...dependencyFormData, description: e.target.value })} className='block w-full rounded-lg border-zinc-200 px-4 py-3 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500' rows={3} placeholder='Descrição detalhada sobre esta dependência...' />
+					</div>
+
+					<div>
+						<Label htmlFor='dependency-url'>URL de Documentação (opcional)</Label>
+						<Input id='dependency-url' type='text' value={dependencyFormData.url} setValue={(value) => setDependencyFormData({ ...dependencyFormData, url: value })} placeholder='https://docs.exemplo.com/software' />
+					</div>
+
+					<div className='flex gap-2 justify-end'>
+						<Button type='button' style='bordered' onClick={() => setDependencyOffcanvasOpen(false)}>
+							Cancelar
+						</Button>
+						<Button type='submit' disabled={formLoading}>
+							{formLoading ? 'Salvando...' : 'Salvar'}
+						</Button>
+					</div>
+				</form>
+			</Offcanvas>
+
+			{/* Dialog para confirmar exclusão de dependência */}
+			<Dialog open={dependencyDialogOpen} onClose={() => setDependencyDialogOpen(false)} title='Confirmar exclusão'>
+				{selectedDependency && (
+					<div className='flex flex-col gap-4 pt-2'>
+						<p className='text-zinc-600 dark:text-zinc-300'>
+							Tem certeza de que deseja excluir <strong>&ldquo;{selectedDependency.name}&rdquo;</strong>?
+						</p>
+
+						<p className='text-sm text-zinc-500 dark:text-zinc-400'>Esta ação não pode ser desfeita. Certifique-se de que não há itens filhos dependentes desta categoria.</p>
+
+						<div className='flex gap-2 justify-end'>
+							<Button type='button' style='bordered' onClick={() => setDependencyDialogOpen(false)}>
+								Cancelar
+							</Button>
+							<Button type='button' style='filled' className='bg-red-600 hover:bg-red-700 text-white' onClick={handleConfirmDeleteDependency} disabled={formLoading}>
+								{formLoading ? 'Excluindo...' : 'Excluir'}
+							</Button>
+						</div>
+					</div>
+				)}
+			</Dialog>
 
 			{/* Dialog para informações da dependência */}
 			<Dialog
