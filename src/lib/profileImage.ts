@@ -21,7 +21,7 @@ export async function uploadProfileImageFromUrl(url: string, userId: string): Pr
 	try {
 		// Verifica se o arquivo já existe
 		if (existsSync(OUTPUT_PATH)) {
-			console.log(`ℹ️ Imagem de perfil já existe para o usuário ${userId}. Nenhuma ação foi realizada.`)
+			console.log(`🔵 Imagem de perfil já existe para o usuário ${userId}. Nenhuma ação foi realizada.`)
 			return false
 		}
 

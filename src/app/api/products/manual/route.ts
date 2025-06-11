@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
 	try {
 		const { productId, title, description } = await req.json()
-		console.log('ℹ️ API POST recebido:', { productId, title, description })
+		console.log('🔵 API POST recebido:', { productId, title, description })
 
 		if (!productId || !title) {
 			return NextResponse.json({ error: 'ProductId e título são obrigatórios' }, { status: 400 })
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
 	try {
 		const { id, title, content } = await req.json()
-		console.log('ℹ️ API PUT recebido:', { id, title, content })
+		console.log('🔵 API PUT recebido:', { id, title, content })
 
 		if (!id || !title || !content) {
 			return NextResponse.json({ error: 'ID, título e conteúdo são obrigatórios' }, { status: 400 })

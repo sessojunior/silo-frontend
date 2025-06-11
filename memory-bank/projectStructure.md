@@ -340,7 +340,7 @@ return Response.json({
 console.log('✅ Operação realizada com sucesso')
 console.error('❌ Erro crítico ocorrido')
 console.warn('⚠️ Aviso importante')
-console.info('ℹ️ Informação relevante')
+console.info('🔵 Informação relevante')
 ```
 
 ### 🧩 Componentes UI
@@ -450,7 +450,7 @@ npm run db:seed  # Popular dados iniciais (dev only)
 console.log('✅ User logged in', { userId, email, ip })
 console.error('❌ Database connection failed', { error: error.message })
 console.warn('⚠️ Rate limit exceeded', { email, route, count })
-console.info('ℹ️ File uploaded', { filename, size, userId })
+console.info('🔵 File uploaded', { filename, size, userId })
 ```
 
 ### 📈 Metrics Tracking

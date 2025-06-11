@@ -4,7 +4,7 @@
 import { db } from './index.js'
 
 async function testConnection() {
-	console.log('ℹ️ Testando conexão PostgreSQL...')
+	console.log('🔵 Testando conexão PostgreSQL...')
 	console.log('DATABASE_URL:', process.env.DATABASE_URL)
 
 	try {

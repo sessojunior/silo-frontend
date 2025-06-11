@@ -295,7 +295,7 @@ export default function ProductsPage() {
 
 		setFormLoading(true)
 		try {
-			console.log('ℹ️ Enviando seção:', { productId, title: formTitle, description: formDescription })
+			console.log('🔵 Enviando seção:', { productId, title: formTitle, description: formDescription })
 			const res = await fetch('/api/products/manual', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -361,7 +361,7 @@ export default function ProductsPage() {
 
 		setFormLoading(true)
 		try {
-			console.log('ℹ️ Editando capítulo:', { id: editingChapter.id, title: formTitle, content: formContent })
+			console.log('🔵 Editando capítulo:', { id: editingChapter.id, title: formTitle, content: formContent })
 			const res = await fetch('/api/products/manual', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },

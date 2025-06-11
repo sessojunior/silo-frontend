@@ -6,7 +6,7 @@ import { dirname } from 'path'
 import { db } from './index.js'
 
 async function clearDatabase() {
-	console.log('ℹ️ Limpando banco de dados...')
+	console.log('🔵 Limpando banco de dados...')
 
 	try {
 		// Ler arquivos .sql da pasta migrations
