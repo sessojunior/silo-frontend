@@ -198,7 +198,7 @@ const nextConfig: NextConfig = {
 
 ```env
 # Database PostgreSQL
-DATABASE_URL="postgresql://user:password@localhost:5432/silo_dev"
+DATABASE_URL="postgresql://user:password@localhost:5432/silo"
 
 # Authentication
 AUTH_SECRET="your-auth-secret-key"
@@ -224,7 +224,7 @@ NGINX_UPLOAD_URL="https://uploads.silo.inpe.br"
 
 ```env
 # Database PostgreSQL
-DATABASE_URL="postgresql://silo_user:strong_password@postgres-server:5432/silo_prod"
+DATABASE_URL="postgresql://silo_user:strong_password@postgres-server:5432/silo"
 
 # Security
 AUTH_SECRET="production-secret-with-32-chars"
