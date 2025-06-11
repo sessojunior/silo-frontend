@@ -12,8 +12,7 @@ export async function PUT(req: NextRequest) {
 	try {
 		// Verifica se o usuário está logado e obtém os dados do usuário
 		const user = await getAuthUser()
-		if (!user)
-			return NextResponse.json({ field: null, message: 'Usuário não logado.' }, { status: 400 })
+		if (!user) return NextResponse.json({ field: null, message: 'Usuário não logado.' }, { status: 400 })
 
 		// Obtem os dados recebidos
 		const body = await req.json()
@@ -27,15 +26,8 @@ export async function PUT(req: NextRequest) {
 		const hashedPassword = await hashPassword(password)
 
 		// Altera a senha do usuário no banco de dados
-		const updatePassword = await db
-			.update(authUser)
-			.set({ password: hashedPassword })
-			.where(eq(authUser.email, user.email))
-		if ('error' in updatePassword)
-			return NextResponse.json(
-				{ field: 'password', message: 'Ocorreu um erro ao alterar a senha.' },
-				{ status: 400 },
-			)
+		const updatePassword = await db.update(authUser).set({ password: hashedPassword }).where(eq(authUser.email, user.email))
+		if ('error' in updatePassword) return NextResponse.json({ field: 'password', message: 'Ocorreu um erro ao alterar a senha.' }, { status: 400 })
 
 		// Envia um e-mail avisando que a senha foi alterada
 		// Retorna um objeto: { success: boolean, error?: { code, message } }
@@ -46,15 +38,9 @@ export async function PUT(req: NextRequest) {
 		})
 
 		// Retorna a resposta com sucesso
-		return NextResponse.json({ success: true }, { status: 200 })
+		return NextResponse.json({ message: 'Senha alterada com sucesso!' })
 	} catch (error) {
-		console.error('Erro ao alterar o e-mail do usuário:', error)
-		return NextResponse.json(
-			{
-				field: null,
-				message: 'Erro interno ao alterar o e-mail do usuário.',
-			},
-			{ status: 500 },
-		)
+		console.error('❌ Erro ao alterar a senha do usuário:', error)
+		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

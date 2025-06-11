@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
 		return NextResponse.json({ dependencies: tree })
 	} catch (error) {
-		console.error('Erro ao buscar dependências:', error)
+		console.error('❌ Erro ao buscar dependências:', error)
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
 
 		return NextResponse.json({ dependency: newDependency[0] }, { status: 201 })
 	} catch (error) {
-		console.error('Erro ao criar dependência:', error)
+		console.error('❌ Erro ao criar dependência:', error)
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -123,7 +123,7 @@ export async function PUT(req: NextRequest) {
 
 		return NextResponse.json({ dependency: updatedDependency[0] })
 	} catch (error) {
-		console.error('Erro ao atualizar dependência:', error)
+		console.error('❌ Erro ao atualizar dependência:', error)
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -162,7 +162,7 @@ export async function DELETE(req: NextRequest) {
 
 		return NextResponse.json({ success: true })
 	} catch (error) {
-		console.error('Erro ao excluir dependência:', error)
+		console.error('❌ Erro ao excluir dependência:', error)
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

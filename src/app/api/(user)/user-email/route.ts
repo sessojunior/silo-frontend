@@ -11,8 +11,7 @@ export async function PUT(req: NextRequest) {
 	try {
 		// Verifica se o usuário está logado e obtém os dados do usuário
 		const user = await getAuthUser()
-		if (!user)
-			return NextResponse.json({ field: null, message: 'Usuário não logado.' }, { status: 400 })
+		if (!user) return NextResponse.json({ field: null, message: 'Usuário não logado.' }, { status: 400 })
 
 		// Obtem os dados recebidos
 		const body = await req.json()
@@ -24,23 +23,13 @@ export async function PUT(req: NextRequest) {
 
 		// Verifica se o e-mail informado é o mesmo que o atual
 		if (newEmail === user.email) {
-			return NextResponse.json(
-				{ field: 'email', message: 'O e-mail informado é o mesmo que o atual.' },
-				{ status: 400 },
-			)
+			return NextResponse.json({ field: 'email', message: 'O e-mail informado é o mesmo que o atual.' }, { status: 400 })
 		}
 
 		// Atualiza o e-mail do usuário no banco de dados
-		const [updateUser] = await db
-			.update(authUser)
-			.set({ email: newEmail })
-			.where(eq(authUser.id, user.id))
-			.returning()
+		const [updateUser] = await db.update(authUser).set({ email: newEmail }).where(eq(authUser.id, user.id)).returning()
 		if (!updateUser) {
-			return NextResponse.json(
-				{ field: null, message: 'Ocorreu um erro ao alterar o e-mail do usuário.' },
-				{ status: 500 },
-			)
+			return NextResponse.json({ field: null, message: 'Ocorreu um erro ao alterar o e-mail do usuário.' }, { status: 500 })
 		}
 
 		// Envia um e-mail ao antigo e-mail avisando que o e-mail foi alterado
@@ -60,15 +49,9 @@ export async function PUT(req: NextRequest) {
 		})
 
 		// Retorna a resposta com sucesso
-		return NextResponse.json({ success: true }, { status: 200 })
+		return NextResponse.json({ message: 'E-mail alterado com sucesso!' })
 	} catch (error) {
-		console.error('Erro ao alterar o e-mail do usuário:', error)
-		return NextResponse.json(
-			{
-				field: null,
-				message: 'Erro interno ao alterar o e-mail do usuário.',
-			},
-			{ status: 500 },
-		)
+		console.error('❌ Erro ao alterar o e-mail do usuário:', error)
+		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

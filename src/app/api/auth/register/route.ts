@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
 		// Retorna para a página o próximo passo
 		return NextResponse.json({ step: 2, email }, { status: 200 })
 	} catch (error) {
-		console.error('Erro ao criar conta de usuário:', error)
-		return NextResponse.json({ field: null, message: 'Erro interno ao criar a conta do usuário.' }, { status: 500 })
+		console.error('❌ Erro ao criar conta de usuário:', error)
+		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

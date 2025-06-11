@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
 		return NextResponse.json({ sections: sectionsWithChapters })
 	} catch (error) {
-		console.error('Erro ao buscar manual:', error)
+		console.error('❌ Erro ao buscar manual:', error)
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
 	try {
 		const { productId, title, description } = await req.json()
-		console.log('API POST recebido:', { productId, title, description })
+		console.log('ℹ️ API POST recebido:', { productId, title, description })
 
 		if (!productId || !title) {
 			return NextResponse.json({ error: 'ProductId e título são obrigatórios' }, { status: 400 })
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
 		return NextResponse.json({ section: newSection[0] })
 	} catch (error) {
-		console.error('Erro ao criar seção:', error)
+		console.error('❌ Erro ao criar seção:', error)
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
 	try {
 		const { id, title, content } = await req.json()
-		console.log('API PUT recebido:', { id, title, content })
+		console.log('ℹ️ API PUT recebido:', { id, title, content })
 
 		if (!id || !title || !content) {
 			return NextResponse.json({ error: 'ID, título e conteúdo são obrigatórios' }, { status: 400 })
@@ -94,7 +94,7 @@ export async function PUT(req: NextRequest) {
 
 		return NextResponse.json({ chapter: updatedChapter[0] })
 	} catch (error) {
-		console.error('Erro ao atualizar capítulo:', error)
+		console.error('❌ Erro ao atualizar capítulo:', error)
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

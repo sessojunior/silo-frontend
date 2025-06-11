@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
 
 		return NextResponse.json({ items: problems })
 	} catch (e) {
-		console.error('Erro ao buscar problemas:', e)
+		console.error('❌ Erro ao buscar problemas:', e)
 		return NextResponse.json({ field: null, message: 'Erro ao buscar problemas.' }, { status: 500 })
 	}
 }

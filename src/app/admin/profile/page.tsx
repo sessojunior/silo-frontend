@@ -58,7 +58,7 @@ export default function ProfilePage() {
 				setLocation(userProfile?.location || '')
 				setTeam(userProfile?.team || '')
 			} catch (error) {
-				console.error('Erro ao carregar os dados do perfil do usuário:', error)
+				console.error('❌ Erro ao carregar os dados do perfil do usuário:', error)
 				toast({
 					type: 'error',
 					title: 'Erro inesperado ao carregar os dados do perfil do usuário.',
@@ -125,7 +125,7 @@ export default function ProfilePage() {
 				})
 			}
 		} catch (error) {
-			console.error(error)
+			console.error('❌ Erro ao atualizar perfil:', error)
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',

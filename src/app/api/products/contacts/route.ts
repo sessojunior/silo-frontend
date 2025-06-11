@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
 		return NextResponse.json({ contacts })
 	} catch (error) {
-		console.error('Erro ao buscar contatos:', error)
+		console.error('❌ Erro ao buscar contatos:', error)
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

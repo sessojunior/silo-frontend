@@ -19,9 +19,9 @@ export async function uploadProfileImageFromUrl(url: string, userId: string): Pr
 	const IMAGE_QUALITY = 85
 
 	try {
-		// Verifica se a imagem já foi salva anteriormente
+		// Verifica se o arquivo já existe
 		if (existsSync(OUTPUT_PATH)) {
-			console.log(`Imagem de perfil já existe para o usuário ${userId}. Nenhuma ação foi realizada.`)
+			console.log(`ℹ️ Imagem de perfil já existe para o usuário ${userId}. Nenhuma ação foi realizada.`)
 			return false
 		}
 
@@ -50,11 +50,11 @@ export async function uploadProfileImageFromUrl(url: string, userId: string): Pr
 
 		// Salva a imagem processada no caminho final
 		writeFileSync(OUTPUT_PATH, processedImage)
-		console.log(`Imagem de perfil salva com sucesso para o usuário ${userId}.`)
+		console.log(`✅ Imagem de perfil salva com sucesso para o usuário ${userId}.`)
 
 		return true
 	} catch (err) {
-		console.error(`Erro ao processar/salvar imagem de perfil para o usuário ${userId}:`, err)
+		console.error(`❌ Erro ao processar/salvar imagem de perfil para o usuário ${userId}:`, err)
 		return false
 	}
 }
@@ -73,21 +73,21 @@ export async function uploadProfileImageFromInput(file: File, userId: string): P
 
 	// Verifica se o ID do usuário foi fornecido
 	if (!userId) {
-		console.warn('ID do usuário ausente.')
-		return { error: { code: 'IMAGE_MISSING_DATA', message: 'O ID do usuário é obrigatório.' } }
+		console.warn('⚠️ ID do usuário ausente.')
+		return { error: { code: 'INVALID_USER_ID', message: 'ID do usuário é obrigatório.' } }
 	}
 
 	// Verifica se o arquivo foi fornecido
-	if (!userId) {
-		console.warn('Arquivo de imagem do usuário ausente.')
-		return { error: { code: 'IMAGE_MISSING_DATA', message: 'A imagem do usuário não foi enviada.' } }
+	if (!file) {
+		console.warn('⚠️ Arquivo de imagem do usuário ausente.')
+		return { error: { code: 'INVALID_FILE', message: 'Arquivo de imagem é obrigatório.' } }
 	}
 
 	try {
 		// Valida o tamanho do arquivo
 		if (file.size > IMAGE_SIZE_UPLOAD) {
-			console.warn(`Arquivo excede o limite de ${IMAGE_SIZE_UPLOAD / (1024 * 1024)} MB.`)
-			return { error: { code: 'IMAGE_SIZE_TOO_LARGE', message: `O arquivo da imagem excede o limite de ${IMAGE_SIZE_UPLOAD / (1024 * 1024)} MB.` } }
+			console.warn(`⚠️ Arquivo excede o limite de ${IMAGE_SIZE_UPLOAD / (1024 * 1024)} MB.`)
+			return { error: { code: 'FILE_TOO_LARGE', message: `O arquivo deve ter no máximo ${IMAGE_SIZE_UPLOAD / (1024 * 1024)} MB.` } }
 		}
 
 		// Converte para buffer e lê metadados
@@ -97,10 +97,10 @@ export async function uploadProfileImageFromInput(file: File, userId: string): P
 
 		// Verifica se o formato da imagem é permitido
 		if (!metadata.format || !IMAGE_ALLOWED_FORMATS.includes(metadata.format)) {
-			console.warn(`Formato de imagem inválido detectado: ${metadata.format}`)
+			console.warn(`⚠️ Formato de imagem inválido detectado: ${metadata.format}`)
 			return {
 				error: {
-					code: 'IMAGE_INVALID_FORMAT',
+					code: 'INVALID_FORMAT',
 					message: `Formato de imagem inválido: "${metadata.format}". Apenas JPG, PNG e WebP são permitidos.`,
 				},
 			}
@@ -108,8 +108,8 @@ export async function uploadProfileImageFromInput(file: File, userId: string): P
 
 		// Verifica se a largura e altura da imagem foram obtidas
 		if (!metadata.width || !metadata.height) {
-			console.warn('Não foi possível obter os dados da imagem.')
-			return { error: { code: 'IMAGE_METADATA_NOT_FOUND', message: 'Não foi possivel obter os dados da imagem.' } }
+			console.warn('⚠️ Não foi possível obter os dados da imagem.')
+			return { error: { code: 'INVALID_IMAGE_DATA', message: 'Não foi possível processar a imagem.' } }
 		}
 
 		// Redimensiona e converte para WebP
@@ -117,12 +117,12 @@ export async function uploadProfileImageFromInput(file: File, userId: string): P
 
 		// Caminho final e salvamento
 		writeFileSync(OUTPUT_PATH, processedImage)
-		console.log(`Imagem de perfil salva em ${OUTPUT_PATH}.`)
+		console.log(`✅ Imagem de perfil salva em ${OUTPUT_PATH}.`)
 
 		return { success: true }
 	} catch (err) {
-		console.error(`Erro ao processar ou salvar imagem de perfil do usuário ${userId}:`, err)
-		return { error: { code: 'IMAGE_PROCESSING_ERROR', message: 'Erro ao processar ou salvar a imagem.' } }
+		console.error(`❌ Erro ao processar ou salvar imagem de perfil do usuário ${userId}:`, err)
+		return { error: { code: 'PROCESSING_ERROR', message: 'Erro ao processar a imagem.' } }
 	}
 }
 
@@ -151,8 +151,8 @@ export function deleteUserProfileImage(userId: string): { success: boolean } | {
 	try {
 		unlinkSync(imagePath)
 	} catch (error) {
-		console.error(error)
-		return { error: { code: 'DELETE_ERROR', message: 'Erro ao apagar a imagem de perfil.' } }
+		console.error('❌ Erro ao deletar imagem de perfil:', error)
+		return { error: { code: 'DELETE_ERROR', message: 'Erro ao deletar a imagem de perfil.' } }
 	}
 
 	return { success: true }

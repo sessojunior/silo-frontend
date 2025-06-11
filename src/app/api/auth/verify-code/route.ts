@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
 		return NextResponse.json({ success: true, token: sessionToken.token }, { status: 200 })
 	} catch (error) {
-		console.error('Erro ao verificar o código:', error)
-		return NextResponse.json({ field: null, message: 'Erro interno ao verificar o código.' }, { status: 500 })
+		console.error('❌ Erro ao verificar o código:', error)
+		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

@@ -10,11 +10,7 @@ export async function GET() {
 	try {
 		// Verifica se o usuário está logado e obtém os dados do usuário
 		const user = await getAuthUser()
-		if (!user)
-			return NextResponse.json(
-				{ field: null, message: 'Usuário não logado.' },
-				{ status: 400 },
-			)
+		if (!user) return NextResponse.json({ field: null, message: 'Usuário não logado.' }, { status: 400 })
 
 		// Busca as preferências do usuário no banco de dados
 		const findUserPreferences = await db.query.userPreferences.findFirst({
@@ -22,19 +18,10 @@ export async function GET() {
 		})
 
 		// Retorna as preferências do usuário
-		return NextResponse.json(
-			{ userPreferences: findUserPreferences ?? {} },
-			{ status: 200 },
-		)
+		return NextResponse.json({ userPreferences: findUserPreferences ?? {} }, { status: 200 })
 	} catch (error) {
-		console.error('Erro ao obter as preferências do usuário:', error)
-		return NextResponse.json(
-			{
-				field: null,
-				message: 'Ocorreu um erro ao obter as preferências do usuário.',
-			},
-			{ status: 500 },
-		)
+		console.error('❌ Erro ao obter as preferências do usuário:', error)
+		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }
 
@@ -43,11 +30,7 @@ export async function PUT(req: NextRequest) {
 	try {
 		// Verifica se o usuário está logado e obtém os dados do usuário
 		const user = await getAuthUser()
-		if (!user)
-			return NextResponse.json(
-				{ field: null, message: 'Usuário não logado.' },
-				{ status: 400 },
-			)
+		if (!user) return NextResponse.json({ field: null, message: 'Usuário não logado.' }, { status: 400 })
 
 		// Obtem os dados recebidos
 		const body = await req.json()
@@ -75,22 +58,17 @@ export async function PUT(req: NextRequest) {
 				return NextResponse.json(
 					{
 						field: null,
-						message:
-							'Ocorreu um erro ao salvar as preferências do usuário no banco de dados.',
+						message: 'Ocorreu um erro ao salvar as preferências do usuário no banco de dados.',
 					},
 					{ status: 500 },
 				)
 
 			// Retorna a resposta com sucesso
-			return NextResponse.json({ success: true }, { status: 200 })
+			return NextResponse.json({ message: 'Preferências atualizadas com sucesso!' }, { status: 200 })
 		}
 
 		// Se as preferências do usuário já existirem, atualiza os dados
-		const [updateUserPreferences] = await db
-			.update(userPreferences)
-			.set({ notifyUpdates, sendNewsletters })
-			.where(eq(userPreferences.userId, user.id))
-			.returning()
+		const [updateUserPreferences] = await db.update(userPreferences).set({ notifyUpdates, sendNewsletters }).where(eq(userPreferences.userId, user.id)).returning()
 		if (!updateUserPreferences) {
 			return NextResponse.json(
 				{
@@ -102,15 +80,9 @@ export async function PUT(req: NextRequest) {
 		}
 
 		// Retorna a resposta com sucesso
-		return NextResponse.json({ success: true }, { status: 200 })
+		return NextResponse.json({ message: 'Preferências atualizadas com sucesso!' }, { status: 200 })
 	} catch (error) {
-		console.error('Erro ao alterar as preferências do usuário:', error)
-		return NextResponse.json(
-			{
-				field: null,
-				message: 'Erro interno ao alterar as preferências do usuário.',
-			},
-			{ status: 500 },
-		)
+		console.error('❌ Erro ao alterar as preferências do usuário:', error)
+		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

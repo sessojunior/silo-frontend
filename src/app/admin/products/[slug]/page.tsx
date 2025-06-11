@@ -134,7 +134,9 @@ export default function ProductsPage() {
 					setProductId(data.products[0].id)
 				}
 			} catch (error) {
-				console.error('Erro ao buscar produto:', error)
+				console.error('❌ Erro ao buscar produto:', error)
+			} finally {
+				setLoading(false)
 			}
 		}
 
@@ -173,7 +175,7 @@ export default function ProductsPage() {
 					setLastUpdated(latestDate)
 				}
 			} catch (error) {
-				console.error('Erro ao buscar dados:', error)
+				console.error('❌ Erro ao buscar dados:', error)
 			} finally {
 				setLoading(false)
 			}
@@ -293,7 +295,7 @@ export default function ProductsPage() {
 
 		setFormLoading(true)
 		try {
-			console.log('Enviando seção:', { productId, title: formTitle, description: formDescription })
+			console.log('ℹ️ Enviando seção:', { productId, title: formTitle, description: formDescription })
 			const res = await fetch('/api/products/manual', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -328,10 +330,10 @@ export default function ProductsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('Erro ao adicionar seção:', error)
+			console.error('❌ Erro ao adicionar seção:', error)
 			toast({
 				type: 'error',
-				title: 'Erro inesperado ao adicionar seção',
+				title: 'Erro inesperado. Tente novamente.',
 			})
 		} finally {
 			setFormLoading(false)
@@ -359,7 +361,7 @@ export default function ProductsPage() {
 
 		setFormLoading(true)
 		try {
-			console.log('Editando capítulo:', { id: editingChapter.id, title: formTitle, content: formContent })
+			console.log('ℹ️ Editando capítulo:', { id: editingChapter.id, title: formTitle, content: formContent })
 			const res = await fetch('/api/products/manual', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
@@ -403,10 +405,10 @@ export default function ProductsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('Erro ao atualizar capítulo:', error)
+			console.error('❌ Erro ao atualizar capítulo:', error)
 			toast({
 				type: 'error',
-				title: 'Erro inesperado ao atualizar capítulo',
+				title: 'Erro inesperado. Tente novamente.',
 			})
 		} finally {
 			setFormLoading(false)
@@ -490,12 +492,8 @@ export default function ProductsPage() {
 				}
 			}
 		} catch (error) {
-			console.error('Erro ao submeter dependência:', error)
-			toast({
-				type: 'error',
-				title: 'Erro inesperado',
-			})
-		} finally {
+			console.error('❌ Erro ao submeter dependência:', error)
+			toast({ type: 'error', title: 'Erro inesperado. Tente novamente.' })
 			setFormLoading(false)
 		}
 	}
@@ -526,11 +524,8 @@ export default function ProductsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('Erro ao excluir dependência:', error)
-			toast({
-				type: 'error',
-				title: 'Erro inesperado',
-			})
+			console.error('❌ Erro ao excluir dependência:', error)
+			toast({ type: 'error', title: 'Erro inesperado. Tente novamente.' })
 		} finally {
 			setFormLoading(false)
 		}
@@ -544,7 +539,7 @@ export default function ProductsPage() {
 			const data = await res.json()
 			setDependencies(data.dependencies || [])
 		} catch (error) {
-			console.error('Erro ao recarregar dependências:', error)
+			console.error('❌ Erro ao recarregar dependências:', error)
 		}
 	}
 

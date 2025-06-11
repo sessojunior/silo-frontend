@@ -27,8 +27,8 @@ export async function GET() {
 		// Retorna os dados do perfil do usuário
 		return NextResponse.json({ user: { ...user, image }, userProfile: findUserProfile ?? {}, googleId }, { status: 200 })
 	} catch (error) {
-		console.error('Erro ao obter os dados do perfil do usuário:', error)
-		return NextResponse.json({ field: null, message: 'Ocorreu um erro ao obter os dados do usuário.' }, { status: 500 })
+		console.error('❌ Erro ao obter os dados do perfil do usuário:', error)
+		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }
 
@@ -74,7 +74,7 @@ export async function PUT(req: NextRequest) {
 			if (!insertUserProfile) return NextResponse.json({ field: null, message: 'Ocorreu um erro ao salvar os dados de perfil do usuário no banco de dados.' }, { status: 500 })
 
 			// Retorna a resposta com sucesso
-			return NextResponse.json({ success: true }, { status: 200 })
+			return NextResponse.json({ message: 'Dados atualizados com sucesso!' }, { status: 200 })
 		}
 
 		// Se o perfil do usuário existir, atualiza os dados de perfil do usuário
@@ -84,9 +84,9 @@ export async function PUT(req: NextRequest) {
 		}
 
 		// Retorna a resposta com sucesso
-		return NextResponse.json({ success: true }, { status: 200 })
+		return NextResponse.json({ message: 'Dados atualizados com sucesso!' }, { status: 200 })
 	} catch (error) {
-		console.error('Erro ao alterar dados do perfil do usuário:', error)
-		return NextResponse.json({ field: null, message: 'Erro interno ao alterar dados do perfil do usuário.' }, { status: 500 })
+		console.error('❌ Erro ao alterar dados do perfil do usuário:', error)
+		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

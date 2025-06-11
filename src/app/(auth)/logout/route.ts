@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 		// Redireciona para a página de login
 		return NextResponse.redirect(new URL('/login', req.url))
 	} catch (error) {
-		console.error('Erro ao fazer logout:', error)
+		console.error('❌ Erro ao fazer logout:', error)
 		return NextResponse.redirect(new URL('/login', req.url))
 	}
 }

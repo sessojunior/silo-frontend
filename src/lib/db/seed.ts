@@ -512,10 +512,10 @@ async function insertDependencies(productId: string, dependencies: any[], parent
 }
 
 async function seed() {
-	console.log('✅ Iniciando seed...')
+	console.log('ℹ️ Iniciando seed...')
 
 	// 1. Criar usuário de teste Mario Junior
-	console.log('🔄 Criando usuário de teste: Mario Junior...')
+	console.log('ℹ️ Criando usuário de teste: Mario Junior...')
 
 	const userId = randomUUID()
 	const hashedPassword = await hashPassword('#Admin123')
@@ -552,7 +552,7 @@ async function seed() {
 	console.log('✅ Usuário Mario Junior criado com sucesso!')
 
 	// 2. Produtos
-	console.log('🔄 Inserindo produtos...')
+	console.log('ℹ️ Inserindo produtos...')
 	const productMap = new Map<string, string>()
 
 	const inserted = await db
@@ -565,14 +565,14 @@ async function seed() {
 	for (const { slug } of products) {
 		const productId = productMap.get(slug)!
 
-		console.log(`🔄 Inserindo dados para o produto: ${slug.toUpperCase()}`)
+		console.log(`ℹ️ Inserindo dados para o produto: ${slug.toUpperCase()}`)
 
 		// 2. Dependências hierárquicas
-		console.log(`🔄 Inserindo dependências para ${slug}...`)
+		console.log(`ℹ️ Inserindo dependências para ${slug}...`)
 		await insertDependencies(productId, dependencyStructure)
 
 		// 3. Contatos
-		console.log(`🔄 Inserindo contatos para ${slug}...`)
+		console.log(`ℹ️ Inserindo contatos para ${slug}...`)
 		await db.insert(schema.productContact).values(
 			productContacts.map((contact, index) => ({
 				id: randomUUID(),
@@ -583,7 +583,7 @@ async function seed() {
 		)
 
 		// 4. Manual - Seções e Capítulos
-		console.log(`🔄 Inserindo manual para ${slug}...`)
+		console.log(`ℹ️ Inserindo manual para ${slug}...`)
 		for (let i = 0; i < manualData.length; i++) {
 			const section = manualData[i]
 			const sectionId = randomUUID()
@@ -609,7 +609,7 @@ async function seed() {
 		}
 
 		// 5. Problemas e Soluções
-		console.log(`🔄 Inserindo problemas para o produto: ${slug.toUpperCase()}`)
+		console.log(`ℹ️ Inserindo problemas para o produto: ${slug.toUpperCase()}`)
 		const problems = generateProblems()
 		const problemRows = problems.map((p) => ({
 			id: randomUUID(),
@@ -622,7 +622,7 @@ async function seed() {
 		const insertedProblems = await db.insert(schema.productProblem).values(problemRows).returning()
 
 		for (const problem of insertedProblems) {
-			console.log(`🔄 Inserindo soluções para o problema: ${problem.title}`)
+			console.log(`ℹ️ Inserindo soluções para o problema: ${problem.title}`)
 
 			// Gera um número aleatório de soluções entre 2 e 10
 			const numSolutions = Math.floor(Math.random() * 9) + 2 // 2 a 10

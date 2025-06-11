@@ -56,7 +56,7 @@ export default function SecurityPage() {
 				})
 			}
 		} catch (error) {
-			console.error(error)
+			console.error('❌ Erro ao atualizar email:', error)
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -101,7 +101,7 @@ export default function SecurityPage() {
 				})
 			}
 		} catch (error) {
-			console.error(error)
+			console.error('❌ Erro ao atualizar senha:', error)
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -118,9 +118,7 @@ export default function SecurityPage() {
 			<div className='flex w-full'>
 				<div className='w-full flex-grow'>
 					<h1 className='text-3xl font-bold tracking-tight'>Segurança</h1>
-					<p className='mt-1 text-base'>
-						Altere seu e-mail de acesso ou sua senha se for necessário.
-					</p>
+					<p className='mt-1 text-base'>Altere seu e-mail de acesso ou sua senha se for necessário.</p>
 				</div>
 			</div>
 
@@ -139,28 +137,14 @@ export default function SecurityPage() {
 											<Label htmlFor='email' isInvalid={form?.field === 'email'}>
 												Novo e-mail
 											</Label>
-											<Input
-												type='email'
-												id='email'
-												name='email'
-												autoComplete='email'
-												placeholder='seuemail@inpe.br'
-												value={email}
-												setValue={setEmail}
-												minLength={8}
-												maxLength={255}
-												required
-												isInvalid={form?.field === 'email'}
-												invalidMessage={form?.message}
-											/>
+											<Input type='email' id='email' name='email' autoComplete='email' placeholder='seuemail@inpe.br' value={email} setValue={setEmail} minLength={8} maxLength={255} required isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
 										</div>
 									</div>
 									<div>
 										<Button type='submit' disabled={loading} className='w-auto'>
 											{loading ? (
 												<>
-													<span className='icon-[lucide--loader-circle] animate-spin'></span>{' '}
-													Aguarde...
+													<span className='icon-[lucide--loader-circle] animate-spin'></span> Aguarde...
 												</>
 											) : (
 												<>Salvar</>
@@ -184,27 +168,14 @@ export default function SecurityPage() {
 											<Label htmlFor='password' isInvalid={form?.field === 'password'}>
 												Nova senha
 											</Label>
-											<InputPasswordHints
-												id='password'
-												name='password'
-												value={password}
-												setValue={setPassword}
-												autoComplete='current-password'
-												placeholder='••••••••'
-												minLength={8}
-												maxLength={160}
-												required
-												isInvalid={form?.field === 'password'}
-												invalidMessage={form?.message}
-											/>
+											<InputPasswordHints id='password' name='password' value={password} setValue={setPassword} autoComplete='current-password' placeholder='••••••••' minLength={8} maxLength={160} required isInvalid={form?.field === 'password'} invalidMessage={form?.message} />
 										</div>
 									</div>
 									<div>
 										<Button type='submit' disabled={loading} className='w-auto'>
 											{loading ? (
 												<>
-													<span className='icon-[lucide--loader-circle] animate-spin'></span>{' '}
-													Aguarde...
+													<span className='icon-[lucide--loader-circle] animate-spin'></span> Aguarde...
 												</>
 											) : (
 												<>Salvar</>
@@ -224,29 +195,18 @@ export default function SecurityPage() {
 						</div>
 						<div className='flex flex-col gap-6'>
 							<div className='p-6'>
-								<h3 className='text-lg font-bold tracking-tight text-zinc-600 dark:text-zinc-200'>
-									Alteração de e-mail
-								</h3>
+								<h3 className='text-lg font-bold tracking-tight text-zinc-600 dark:text-zinc-200'>Alteração de e-mail</h3>
 								<div className='text-base text-zinc-400 dark:text-zinc-200'>
-									<p className='mt-1'>
-										Ao alterar seu e-mail, será enviado um código para seu novo e-mail para
-										confirmação de que ele existe. Você deve digitar esse código no campo
-										correspondente que irá aparecer em seguida.
-									</p>
+									<p className='mt-1'>Ao alterar seu e-mail, será enviado um código para seu novo e-mail para confirmação de que ele existe. Você deve digitar esse código no campo correspondente que irá aparecer em seguida.</p>
 								</div>
 							</div>
 						</div>
 						<div className='h-px w-full bg-zinc-200'></div>
 						<div className='flex flex-col gap-6'>
 							<div className='p-6'>
-								<h3 className='text-lg font-bold tracking-tight text-zinc-600 dark:text-zinc-200'>
-									Alteração de senha
-								</h3>
+								<h3 className='text-lg font-bold tracking-tight text-zinc-600 dark:text-zinc-200'>Alteração de senha</h3>
 								<div className='text-base text-zinc-400 dark:text-zinc-200'>
-									<p className='mt-1'>
-										Crie uma senha forte, se possível única, que contenha de 8 a 40 caracteres, com
-										letras maiúsculas e minúsculas, números e caracteres especiais.
-									</p>
+									<p className='mt-1'>Crie uma senha forte, se possível única, que contenha de 8 a 40 caracteres, com letras maiúsculas e minúsculas, números e caracteres especiais.</p>
 								</div>
 							</div>
 						</div>

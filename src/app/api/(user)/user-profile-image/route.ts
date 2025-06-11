@@ -25,10 +25,10 @@ export async function POST(req: NextRequest) {
 		}
 
 		// Retorna a resposta com sucesso
-		return NextResponse.json({ success: true }, { status: 200 })
+		return NextResponse.json({ message: 'Imagem alterada com sucesso!' })
 	} catch (error) {
-		console.error('Erro ao alterar a imagem de perfil do usuário:', error)
-		return NextResponse.json({ field: null, message: 'Erro interno ao alterar a imagem de perfil do usuário.' }, { status: 500 })
+		console.error('❌ Erro ao alterar a imagem de perfil do usuário:', error)
+		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }
 
@@ -40,16 +40,16 @@ export async function DELETE() {
 		if (!user) return NextResponse.json({ field: null, message: 'Usuário não logado.' }, { status: 400 })
 
 		// Apaga a imagem de perfil do usuário
-		const deleteImage = await deleteUserProfileImage(user.id)
+		const deleteImage = deleteUserProfileImage(user.id)
 		if ('error' in deleteImage) {
-			console.error('Erro ao apagar a imagem de perfil do usuário:', deleteImage.error)
-			return NextResponse.json({ field: null, message: deleteImage.error.message ?? 'Ocorreu um erro ao apagar a imagem de perfil do usuário.' }, { status: 400 })
+			console.error('❌ Erro ao apagar a imagem de perfil do usuário:', deleteImage.error)
+			return NextResponse.json({ message: deleteImage.error.message }, { status: 400 })
 		}
 
 		// Retorna a resposta com sucesso
-		return NextResponse.json({ success: true }, { status: 200 })
+		return NextResponse.json({ message: 'Imagem apagada com sucesso!' })
 	} catch (error) {
-		console.error('Erro ao apagar a imagem de perfil do usuário:', error)
-		return NextResponse.json({ field: null, message: 'Erro interno ao apagar a imagem de perfil do usuário.' }, { status: 500 })
+		console.error('❌ Erro ao apagar a imagem de perfil do usuário:', error)
+		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

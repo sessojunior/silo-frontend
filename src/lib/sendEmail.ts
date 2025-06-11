@@ -17,9 +17,9 @@ export async function sendEmail({ to, subject, text }: { to: string; subject: st
 	// Verifica se a conexão com o SMTP está funcionando
 	try {
 		await transporter.verify()
-		console.log('Servidor SMTP pronto para enviar e-mails!')
+		console.log('✅ Servidor SMTP pronto para enviar e-mails!')
 	} catch (error) {
-		console.error('Erro de conexão SMTP:', error)
+		console.error('❌ Erro de conexão SMTP:', error)
 		return { error: { code: 'SEND_EMAIL_SMTP_ERROR', message: 'Erro de conexão SMTP' } }
 	}
 
@@ -33,10 +33,10 @@ export async function sendEmail({ to, subject, text }: { to: string; subject: st
 
 	try {
 		await transporter.sendMail(mailOptions)
-		console.log(`E-mail enviado com sucesso para: ${to}!`)
+		console.log(`✅ E-mail enviado com sucesso para: ${to}!`)
 		return { success: true }
 	} catch (err) {
-		console.error(`Erro ao enviar o e-mail para: ${to}!\n`, err)
+		console.error(`❌ Erro ao enviar o e-mail para: ${to}!\n`, err)
 		return { error: err instanceof Error ? { code: err.name, message: err.message } : { code: 'SEND_EMAIL_UNKNOWN_ERROR', message: 'Erro desconhecido' } }
 	}
 }

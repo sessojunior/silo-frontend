@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 		// Retorna para a página o próximo passo
 		return NextResponse.json({ step: 2, email })
 	} catch (err) {
-		console.error('Erro ao recuperar senha:', err)
-		return NextResponse.json({ field: null, message: 'Erro interno ao recuperar a senha.' }, { status: 500 })
+		console.error('❌ Erro ao recuperar senha:', err)
+		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

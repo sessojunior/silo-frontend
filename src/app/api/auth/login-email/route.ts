@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 		// Retorna para a página o próximo passo
 		return NextResponse.json({ step: 2, email })
 	} catch (error) {
-		console.error('Erro ao fazer login com e-mail:', error)
-		return NextResponse.json({ field: null, message: 'Erro interno ao fazer o login com e-mail.' }, { status: 500 })
+		console.error('❌ Erro ao fazer login com e-mail:', error)
+		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }
