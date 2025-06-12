@@ -1,6 +1,5 @@
 import 'dotenv/config'
 import { randomUUID } from 'crypto'
-import { eq } from 'drizzle-orm'
 
 import { db } from '@/lib/db'
 import * as schema from '@/lib/db/schema'
@@ -43,103 +42,81 @@ const solutionDescriptions = ['Verifique se os dados meteorológicos estão no f
 // Base de Conhecimento - Estrutura de dependências
 const dependencyStructure = [
 	{
-		type: 'equipamento',
-		category: 'equipamentos',
 		name: 'Equipamentos',
 		icon: null,
 		children: [
 			{
-				type: 'equipamento',
-				category: 'maquinas',
 				name: 'Máquinas',
 				icon: null,
 				children: [
-					{ type: 'equipamento', category: 'maquina', name: 'Servidor Principal', icon: 'icon-[lucide--server]' },
-					{ type: 'equipamento', category: 'maquina', name: 'Workstation Linux', icon: 'icon-[lucide--computer]' },
-					{ type: 'equipamento', category: 'maquina', name: 'Cluster de Processamento', icon: 'icon-[lucide--cpu]' },
+					{ name: 'Servidor Principal', icon: 'server' },
+					{ name: 'Workstation Linux', icon: 'computer' },
+					{ name: 'Cluster de Processamento', icon: 'cpu' },
 				],
 			},
 			{
-				type: 'equipamento',
-				category: 'redes',
 				name: 'Redes internas',
 				icon: null,
 				children: [
-					{ type: 'equipamento', category: 'rede', name: 'Rede CPTEC', icon: 'icon-[lucide--network]' },
-					{ type: 'equipamento', category: 'rede', name: 'Rede Laboratório', icon: 'icon-[lucide--network]' },
+					{ name: 'Rede CPTEC', icon: 'network' },
+					{ name: 'Rede Laboratório', icon: 'network' },
 				],
 			},
 			{
-				type: 'equipamento',
-				category: 'redes_externas',
 				name: 'Redes externas',
 				icon: null,
 				children: [
-					{ type: 'equipamento', category: 'rede', name: 'Internet INPE', icon: 'icon-[lucide--globe]' },
-					{ type: 'equipamento', category: 'rede', name: 'VPN Científica', icon: 'icon-[lucide--shield]' },
+					{ name: 'Internet INPE', icon: 'globe' },
+					{ name: 'VPN Científica', icon: 'shield' },
 				],
 			},
 		],
 	},
 	{
-		type: 'dependencia',
-		category: 'dependencias',
 		name: 'Dependências',
 		icon: null,
 		children: [
 			{
-				type: 'dependencia',
-				category: 'sistema',
 				name: 'Sistema',
 				icon: null,
 				children: [
 					{
-						type: 'dependencia',
-						category: 'hosts',
 						name: 'Hosts',
 						icon: null,
 						children: [
-							{ type: 'dependencia', category: 'host', name: 'met01.cptec.inpe.br', icon: 'icon-[lucide--computer]' },
-							{ type: 'dependencia', category: 'host', name: 'model02.cptec.inpe.br', icon: 'icon-[lucide--computer]' },
+							{ name: 'met01.cptec.inpe.br', icon: 'computer' },
+							{ name: 'model02.cptec.inpe.br', icon: 'computer' },
 						],
 					},
 					{
-						type: 'dependencia',
-						category: 'softwares',
 						name: 'Softwares',
 						icon: null,
 						children: [
-							{ type: 'dependencia', category: 'software', name: 'Python 3.9+', icon: 'icon-[lucide--code]' },
-							{ type: 'dependencia', category: 'software', name: 'NetCDF4', icon: 'icon-[lucide--database]' },
-							{ type: 'dependencia', category: 'software', name: 'GrADS', icon: 'icon-[lucide--bar-chart]' },
+							{ name: 'Python 3.9+', icon: 'code' },
+							{ name: 'NetCDF4', icon: 'database' },
+							{ name: 'GrADS', icon: 'bar-chart' },
 						],
 					},
 				],
 			},
 			{
-				type: 'dependencia',
-				category: 'recursos_humanos',
 				name: 'Recursos humanos',
 				icon: null,
 				children: [
 					{
-						type: 'dependencia',
-						category: 'responsaveis',
 						name: 'Responsáveis técnicos do INPE',
 						icon: null,
 						children: [
-							{ type: 'dependencia', category: 'pessoa', name: 'Dr. João Silva', icon: 'icon-[lucide--user-round]' },
-							{ type: 'dependencia', category: 'pessoa', name: 'Dra. Maria Santos', icon: 'icon-[lucide--user-round]' },
+							{ name: 'Dr. João Silva', icon: 'user-round' },
+							{ name: 'Dra. Maria Santos', icon: 'user-round' },
 						],
 					},
 					{
-						type: 'dependencia',
-						category: 'suporte',
 						name: 'Suporte',
 						icon: null,
 						children: [
-							{ type: 'dependencia', category: 'pessoa', name: 'Carlos Tech', icon: 'icon-[lucide--headphones]' },
-							{ type: 'dependencia', category: 'pessoa', name: 'Ana Support', icon: 'icon-[lucide--headphones]' },
+							{ name: 'Carlos Tech', icon: 'headphones' },
+							{ name: 'Ana Support', icon: 'headphones' },
 						],
 					},
 				],
@@ -147,75 +124,59 @@ const dependencyStructure = [
 		],
 	},
 	{
-		type: 'elemento_afetado',
-		category: 'elementos_afetados',
 		name: 'Elementos afetados',
 		icon: null,
 		children: [
 			{
-				type: 'elemento_afetado',
-				category: 'recursos',
 				name: 'Recursos',
 				icon: null,
 				children: [
 					{
-						type: 'elemento_afetado',
-						category: 'hosts_afetados',
 						name: 'Hosts',
 						icon: null,
 						children: [
-							{ type: 'elemento_afetado', category: 'host', name: 'weather01.inpe.br', icon: 'icon-[lucide--computer]' },
-							{ type: 'elemento_afetado', category: 'host', name: 'data02.inpe.br', icon: 'icon-[lucide--computer]' },
+							{ name: 'weather01.inpe.br', icon: 'computer' },
+							{ name: 'data02.inpe.br', icon: 'computer' },
 						],
 					},
 					{
-						type: 'elemento_afetado',
-						category: 'softwares_afetados',
 						name: 'Softwares',
 						icon: null,
 						children: [
-							{ type: 'elemento_afetado', category: 'software', name: 'Sistema de Coleta', icon: 'icon-[lucide--download]' },
-							{ type: 'elemento_afetado', category: 'software', name: 'Interface Web', icon: 'icon-[lucide--monitor]' },
+							{ name: 'Sistema de Coleta', icon: 'download' },
+							{ name: 'Interface Web', icon: 'monitor' },
 						],
 					},
 				],
 			},
 			{
-				type: 'elemento_afetado',
-				category: 'grupos',
 				name: 'Grupos',
 				icon: null,
 				children: [
-					{ type: 'elemento_afetado', category: 'grupo', name: 'Meteorologistas', icon: 'icon-[lucide--users-round]' },
-					{ type: 'elemento_afetado', category: 'grupo', name: 'Pesquisadores', icon: 'icon-[lucide--users-round]' },
-					{ type: 'elemento_afetado', category: 'grupo', name: 'Operadores', icon: 'icon-[lucide--users-round]' },
+					{ name: 'Meteorologistas', icon: 'users-round' },
+					{ name: 'Pesquisadores', icon: 'users-round' },
+					{ name: 'Operadores', icon: 'users-round' },
 				],
 			},
 			{
-				type: 'elemento_afetado',
-				category: 'clientes_externos',
 				name: 'Clientes externos',
 				icon: null,
 				children: [
 					{
-						type: 'elemento_afetado',
-						category: 'inpe',
 						name: 'INPE',
 						icon: null,
 						children: [
-							{ type: 'elemento_afetado', category: 'cliente', name: 'CPTEC Operacional', icon: 'icon-[lucide--building]' },
-							{ type: 'elemento_afetado', category: 'cliente', name: 'DIPTC', icon: 'icon-[lucide--building]' },
+							{ name: 'CPTEC Operacional', icon: 'building' },
+							{ name: 'DIPTC', icon: 'building' },
 						],
 					},
 					{
-						type: 'elemento_afetado',
-						category: 'outros',
 						name: 'Outros',
 						icon: null,
 						children: [
-							{ type: 'elemento_afetado', category: 'cliente', name: 'INMET', icon: 'icon-[lucide--cloud]' },
-							{ type: 'elemento_afetado', category: 'cliente', name: 'Marinha do Brasil', icon: 'icon-[lucide--anchor]' },
-							{ type: 'elemento_afetado', category: 'cliente', name: 'Universidades Parceiras', icon: 'icon-[lucide--graduation-cap]' },
+							{ name: 'INMET', icon: 'cloud' },
+							{ name: 'Marinha do Brasil', icon: 'anchor' },
+							{ name: 'Universidades Parceiras', icon: 'graduation-cap' },
 						],
 					},
 				],
@@ -488,26 +449,33 @@ function generateSolutions() {
 	}))
 }
 
-async function insertDependencies(productId: string, dependencies: any[], parentId: string | null = null, order = 0) {
-	for (const dep of dependencies) {
+async function insertDependencies(productId: string, dependencies: any[], parentId: string | null = null, parentPath: string = '', parentDepth: number = 0, siblingIndex: number = 0) {
+	for (let i = 0; i < dependencies.length; i++) {
+		const dep = dependencies[i]
 		const depId = randomUUID()
+
+		// Calcular campos híbridos otimizados
+		const currentIndex = siblingIndex + i
+		const treePath = parentPath + '/' + currentIndex
+		const treeDepth = parentDepth
+		const sortKey = parentPath ? parentPath.split('/').filter(Boolean).join('.') + '.' + currentIndex.toString().padStart(3, '0') : currentIndex.toString().padStart(3, '0')
+
 		await db.insert(schema.productDependency).values({
 			id: depId,
 			productId,
 			name: dep.name,
-			type: dep.type,
-			category: dep.category,
 			icon: dep.icon,
 			description: dep.description || null,
-			url: dep.url || null,
 			parentId,
-			order,
+			// Campos híbridos otimizados
+			treePath,
+			treeDepth,
+			sortKey,
 		})
 
 		if (dep.children) {
-			await insertDependencies(productId, dep.children, depId, 0)
+			await insertDependencies(productId, dep.children, depId, treePath, parentDepth + 1, 0)
 		}
-		order++
 	}
 }
 

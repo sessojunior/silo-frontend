@@ -150,13 +150,13 @@ export const productDependency = pgTable('product_dependency', {
 		.notNull()
 		.references(() => product.id),
 	name: text('name').notNull(),
-	type: text('type').notNull(), // 'equipamento', 'dependencia', 'elemento_afetado'
-	category: text('category').notNull(), // 'maquinas', 'redes_internas', 'hosts', 'softwares', etc.
 	icon: text('icon'), // ícone lucide
 	description: text('description'),
-	url: text('url'), // link para documentação externa se houver
-	parentId: text('parent_id'), // self-reference
-	order: integer('order').notNull().default(0), // ordem de exibição
+	parentId: text('parent_id'), // self-reference - MANTIDO para operações diretas
+	// CAMPOS HÍBRIDOS OTIMIZADOS
+	treePath: text('tree_path'), // "/1/2/3" - caminho completo na árvore
+	treeDepth: integer('tree_depth').notNull().default(0), // 0, 1, 2... - profundidade
+	sortKey: text('sort_key'), // "001.002.003" - chave de ordenação otimizada
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })

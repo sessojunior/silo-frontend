@@ -5,6 +5,20 @@ import { db } from '@/lib/db'
 import { productDependency } from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
 
+// Utilitários para campos híbridos
+function calculateTreePath(parentPath: string | null, position: number): string {
+	return parentPath ? `${parentPath}/${position}` : `/${position}`
+}
+
+function calculateSortKey(parentSortKey: string | null, position: number): string {
+	const positionStr = position.toString().padStart(3, '0')
+	return parentSortKey ? `${parentSortKey}.${positionStr}` : positionStr
+}
+
+function calculateTreeDepth(parentDepth: number | null): number {
+	return parentDepth !== null ? parentDepth + 1 : 0
+}
+
 export async function GET(req: NextRequest) {
 	try {
 		const { searchParams } = new URL(req.url)
@@ -14,8 +28,8 @@ export async function GET(req: NextRequest) {
 			return NextResponse.json({ error: 'ProductId é obrigatório' }, { status: 400 })
 		}
 
-		// Busca todas as dependências do produto
-		const dependencies = await db.select().from(productDependency).where(eq(productDependency.productId, productId)).orderBy(productDependency.order)
+		// Busca todas as dependências do produto ORDENADAS por sortKey (otimizado)
+		const dependencies = await db.select().from(productDependency).where(eq(productDependency.productId, productId)).orderBy(productDependency.sortKey)
 
 		// Organiza as dependências em uma estrutura hierárquica
 		const buildTree = (items: typeof dependencies, parentId: string | null = null): typeof dependencies => {
@@ -44,20 +58,32 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 		}
 
-		const { productId, name, type, category, icon, description, url, parentId } = await req.json()
+		const { productId, name, icon, description, parentId } = await req.json()
 
 		// Validação básica
-		if (!productId || !name || !type || !category) {
-			return NextResponse.json({ error: 'ProductId, nome, tipo e categoria são obrigatórios' }, { status: 400 })
+		if (!productId || !name) {
+			return NextResponse.json({ error: 'ProductId e nome são obrigatórios' }, { status: 400 })
 		}
 
-		// Determinar a ordem (último + 1 no mesmo nível)
+		// Determinar próxima posição no mesmo nível (baseado em sortKey)
 		const siblings = await db
 			.select()
 			.from(productDependency)
 			.where(and(eq(productDependency.productId, productId), parentId ? eq(productDependency.parentId, parentId) : isNull(productDependency.parentId)))
 
-		const nextOrder = siblings.length > 0 ? Math.max(...siblings.map((s) => s.order)) + 1 : 0
+		const nextPosition = siblings.length
+
+		// Buscar dados do pai se existir
+		let parentData = null
+		if (parentId) {
+			const parentResult = await db.select().from(productDependency).where(eq(productDependency.id, parentId)).limit(1)
+			parentData = parentResult[0] || null
+		}
+
+		// Calcular campos híbridos
+		const treePath = calculateTreePath(parentData?.treePath || null, nextPosition)
+		const sortKey = calculateSortKey(parentData?.sortKey || null, nextPosition)
+		const treeDepth = calculateTreeDepth(parentData?.treeDepth || null)
 
 		// Criar dependência
 		const dependencyId = randomUUID()
@@ -67,13 +93,12 @@ export async function POST(req: NextRequest) {
 				id: dependencyId,
 				productId,
 				name,
-				type,
-				category,
 				icon: icon || null,
 				description: description || null,
-				url: url || null,
 				parentId: parentId || null,
-				order: nextOrder,
+				treePath,
+				treeDepth,
+				sortKey,
 			})
 			.returning()
 
@@ -92,11 +117,11 @@ export async function PUT(req: NextRequest) {
 			return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 		}
 
-		const { id, name, type, category, icon, description, url } = await req.json()
+		const { id, name, icon, description, parentId, newPosition } = await req.json()
 
 		// Validação básica
-		if (!id || !name || !type || !category) {
-			return NextResponse.json({ error: 'ID, nome, tipo e categoria são obrigatórios' }, { status: 400 })
+		if (!id || !name) {
+			return NextResponse.json({ error: 'ID e nome são obrigatórios' }, { status: 400 })
 		}
 
 		// Verificar se a dependência existe
@@ -106,20 +131,33 @@ export async function PUT(req: NextRequest) {
 			return NextResponse.json({ error: 'Dependência não encontrada' }, { status: 404 })
 		}
 
+		// Preparar dados para atualização
+		const updateData: any = {
+			name,
+			icon: icon || null,
+			description: description || null,
+			updatedAt: new Date(),
+		}
+
+		// Se é uma reordenação (parentId ou newPosition fornecidos)
+		if (parentId !== undefined || newPosition !== undefined) {
+			// Buscar dados do novo pai se existir
+			let parentData = null
+			if (parentId) {
+				const parentResult = await db.select().from(productDependency).where(eq(productDependency.id, parentId)).limit(1)
+				parentData = parentResult[0] || null
+			}
+
+			// Recalcular campos híbridos
+			const position = newPosition !== undefined ? newPosition : 0
+			updateData.parentId = parentId
+			updateData.treePath = calculateTreePath(parentData?.treePath || null, position)
+			updateData.sortKey = calculateSortKey(parentData?.sortKey || null, position)
+			updateData.treeDepth = calculateTreeDepth(parentData?.treeDepth || null)
+		}
+
 		// Atualizar dependência
-		const updatedDependency = await db
-			.update(productDependency)
-			.set({
-				name,
-				type,
-				category,
-				icon: icon || null,
-				description: description || null,
-				url: url || null,
-				updatedAt: new Date(),
-			})
-			.where(eq(productDependency.id, id))
-			.returning()
+		const updatedDependency = await db.update(productDependency).set(updateData).where(eq(productDependency.id, id)).returning()
 
 		return NextResponse.json({ dependency: updatedDependency[0] })
 	} catch (error) {

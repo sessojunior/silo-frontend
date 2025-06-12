@@ -100,7 +100,9 @@ user_preferences (userId, emailNotifications, newsletters, updatedAt)
 
 ```sql
 product (id, name, slug, available, createdAt, updatedAt)
-product_dependency (id, productId, name, type, category, parentId, order, createdAt)
+product_dependency (id, productId, name, type, category, parentId, treePath, treeDepth, sortKey, createdAt)
+  -- OTIMIZAÇÃO HÍBRIDA: treePath, treeDepth, sortKey para consultas O(log n)
+  -- Substituído campo 'order' por campos hierárquicos otimizados
 product_contact (id, productId, name, role, team, email, phone, createdAt)
 product_manual_section (id, productId, title, description, order, createdAt)
 product_manual_chapter (id, sectionId, title, content, order, createdAt)
@@ -206,6 +208,7 @@ system_file (id, filename, path, type, size, createdAt)
 - **ApexCharts 4.7.0** - Gráficos dashboard
 - **Nodemailer 7.0.3** - Envio emails
 - **@uiw/react-md-editor** - Editor markdown com preview
+- **@dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities** - Drag & drop moderno com touch support
 - **Iconify** - Sistema ícones completo
 - **clsx** - Conditional classnames
 - **tailwind-merge** - Merge classes Tailwind
