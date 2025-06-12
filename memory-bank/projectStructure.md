@@ -1,569 +1,438 @@
 # Project Structure - Silo
 
-## ÍNDICE TÉCNICO COMPLETO
+## ARQUITETURA GERAL
 
-### Estrutura de Diretórios Principais
+### Stack Tecnológico
+
+- **Frontend**: Next.js 15 + React 19 + TypeScript (strict mode)
+- **Backend**: Next.js API Routes + Drizzle ORM
+- **Database**: PostgreSQL com connection pooling
+- **Upload**: nginx externo para performance
+- **UI**: Tailwind CSS + Design System customizado
+- **Auth**: Sistema próprio (email/senha, OTP, Google OAuth)
+
+### Padrões Arquiteturais
+
+- **App Router**: Next.js 15 Server Components
+- **Monorepo**: Frontend + Backend unificado
+- **Type Safety**: TypeScript strict em todo código
+- **API-First**: RESTful endpoints bem definidos
+
+## ESTRUTURA DE ARQUIVOS
+
+### `/src/app` - Next.js App Router
 
 ```
-src/
-├── app/                     # Next.js 15 App Router
-│   ├── (auth)/             # 🔐 Grupo de rotas de autenticação
-│   │   ├── forget-password/ # Reset senha 4 etapas
-│   │   ├── login/          # Login email/senha + verificação
-│   │   ├── login-email/    # Login apenas email + OTP
-│   │   ├── login-google/   # Redirect Google OAuth
-│   │   ├── logout/         # Logout com cleanup
-│   │   └── register/       # Registro + verificação email
-│   ├── (site)/             # 🌐 Página pública
-│   │   └── page.tsx        # Landing page
-│   ├── admin/              # 🏢 Área administrativa protegida
-│   │   ├── dashboard/      # Dashboard principal com gráficos
-│   │   ├── products/       # Gestão de produtos
-│   │   │   └── [slug]/     # Produto específico
-│   │   │       ├── page.tsx         # Base conhecimento
-│   │   │       ├── problems/        # Problemas & soluções
-│   │   │       └── layout.tsx       # Tabs navegação
-│   │   ├── profile/        # Perfil usuário
-│   │   │   ├── page.tsx             # Dados pessoais
-│   │   │   ├── preferences/         # Configurações
-│   │   │   └── security/            # Email & senha
-│   │   ├── settings/       # Configurações sistema
-│   │   │   ├── groups/              # ⚠️ Sistema grupos (VAZIO)
-│   │   │   ├── products/            # CRUD produtos
-│   │   │   └── projects/            # ⚠️ Projetos (VAZIO)
-│   │   └── welcome/        # Página inicial admin
-│   └── api/                # 🔌 API Routes (Next.js)
-│       ├── (user)/         # APIs de usuário
-│       ├── auth/           # APIs de autenticação
-│       └── products/       # APIs de produtos
-├── components/             # 🧩 Componentes React
-│   ├── admin/             # Componentes área administrativa
-│   ├── auth/              # Componentes autenticação
-│   └── ui/                # 🎨 Design System personalizado (25+)
-├── context/                # ⚛️ React Contexts
-│   ├── UserContext.tsx              # Contexto usuário
-│   └── SidebarContext.tsx           # Contexto sidebar
-└── lib/                    # 🛠️ Utilitários e configurações
-    ├── auth/              # Sistema autenticação
-    ├── db/                # Database Drizzle + PostgreSQL
-    ├── *.ts               # Utilitários diversos
+/app
+├── (auth)/              # Grupo de rotas autenticação
+│   ├── layout.tsx       # Layout específico auth
+│   ├── login/           # Login email/senha
+│   ├── login-email/     # Login apenas email + OTP
+│   ├── register/        # Registro usuários
+│   ├── forget-password/ # Reset senha 4 etapas
+│   └── login-google/    # OAuth Google callback
+├── (site)/              # Grupo de rotas público
+│   └── page.tsx         # Homepage pública
+├── admin/               # Área administrativa
+│   ├── layout.tsx       # Layout admin + auth guard
+│   ├── dashboard/       # Dashboard principal
+│   ├── products/[slug]/ # Produto específico
+│   ├── profile/         # Perfil usuário
+│   ├── settings/        # Configurações
+│   └── welcome/         # Onboarding
+└── api/                 # API Routes Backend
+    ├── auth/            # Endpoints autenticação
+    ├── products/        # CRUD produtos e dependências
+    └── (user)/          # Endpoints perfil usuário
 ```
 
-## APIs IMPLEMENTADAS (22 endpoints)
+### `/src/components` - Componentes UI
 
-### 🔐 Autenticação
+```
+/components
+├── admin/               # Componentes específicos admin
+│   ├── dashboard/       # Charts ApexCharts
+│   ├── nav/             # Navegação e tabs
+│   ├── sidebar/         # Menu lateral
+│   └── topbar/          # Barra superior
+├── auth/                # Componentes autenticação
+└── ui/                  # Design System base
+    ├── Button.tsx       # Botão universal
+    ├── Input.tsx        # Input com validação
+    ├── Dialog.tsx       # Modal dialogs
+    ├── Offcanvas.tsx    # Painel lateral
+    ├── Tree.tsx         # Componente árvore hierárquica
+    ├── Accordion.tsx    # Accordion manual
+    └── [25+ componentes]
+```
 
-- `POST /api/auth/register` - Criar conta + envio OTP
-- `POST /api/auth/login` - Login email/senha + verificação
-- `POST /api/auth/login-email` - Login apenas email + OTP
-- `POST /api/auth/verify-code` - Verificar código OTP
-- `POST /api/auth/forget-password` - Solicitar reset senha
-- `POST /api/auth/send-password` - Definir nova senha
-- `GET /api/auth/callback/google` - Callback Google OAuth
+### `/src/lib` - Bibliotecas Utilitárias
 
-### 👤 Usuário
+```
+/lib
+├── auth/                # Sistema autenticação
+│   ├── session.ts       # Gestão sessões
+│   ├── token.ts         # Validação tokens
+│   ├── hash.ts          # Hashing senhas
+│   ├── oauth.ts         # Google OAuth
+│   └── validate.ts      # Validações input
+├── db/                  # Database e schema
+│   ├── index.ts         # Conexão PostgreSQL
+│   ├── schema.ts        # Schema Drizzle ORM
+│   ├── seed.ts          # Dados teste
+│   └── clear-db.ts      # Limpar banco
+└── [utilitários diversos]
+```
 
-- `GET/PUT /api/user-profile` - Perfil usuário
-- `GET/PUT /api/user-preferences` - Preferências
-- `PUT /api/user-email` - Alterar email
-- `PUT /api/user-password` - Alterar senha
-- `POST/DELETE /api/user-profile-image` - Foto perfil
+## SCHEMA DATABASE
 
-### 📦 Produtos
+### Tabelas Principais
 
-- `GET/POST/PUT/DELETE /api/products` - CRUD produtos
-- `GET/POST/PUT/DELETE /api/products/dependencies` - Dependências hierárquicas
-- `GET /api/products/contacts` - Lista contatos
-- `GET/POST/PUT /api/products/manual` - Manual estruturado
-- `GET/POST/DELETE /api/products/images` - Upload imagens
-
-### 🔧 Problemas & Soluções
-
-- `GET/POST/PUT/DELETE /api/products/problems` - CRUD problemas
-- `GET/POST/PUT/DELETE /api/products/solutions` - CRUD soluções
-
-## DATABASE SCHEMA (PostgreSQL)
-
-### 🔐 Autenticação & Usuários (7 tabelas)
+#### `auth_user` - Usuários
 
 ```sql
-auth_user (id, name, email, emailVerified, password, createdAt)
-auth_session (id, userId, token, expiresAt, createdAt)
-auth_code (id, userId, type, code, expiresAt, createdAt)
-auth_provider (id, userId, providerId, providerType, createdAt)
-rate_limit (id, identifier, route, count, expiresAt)
-user_profile (userId, phone, sector, position, location, bio, updatedAt)
-user_preferences (userId, emailNotifications, newsletters, updatedAt)
+- id: string (PK)
+- name: string
+- email: string (unique)
+- emailVerified: boolean
+- password: string (hashed)
+- createdAt: timestamp
 ```
 
-### 📦 Produtos & Conhecimento (5 tabelas)
+#### `product` - Produtos Meteorológicos
 
 ```sql
-product (id, name, slug, available, createdAt, updatedAt)
-product_dependency (id, productId, name, type, category, parentId, treePath, treeDepth, sortKey, createdAt)
-  -- OTIMIZAÇÃO HÍBRIDA: treePath, treeDepth, sortKey para consultas O(log n)
-  -- Substituído campo 'order' por campos hierárquicos otimizados
-product_contact (id, productId, name, role, team, email, phone, createdAt)
-product_manual_section (id, productId, title, description, order, createdAt)
-product_manual_chapter (id, sectionId, title, content, order, createdAt)
+- id: string (PK)
+- name: string
+- slug: string
+- available: boolean
 ```
 
-### 🔧 Problemas & Soluções (5 tabelas)
+#### `product_dependency` - **DEPENDÊNCIAS SIMPLIFICADAS**
 
 ```sql
-product_problem (id, productId, userId, title, description, createdAt, updatedAt)
-product_problem_image (id, problemId, image, description, createdAt)
-product_solution (id, problemId, userId, replyId, description, createdAt, updatedAt)
-product_solution_checked (id, solutionId, userId, createdAt)
-product_solution_image (id, solutionId, image, description, createdAt)
+-- CAMPOS ESSENCIAIS
+- id: string (PK)
+- productId: string (FK)
+- name: string              -- Nome/descrição (campo principal)
+- icon: string              -- Ícone Lucide (opcional)
+- description: string       -- Descrição detalhada (opcional)
+- parentId: string          -- **CRÍTICO para hierarquia**
+
+-- CAMPOS HÍBRIDOS (otimização)
+- treePath: string          -- "/1/2/3" caminho completo
+- treeDepth: integer        -- 0, 1, 2... profundidade
+- sortKey: string           -- "001.002.003" ordenação
+- createdAt/updatedAt: timestamp
 ```
 
-### 🗄️ Sistema (1 tabela)
+**CAMPOS REMOVIDOS** (simplificação):
+
+- ~~type~~ - Eliminado, `name` é suficiente
+- ~~category~~ - Eliminado, hierarquia via `parentId`
+- ~~url~~ - Eliminado, não necessário
+
+#### `product_problem` - Problemas Reportados
 
 ```sql
-system_file (id, filename, path, type, size, createdAt)
+- id: string (PK)
+- productId: string (FK)
+- userId: string (FK)
+- title: string
+- description: text
+- createdAt/updatedAt: timestamp
 ```
 
-## COMPONENTES UI PERSONALIZADOS (25+)
+#### `product_solution` - Soluções Threading
 
-### 📝 Formulários
-
-- **Input** - text/email com validação
-- **InputPassword** - senha com toggle visibilidade
-- **InputPasswordHints** - senha com dicas força
-- **InputCheckbox** - checkbox customizado
-- **Pin** - input código OTP (5 dígitos)
-- **Select** - dropdown customizado com keyboard navigation
-- **Switch** - toggle switch
-- **Label** - label com estados válido/inválido
-
-### 🧭 Navegação
-
-- **Button** - 3 estilos (filled, bordered, unstyled)
-- **Tree** - árvore hierárquica navegável
-- **Accordion** - conteúdo expansível seções/capítulos
-- **ProductTabs** - tabs específicas produtos
-
-### 💬 Feedback
-
-- **Toast** - sistema notificações global
-- **Modal** - modal base com backdrop
-- **Dialog** - modal confirmação
-- **Lightbox** - visualizador imagem
-- **Popover** - tooltip posicionado
-
-### 🏗️ Layout
-
-- **Offcanvas** - painel lateral
-- **Sidebar** - sidebar admin com menu
-- **Topbar** - barra superior
-- **Content** - container conteúdo
-
-### 📊 Visualização
-
-- **ChartColumn/Donut/Line** - gráficos ApexCharts
-- **CircleProgress** - progresso circular
-- **ProgressBar** - barra progresso
-- **Stats** - estatísticas dashboard
-- **Radial** - gráfico radial
-
-### 📤 Upload
-
-- **PhotoUpload** - upload foto perfil com preview
-- **File uploads** - upload imagens problemas/soluções
-
-### Características
-
-- **100% Personalizados**: Sem ShadCN ou bibliotecas UI
-- **TypeScript Completo**: Totalmente tipados
-- **Dark Mode Nativo**: Suporte completo ambos temas
-- **Acessibilidade**: ARIA labels, keyboard navigation
-- **Responsivo**: Mobile-first design
-
-## STACK TECNOLÓGICO
-
-### 🏗️ Core Framework
-
-- **Next.js 15.3.2** - Framework full-stack
-- **React 19** - Biblioteca UI
-- **TypeScript 5** - Tipagem estática
-- **Tailwind CSS 4** - Framework CSS utilitário
-
-### 💾 Database
-
-- **PostgreSQL** - Database produção
-- **Drizzle ORM 0.43.1** - ORM TypeScript-first
-- **node-postgres (pg)** - Driver oficial PostgreSQL
-- **Connection Pool** - Pool conexões otimizado
-
-### 🔐 Autenticação
-
-- **Arctic 3.7.0** - Google OAuth provider
-- **bcryptjs** - Hash senhas bcrypt
-- **Custom Auth System** - Implementação própria sessões
-- **Rate Limiting** - Proteção anti-spam personalizada
-
-### 🛠️ Utilitários
-
-- **ApexCharts 4.7.0** - Gráficos dashboard
-- **Nodemailer 7.0.3** - Envio emails
-- **@uiw/react-md-editor** - Editor markdown com preview
-- **@dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities** - Drag & drop moderno com touch support
-- **Iconify** - Sistema ícones completo
-- **clsx** - Conditional classnames
-- **tailwind-merge** - Merge classes Tailwind
-
-### 🎨 Estilização
-
-- **@iconify/tailwind4** - Plugin ícones Tailwind
-- **@tailwindcss/forms** - Estilização formulários
-- **@tailwindcss/typography** - Tipografia markdown
-
-## ARQUITETURA DE SEGURANÇA
-
-### 🔒 Autenticação
-
-- **Sessões HttpOnly**: Cookies seguros inacessíveis JS
-- **Hash SHA-256**: Tokens hasheados no database
-- **CSRF Protection**: SameSite=Lax cookies
-- **Rate Limiting**: Proteção APIs sensíveis
-- **Token Expiration**: Renovação automática sessões
-
-### 📁 Upload de Arquivos
-
-- **nginx Proxy**: Serve arquivos fora do Node.js
-- **Validação Tipo**: Apenas imagens permitidas
-- **Path Sanitization**: Previne directory traversal
-- **Size Limits**: Controle tamanho máximo
-- **Security Headers**: X-Content-Type-Options, etc.
-
-### 🛡️ Validação & Sanitização
-
-- **Client + Server**: Dupla validação formulários
-- **Input Sanitization**: Proteção XSS
-- **SQL Injection**: Drizzle ORM proteção automática
-- **Type Safety**: TypeScript strict mode
-- **Error Boundaries**: Tratamento erros graceful
-
-## CONFIGURAÇÕES CRÍTICAS
-
-### 🔧 Environment Variables
-
-```env
-# Database
-DATABASE_URL=postgresql://user:pass@host:5432/silo
-
-# Authentication
-AUTH_SECRET=32-char-secret-key
-GOOGLE_CLIENT_ID=oauth-client-id
-GOOGLE_CLIENT_SECRET=oauth-secret
-GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/callback/google
-
-# Email
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=email@gmail.com
-EMAIL_PASS=app-password
-EMAIL_FROM="SILO <email@gmail.com>"
-
-# Upload
-UPLOAD_DIR=/var/uploads/silo
-NGINX_UPLOAD_URL=https://uploads.silo.inpe.br
+```sql
+- id: string (PK)
+- userId: string (FK)
+- productProblemId: string (FK)
+- description: text
+- replyId: string (opcional, para threading)
+- createdAt/updatedAt: timestamp
 ```
 
-### 📦 Scripts Package.json
+#### `product_manual_section` - Manual Seções
 
-```json
-{
-	"dev": "next dev --turbopack",
-	"build": "next build",
-	"start": "next start",
-	"lint": "next lint",
-	"db:studio": "drizzle-kit studio",
-	"db:push": "drizzle-kit push",
-	"db:generate": "drizzle-kit generate",
-	"db:migrate": "drizzle-kit migrate",
-	"db:seed": "npx tsx src/lib/db/seed.ts"
-}
+```sql
+- id: string (PK)
+- productId: string (FK)
+- title: string
+- description: string (opcional)
+- order: integer
 ```
 
-### ⚙️ Drizzle Configuration
+#### `product_manual_chapter` - Manual Capítulos
+
+```sql
+- id: string (PK)
+- sectionId: string (FK)
+- title: string
+- content: text (markdown)
+- order: integer
+```
+
+#### `product_contact` - Contatos Responsáveis
+
+```sql
+- id: string (PK)
+- productId: string (FK)
+- name: string
+- role: string
+- team: string
+- email: string
+- phone: string (opcional)
+- image: string (foto perfil)
+- order: integer
+```
+
+### Relacionamentos
+
+- **1:N** - product → dependencies/problems/contacts/sections
+- **Self-Referencing** - dependencies → parentId (árvore hierárquica)
+- **Threading** - solutions → replyId (conversas aninhadas)
+- **Auth** - user → problems/solutions (rastreabilidade)
+
+## API ENDPOINTS
+
+### Autenticação
+
+- `POST /api/auth/login` - Login email/senha
+- `POST /api/auth/login-email` - Login apenas email
+- `POST /api/auth/register` - Registro
+- `POST /api/auth/forget-password` - Reset senha
+- `GET /api/auth/login-google` - OAuth Google
+
+### Produtos
+
+- `GET /api/products` - Listar produtos
+- `POST /api/products` - Criar produto
+- `PUT /api/products` - Atualizar produto
+- `DELETE /api/products` - Excluir produto
+
+### Dependências - **API SIMPLIFICADA**
+
+- `GET /api/products/dependencies?productId=X` - Árvore hierárquica
+- `POST /api/products/dependencies` - Criar dependência
+  - **Campos obrigatórios**: `productId`, `name`
+  - **Campos opcionais**: `icon`, `description`, `parentId`
+- `PUT /api/products/dependencies` - Atualizar (incluindo reordenação)
+- `DELETE /api/products/dependencies?id=X` - Excluir (valida filhos)
+
+### Base de Conhecimento
+
+- `GET /api/products/manual?productId=X` - Manual estruturado
+- `POST /api/products/manual` - Criar seção
+- `PUT /api/products/manual` - Atualizar capítulo
+- `GET /api/products/contacts?productId=X` - Lista contatos
+
+### Problemas/Soluções
+
+- `GET /api/products/problems?slug=X` - Problemas produto
+- `POST /api/products/problems` - Criar problema
+- `GET /api/products/solutions?problemId=X` - Soluções threading
+- `POST /api/products/solutions` - Criar solução/resposta
+
+## COMPONENTES HIERÁRQUICOS
+
+### MenuBuilder - **IMPLEMENTADO COM DADOS REAIS**
 
 ```typescript
-// drizzle.config.ts
-export default {
-	schema: './src/lib/db/schema.ts',
-	dialect: 'postgresql',
-	dbCredentials: {
-		url: process.env.DATABASE_URL!,
-	},
+interface MenuBuilderProps {
+  dependencies: ProductDependency[]
+  onEdit: (item: ProductDependency) => void
+  onDelete: (item: ProductDependency) => void
+}
+
+// Renderização recursiva com indentação visual
+const renderItem = (item: ProductDependency, level: number = 0) => {
+  const marginLeft = level * 32 // 32px por nível
+  return (
+    <div style={{ marginLeft: `${marginLeft}px` }}>
+      {/* Item visual WordPress-style */}
+      <div className="flex items-center gap-2 p-3 border rounded-lg">
+        <GripVertical /> {/* Handle drag & drop */}
+        <Icon name={item.icon} />
+        <span>{item.name}</span>
+        <Badge>L{level + 1}</Badge>
+        <EditButton onClick={() => onEdit(item)} />
+        <DeleteButton onClick={() => onDelete(item)} />
+      </div>
+
+      {/* Filhos recursivamente */}
+      {item.children?.map(child => renderItem(child, level + 1))}
+    </div>
+  )
 }
 ```
 
-### 🔗 Next.js Configuration
+**STATUS ATUAL**: ✅ Exibindo dados reais, visual perfeito
+**PRÓXIMO**: Implementar drag & drop HTML5 nativo
+
+### Tree Component - Navegação Lateral
 
 ```typescript
-// next.config.ts
-const nextConfig: NextConfig = {
-	images: {
-		remotePatterns: [
-			{
-				protocol: 'https',
-				hostname: 'lh3.googleusercontent.com', // Google avatars
-			},
-		],
-	},
+export type TreeItemProps = {
+  label: string
+  url?: string
+  icon?: string
+  children?: TreeItemProps[]
+  onClick?: () => void
 }
+
+// Usado na sidebar para navegação base conhecimento
+<Tree item={treeItem} defaultOpen={false} activeUrl={currentUrl} />
 ```
+
+### Accordion - Manual Produto
+
+```typescript
+export type Section = {
+  id: string
+  title: string
+  description?: string
+  chapters: Chapter[]
+}
+
+// Manual estruturado em seções/capítulos
+<Accordion sections={manualSections} />
+```
+
+## FLUXOS DE DADOS
+
+### Base de Conhecimento - Dependências
+
+1. **GET** `/api/products/dependencies?productId=X`
+2. **API** consulta PostgreSQL ordenado por `sortKey`
+3. **buildTree()** constrói hierarquia usando `parentId`
+4. **MenuBuilder** renderiza recursivamente com indentação
+5. **Ações CRUD** via onEdit/onDelete callbacks
+
+### Problemas/Soluções Threading
+
+1. **GET** problemas produto específico
+2. **Para cada problema**: buscar soluções threaded
+3. **Renderizar** conversas aninhadas via `replyId`
+4. **Upload imagens** para evidências
+5. **Sistema verificação** (check/uncheck soluções)
+
+### Manual Estruturado
+
+1. **GET** seções produto via API
+2. **Para cada seção**: buscar capítulos ordenados
+3. **Accordion** expansível/colapsável
+4. **MDEditor** para edição capítulos
+5. **Markdown preview** estilizado
+
+## OTIMIZAÇÕES
+
+### Performance Database
+
+- **Indices**: sortKey, parentId, productId otimizados
+- **Campos Híbridos**: treePath/treeDepth para consultas rápidas
+- **Connection Pooling**: PostgreSQL pool connections
+- **Query Optimization**: JOIN eliminados, queries O(log n)
+
+### Frontend Performance
+
+- **Server Components**: Next.js 15 renderização server
+- **Code Splitting**: Dynamic imports componentes pesados
+- **Image Optimization**: Next.js Image component
+- **Caching**: Static files via nginx
+
+### UX Otimizada
+
+- **Loading States**: Skeleton loaders consistentes
+- **Error Boundaries**: Graceful error handling
+- **Toast Notifications**: Feedback imediato ações
+- **Dark Mode**: Theme switching perfeito
 
 ## PADRÕES ESTABELECIDOS
 
-### 📥 Imports
+### TypeScript Interfaces
 
 ```typescript
-// ✅ SEMPRE usar alias @/ para imports internos
-import { Button } from '@/components/ui/Button'
-import { getAuthUser } from '@/lib/auth/token'
-
-// ❌ NUNCA usar caminhos relativos para módulos internos
-// import { Button } from '../../../components/ui/Button'
-```
-
-### 🚨 Error Handling
-
-```typescript
-// ✅ Padrão response APIs
-return Response.json({
-	success: false,
-	error: 'mensagem erro',
-	field: 'campo-especifico', // opcional
-})
-
-// ✅ Logs padronizados (APENAS estes 4 emojis)
-console.log('✅ Operação realizada com sucesso')
-console.error('❌ Erro crítico ocorrido')
-console.warn('⚠️ Aviso importante')
-console.info('🔵 Informação relevante')
-```
-
-### 🧩 Componentes UI
-
-```typescript
-// ✅ Padrão props componentes
-interface ComponentProps extends HTMLAttributes<HTMLElement> {
-  variant?: 'primary' | 'secondary'
-  isInvalid?: boolean
-  className?: string
+// Sempre interfaces exportadas
+export interface ProductDependency {
+	id: string
+	name: string
+	icon?: string
+	description?: string
+	parentId?: string | null
+	treeDepth: number
+	children?: ProductDependency[]
 }
-
-// ✅ Forwarded refs quando necessário
-const Component = forwardRef<HTMLElement, ComponentProps>(...)
 ```
 
-### 🎨 CSS Classes
+### Import Aliases
 
 ```typescript
-// ✅ Esquema cores zinc padronizado
-'text-zinc-700 dark:text-zinc-200' // textos
-'bg-zinc-100 dark:bg-zinc-800' // backgrounds
-'border-zinc-200 dark:border-zinc-700' // bordas
-'hover:bg-zinc-50 dark:hover:bg-zinc-700' // hover states
+// SEMPRE usar @ para imports internos
+import { db } from '@/lib/db'
+import Button from '@/components/ui/Button'
+// NUNCA caminhos relativos para módulos internos
 ```
 
-## PERFORMANCE OPTIMIZATIONS
-
-### 💾 Database
-
-- **Connection Pool**: Reutilização conexões PostgreSQL
-- **Indexes Automáticos**: FK e unique constraints
-- **Pagination Eficiente**: LIMIT/OFFSET queries
-- **Joins Otimizados**: Relacionamentos carregados efficiently
-- **Query Planning**: PostgreSQL query optimizer
-
-### 🌐 Frontend
-
-- **Server Components**: Padrão Next.js 15
-- **Client Components**: Apenas onde necessária interatividade
-- **Bundle Splitting**: Code splitting automático
-- **Image Optimization**: Next.js Image component
-- **Static Generation**: Pages estáticas quando possível
-
-### 📁 Static Assets
-
-- **nginx Serving**: Arquivos servidos diretamente pelo nginx
-- **Cache Headers**: expires 30d para uploads
-- **Compression**: gzip automático
-- **CDN Ready**: Headers otimizados para CDN
-- **Bandwidth Reduction**: Reduz carga Node.js
-
-## DEPLOYMENT REQUIREMENTS
-
-### 🖥️ Production Environment
-
-- **PostgreSQL 12+**: Database servidor
-- **Node.js 18+**: Runtime aplicação
-- **nginx**: Proxy reverso + static files
-- **SSL Certificate**: HTTPS obrigatório
-- **Disk Space**: Mínimo 10GB para uploads
-
-### 🔧 Environment Setup
-
-```bash
-# Database setup
-createdb silo
-createuser silo_user
-psql -c "GRANT ALL PRIVILEGES ON DATABASE silo TO silo_user;"
-
-# Upload directory
-mkdir -p /var/uploads/silo
-chown www-data:www-data /var/uploads/silo
-chmod 755 /var/uploads/silo
-
-# nginx configuration
-ln -s /etc/nginx/sites-available/silo-uploads /etc/nginx/sites-enabled/
-nginx -t && systemctl reload nginx
-```
-
-### 🚀 Deploy Commands
-
-```bash
-# Application
-git pull origin main
-npm ci --production
-npm run build
-pm2 restart silo
-
-# Database
-npm run db:push  # Aplicar schema changes
-npm run db:seed  # Popular dados iniciais (dev only)
-```
-
-## MONITORING & OBSERVABILITY
-
-### 🏥 Health Checks
-
-- **Database**: `npm run db:test-connection`
-- **Upload nginx**: `curl uploads.silo.inpe.br/health`
-- **Application**: `/api/health` (se implementado)
-
-### 📊 Logs Structure
+### Error Handling API
 
 ```typescript
-// ✅ Structured logging
-console.log('✅ User logged in', { userId, email, ip })
-console.error('❌ Database connection failed', { error: error.message })
-console.warn('⚠️ Rate limit exceeded', { email, route, count })
-console.info('🔵 File uploaded', { filename, size, userId })
+// Padrão consistente todas APIs
+return NextResponse.json({
+  success: boolean,
+  error?: string
+}, { status: number })
 ```
 
-### 📈 Metrics Tracking
+### Logs Padronizados
 
-- **Database**: Connection pool usage, query times
-- **Upload**: Disk space, file counts
-- **Application**: Response times, error rates
-- **Security**: Failed auth attempts, rate limits hit
-- **User Activity**: Session counts, feature usage
-
-## MIGRATION HISTORY
-
-### 🔄 SQLite → PostgreSQL (Completa)
-
-- **Schema Types**: Migrados para tipos nativos PostgreSQL
-- **Relationships**: Self-references otimizadas
-- **Connection**: Pool substituindo single connection
-- **Performance**: 10x melhoria queries complexas
-- **Scalability**: Suporte milhões registros
-
-### 📁 Upload interno → nginx (Completa)
-
-- **External Storage**: Movido para `/var/uploads/silo/`
-- **Performance**: 10x melhoria serving arquivos
-- **Security**: Validação nginx + bloqueio executáveis
-- **Cache**: Headers otimizados CDN
+```typescript
+// APENAS estes 4 emojis permitidos
+console.log('✅ Sucesso operação')
+console.log('❌ Erro crítico')
+console.log('⚠️ Aviso importante')
+console.log('ℹ️ Informação debug')
+```
 
 ## PRÓXIMAS IMPLEMENTAÇÕES
 
-### 🚧 Sistema de Grupos (Prioridade ALTA)
+### 1. Drag & Drop Dependências (Prioridade ALTA)
 
-```typescript
-// Schema pendente
-group(id, name, description, permissions, createdAt)
-user_group(userId, groupId, role, createdAt)
-product_group_access(productId, groupId, accessLevel)
-```
+- **HTML5 Drag & Drop**: Nativo browser (não @dnd-kit)
+- **Reordenação**: Atualizar sortKey/treePath automaticamente
+- **Visual Feedback**: Drag handles e drop zones
+- **Mobile**: Touch gestures para dispositivos móveis
 
-### 🔔 Notificações Tempo Real (Prioridade MÉDIA)
+### 2. Sistema Grupos (Prioridade ALTA)
 
-```typescript
-// WebSockets ou SSE
-notification(id, userId, type, title, content, read, createdAt)
-notification_settings(userId, emailEnabled, pushEnabled, types)
-```
+- **Schema**: Tabelas groups, user_groups, permissions
+- **CRUD**: Interface gestão grupos organizacionais
+- **Middleware**: Autorização baseada em grupos
+- **UI**: Componentes seleção/gestão grupos
 
-### 📊 Analytics Avançados (Prioridade MÉDIA)
+### 3. Notificações Real-time (Prioridade MÉDIA)
 
-```typescript
-// Tracking events
-user_activity(id, userId, action, metadata, createdAt)
-problem_resolution_time(problemId, resolvedAt, timeToResolve)
-```
+- **WebSockets**: Server-Sent Events para push
+- **Email**: SMTP para notificações críticas
+- **Browser**: Push notifications API
 
-## TROUBLESHOOTING GUIDE
+## TESTING STRATEGY
 
-### 🚨 Erros Comuns
+### Dados de Teste
 
-#### Database Connection Error
+- **Usuário**: `sessojunior@gmail.com` / `#Admin123`
+- **Produtos**: BAM, SMEC, BRAMS, WRF populados
+- **Problemas**: 20 problemas por produto
+- **Soluções**: 2-10 soluções por problema
+- **Dependências**: Estrutura hierárquica 3-4 níveis
 
-```bash
-# Verificar PostgreSQL running
-sudo systemctl status postgresql
-
-# Testar conexão manualmente
-npm run db:test-connection
-
-# Recriar schema força
-npm run db:push --force
-```
-
-#### Upload Files Error
+### Comandos Úteis
 
 ```bash
-# Verificar diretório exists
-ls -la /var/uploads/silo/
-
-# Verificar permissões
-sudo chown -R www-data:www-data /var/uploads/silo/
-
-# Testar nginx uploads endpoint
-curl -I uploads.silo.inpe.br/health
+npm run db:studio    # Visualizar dados
+npm run db:seed      # Repopular dados teste
+npm run dev          # Servidor desenvolvimento
 ```
 
-#### Build/Deploy Error
-
-```bash
-# Verificar TypeScript
-npm run lint
-
-# Limpar build cache
-rm -rf .next node_modules
-npm install
-npm run build
-
-# Verificar env variables
-echo $DATABASE_URL | grep -o '^[^:]*'
-```
-
-#### Authentication Error
-
-```bash
-# Verificar sessões database
-psql -c "SELECT COUNT(*) FROM auth_session;"
-
-# Limpar sessões expired
-psql -c "DELETE FROM auth_session WHERE expires_at < NOW();"
-
-# Verificar cookies browser
-# DevTools > Application > Cookies > session_token
-```
-
-Este é o índice técnico completo do projeto Silo, mantido atualizado com todas as implementações e decisões arquiteturais.
+Este projeto structure representa o estado atual do Silo com schema simplificado e MenuBuilder funcional com dados reais.

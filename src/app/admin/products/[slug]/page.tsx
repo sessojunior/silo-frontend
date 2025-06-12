@@ -22,18 +22,195 @@ interface MenuBuilderProps {
 	dependencies: ProductDependency[]
 	onEdit: (item: ProductDependency) => void
 	onDelete: (item: ProductDependency) => void
+	onReorder?: (reorderedDependencies: ProductDependency[]) => void
 }
 
-function MenuBuilder({ dependencies, onEdit, onDelete }: MenuBuilderProps) {
+function MenuBuilder({ dependencies, onEdit, onDelete, onReorder }: MenuBuilderProps) {
+	// Estados para drag & drop
+	const [draggedItem, setDraggedItem] = useState<ProductDependency | null>(null)
+	const [dragOverItem, setDragOverItem] = useState<ProductDependency | null>(null)
+	const [dropPosition, setDropPosition] = useState<'before' | 'after' | 'inside' | null>(null)
+
+	// Handlers para drag & drop HTML5
+	const handleDragStart = (e: React.DragEvent, item: ProductDependency) => {
+		setDraggedItem(item)
+		e.dataTransfer.effectAllowed = 'move'
+		e.dataTransfer.setData('text/plain', item.id)
+
+		// Adiciona classe visual durante o drag
+		e.currentTarget.classList.add('opacity-50')
+	}
+
+	const handleDragEnd = (e: React.DragEvent) => {
+		setDraggedItem(null)
+		setDragOverItem(null)
+		setDropPosition(null)
+
+		// Remove classe visual
+		e.currentTarget.classList.remove('opacity-50')
+	}
+
+	const handleDragOver = (e: React.DragEvent, item: ProductDependency) => {
+		e.preventDefault()
+		e.dataTransfer.dropEffect = 'move'
+
+		if (!draggedItem || draggedItem.id === item.id) return
+
+		setDragOverItem(item)
+
+		// Determina posição do drop baseado na posição do mouse
+		const rect = e.currentTarget.getBoundingClientRect()
+		const y = e.clientY - rect.top
+		const height = rect.height
+
+		if (y < height * 0.25) {
+			setDropPosition('before')
+		} else if (y > height * 0.75) {
+			setDropPosition('after')
+		} else {
+			setDropPosition('inside')
+		}
+	}
+
+	const handleDragLeave = (e: React.DragEvent) => {
+		// Só limpa se estamos saindo do elemento de fato
+		if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+			setDragOverItem(null)
+			setDropPosition(null)
+		}
+	}
+
+	const handleDrop = async (e: React.DragEvent, targetItem: ProductDependency) => {
+		e.preventDefault()
+
+		if (!draggedItem || !onReorder || draggedItem.id === targetItem.id) {
+			setDraggedItem(null)
+			setDragOverItem(null)
+			setDropPosition(null)
+			return
+		}
+
+		// Cria nova estrutura hierárquica baseada no drop
+		const flatItems = flattenDependencies(dependencies)
+		const newOrder = reorderItems(flatItems, draggedItem, targetItem, dropPosition || 'after')
+		const newHierarchy = buildHierarchyFromFlat(newOrder)
+
+		// Chama callback para atualizar no servidor
+		onReorder(newHierarchy)
+
+		// Limpa estados
+		setDraggedItem(null)
+		setDragOverItem(null)
+		setDropPosition(null)
+	}
+
+	// Utilitário para achatar dependências em lista linear
+	const flattenDependencies = (deps: ProductDependency[], level = 0): Array<ProductDependency & { level: number }> => {
+		const result: Array<ProductDependency & { level: number }> = []
+
+		deps.forEach((dep) => {
+			result.push({ ...dep, level })
+			if (dep.children && dep.children.length > 0) {
+				result.push(...flattenDependencies(dep.children, level + 1))
+			}
+		})
+
+		return result
+	}
+
+	// Utilitário para reordenar itens baseado no drag & drop
+	const reorderItems = (flatItems: Array<ProductDependency & { level: number }>, draggedItem: ProductDependency, targetItem: ProductDependency, position: 'before' | 'after' | 'inside'): Array<ProductDependency & { level: number }> => {
+		// Remove o item arrastado da lista
+		const withoutDragged = flatItems.filter((item) => item.id !== draggedItem.id)
+
+		// Encontra índice do item alvo
+		const targetIndex = withoutDragged.findIndex((item) => item.id === targetItem.id)
+		if (targetIndex === -1) return flatItems
+
+		// Determina novo nível e posição
+		let newLevel = withoutDragged[targetIndex].level
+		let insertIndex = targetIndex
+
+		if (position === 'before') {
+			insertIndex = targetIndex
+		} else if (position === 'after') {
+			insertIndex = targetIndex + 1
+		} else if (position === 'inside') {
+			newLevel = withoutDragged[targetIndex].level + 1
+			insertIndex = targetIndex + 1
+		}
+
+		// Insere item na nova posição com novo nível
+		const reorderedItem = { ...draggedItem, level: newLevel }
+		withoutDragged.splice(insertIndex, 0, reorderedItem)
+
+		return withoutDragged
+	}
+
+	// Utilitário para reconstruir hierarquia de lista flat
+	const buildHierarchyFromFlat = (flatItems: Array<ProductDependency & { level: number }>): ProductDependency[] => {
+		const result: ProductDependency[] = []
+		const stack: Array<{ item: ProductDependency; level: number }> = []
+
+		flatItems.forEach((item) => {
+			// Remove níveis maiores da stack
+			while (stack.length > 0 && stack[stack.length - 1].level >= item.level) {
+				stack.pop()
+			}
+
+			// Cria item sem children inicialmente
+			const newItem: ProductDependency = {
+				id: item.id,
+				name: item.name,
+				icon: item.icon,
+				description: item.description,
+				parentId: stack.length > 0 ? stack[stack.length - 1].item.id : null,
+				treePath: item.treePath,
+				treeDepth: item.level,
+				sortKey: item.sortKey,
+				children: [],
+			}
+
+			if (stack.length === 0) {
+				// Item raiz
+				result.push(newItem)
+			} else {
+				// Item filho - adiciona ao parent
+				const parent = stack[stack.length - 1].item
+				if (!parent.children) parent.children = []
+				parent.children.push(newItem)
+			}
+
+			// Adiciona à stack
+			stack.push({ item: newItem, level: item.level })
+		})
+
+		return result
+	}
+
 	// Renderiza um item de dependência recursivamente
 	const renderItem = (item: ProductDependency, level: number = 0): React.ReactNode => {
 		const marginLeft = level * 32 // 32px por nível de hierarquia
+		const isDragging = draggedItem?.id === item.id
+		const isDragOver = dragOverItem?.id === item.id
+
+		// Classes para feedback visual
+		let dropIndicatorClass = ''
+		if (isDragOver && dropPosition) {
+			if (dropPosition === 'before') {
+				dropIndicatorClass = 'border-t-2 border-blue-500'
+			} else if (dropPosition === 'after') {
+				dropIndicatorClass = 'border-b-2 border-blue-500'
+			} else if (dropPosition === 'inside') {
+				dropIndicatorClass = 'ring-2 ring-blue-500 ring-inset'
+			}
+		}
 
 		return (
 			<div key={item.id}>
 				{/* Item atual */}
-				<div className='flex items-center gap-2 p-3 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-750' style={{ marginLeft: `${marginLeft}px` }}>
-					<span className='icon-[lucide--grip-vertical] size-4 text-zinc-400 cursor-grab' />
+				<div className={`flex items-center gap-2 px-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-750 transition-all ${dropIndicatorClass} ${isDragging ? 'opacity-50' : ''}`} style={{ marginLeft: `${marginLeft}px` }} draggable={!isDragging} onDragStart={(e) => handleDragStart(e, item)} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, item)} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, item)}>
+					<span className='icon-[lucide--grip-vertical] size-4 text-zinc-400 cursor-grab active:cursor-grabbing' />
 					{item.icon && <span className={`icon-[lucide--${item.icon}] size-4 text-zinc-600 dark:text-zinc-400`} />}
 					{!item.icon && <span className='icon-[lucide--circle] size-4 text-zinc-600 dark:text-zinc-400' />}
 					<span className='flex-1 font-medium'>{item.name}</span>
@@ -67,6 +244,37 @@ function MenuBuilder({ dependencies, onEdit, onDelete }: MenuBuilderProps) {
 
 	return (
 		<div className='w-full space-y-2'>
+			{/* Instruções de uso */}
+			<div className='p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg mb-4'>
+				<div className='flex items-start gap-2'>
+					<span className='icon-[lucide--info] size-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0' />
+					<div className='text-blue-700 dark:text-blue-300'>
+						<p className='font-medium mb-1'>Como usar o drag & drop:</p>
+						<ul className='list-disc list-inside pl-1'>
+							<li>
+								Arraste o ícone <strong>⋮⋮</strong> para mover itens
+							</li>
+							<li>
+								Solte <strong>acima</strong> para inserir antes
+							</li>
+							<li>
+								Solte <strong>abaixo</strong> para inserir depois
+							</li>
+							<li>
+								Solte <strong>no meio</strong> para tornar item filho
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+
+			<div className='flex items-center justify-end mb-4'>
+				{/* <Button type='button' icon='icon-[lucide--plus]' onClick={openAddItemForm}> */}
+				<Button type='button' icon='icon-[lucide--plus]'>
+					Adicionar dependência
+				</Button>
+			</div>
+
 			{/* Lista hierárquica com dados reais */}
 			<div className='space-y-1'>{dependencies.map((item) => renderItem(item, 0))}</div>
 		</div>
@@ -278,6 +486,101 @@ export default function ProductsPage() {
 		} catch (error) {
 			console.error('❌ Erro ao recarregar dependências:', error)
 		}
+	}
+
+	// Função para reordenar dependências via drag & drop
+	const handleReorderDependencies = async (reorderedDependencies: ProductDependency[]) => {
+		if (!productId) return
+
+		try {
+			console.log('ℹ️ Iniciando reordenação de dependências...')
+
+			// Otimista: atualiza UI imediatamente
+			setDependencies(reorderedDependencies)
+
+			// Converte hierarquia para lista flat com sortKey recalculado
+			const flatList = flattenWithNewSortKeys(reorderedDependencies)
+
+			// Envia para API em lote
+			const res = await fetch('/api/products/dependencies/reorder', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					productId,
+					items: flatList,
+				}),
+			})
+
+			if (res.ok) {
+				console.log('✅ Dependências reordenadas com sucesso!')
+				toast({
+					type: 'success',
+					title: 'Ordem atualizada com sucesso!',
+				})
+
+				// Recarrega para sincronizar com servidor
+				await refreshDependencies()
+			} else {
+				const error = await res.json()
+				console.log('❌ Erro ao reordenar dependências:', error.message)
+				toast({
+					type: 'error',
+					title: error.message || 'Erro ao reordenar dependências',
+				})
+
+				// Reverte mudanças em caso de erro
+				await refreshDependencies()
+			}
+		} catch (error) {
+			console.error('❌ Erro inesperado ao reordenar:', error)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado. Revertendo mudanças...',
+			})
+
+			// Reverte mudanças em caso de erro
+			await refreshDependencies()
+		}
+	}
+
+	// Utilitário para achatar hierarquia e recalcular sortKeys
+	const flattenWithNewSortKeys = (
+		deps: ProductDependency[],
+		parentPath = '',
+		level = 0,
+	): Array<{
+		id: string
+		parentId: string | null
+		treePath: string
+		treeDepth: number
+		sortKey: string
+	}> => {
+		const result: Array<{
+			id: string
+			parentId: string | null
+			treePath: string
+			treeDepth: number
+			sortKey: string
+		}> = []
+
+		deps.forEach((dep, index) => {
+			const currentPath = parentPath ? `${parentPath}/${index}` : `/${index}`
+			const sortKey = parentPath ? `${parentPath.split('/').filter(Boolean).join('.')}.${index.toString().padStart(3, '0')}` : index.toString().padStart(3, '0')
+
+			result.push({
+				id: dep.id,
+				parentId: dep.parentId ?? null,
+				treePath: currentPath,
+				treeDepth: level,
+				sortKey: sortKey,
+			})
+
+			if (dep.children && dep.children.length > 0) {
+				result.push(...flattenWithNewSortKeys(dep.children, currentPath, level + 1))
+			}
+		})
+
+		return result
 	}
 
 	// Converte dependências hierárquicas para lista flat com níveis
@@ -789,7 +1092,7 @@ export default function ProductsPage() {
 			<div className='flex h-[calc(100vh-131px)] w-full items-center justify-center'>
 				<div className='text-center'>
 					<div className='animate-spin text-4xl'>⏳</div>
-					<p className='mt-2 text-zinc-600 dark:text-zinc-400'>Carregando base de conhecimento...</p>
+					<p className='mt-2 text-zinc-600 dark:text-zinc-400'>Carregando dependências...</p>
 				</div>
 			</div>
 		)
@@ -803,7 +1106,7 @@ export default function ProductsPage() {
 					{/* Tree */}
 					<div className='px-8 pt-8' role='tree' aria-orientation='vertical'>
 						<div className='flex w-full items-center justify-between gap-2 pb-6'>
-							<h3 className='text-xl font-medium'>Base de Conhecimento</h3>
+							<h3 className='text-xl font-medium'>Dependências do produto</h3>
 							<Button type='button' icon='icon-[lucide--settings]' style='unstyled' className='size-10 rounded-full' onClick={openManagement} title='Gerenciar dependências' />
 						</div>
 						{treeItems.map((category, index) => (
@@ -933,16 +1236,8 @@ export default function ProductsPage() {
 			</div>
 
 			{/* Offcanvas para gerenciamento de dependências */}
-			<Offcanvas open={managementOffcanvasOpen} onClose={() => setManagementOffcanvasOpen(false)} title='Gerenciar Base de Conhecimento' width='xl'>
+			<Offcanvas open={managementOffcanvasOpen} onClose={() => setManagementOffcanvasOpen(false)} title='Gerenciar Dependências' width='xl'>
 				<div className='flex flex-col gap-4'>
-					{/* Cabeçalho - colocar um cabeçalho melhor e mais estilizado aqui */}
-					<div className='flex items-start justify-between mb-4'>
-						<p>Arraste e solte itens para reordenar hierarquicamente.</p>
-						<Button type='button' icon='icon-[lucide--plus]' onClick={openAddItemForm}>
-							Adicionar nova dependência
-						</Button>
-					</div>
-
 					{/* Lista de dependências */}
 					{loadingManagement && (
 						<div className='flex flex-col gap-3'>
@@ -956,7 +1251,7 @@ export default function ProductsPage() {
 						</div>
 					)}
 
-					<MenuBuilder dependencies={dependencies} onEdit={openEditItemForm} onDelete={handleDeleteDependency} />
+					<MenuBuilder dependencies={dependencies} onEdit={openEditItemForm} onDelete={handleDeleteDependency} onReorder={handleReorderDependencies} />
 				</div>
 			</Offcanvas>
 

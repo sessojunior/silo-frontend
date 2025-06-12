@@ -34,8 +34,15 @@ Email: sessojunior@gmail.com
 Senha: #Admin123
 ```
 
-## Próximas Prioridades
+## Fases Urgentes Prioritárias
 
-1. Sistema de Grupos - Implementação completa (prioridade alta)
-2. Notificações - WebSockets/SSE para tempo real
-3. Analytics - Relatórios avançados e métricas
+1. **FASE 1: Drag & Drop Dependências** - HTML5 nativo no MenuBuilder (URGENTE)
+2. **FASE 2: Gerenciamento Manual** - Offcanvas capítulos/seções com drag & drop (URGENTE)
+3. **FASE 3: Gerenciamento Contatos** - Lista reordenável e CRUD completo (URGENTE)
+
+## Últimas Conquistas
+
+- ✅ Schema simplificado - Removidos campos type/category/url desnecessários
+- ✅ MenuBuilder com dados reais - Hierarquia funcional do PostgreSQL
+- ✅ Campo parentId analisado - Confirmado como crítico e necessário
+- ✅ Base de conhecimento completa - Visual WordPress-style perfeito

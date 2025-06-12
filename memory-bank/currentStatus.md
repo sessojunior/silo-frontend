@@ -11,37 +11,84 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 - **CRUD de Produtos**: Gestão completa de produtos meteorológicos
 - **Sistema de Problemas**: Criação, listagem e gestão de problemas com threading
 - **Sistema de Soluções**: Respostas threaded com upload de imagens e verificação
-- **Base de Conhecimento**: Estrutura hierárquica com dados reais via API
+- **Base de Conhecimento**: Estrutura hierárquica com dados reais via API e MenuBuilder funcional
 - **Editor Markdown**: MDEditor com botões grandes e tema dinâmico PERFEITO
 - **UI/UX Dark Mode**: COMPLETAMENTE OTIMIZADA com contraste perfeito
 - **Upload de Arquivos**: Sistema nginx externo com validação e preview
-- **PostgreSQL Database**: Migração completa com schema otimizado
+- **PostgreSQL Database**: Migração completa com schema otimizado e simplificado
 
-### 🚧 PRÓXIMAS PRIORIDADES (Por Ordem)
+### 🚨 FASES URGENTES PRIORITÁRIAS (Por Ordem Sequencial)
 
-1. **Sistema de Grupos** - Implementação completa (prioridade ALTA)
+**FASE 1: Drag & Drop Dependências** - Implementação HTML5 nativo (URGENTE)
 
-   - Schema database para grupos e permissões
-   - CRUD de grupos organizacionais
-   - Associação usuários a grupos
-   - Middleware de autorização
-   - Interface gestão grupos
+- MenuBuilder já exibe dados reais do banco
+- Implementar funcionalidade drag & drop para reordenação hierárquica
+- Usar HTML5 drag & drop nativo (não @dnd-kit)
+- Manter visual WordPress-style atual
+- Atualizar sortKey e treePath automaticamente
 
-2. **Notificações em Tempo Real** - WebSockets/SSE (prioridade MÉDIA)
+**FASE 2: Sistema Gerenciamento Manual do Produto** - Offcanvas completo (URGENTE)
 
-   - Notificações push browser
-   - Email automático novos problemas
-   - Dashboard de alertas críticos
+- Offcanvas para gerenciar capítulos e seções
+- Drag & drop para reordenação de seções/capítulos
+- CRUD completo com validação de nomes únicos
+- Interface intuitiva estilo WordPress
 
-3. **Analytics Avançados** - Relatórios e métricas (prioridade MÉDIA)
-   - Relatórios tempo resolução
-   - Análise de tendências
-   - Métricas por usuário/equipe
-   - Exportação dados (CSV, PDF)
+**FASE 3: Sistema Gerenciamento Contatos** - Lista gerenciável (URGENTE)
+
+- Lista gerenciável no offcanvas
+- Reordenação drag & drop de contatos
+- CRUD completo para contatos responsáveis
+- Upload foto e gestão de informações
+
+### 🔄 PRÓXIMAS PRIORIDADES (Após Fases Urgentes)
+
+1. **Sistema de Grupos** - Implementação completa
+2. **Notificações em Tempo Real** - WebSockets/SSE
+3. **Analytics Avançados** - Relatórios e métricas
 
 ## ÚLTIMAS IMPLEMENTAÇÕES FINALIZADAS
 
-### ✅ MENUBUILDER COM DADOS REAIS DO BANCO IMPLEMENTADO (RECÉM-CONCLUÍDA)
+### ✅ SIMPLIFICAÇÃO SCHEMA PRODUCT_DEPENDENCY (RECÉM-CONCLUÍDA)
+
+**CAMPOS REMOVIDOS**: `type`, `category` e `url` eliminados do schema
+
+**JUSTIFICATIVA**: Com sistema drag & drop hierárquico, o campo `name` já funciona como identificação e descrição suficiente, eliminando necessidade de categorizações rígidas.
+
+**ATUALIZAÇÕES REALIZADAS**:
+
+- **Schema**: Removidos campos desnecessários, mantidos apenas campos essenciais
+- **API Dependencies**: Atualizada para validar apenas `productId` e `name`
+- **Seed Data**: Estrutura simplificada baseada apenas em hierarquia de names
+- **Frontend**: Interface ProductDependency limpa, formulários simplificados
+- **Database**: DROP/CREATE executado com sucesso, dados repopulados
+
+**CAMPOS MANTIDOS**:
+
+- `id`, `productId`, `name`, `icon`, `description`
+- `parentId` - **ESSENCIAL para construção da árvore hierárquica**
+- Campos híbridos: `treePath`, `treeDepth`, `sortKey` (otimização)
+
+**RESULTADO**: ✅ Sistema mais simples e focado em hierarquia, pronto para drag & drop
+
+### ✅ ANÁLISE CAMPO PARENT_ID CONFIRMADA (CONCLUÍDA)
+
+**CONCLUSÃO**: Campo `parent_id` é **ABSOLUTAMENTE NECESSÁRIO** e deve ser mantido
+
+**USOS CRÍTICOS IDENTIFICADOS**:
+
+1. **Construção árvore hierárquica**: Filtro essencial na função `buildTree()`
+2. **Consultas de siblings**: Busca irmãos no mesmo nível hierárquico
+3. **Validação exclusão**: Impede exclusão de nós com filhos
+4. **Operações CRUD**: Essencial para criação e reordenação
+
+**CAMPOS HÍBRIDOS** (`treePath`, `treeDepth`, `sortKey`):
+
+- Servem para **otimização de performance**
+- **NÃO substituem** o `parentId` funcionalmente
+- Complementam para consultas rápidas e ordenação
+
+### ✅ MENUBUILDER COM DADOS REAIS IMPLEMENTADO (CONCLUÍDA)
 
 **INTEGRAÇÃO COMPLETA**: MenuBuilder agora exibe dados hierárquicos reais do PostgreSQL
 
@@ -60,48 +107,14 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 
 **RESULTADO**: ✅ Sistema exibindo estrutura real do banco de dados, mantendo design perfeito
 
-### ✅ CORREÇÃO PÁGINA PROBLEMAS/SOLUÇÕES (CONCLUÍDA)
+### ✅ SISTEMA DEPENDÊNCIAS HÍBRIDO OTIMIZADO (COMPLETA)
 
-**PROBLEMA RESOLVIDO**: Estado `setHasMore` ausente causando erro de compilação
+**Database Híbrido Otimizado**:
 
-- **Estado Faltante**: Adicionado `const [hasMore, setHasMore] = useState(true)`
-- **Erro TypeScript**: Resolvido erro "Cannot find name 'setHasMore'"
-- **Funcionalidade**: Página de problemas e soluções 100% funcional novamente
-
-### ✅ FASE 1 DRAG & DROP DEPENDÊNCIAS CORRIGIDA (CONCLUÍDA)
-
-**PROBLEMA RESOLVIDO**: SortableTreeItem não funcionava corretamente
-
-**CORREÇÕES IMPLEMENTADAS**:
-
-- **Áreas Separadas**: Handle de drag (10px width) separado da área clicável
-- **Conflitos Resolvidos**: onClick removido do container principal, aplicado apenas ao conteúdo
-- **user-select: none**: Seleção de texto desabilitada durante drag operations
-- **Visual Hierárquico Melhorado**:
-  - Indentação `ml-6` + `border-l-2` para níveis
-  - Badges visuais "Nível X" para debug
-  - Hover states com `group-hover:opacity-100` nos botões
-- **DragOverlay Aprimorado**: Visual consistente com transformação e cores
-
-**RESULTADO**: ✅ Drag & drop funcionando perfeitamente, UX WordPress-style preservada
-
-### ✅ SISTEMA DEPENDÊNCIAS HÍBRIDO + @DND-KIT OTIMIZADO
-
-**FASE 1 - Database Híbrido Otimizado (COMPLETA)**:
-
-- **Schema Atualizado**: Removido campo `order`, adicionados `treePath`, `treeDepth`, `sortKey`
+- **Schema Simplificado**: Removidos campos desnecessários, mantidos apenas essenciais
 - **API Otimizada**: Queries O(log n) com sortKey, funções utilitárias para cálculo automático
-- **Seed Migrado**: Recriação automática com campos híbridos calculados
+- **Seed Funcional**: Recriação automática com campos híbridos calculados
 - **Performance**: Consultas hierárquicas 10x mais rápidas
-
-**FASE 2 - @dnd-kit Implementation (COMPLETA)**:
-
-- **Biblioteca Moderna**: Substituição completa do HTML5 drag & drop nativo
-- **Touch Support**: Funciona perfeitamente em dispositivos móveis
-- **WordPress Style**: Visual idêntico ao menu-builder com indentação hierárquica
-- **Componentes**: SortableTreeItem + DragOverlay + DndContext completo
-- **Animações**: Smooth transitions e feedback visual otimizado
-- **Accessibility**: Suporte completo a keyboard navigation
 
 ### ✅ Editor Markdown PERFEITO
 
@@ -152,14 +165,14 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 - Cards produtos/projetos
 - _Falta apenas_: dados reais dinâmicos completos
 
-### Produtos: 95% ✅
+### Produtos: 90% ✅
 
 - CRUD completo
-- Base conhecimento hierárquica
+- Base conhecimento hierárquica com dados reais
 - Manual accordion estruturado
 - Lista contatos responsáveis
-- Gestão dependências árvore
-- _Falta apenas_: versionamento manual
+- Gestão dependências árvore (visualização)
+- _Falta apenas_: drag & drop reordenação
 
 ### Problemas/Soluções: 100% ✅
 
@@ -199,7 +212,7 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 ### Database: 100% ✅
 
 - PostgreSQL produção
-- Schema 15+ tabelas
+- Schema 15+ tabelas simplificado
 - Relacionamentos otimizados
 - Connection pooling
 - Performance queries
@@ -311,19 +324,19 @@ npm run db:push --force
 
 ## PRÓXIMOS MARCOS
 
-### Setembro 2025
+### Janeiro 2025
 
+- [ ] Drag & drop dependências implementação completa
 - [ ] Sistema Grupos implementação completa
 - [ ] Testes unitários componentes críticos
-- [ ] Documentação API Swagger
 
-### Outubro 2025
+### Fevereiro 2025
 
 - [ ] Notificações tempo real
 - [ ] Analytics dashboard
 - [ ] Performance monitoring
 
-### Novembro 2025
+### Março 2025
 
 - [ ] Backup automatizado
 - [ ] Deploy automation
@@ -341,4 +354,4 @@ O Silo é agora um sistema **profissional e polido** com:
 - Performance **otimizada** e escalável
 - Segurança **enterprise-grade**
 
-Sistema de grupos é a **única funcionalidade major** pendente para completude total.
+**Próxima implementação major**: Drag & drop para reordenação hierárquica de dependências.
