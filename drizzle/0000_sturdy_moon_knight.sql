@@ -54,13 +54,12 @@ CREATE TABLE "product_dependency" (
 	"id" text PRIMARY KEY NOT NULL,
 	"product_id" text NOT NULL,
 	"name" text NOT NULL,
-	"type" text NOT NULL,
-	"category" text NOT NULL,
 	"icon" text,
 	"description" text,
-	"url" text,
 	"parent_id" text,
-	"order" integer DEFAULT 0 NOT NULL,
+	"tree_path" text,
+	"tree_depth" integer DEFAULT 0 NOT NULL,
+	"sort_key" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );

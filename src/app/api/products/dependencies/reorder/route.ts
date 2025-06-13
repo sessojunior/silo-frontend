@@ -19,8 +19,8 @@ export async function PUT(req: NextRequest) {
 			return NextResponse.json({ error: 'ProductId e items são obrigatórios' }, { status: 400 })
 		}
 
-		console.log('ℹ️ Reordenando dependências para produto:', productId)
-		console.log('ℹ️ Itens a serem atualizados:', items.length)
+		console.log('🔵Reordenando dependências para produto:', productId)
+		console.log('🔵Itens a serem atualizados:', items.length)
 
 		// Validar se todos os itens pertencem ao produto
 		const existingDependencies = await db.select({ id: productDependency.id }).from(productDependency).where(eq(productDependency.productId, productId))

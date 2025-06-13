@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import ProductDependencyMenuBuilder, { type ProductDependencyItem } from './ProductDependencyMenuBuilder'
+import ProductDependencyMenuBuilder, { type ProductDependencyItem } from '@/components/admin/products/ProductDependencyMenuBuilder'
 
 export default function TesteMenuPage() {
 	const [isMounted, setIsMounted] = useState(false)

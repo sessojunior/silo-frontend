@@ -1,295 +1,36 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 
 // Removido @dnd-kit - usando HTML5 drag & drop nativo
 
-import Tree, { type TreeItemProps } from '@/components/ui/Tree'
+import TreeView, { type TreeNode } from '@/components/ui/TreeView'
 import Accordion, { type Section } from '@/components/ui/Accordion'
 import Button from '@/components/ui/Button'
 import Offcanvas from '@/components/ui/Offcanvas'
-import Dialog from '@/components/ui/Dialog'
 import Label from '@/components/ui/Label'
 import Input from '@/components/ui/Input'
-import Select from '@/components/ui/Select'
 import { toast } from '@/lib/toast'
+import ProductDependencyMenuBuilder, { type ProductDependencyItem } from '@/components/admin/products/ProductDependencyMenuBuilder'
 
-// MenuBuilder para exibir dependências do banco de dados
-interface MenuBuilderProps {
-	dependencies: ProductDependency[]
-	onEdit: (item: ProductDependency) => void
-	onDelete: (item: ProductDependency) => void
-	onReorder?: (reorderedDependencies: ProductDependency[]) => void
-}
-
-function MenuBuilder({ dependencies, onEdit, onDelete, onReorder }: MenuBuilderProps) {
-	// Estados para drag & drop
-	const [draggedItem, setDraggedItem] = useState<ProductDependency | null>(null)
-	const [dragOverItem, setDragOverItem] = useState<ProductDependency | null>(null)
-	const [dropPosition, setDropPosition] = useState<'before' | 'after' | 'inside' | null>(null)
-
-	// Handlers para drag & drop HTML5
-	const handleDragStart = (e: React.DragEvent, item: ProductDependency) => {
-		setDraggedItem(item)
-		e.dataTransfer.effectAllowed = 'move'
-		e.dataTransfer.setData('text/plain', item.id)
-
-		// Adiciona classe visual durante o drag
-		e.currentTarget.classList.add('opacity-50')
-	}
-
-	const handleDragEnd = (e: React.DragEvent) => {
-		setDraggedItem(null)
-		setDragOverItem(null)
-		setDropPosition(null)
-
-		// Remove classe visual
-		e.currentTarget.classList.remove('opacity-50')
-	}
-
-	const handleDragOver = (e: React.DragEvent, item: ProductDependency) => {
-		e.preventDefault()
-		e.dataTransfer.dropEffect = 'move'
-
-		if (!draggedItem || draggedItem.id === item.id) {
-			return
-		}
-
-		setDragOverItem(item)
-
-		// Determina posição do drop baseado na posição do mouse
-		const rect = e.currentTarget.getBoundingClientRect()
-		const y = e.clientY - rect.top
-		const height = rect.height
-
-		let newPosition: 'before' | 'after' | 'inside'
-		if (y < height * 0.25) {
-			newPosition = 'before'
-		} else if (y > height * 0.75) {
-			newPosition = 'after'
-		} else {
-			newPosition = 'inside'
-		}
-
-		setDropPosition(newPosition)
-	}
-
-	const handleDragLeave = (e: React.DragEvent) => {
-		// Só limpa se estamos saindo do elemento de fato
-		const isLeavingElement = !e.currentTarget.contains(e.relatedTarget as Node)
-
-		if (isLeavingElement) {
-			setDragOverItem(null)
-			setDropPosition(null)
-		}
-	}
-
-	const handleDrop = async (e: React.DragEvent, targetItem: ProductDependency) => {
-		e.preventDefault()
-
-		if (!draggedItem || !onReorder || draggedItem.id === targetItem.id) {
-			setDraggedItem(null)
-			setDragOverItem(null)
-			setDropPosition(null)
-			return
-		}
-
-		// Cria nova estrutura hierárquica baseada no drop
-		const flatItems = flattenDependencies(dependencies)
-		const newOrder = reorderItems(flatItems, draggedItem, targetItem, dropPosition || 'after')
-		const newHierarchy = buildHierarchyFromFlat(newOrder)
-
-		// Chama callback para atualizar no servidor
-		onReorder(newHierarchy)
-
-		// Limpa estados
-		setDraggedItem(null)
-		setDragOverItem(null)
-		setDropPosition(null)
-	}
-
-	// Utilitário para achatar dependências em lista linear
-	const flattenDependencies = (deps: ProductDependency[], level = 0): Array<ProductDependency & { level: number }> => {
-		const result: Array<ProductDependency & { level: number }> = []
-
-		deps.forEach((dep) => {
-			result.push({ ...dep, level })
-			if (dep.children && dep.children.length > 0) {
-				result.push(...flattenDependencies(dep.children, level + 1))
-			}
-		})
-
-		return result
-	}
-
-	// Utilitário para reordenar itens baseado no drag & drop
-	const reorderItems = (flatItems: Array<ProductDependency & { level: number }>, draggedItem: ProductDependency, targetItem: ProductDependency, position: 'before' | 'after' | 'inside'): Array<ProductDependency & { level: number }> => {
-		// Remove o item arrastado da lista
-		const withoutDragged = flatItems.filter((item) => item.id !== draggedItem.id)
-
-		// Encontra índice do item alvo
-		const targetIndex = withoutDragged.findIndex((item) => item.id === targetItem.id)
-		if (targetIndex === -1) return flatItems
-
-		// Determina novo nível e posição
-		let newLevel = withoutDragged[targetIndex].level
-		let insertIndex = targetIndex
-
-		if (position === 'before') {
-			insertIndex = targetIndex
-		} else if (position === 'after') {
-			insertIndex = targetIndex + 1
-		} else if (position === 'inside') {
-			newLevel = withoutDragged[targetIndex].level + 1
-			insertIndex = targetIndex + 1
-		}
-
-		// Insere item na nova posição com novo nível
-		const reorderedItem = { ...draggedItem, level: newLevel }
-		withoutDragged.splice(insertIndex, 0, reorderedItem)
-
-		return withoutDragged
-	}
-
-	// Utilitário para reconstruir hierarquia de lista flat
-	const buildHierarchyFromFlat = (flatItems: Array<ProductDependency & { level: number }>): ProductDependency[] => {
-		const result: ProductDependency[] = []
-		const stack: Array<{ item: ProductDependency; level: number }> = []
-
-		flatItems.forEach((item) => {
-			// Remove níveis maiores da stack
-			while (stack.length > 0 && stack[stack.length - 1].level >= item.level) {
-				stack.pop()
-			}
-
-			// Cria item sem children inicialmente
-			const newItem: ProductDependency = {
-				id: item.id,
-				name: item.name,
-				icon: item.icon,
-				description: item.description,
-				parentId: stack.length > 0 ? stack[stack.length - 1].item.id : null,
-				treePath: item.treePath,
-				treeDepth: item.level,
-				sortKey: item.sortKey,
-				children: [],
-			}
-
-			if (stack.length === 0) {
-				// Item raiz
-				result.push(newItem)
-			} else {
-				// Item filho - adiciona ao parent
-				const parent = stack[stack.length - 1].item
-				if (!parent.children) parent.children = []
-				parent.children.push(newItem)
-			}
-
-			// Adiciona à stack
-			stack.push({ item: newItem, level: item.level })
-		})
-
-		return result
-	}
-
-	// Renderiza um item de dependência recursivamente
-	const renderItem = (item: ProductDependency, level: number = 0): React.ReactNode => {
-		const marginLeft = level * 32 // 32px por nível de hierarquia
-		const isDragging = draggedItem?.id === item.id
-		const isDragOver = dragOverItem?.id === item.id
-
-		// Classes para feedback visual
-		let dropIndicatorClass = ''
-		if (isDragOver && dropPosition) {
-			if (dropPosition === 'before') {
-				dropIndicatorClass = 'border-t-2 border-blue-500'
-			} else if (dropPosition === 'after') {
-				dropIndicatorClass = 'border-b-2 border-blue-500'
-			} else if (dropPosition === 'inside') {
-				dropIndicatorClass = 'ring-2 ring-blue-500 ring-inset'
-			}
-		}
-
-		return (
-			<div key={item.id}>
-				{/* Item atual */}
-				<div className={`flex items-center gap-2 px-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-750 transition-all ${dropIndicatorClass} ${isDragging ? 'opacity-50' : ''}`} style={{ marginLeft: `${marginLeft}px` }} draggable={!isDragging} onDragStart={(e) => handleDragStart(e, item)} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, item)} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, item)}>
-					<span className='icon-[lucide--grip-vertical] size-4 text-zinc-400 cursor-grab active:cursor-grabbing' />
-					{item.icon && <span className={`${item.icon} size-4 text-zinc-600 dark:text-zinc-400`} />}
-					{!item.icon && <span className='icon-[lucide--circle] size-4 text-zinc-600 dark:text-zinc-400' />}
-					<span className='flex-1 font-medium'>{item.name}</span>
-					<span className='flex items-center justify-center size-8 bg-zinc-100 dark:bg-zinc-700 rounded-full text-xs text-zinc-500'>L{level + 1}</span>
-					<button className='flex items-center justify-center size-8 hover:bg-zinc-200 dark:hover:bg-zinc-600 rounded-full' onClick={() => onEdit(item)} title='Editar'>
-						<span className='icon-[lucide--edit-3] size-3.5 text-zinc-500' />
-					</button>
-					<button className='flex items-center justify-center size-8 hover:bg-zinc-200 dark:hover:bg-zinc-600 rounded-full' onClick={() => onDelete(item)} title='Excluir'>
-						<span className='icon-[lucide--trash-2] size-3.5 text-red-500' />
-					</button>
-				</div>
-
-				{/* Filhos recursivamente */}
-				{item.children && item.children.length > 0 && <div className='space-y-1 mt-1'>{item.children.map((child) => renderItem(child, level + 1))}</div>}
-			</div>
-		)
-	}
-
-	// Se não há dependências, mostra mensagem vazia
-	if (!dependencies || dependencies.length === 0) {
-		return (
-			<div className='w-full space-y-2'>
-				<div className='flex flex-col items-center justify-center py-12 text-center'>
-					<span className='icon-[lucide--folder-tree] mb-4 text-4xl text-zinc-400'></span>
-					<h4 className='text-lg font-medium text-zinc-600 dark:text-zinc-300'>Nenhuma dependência encontrada</h4>
-					<p className='text-sm text-zinc-500 dark:text-zinc-400'>Adicione dependências para começar a organizar a base de conhecimento.</p>
-				</div>
-			</div>
-		)
-	}
-
-	return (
-		<div className='w-full space-y-2'>
-			{/* Instruções de uso */}
-			<div className='p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg mb-4'>
-				<div className='flex items-start gap-2'>
-					<span className='icon-[lucide--info] size-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0' />
-					<div className='text-blue-700 dark:text-blue-300'>
-						<p className='font-medium mb-1'>Como usar o drag & drop:</p>
-						<ul className='list-disc list-inside pl-1'>
-							<li>
-								Arraste o ícone <strong>⋮⋮</strong> para mover itens
-							</li>
-							<li>
-								Solte <strong>acima</strong> para inserir antes
-							</li>
-							<li>
-								Solte <strong>abaixo</strong> para inserir depois
-							</li>
-							<li>
-								Solte <strong>no meio</strong> para tornar item filho
-							</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-
-			<div className='flex items-center justify-end mb-4'>
-				{/* <Button type='button' icon='icon-[lucide--plus]' onClick={openAddItemForm}> */}
-				<Button type='button' icon='icon-[lucide--plus]'>
-					Adicionar dependência
-				</Button>
-			</div>
-
-			{/* Lista hierárquica com dados reais */}
-			<div className='space-y-1'>{dependencies.map((item) => renderItem(item, 0))}</div>
-		</div>
-	)
-}
+// Removido MenuBuilder interno - agora usando ProductDependencyMenuBuilder
 
 // Importação dinâmica do Markdown para evitar problemas de SSR
 const Markdown = dynamic(() => import('@/components/ui/Markdown'), { ssr: false })
+
+// Função utilitária para converter ProductDependency para TreeNode (compatível com TreeView)
+function convertDependenciesToTreeNodes(dependencies: ProductDependency[]): TreeNode[] {
+	return dependencies.map((dep) => ({
+		id: dep.id,
+		name: dep.name,
+		icon: dep.icon || null,
+		children: dep.children ? convertDependenciesToTreeNodes(dep.children) : undefined,
+		data: dep, // Inclui todos os campos do banco como data
+	}))
+}
 
 // Tipos para os dados da API
 interface ProductDependency {
@@ -330,15 +71,7 @@ interface ProductManualSection {
 	chapters: ProductManualChapter[]
 }
 
-// Estender TreeItemProps para incluir actions
-interface ExtendedTreeItemProps extends TreeItemProps {
-	actions?: Array<{
-		icon: string
-		title: string
-		onClick: () => void
-		className?: string
-	}>
-}
+// Removido - não mais necessário com novo Tree component
 
 export default function ProductsPage() {
 	const params = useParams()
@@ -354,8 +87,6 @@ export default function ProductsPage() {
 	const [solutionsCount, setSolutionsCount] = useState<number>(0)
 	const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 	const [offcanvasOpen, setOffcanvasOpen] = useState(false)
-	const [dialogOpen, setDialogOpen] = useState(false)
-	const [selectedDependency, setSelectedDependency] = useState<ProductDependency | null>(null)
 	const [formMode, setFormMode] = useState<'section' | 'chapter'>('section')
 	const [formTitle, setFormTitle] = useState('')
 	const [formDescription, setFormDescription] = useState('')
@@ -364,17 +95,16 @@ export default function ProductsPage() {
 	const [editingSection, setEditingSection] = useState<ProductManualSection | null>(null)
 	const [editingChapter, setEditingChapter] = useState<ProductManualChapter | null>(null)
 
-	// Estados para gerenciar dependências
-	const [dependencyDialogOpen, setDependencyDialogOpen] = useState(false)
-	const [dependencyOffcanvasOpen, setDependencyOffcanvasOpen] = useState(false)
-	const [dependencyFormMode, setDependencyFormMode] = useState<'add' | 'edit'>('add')
-	const [selectedParentDependency, setSelectedParentDependency] = useState<ProductDependency | null>(null)
-	const [editingDependency, setEditingDependency] = useState<ProductDependency | null>(null)
-	const [dependencyFormData, setDependencyFormData] = useState({
-		name: '',
-		icon: '',
-		description: '',
-	})
+	// Estados para gerenciar dependências - removidos, TreeView tem dialog próprio
+	// const [dependencyOffcanvasOpen, setDependencyOffcanvasOpen] = useState(false) // Removido - não utilizado
+	// const [dependencyFormMode, setDependencyFormMode] = useState<'add' | 'edit'>('add') // Removido - não utilizado
+	// const [selectedParentDependency, setSelectedParentDependency] = useState<ProductDependency | null>(null) // Removido - não utilizado
+	// const [editingDependency, setEditingDependency] = useState<ProductDependency | null>(null) // Removido - não utilizado
+	// const [dependencyFormData, setDependencyFormData] = useState({ // Removido - não utilizado
+	//	name: '',
+	//	icon: '',
+	//	description: '',
+	// })
 
 	// Estados para gerenciamento avançado de dependências
 	const [managementOffcanvasOpen, setManagementOffcanvasOpen] = useState(false)
@@ -384,6 +114,9 @@ export default function ProductsPage() {
 	const [isAddingNewItem, setIsAddingNewItem] = useState(false)
 	const [isMobile, setIsMobile] = useState(false)
 
+	// ✅ Debounce para evitar chamadas excessivas
+	const [reorderTimeout, setReorderTimeout] = useState<NodeJS.Timeout | null>(null)
+
 	// Dados para formulário de edição/criação de item
 	const [editFormData, setEditFormData] = useState({
 		name: '',
@@ -391,6 +124,34 @@ export default function ProductsPage() {
 		description: '',
 		parentId: null as string | null,
 	})
+
+	// Função para converter ProductDependency[] para ProductDependencyItem[]
+	const convertToProductDependencyItems = (deps: ProductDependency[]): ProductDependencyItem[] => {
+		return deps.map((dep) => ({
+			...dep,
+			productId: productId || '',
+			treePath: dep.treePath || undefined, // Converte null para undefined
+			sortKey: dep.sortKey || undefined, // Converte null para undefined
+			href: undefined,
+			collapsed: false,
+			children: dep.children ? convertToProductDependencyItems(dep.children) : [],
+		}))
+	}
+
+	// Função para converter ProductDependencyItem[] de volta para ProductDependency[]
+	const convertFromProductDependencyItems = (items: ProductDependencyItem[]): ProductDependency[] => {
+		return items.map((item) => ({
+			id: item.id.toString(), // Converte para string
+			name: item.name,
+			icon: item.icon,
+			description: item.description,
+			parentId: item.parentId,
+			treePath: item.treePath || null,
+			treeDepth: item.treeDepth || 0, // Garante que sempre seja number
+			sortKey: item.sortKey || null,
+			children: item.children ? convertFromProductDependencyItems(item.children) : [],
+		}))
+	}
 
 	// Detecta tema dark/light
 	useEffect(() => {
@@ -420,8 +181,17 @@ export default function ProductsPage() {
 		return () => window.removeEventListener('resize', checkMobile)
 	}, [])
 
+	// ✅ Cleanup do timeout quando componente desmonta
+	useEffect(() => {
+		return () => {
+			if (reorderTimeout) {
+				clearTimeout(reorderTimeout)
+			}
+		}
+	}, [reorderTimeout])
+
 	// Lista de ícones disponíveis para seleção (classes completas do Iconify)
-	const availableIcons = ['icon-[lucide--server]', 'icon-[lucide--database]', 'icon-[lucide--monitor]', 'icon-[lucide--smartphone]', 'icon-[lucide--wifi]', 'icon-[lucide--network]', 'icon-[lucide--shield]', 'icon-[lucide--key]', 'icon-[lucide--lock]', 'icon-[lucide--globe]', 'icon-[lucide--terminal]', 'icon-[lucide--code]', 'icon-[lucide--git-branch]', 'icon-[lucide--package]', 'icon-[lucide--puzzle]', 'icon-[lucide--zap]', 'icon-[lucide--activity]', 'icon-[lucide--alert-triangle]', 'icon-[lucide--tool]', 'icon-[lucide--settings-2]', 'icon-[lucide--layers]', 'icon-[lucide--workflow]', 'icon-[lucide--cpu]', 'icon-[lucide--hard-drive]', 'icon-[lucide--cloud]', 'icon-[lucide--router]', 'icon-[lucide--usb]', 'icon-[lucide--memory-stick]']
+	const availableIcons = ['icon-[lucide--server]', 'icon-[lucide--database]', 'icon-[lucide--monitor]', 'icon-[lucide--smartphone]', 'icon-[lucide--wifi]', 'icon-[lucide--network]', 'icon-[lucide--shield]', 'icon-[lucide--key]', 'icon-[lucide--lock]', 'icon-[lucide--globe]', 'icon-[lucide--terminal]', 'icon-[lucide--code]', 'icon-[lucide--git-branch]', 'icon-[lucide--package]', 'icon-[lucide--puzzle]', 'icon-[lucide--zap]', 'icon-[lucide--activity]', 'icon-[lucide--alert-triangle]', 'icon-[lucide--settings]', 'icon-[lucide--settings-2]', 'icon-[lucide--layers]', 'icon-[lucide--workflow]', 'icon-[lucide--cpu]', 'icon-[lucide--hard-drive]', 'icon-[lucide--cloud]', 'icon-[lucide--router]', 'icon-[lucide--usb]', 'icon-[lucide--memory-stick]']
 
 	// Busca o ID do produto pelo slug
 	useEffect(() => {
@@ -483,7 +253,7 @@ export default function ProductsPage() {
 		fetchData()
 	}, [productId, slug])
 
-	// Função para recarregar dependências
+	// Função para recarregar dependências (apenas para casos de erro)
 	const refreshDependencies = async () => {
 		if (!productId) return
 		try {
@@ -499,56 +269,71 @@ export default function ProductsPage() {
 	const handleReorderDependencies = async (reorderedDependencies: ProductDependency[]) => {
 		if (!productId) return
 
-		try {
-			// Otimista: atualiza UI imediatamente
-			setDependencies(reorderedDependencies)
+		// ✅ Atualiza AMBAS as UIs imediatamente para responsividade
+		setDependencies(reorderedDependencies) // ✅ Atualiza TreeView da coluna esquerda
+		// ✅ NÃO recarrega o MenuBuilder - ele já está atualizado
 
-			// Converte hierarquia para lista flat com sortKey recalculado
-			const flatList = flattenWithNewSortKeys(reorderedDependencies)
+		// ✅ Cancela timeout anterior se existir
+		if (reorderTimeout) {
+			clearTimeout(reorderTimeout)
+		}
 
-			// Envia para API em lote
-			const res = await fetch('/api/products/dependencies/reorder', {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					productId,
-					items: flatList,
-				}),
-			})
+		// ✅ Debounce de 300ms para evitar chamadas excessivas
+		const newTimeout = setTimeout(async () => {
+			try {
+				console.log('🔵 Salvando reordenação no banco - Total:', reorderedDependencies.length, 'itens')
 
-			if (res.ok) {
-				toast({
-					type: 'success',
-					title: 'Ordem atualizada com sucesso!',
+				// Converte hierarquia para lista flat com parentId e sortKey corretos
+				const flatList = flattenWithNewSortKeys(reorderedDependencies)
+				console.log('🔵 Lista flat gerada:', flatList.length, 'itens para salvar')
+
+				// Envia para API em lote
+				const res = await fetch('/api/products/dependencies/reorder', {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						productId,
+						items: flatList,
+					}),
 				})
 
-				// Recarrega para sincronizar com servidor
-				await refreshDependencies()
-			} else {
-				const error = await res.json()
+				if (res.ok) {
+					console.log('✅ Reordenação salva com sucesso no banco')
+					toast({
+						type: 'success',
+						title: 'Ordem atualizada com sucesso!',
+					})
+					// ✅ NÃO faz refresh - mantém estado atual
+				} else {
+					const error = await res.json()
+					console.error('❌ Erro da API:', error)
+					toast({
+						type: 'error',
+						title: error.message || 'Erro ao reordenar dependências',
+					})
+
+					// ✅ Apenas em caso de erro, reverte
+					await refreshDependencies()
+				}
+			} catch (error) {
+				console.error('❌ Erro inesperado ao reordenar:', error)
 				toast({
 					type: 'error',
-					title: error.message || 'Erro ao reordenar dependências',
+					title: 'Erro inesperado. Revertendo mudanças...',
 				})
 
-				// Reverte mudanças em caso de erro
+				// ✅ Apenas em caso de erro, reverte
 				await refreshDependencies()
 			}
-		} catch (error) {
-			console.error('❌ Erro inesperado ao reordenar:', error)
-			toast({
-				type: 'error',
-				title: 'Erro inesperado. Revertendo mudanças...',
-			})
+		}, 300) // ✅ Debounce de 300ms
 
-			// Reverte mudanças em caso de erro
-			await refreshDependencies()
-		}
+		setReorderTimeout(newTimeout)
 	}
 
-	// Utilitário para achatar hierarquia e recalcular sortKeys
+	// Utilitário para achatar hierarquia e recalcular sortKeys CORRETAMENTE
 	const flattenWithNewSortKeys = (
 		deps: ProductDependency[],
+		parentId: string | null = null,
 		parentPath = '',
 		level = 0,
 	): Array<{
@@ -570,16 +355,18 @@ export default function ProductsPage() {
 			const currentPath = parentPath ? `${parentPath}/${index}` : `/${index}`
 			const sortKey = parentPath ? `${parentPath.split('/').filter(Boolean).join('.')}.${index.toString().padStart(3, '0')}` : index.toString().padStart(3, '0')
 
+			// ✅ CORREÇÃO: Usa o parentId correto baseado na hierarquia atual
 			result.push({
 				id: dep.id,
-				parentId: dep.parentId ?? null,
+				parentId: parentId, // ✅ Usa o parentId da hierarquia atual, não o antigo
 				treePath: currentPath,
 				treeDepth: level,
 				sortKey: sortKey,
 			})
 
 			if (dep.children && dep.children.length > 0) {
-				result.push(...flattenWithNewSortKeys(dep.children, currentPath, level + 1))
+				// ✅ CORREÇÃO: Passa o ID atual como parentId para os filhos
+				result.push(...flattenWithNewSortKeys(dep.children, dep.id, currentPath, level + 1))
 			}
 		})
 
@@ -622,17 +409,17 @@ export default function ProductsPage() {
 	}
 
 	// Abrir formulário para editar item existente
-	const openEditItemForm = (item: ProductDependency) => {
-		setIsAddingNewItem(false)
-		setSelectedItemForEdit(item)
-		setEditFormData({
-			name: item.name,
-			icon: item.icon || '',
-			description: item.description || '',
-			parentId: item.parentId || null,
-		})
-		setEditItemOffcanvasOpen(true)
-	}
+	// const openEditItemForm = (item: ProductDependency) => { // Removido - não utilizado
+	//	setIsAddingNewItem(false)
+	//	setSelectedItemForEdit(item)
+	//	setEditFormData({
+	//		name: item.name,
+	//		icon: item.icon || '',
+	//		description: item.description || '',
+	//		parentId: item.parentId || null,
+	//	})
+	//	setEditItemOffcanvasOpen(true)
+	// }
 
 	// Submeter formulário de item
 	const handleSubmitItemForm = async (e: React.FormEvent) => {
@@ -711,73 +498,14 @@ export default function ProductsPage() {
 		}
 	}
 
-	// Converte as dependências para o formato do Tree com ações
-	const convertToTreeItems = (deps: ProductDependency[]): ExtendedTreeItemProps[] => {
-		return deps.map((dep) => ({
-			icon: dep.icon || undefined,
-			label: dep.name,
-			children: dep.children ? convertToTreeItems(dep.children) : undefined,
-			// Só adiciona onClick para itens que não têm filhos (folhas da árvore)
-			onClick: dep.children && dep.children.length > 0 ? undefined : () => handleDependencyClick(dep),
-			// Adiciona actions para todas as dependências
-			actions: [
-				{
-					icon: 'icon-[lucide--plus]',
-					title: 'Adicionar item filho',
-					onClick: () => handleAddDependency(dep),
-				},
-				{
-					icon: 'icon-[lucide--edit-3]',
-					title: 'Editar',
-					onClick: () => handleEditDependency(dep),
-				},
-				{
-					icon: 'icon-[lucide--trash-2]',
-					title: 'Excluir',
-					onClick: () => handleDeleteDependency(dep),
-					className: 'text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300',
-				},
-			],
-		}))
-	}
+	// Converte as dependências para o formato do TreeView component
+	const treeNodes = useMemo(() => {
+		console.log('🔵 Recalculando treeNodes - Total dependencies:', dependencies.length)
+		return convertDependenciesToTreeNodes(dependencies)
+	}, [dependencies])
 
-	// Função para lidar com clique em dependências
-	const handleDependencyClick = (dependency: ProductDependency) => {
-		setSelectedDependency(dependency)
-		setDialogOpen(true)
-	}
-
-	// Função para adicionar dependência filha
-	const handleAddDependency = (parentDependency: ProductDependency | null = null) => {
-		setDependencyFormMode('add')
-		setSelectedParentDependency(parentDependency)
-		setEditingDependency(null)
-		setDependencyFormData({
-			name: '',
-			icon: '',
-			description: '',
-		})
-		setDependencyOffcanvasOpen(true)
-	}
-
-	// Função para editar dependência
-	const handleEditDependency = (dependency: ProductDependency) => {
-		setDependencyFormMode('edit')
-		setSelectedParentDependency(null)
-		setEditingDependency(dependency)
-		setDependencyFormData({
-			name: dependency.name,
-			icon: dependency.icon || '',
-			description: dependency.description || '',
-		})
-		setDependencyOffcanvasOpen(true)
-	}
-
-	// Função para excluir dependência
-	const handleDeleteDependency = (dependency: ProductDependency) => {
-		setSelectedDependency(dependency)
-		setDependencyDialogOpen(true)
-	}
+	// Funções removidas - não mais necessárias com TreeView component
+	// As ações agora são feitas através do gerenciador de dependências
 
 	// Função para abrir formulário de seção
 	const handleAddSection = () => {
@@ -935,116 +663,10 @@ export default function ProductsPage() {
 		}
 	}
 
-	// Função para submeter formulário de dependência
-	const handleSubmitDependency = async (e: React.FormEvent) => {
-		e.preventDefault()
-		if (!productId) return
-		if (!dependencyFormData.name.trim()) {
-			toast({
-				type: 'error',
-				title: 'Nome é obrigatório',
-			})
-			return
-		}
+	// Função removida - handleSubmitDependency não é mais necessária
+	// Agora usamos o gerenciador de dependências no offcanvas
 
-		setFormLoading(true)
-		try {
-			if (dependencyFormMode === 'add') {
-				const res = await fetch('/api/products/dependencies', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						productId,
-						name: dependencyFormData.name,
-						icon: dependencyFormData.icon || null,
-						description: dependencyFormData.description || null,
-						parentId: selectedParentDependency?.id || null,
-					}),
-				})
-
-				if (res.ok) {
-					toast({
-						type: 'success',
-						title: 'Dependência adicionada com sucesso!',
-					})
-					setDependencyOffcanvasOpen(false)
-					// Recarregar dependências
-					await refreshDependencies()
-				} else {
-					const error = await res.json()
-					toast({
-						type: 'error',
-						title: error.message || 'Erro ao adicionar dependência',
-					})
-				}
-			} else if (dependencyFormMode === 'edit') {
-				const res = await fetch('/api/products/dependencies', {
-					method: 'PUT',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						id: editingDependency?.id,
-						name: dependencyFormData.name,
-						icon: dependencyFormData.icon || null,
-						description: dependencyFormData.description || null,
-						parentId: selectedParentDependency?.id || null,
-					}),
-				})
-
-				if (res.ok) {
-					toast({
-						type: 'success',
-						title: 'Dependência atualizada com sucesso!',
-					})
-					setDependencyOffcanvasOpen(false)
-					// Recarregar dependências
-					await refreshDependencies()
-				} else {
-					const error = await res.json()
-					toast({
-						type: 'error',
-						title: error.message || 'Erro ao atualizar dependência',
-					})
-				}
-			}
-		} catch (error) {
-			console.error('❌ Erro ao submeter dependência:', error)
-			toast({ type: 'error', title: 'Erro inesperado. Tente novamente.' })
-			setFormLoading(false)
-		}
-	}
-
-	// Função para confirmar exclusão de dependência
-	const handleConfirmDeleteDependency = async () => {
-		if (!selectedDependency) return
-
-		setFormLoading(true)
-		try {
-			const res = await fetch(`/api/products/dependencies?id=${selectedDependency.id}`, {
-				method: 'DELETE',
-			})
-
-			if (res.ok) {
-				toast({
-					type: 'success',
-					title: 'Dependência excluída com sucesso!',
-				})
-				setDependencyDialogOpen(false)
-				// Recarregar dependências
-				await refreshDependencies()
-			} else {
-				const error = await res.json()
-				toast({
-					type: 'error',
-					title: error.message || 'Erro ao excluir dependência',
-				})
-			}
-		} catch (error) {
-			console.error('❌ Erro ao excluir dependência:', error)
-			toast({ type: 'error', title: 'Erro inesperado. Tente novamente.' })
-		} finally {
-			setFormLoading(false)
-		}
-	}
+	// Função removida - não mais necessária com TreeView que tem dialog próprio
 
 	// Converte as seções do manual para o formato do Accordion
 	const convertToAccordionSections = (sections: ProductManualSection[]): Section[] => {
@@ -1061,7 +683,6 @@ export default function ProductsPage() {
 		}))
 	}
 
-	const treeItems = convertToTreeItems(dependencies)
 	const accordionSections = convertToAccordionSections(sections)
 
 	// Conta estatísticas do manual
@@ -1104,20 +725,36 @@ export default function ProductsPage() {
 	return (
 		<div className='flex w-full'>
 			{/* Side left */}
-			<div className='flex w-[320px] flex-shrink-0 flex-col border-r border-zinc-200 dark:border-zinc-700'>
+			<div className='flex md:w-[420px] flex-shrink-0 flex-col border-r border-zinc-200 dark:border-zinc-700'>
 				<div className='scrollbar size-full h-[calc(100vh-131px)] overflow-y-auto'>
-					{/* Tree */}
-					<div className='px-8 pt-8' role='tree' aria-orientation='vertical'>
-						<div className='flex w-full items-center justify-between gap-2 pb-6'>
-							<h3 className='text-xl font-medium'>Dependências do produto</h3>
-							<Button type='button' icon='icon-[lucide--settings]' style='unstyled' className='size-10 rounded-full' onClick={openManagement} title='Gerenciar dependências' />
-						</div>
-						{treeItems.map((category, index) => (
-							<div key={index} className='pb-8'>
-								<h4 className='pb-4 text-lg font-medium'>{category.label}</h4>
-								{category.children?.map((child: TreeItemProps, childIndex: number) => <Tree key={childIndex} item={child as TreeItemProps} defaultOpen={false} activeUrl={`/admin/products/${slug}`} />)}
+					{/* TreeView */}
+					<div className='p-6' role='tree' aria-orientation='vertical'>
+						{/* Header */}
+						<div className='flex w-full items-center justify-between gap-2 mb-6'>
+							<div>
+								<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100'>Dependências</h3>
+								<p className='text-sm text-zinc-500 dark:text-zinc-400'>
+									{dependencies.length} {dependencies.length === 1 ? 'categoria' : 'categorias'}
+								</p>
 							</div>
-						))}
+							<Button type='button' icon='icon-[lucide--settings]' style='unstyled' className='size-9 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800' onClick={openManagement} title='Gerenciar dependências' />
+						</div>
+
+						{/* TreeView Items */}
+						{treeNodes.length > 0 ? (
+							<TreeView nodes={treeNodes} defaultExpanded={true} />
+						) : (
+							<div className='flex flex-col items-center justify-center py-12 text-center'>
+								<div className='size-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-4'>
+									<span className='icon-[lucide--layers] size-6 text-zinc-400' />
+								</div>
+								<h4 className='text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2'>Nenhuma dependência</h4>
+								<p className='text-xs text-zinc-500 dark:text-zinc-500 mb-4'>Configure as dependências deste produto</p>
+								<Button type='button' icon='icon-[lucide--plus]' style='filled' className='text-xs px-3 py-1.5' onClick={openManagement}>
+									Adicionar
+								</Button>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
@@ -1239,22 +876,126 @@ export default function ProductsPage() {
 			</div>
 
 			{/* Offcanvas para gerenciamento de dependências */}
-			<Offcanvas open={managementOffcanvasOpen} onClose={() => setManagementOffcanvasOpen(false)} title='Gerenciar Dependências' width='xl'>
-				<div className='flex flex-col gap-4'>
-					{/* Lista de dependências */}
+			<Offcanvas
+				open={managementOffcanvasOpen}
+				onClose={() => setManagementOffcanvasOpen(false)}
+				title={
+					<div className='flex items-center gap-3'>
+						<span className='icon-[lucide--layers] size-5 text-blue-600' />
+						<div>
+							<h2 className='text-lg font-semibold'>Gerenciar Dependências</h2>
+							<p className='text-sm font-normal text-zinc-500 dark:text-zinc-400'>Organize e configure as dependências do produto</p>
+						</div>
+					</div>
+				}
+				width='xl'
+			>
+				<div className='flex flex-col gap-6 h-full'>
+					{/* Cabeçalho com estatísticas */}
+					<div className='flex flex-col gap-4 pb-4 border-b border-dashed border-zinc-200 dark:border-zinc-700'>
+						<div className='flex items-center justify-between'>
+							<div className='flex items-center gap-4'>
+								<div className='flex items-center gap-2'>
+									<span className='icon-[lucide--folder-tree] size-4 text-zinc-600 dark:text-zinc-400' />
+									<span className='text-base font-medium text-zinc-600 dark:text-zinc-400'>{dependencies.length} dependências principais</span>
+								</div>
+								<div className='flex items-center gap-2'>
+									<span className='icon-[lucide--git-branch] size-4 text-zinc-600 dark:text-zinc-400' />
+									<span className='text-base font-medium text-zinc-600 dark:text-zinc-400'>{convertToFlatList(dependencies).length} itens no total</span>
+								</div>
+							</div>
+							<Button type='button' icon='icon-[lucide--plus]' style='filled' className='py-2 px-4' onClick={openAddItemForm}>
+								Nova Dependência
+							</Button>
+						</div>
+
+						<div className='bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-2'>
+							<div className='flex items-start gap-3'>
+								<span className='icon-[lucide--info] size-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0' />
+								<div className='text-base text-blue-700 dark:text-blue-300'>
+									<p className='font-medium mb-1'>Instruções:</p>
+									<ul className='space-y-1 text-base'>
+										<li>• Arraste e solte para reordenar as dependências.</li>
+										<li>• Use o botão de grip para mover itens entre níveis.</li>
+										<li>• Clique nos botões de ação para editar ou excluir.</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					{/* Skeleton de carregamento realista */}
 					{loadingManagement && (
-						<div className='flex flex-col gap-3'>
-							{Array(6)
-								.fill(0)
-								.map((_, i) => (
-									<div key={i} className='animate-pulse'>
-										<div className='h-12 bg-zinc-200 dark:bg-zinc-700 rounded-lg' />
+						<div className='flex flex-col gap-1'>
+							{/* Simula estrutura hierárquica real do MenuBuilder */}
+							{[
+								{ level: 0, width: '85%' },
+								{ level: 1, width: '70%' },
+								{ level: 2, width: '60%' },
+								{ level: 2, width: '65%' },
+								{ level: 1, width: '75%' },
+								{ level: 2, width: '55%' },
+								{ level: 0, width: '90%' },
+								{ level: 1, width: '68%' },
+								{ level: 1, width: '72%' },
+								{ level: 2, width: '58%' },
+								{ level: 0, width: '80%' },
+								{ level: 1, width: '66%' },
+							].map((item, i) => (
+								<div
+									key={i}
+									className='animate-pulse'
+									style={{
+										marginLeft: `${item.level * 50}px`,
+										maxWidth: '414px',
+									}}
+								>
+									<div className='flex items-center gap-2 p-3 bg-white border border-zinc-200 dark:border-zinc-700 rounded-lg dark:bg-zinc-800'>
+										{/* Grip icon skeleton */}
+										<div className='w-4 h-4 bg-zinc-200 dark:bg-zinc-700 rounded flex-shrink-0' />
+										{/* Item icon skeleton */}
+										<div className='w-4 h-4 bg-zinc-200 dark:bg-zinc-700 rounded flex-shrink-0' />
+										{/* Text skeleton com largura variável */}
+										<div className='h-4 bg-zinc-200 dark:bg-zinc-700 rounded flex-1' style={{ width: item.width }} />
+										{/* Level badge skeleton */}
+										<div className='w-8 h-8 bg-zinc-200 dark:bg-zinc-700 rounded-full flex-shrink-0' />
+										{/* Action buttons skeleton */}
+										<div className='flex gap-1 flex-shrink-0'>
+											<div className='w-8 h-8 bg-zinc-200 dark:bg-zinc-700 rounded-full' />
+											<div className='w-8 h-8 bg-zinc-200 dark:bg-zinc-700 rounded-full' />
+											<div className='w-8 h-8 bg-zinc-200 dark:bg-zinc-700 rounded-full' />
+										</div>
 									</div>
-								))}
+								</div>
+							))}
 						</div>
 					)}
 
-					<MenuBuilder dependencies={dependencies} onEdit={openEditItemForm} onDelete={handleDeleteDependency} onReorder={handleReorderDependencies} />
+					{/* MenuBuilder principal */}
+					{!loadingManagement && (
+						<div className='flex-1 min-h-0'>
+							<ProductDependencyMenuBuilder
+								items={convertToProductDependencyItems(dependencies)}
+								setItems={(newItems) => {
+									const convertedDeps = convertFromProductDependencyItems(newItems)
+									// ✅ Apenas chama handleReorderDependencies que já atualiza o estado
+									handleReorderDependencies(convertedDeps)
+								}}
+							/>
+						</div>
+					)}
+
+					{/* Estado vazio */}
+					{!loadingManagement && dependencies.length === 0 && (
+						<div className='flex-1 flex flex-col items-center justify-center py-12 text-center'>
+							<span className='icon-[lucide--layers] mb-4 text-4xl text-zinc-400' />
+							<h4 className='text-lg font-medium text-zinc-600 dark:text-zinc-300'>Nenhuma dependência encontrada</h4>
+							<p className='text-sm text-zinc-500 dark:text-zinc-400 mb-6'>Comece adicionando as primeiras dependências deste produto.</p>
+							<Button type='button' icon='icon-[lucide--plus]' style='filled' onClick={openAddItemForm}>
+								Adicionar primeira dependência
+							</Button>
+						</div>
+					)}
 				</div>
 			</Offcanvas>
 
@@ -1359,51 +1100,7 @@ export default function ProductsPage() {
 				</form>
 			</Offcanvas>
 
-			{/* Dialog para confirmar exclusão de dependência */}
-			<Dialog open={dependencyDialogOpen} onClose={() => setDependencyDialogOpen(false)} title='Confirmar exclusão'>
-				{selectedDependency && (
-					<div className='flex flex-col gap-4 pt-2'>
-						<p className='text-zinc-600 dark:text-zinc-300'>
-							Tem certeza de que deseja excluir <strong>&ldquo;{selectedDependency.name}&rdquo;</strong>?
-						</p>
-
-						<p className='text-sm text-zinc-500 dark:text-zinc-400'>Esta ação não pode ser desfeita. Certifique-se de que não há itens filhos dependentes desta categoria.</p>
-
-						<div className='flex gap-2 justify-end'>
-							<Button type='button' style='bordered' onClick={() => setDependencyDialogOpen(false)}>
-								Cancelar
-							</Button>
-							<Button type='button' style='filled' className='bg-red-600 hover:bg-red-700 text-white' onClick={handleConfirmDeleteDependency} disabled={formLoading}>
-								{formLoading ? 'Excluindo...' : 'Excluir'}
-							</Button>
-						</div>
-					</div>
-				)}
-			</Dialog>
-
-			{/* Dialog para informações da dependência */}
-			<Dialog
-				open={dialogOpen}
-				onClose={() => setDialogOpen(false)}
-				title={
-					<div className='flex items-center gap-2'>
-						{selectedDependency?.icon && <span className={`icon-[lucide--${selectedDependency.icon}] size-5`} />}
-						{selectedDependency?.name || 'Dependência'}
-					</div>
-				}
-			>
-				{selectedDependency && (
-					<div className='flex flex-col gap-4 pt-2'>
-						{selectedDependency.description && (
-							<div>
-								<div className='text-sm font-medium text-zinc-500 dark:text-zinc-400'>Descrição</div>
-								<div className='text-base'>{selectedDependency.description}</div>
-							</div>
-						)}
-						{!selectedDependency.description && <div className='text-zinc-500 dark:text-zinc-400'>Nenhuma descrição disponível para esta dependência.</div>}
-					</div>
-				)}
-			</Dialog>
+			{/* Dialogs removidos - TreeView tem dialog próprio integrado */}
 		</div>
 	)
 }

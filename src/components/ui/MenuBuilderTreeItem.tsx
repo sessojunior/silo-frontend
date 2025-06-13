@@ -215,10 +215,12 @@ export const TreeItem = memo(
 		const handleToggleOpen = useCallback(() => setOpen(!open), [open])
 		const handleEdit = useCallback((e: React.MouseEvent) => {
 			e.stopPropagation()
+			e.preventDefault()
 			setEditDialogOpen(true)
 		}, [])
 		const handleDelete = useCallback((e: React.MouseEvent) => {
 			e.stopPropagation()
+			e.preventDefault()
 			setDeleteDialogOpen(true)
 		}, [])
 
@@ -389,7 +391,6 @@ export const TreeItem = memo(
 				style={wrapperStyle}
 			>
 				<div
-					{...handleProps}
 					className='TreeItem'
 					ref={ref}
 					style={treeItemStyle}
@@ -404,125 +405,160 @@ export const TreeItem = memo(
 						}
 					}}
 				>
-					{/* Grip Icon */}
-					<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#9ca3af', cursor: 'grab', flexShrink: 0 }}>
-						<circle cx='9' cy='12' r='1' />
-						<circle cx='9' cy='5' r='1' />
-						<circle cx='9' cy='19' r='1' />
-						<circle cx='15' cy='12' r='1' />
-						<circle cx='15' cy='5' r='1' />
-						<circle cx='15' cy='19' r='1' />
-					</svg>
-
-					{/* Item Icon */}
-					{renderItemIcon()}
-
-					{/* Item Name */}
-					<span
+					{/* Área de Drag - Grip + Conteúdo */}
+					<div
+						{...handleProps}
 						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: '8px',
 							flex: 1,
-							fontWeight: '500',
-							fontSize: '14px',
-							color: '#374151',
-							whiteSpace: 'nowrap',
-							textOverflow: 'ellipsis',
-							overflow: 'hidden',
+							cursor: 'grab',
+							minWidth: 0, // Permite que o texto seja truncado
 						}}
 					>
-						{clone ? `📋 Movendo: ${itemName}` : itemName}
-						{!(ghost && indicator) && (
-							<span style={{ fontSize: '12px', fontWeight: '400', color: '#6b7280', marginLeft: '4px' }}>
-								{depth > 0 ? 'sub item' : ''}
-								{clone && childCount && childCount > 1 ? ` (${childCount - 1} filhos)` : ''}
-							</span>
-						)}
-					</span>
+						{/* Grip Icon */}
+						<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#9ca3af', cursor: 'grab', flexShrink: 0 }}>
+							<circle cx='9' cy='12' r='1' />
+							<circle cx='9' cy='5' r='1' />
+							<circle cx='9' cy='19' r='1' />
+							<circle cx='15' cy='12' r='1' />
+							<circle cx='15' cy='5' r='1' />
+							<circle cx='15' cy='19' r='1' />
+						</svg>
 
-					{/* Level Badge */}
-					{!clone && (
+						{/* Item Icon */}
+						{renderItemIcon()}
+
+						{/* Item Name */}
 						<span
 							style={{
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								width: '32px',
-								height: '32px',
-								backgroundColor: '#f3f4f6',
-								borderRadius: '50%',
-								fontSize: '12px',
+								flex: 1,
 								fontWeight: '500',
-								color: '#6b7280',
-								flexShrink: 0,
+								fontSize: '14px',
+								color: '#374151',
+								whiteSpace: 'nowrap',
+								textOverflow: 'ellipsis',
+								overflow: 'hidden',
 							}}
 						>
-							L{depth + 1}
+							{clone ? `📋 Movendo: ${itemName}` : itemName}
+							{!(ghost && indicator) && (
+								<span style={{ fontSize: '12px', fontWeight: '400', color: '#6b7280', marginLeft: '4px' }}>
+									{depth > 0 ? 'sub item' : ''}
+									{clone && childCount && childCount > 1 ? ` (${childCount - 1} filhos)` : ''}
+								</span>
+							)}
 						</span>
-					)}
+					</div>
 
-					{/* Action Buttons */}
-					{!clone && !(ghost && indicator) && (
-						<>
-							<button
-								onClick={handleEdit}
+					{/* Área de Ações - Isolada do Drag */}
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: '4px',
+							flexShrink: 0,
+						}}
+						onMouseDown={(e) => {
+							// Previne que o drag seja iniciado quando clicar nos botões
+							e.stopPropagation()
+						}}
+						onPointerDown={(e) => {
+							// Previne que o drag seja iniciado quando clicar nos botões
+							e.stopPropagation()
+						}}
+					>
+						{/* Level Badge */}
+						{!clone && (
+							<span
 								style={{
 									display: 'flex',
 									alignItems: 'center',
 									justifyContent: 'center',
 									width: '32px',
 									height: '32px',
-									backgroundColor: 'transparent',
-									border: 'none',
+									backgroundColor: '#f3f4f6',
 									borderRadius: '50%',
-									cursor: 'pointer',
-									transition: 'background-color 0.2s',
+									fontSize: '12px',
+									fontWeight: '500',
+									color: '#6b7280',
+									flexShrink: 0,
 								}}
-								onMouseEnter={(e) => {
-									e.currentTarget.style.backgroundColor = '#f3f4f6'
-								}}
-								onMouseLeave={(e) => {
-									e.currentTarget.style.backgroundColor = 'transparent'
-								}}
-								title='Editar'
 							>
-								<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#6b7280' }}>
-									<path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7' />
-									<path d='m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z' />
-								</svg>
-							</button>
-							<button
-								onClick={handleDelete}
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-									width: '32px',
-									height: '32px',
-									backgroundColor: 'transparent',
-									border: 'none',
-									borderRadius: '50%',
-									cursor: 'pointer',
-									transition: 'background-color 0.2s',
-								}}
-								onMouseEnter={(e) => {
-									e.currentTarget.style.backgroundColor = '#fef2f2'
-								}}
-								onMouseLeave={(e) => {
-									e.currentTarget.style.backgroundColor = 'transparent'
-								}}
-								title='Excluir'
-							>
-								<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#ef4444' }}>
-									<path d='m3 6 3 0' />
-									<path d='m19 6-3 0' />
-									<path d='m8 6 0-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2' />
-									<path d='m4 6h16l-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6Z' />
-									<line x1='10' x2='10' y1='11' y2='17' />
-									<line x1='14' x2='14' y1='11' y2='17' />
-								</svg>
-							</button>
-							<Collapse open={open} handleOpen={handleToggleOpen} />
-						</>
-					)}
+								L{depth + 1}
+							</span>
+						)}
+
+						{/* Action Buttons */}
+						{!clone && !(ghost && indicator) && (
+							<>
+								<button
+									onClick={handleEdit}
+									onMouseDown={(e) => e.stopPropagation()}
+									onPointerDown={(e) => e.stopPropagation()}
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										width: '32px',
+										height: '32px',
+										backgroundColor: 'transparent',
+										border: 'none',
+										borderRadius: '50%',
+										cursor: 'pointer',
+										transition: 'background-color 0.2s',
+									}}
+									onMouseEnter={(e) => {
+										e.currentTarget.style.backgroundColor = '#f3f4f6'
+									}}
+									onMouseLeave={(e) => {
+										e.currentTarget.style.backgroundColor = 'transparent'
+									}}
+									title='Editar'
+								>
+									<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#6b7280' }}>
+										<path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7' />
+										<path d='m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z' />
+									</svg>
+								</button>
+								<button
+									onClick={handleDelete}
+									onMouseDown={(e) => e.stopPropagation()}
+									onPointerDown={(e) => e.stopPropagation()}
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										width: '32px',
+										height: '32px',
+										backgroundColor: 'transparent',
+										border: 'none',
+										borderRadius: '50%',
+										cursor: 'pointer',
+										transition: 'background-color 0.2s',
+									}}
+									onMouseEnter={(e) => {
+										e.currentTarget.style.backgroundColor = '#fef2f2'
+									}}
+									onMouseLeave={(e) => {
+										e.currentTarget.style.backgroundColor = 'transparent'
+									}}
+									title='Excluir'
+								>
+									<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#ef4444' }}>
+										<path d='m3 6 3 0' />
+										<path d='m19 6-3 0' />
+										<path d='m8 6 0-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2' />
+										<path d='m4 6h16l-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6Z' />
+										<line x1='10' x2='10' y1='11' y2='17' />
+										<line x1='14' x2='14' y1='11' y2='17' />
+									</svg>
+								</button>
+								<Collapse open={open} handleOpen={handleToggleOpen} />
+							</>
+						)}
+					</div>
 
 					{/* Children Preview for Clone */}
 					{clone && childCount && childCount > 1 && props.childs ? (

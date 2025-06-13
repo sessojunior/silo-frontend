@@ -1,5 +1,5 @@
 {
-  "id": "9c100753-66c5-4b55-bf49-910a770caac4",
+  "id": "74725818-703c-4840-adc9-ac564faa975f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -372,18 +372,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "type": {
-          "name": "type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "category": {
-          "name": "category",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "icon": {
           "name": "icon",
           "type": "text",
@@ -396,24 +384,30 @@
           "primaryKey": false,
           "notNull": false
         },
-        "url": {
-          "name": "url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "parent_id": {
           "name": "parent_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "order": {
-          "name": "order",
+        "tree_path": {
+          "name": "tree_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tree_depth": {
+          "name": "tree_depth",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "sort_key": {
+          "name": "sort_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -606,8 +600,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "product_problem_id": {
-          "name": "product_problem_id",
+        "product_id": {
+          "name": "product_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -647,12 +641,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "product_problem_product_problem_id_product_id_fk": {
-          "name": "product_problem_product_problem_id_product_id_fk",
+        "product_problem_product_id_product_id_fk": {
+          "name": "product_problem_product_id_product_id_fk",
           "tableFrom": "product_problem",
           "tableTo": "product",
           "columnsFrom": [
-            "product_problem_id"
+            "product_id"
           ],
           "columnsTo": [
             "id"

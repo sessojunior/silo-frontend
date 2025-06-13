@@ -392,7 +392,7 @@ return NextResponse.json({
 console.log('✅ Sucesso operação')
 console.log('❌ Erro crítico')
 console.log('⚠️ Aviso importante')
-console.log('ℹ️ Informação debug')
+console.log('🔵Informação debug')
 ```
 
 ## PRÓXIMAS IMPLEMENTAÇÕES
