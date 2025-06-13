@@ -1,4 +1,4 @@
-import React, { forwardRef, HTMLAttributes, CSSProperties } from 'react'
+import React, { forwardRef, HTMLAttributes, CSSProperties, memo, useCallback, useMemo } from 'react'
 import classNames from 'classnames'
 import type { UniqueIdentifier } from '@dnd-kit/core'
 import { AnimateLayoutChanges, useSortable } from '@dnd-kit/sortable'
@@ -6,14 +6,20 @@ import { CSS } from '@dnd-kit/utilities'
 
 import { TreeItemType, TreeItems } from './MenuBuilderTypes'
 
-// Collapse Component
-export function Collapse(props: { open: boolean; handleOpen: (open: boolean) => void }) {
+// Collapse Component - Memoizado para evitar re-renders
+export const Collapse = memo(function Collapse(props: { open: boolean; handleOpen: (open: boolean) => void }) {
+	const handleClick = useCallback(
+		(e: React.PointerEvent) => {
+			e.stopPropagation()
+			e.preventDefault()
+			props.handleOpen(!props.open)
+		},
+		[props.open, props.handleOpen],
+	)
+
 	return (
 		<div
-			onPointerDown={(e) => {
-				e.stopPropagation()
-				props.handleOpen(!props.open)
-			}}
+			onPointerDown={handleClick}
 			style={{
 				display: 'flex',
 				justifyContent: 'center',
@@ -41,7 +47,7 @@ export function Collapse(props: { open: boolean; handleOpen: (open: boolean) => 
 			)}
 		</div>
 	)
-}
+})
 
 // TreeItem Props
 export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
@@ -65,9 +71,13 @@ export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
 	otherfields?: Record<string, unknown>
 }
 
-// Recursive Item Component - Placeholder visual elegante durante drag
-const RecursiveItem = (props: { child: TreeItemType; nDepth: number }) => {
+// Recursive Item Component - Memoizado e otimizado
+const RecursiveItem = memo(function RecursiveItem(props: { child: TreeItemType; nDepth: number }) {
 	const newDepth = props.nDepth + 1
+	const marginLeft = useMemo(() => props.nDepth * 50, [props.nDepth])
+
+	const childItems = useMemo(() => props.child.children.map((child: TreeItemType) => <RecursiveItem key={child.id as string} child={child} nDepth={newDepth} />), [props.child.children, newDepth])
+
 	return (
 		<>
 			<div
@@ -76,7 +86,7 @@ const RecursiveItem = (props: { child: TreeItemType; nDepth: number }) => {
 					height: '42px',
 					border: '1px solid #dcdcde',
 					marginTop: '9px',
-					marginLeft: `${props.nDepth * 50}px`, // Esta é a chave para a indentação!
+					marginLeft: `${marginLeft}px`, // Esta é a chave para a indentação!
 					backgroundColor: '#f6f7f7',
 					borderRadius: '4px',
 					display: 'flex',
@@ -84,6 +94,10 @@ const RecursiveItem = (props: { child: TreeItemType; nDepth: number }) => {
 					paddingLeft: '0.5rem',
 					fontWeight: '600',
 					fontSize: '13px',
+					userSelect: 'none' as const,
+					WebkitUserSelect: 'none' as const,
+					MozUserSelect: 'none' as const,
+					msUserSelect: 'none' as const,
 				}}
 			>
 				{props.child.name}{' '}
@@ -99,30 +113,168 @@ const RecursiveItem = (props: { child: TreeItemType; nDepth: number }) => {
 					sub item
 				</span>
 			</div>
-			{props.child.children.map((child: TreeItemType) => {
-				return <RecursiveItem key={child.id as string} child={child} nDepth={newDepth} />
-			})}
+			{childItems}
 		</>
 	)
-}
+})
 
-// TreeItem Component
-export const TreeItem = forwardRef<HTMLDivElement, Props>(({ childCount, clone, depth, disableSelection, disableInteraction, ghost, handleProps, indentationWidth, indicator, onRemove, style, value, updateitem, wrapperRef, ...props }, ref) => {
-	const [open, setOpen] = React.useState(false)
-	const [newData, setNewData] = React.useState<Omit<TreeItemType, 'children'>>({
-		id: value,
-		href: (props?.otherfields?.href as string) || '',
-		name: (props?.otherfields?.name as string) || '',
-	})
+// TreeItem Component - Otimizado com memoização
+export const TreeItem = memo(
+	forwardRef<HTMLDivElement, Props>(function TreeItem({ childCount, clone, depth, disableSelection, disableInteraction, ghost, handleProps, indentationWidth, indicator, onRemove, style, value, updateitem, wrapperRef, ...props }, ref) {
+		const [open, setOpen] = React.useState(false)
+		const [newData, setNewData] = React.useState<Omit<TreeItemType, 'children'>>(() => ({
+			id: value,
+			href: (props?.otherfields?.href as string) || '',
+			name: (props?.otherfields?.name as string) || '',
+		}))
 
-	// Evita problemas de hidratação SSR
-	const [isMounted, setIsMounted] = React.useState(false)
-	React.useEffect(() => {
-		setIsMounted(true)
-	}, [])
+		// Evita problemas de hidratação SSR
+		const [isMounted, setIsMounted] = React.useState(false)
+		React.useEffect(() => {
+			setIsMounted(true)
+		}, [])
 
-	if (!isMounted) {
-		// Renderização inicial simples para evitar mismatch de hidratação
+		// Memoização de estilos para evitar recálculos
+		const wrapperStyle = useMemo(
+			() => ({
+				listStyle: 'none' as const,
+				boxSizing: 'border-box' as const,
+				marginBottom: '-1px',
+				WebkitFontSmoothing: 'subpixel-antialiased' as const,
+				...(!clone
+					? {
+							paddingLeft: `${indentationWidth * depth}px`,
+						}
+					: {
+							display: 'inline-block' as const,
+							pointerEvents: 'none' as const,
+							padding: 0,
+							paddingLeft: '10px',
+							paddingTop: '5px',
+						}),
+			}),
+			[clone, indentationWidth, depth],
+		)
+
+		const treeItemStyle = useMemo(
+			() => ({
+				...style,
+				width: '100%',
+				maxWidth: '414px',
+				height: ghost && indicator && childCount ? `${childCount * 42 + (childCount - 1) * 9}px` : '42px',
+				position: 'relative' as const,
+				display: 'flex',
+				alignItems: 'center',
+				padding: '10px',
+				backgroundColor: ghost && indicator ? 'transparent' : '#f6f7f7',
+				border: ghost && indicator ? '2px dashed #c3c4c7' : '1px solid #dcdcde',
+				color: '#1d2327',
+				boxSizing: 'border-box' as const,
+				marginTop: '9px',
+				cursor: 'move',
+				opacity: ghost && indicator ? 0.6 : 1,
+				userSelect: 'none' as const,
+				WebkitUserSelect: 'none' as const,
+				MozUserSelect: 'none' as const,
+				msUserSelect: 'none' as const,
+				...(clone && {
+					paddingRight: '24px',
+					borderRadius: '4px',
+					boxShadow: '0px 15px 15px 0 rgba(34, 33, 81, 0.1)',
+					minWidth: '414px',
+				}),
+			}),
+			[style, ghost, indicator, childCount, clone],
+		)
+
+		// Callbacks otimizados
+		const handleToggleOpen = useCallback(() => setOpen(!open), [open])
+
+		const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+			setNewData((prev) => ({ ...prev, name: e.target.value }))
+		}, [])
+
+		const handleHrefChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+			setNewData((prev) => ({ ...prev, href: e.target.value }))
+		}, [])
+
+		const handleCancel = useCallback(() => setOpen(false), [])
+
+		const handleUpdate = useCallback(() => {
+			if (updateitem) {
+				updateitem(value, newData)
+			}
+			setOpen(false)
+		}, [updateitem, value, newData])
+
+		// Filtro de props otimizado
+		const filteredProps = useMemo(() => Object.fromEntries(Object.entries(props).filter(([key]) => !['collapsed', 'onCollapse', 'onRemove', 'childs', 'show', 'updateitem', 'otherfields', 'childCount', 'depth', 'indentationWidth', 'indicator', 'value'].includes(key))), [props])
+
+		// Renderização otimizada para SSR
+		if (!isMounted) {
+			return (
+				<li
+					className={classNames({
+						Wrapper: true,
+						clone: clone,
+						ghost: ghost,
+						indicator: indicator,
+						disableSelection: disableSelection,
+						disableInteraction: disableInteraction,
+					})}
+					ref={wrapperRef}
+					style={wrapperStyle}
+					{...filteredProps}
+				>
+					<div {...handleProps} className='TreeItem' ref={ref} style={treeItemStyle}>
+						<span
+							className={'Text'}
+							style={{
+								flexGrow: 1,
+								paddingLeft: '0.5rem',
+								whiteSpace: 'nowrap',
+								textOverflow: 'ellipsis',
+								overflow: 'hidden',
+								fontWeight: '600',
+								fontSize: '13px',
+							}}
+						>
+							{clone ? `📋 Movendo: ${props?.otherfields?.name as string}` : (props?.otherfields?.name as string)}{' '}
+							<span
+								style={{
+									fontSize: '13px',
+									fontWeight: '400',
+									fontStyle: 'italic',
+									color: '#50575e',
+									marginLeft: '4px',
+								}}
+							>
+								{depth > 0 ? 'sub item' : ''}
+								{clone && childCount && childCount > 1 ? ` (${childCount - 1} filhos)` : ''}
+							</span>
+						</span>
+						{!clone && onRemove && !(ghost && indicator) && <Collapse open={open} handleOpen={handleToggleOpen} />}
+						{clone && childCount && childCount > 1 && props.childs ? (
+							<div
+								className={'Count'}
+								style={{
+									position: 'absolute',
+									top: '100%',
+									left: 0,
+									display: 'flex',
+									flexDirection: 'column',
+								}}
+							>
+								{props.childs.map((child: TreeItemType) => (
+									<RecursiveItem key={child.id as string} child={child} nDepth={1} />
+								))}
+							</div>
+						) : null}
+					</div>
+				</li>
+			)
+		}
+
 		return (
 			<li
 				className={classNames({
@@ -134,55 +286,10 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(({ childCount, clone, 
 					disableInteraction: disableInteraction,
 				})}
 				ref={wrapperRef}
-				style={
-					{
-						listStyle: 'none',
-						boxSizing: 'border-box',
-						marginBottom: '-1px',
-						WebkitFontSmoothing: 'subpixel-antialiased',
-						...(!clone
-							? {
-									paddingLeft: `${indentationWidth * depth}px`,
-								}
-							: {
-									display: 'inline-block',
-									pointerEvents: 'none',
-									padding: 0,
-									paddingLeft: '10px',
-									paddingTop: '5px',
-								}),
-					} as React.CSSProperties
-				}
-				// Filtra props que não devem ir para o DOM
-				{...Object.fromEntries(Object.entries(props).filter(([key]) => !['collapsed', 'onCollapse', 'onRemove', 'childs', 'show', 'updateitem', 'otherfields', 'childCount', 'depth', 'indentationWidth', 'indicator', 'value'].includes(key)))}
+				style={wrapperStyle}
+				{...filteredProps}
 			>
-				<div
-					{...handleProps}
-					className='TreeItem'
-					ref={ref}
-					style={{
-						...style,
-						width: '100%',
-						maxWidth: '414px',
-						height: '42px',
-						position: 'relative',
-						display: 'flex',
-						alignItems: 'center',
-						padding: '10px',
-						backgroundColor: '#f6f7f7',
-						border: '1px solid #dcdcde',
-						color: '#1d2327',
-						boxSizing: 'border-box',
-						marginTop: '9px',
-						cursor: 'move',
-						...(clone && {
-							paddingRight: '24px',
-							borderRadius: '4px',
-							boxShadow: '0px 15px 15px 0 rgba(34, 33, 81, 0.1)',
-							minWidth: '414px',
-						}),
-					}}
-				>
+				<div {...handleProps} className='TreeItem' ref={ref} style={treeItemStyle}>
 					<span
 						className={'Text'}
 						style={{
@@ -196,20 +303,22 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(({ childCount, clone, 
 						}}
 					>
 						{clone ? `📋 Movendo: ${props?.otherfields?.name as string}` : (props?.otherfields?.name as string)}{' '}
-						<span
-							style={{
-								fontSize: '13px',
-								fontWeight: '400',
-								fontStyle: 'italic',
-								color: '#50575e',
-								marginLeft: '4px',
-							}}
-						>
-							{depth > 0 ? 'sub item' : ''}
-							{clone && childCount && childCount > 1 ? ` (${childCount - 1} filhos)` : ''}
-						</span>
+						{!(ghost && indicator) && (
+							<span
+								style={{
+									fontSize: '13px',
+									fontWeight: '400',
+									fontStyle: 'italic',
+									color: '#50575e',
+									marginLeft: '4px',
+								}}
+							>
+								{depth > 0 ? 'sub item' : ''}
+								{clone && childCount && childCount > 1 ? ` (${childCount - 1} filhos)` : ''}
+							</span>
+						)}
 					</span>
-					{!clone && onRemove && !(ghost && indicator) && <Collapse open={open} handleOpen={() => setOpen(!open)} />}
+					{!clone && onRemove && !(ghost && indicator) && <Collapse open={open} handleOpen={handleToggleOpen} />}
 					{clone && childCount && childCount > 1 && props.childs ? (
 						<div
 							className={'Count'}
@@ -255,9 +364,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(({ childCount, clone, 
 							</label>
 							<input
 								value={newData.name}
-								onChange={(e) => {
-									setNewData({ ...newData, name: e.target.value })
-								}}
+								onChange={handleNameChange}
 								type='text'
 								id='label'
 								style={{
@@ -280,9 +387,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(({ childCount, clone, 
 							</label>
 							<input
 								value={newData.href}
-								onChange={(e) => {
-									setNewData({ ...newData, href: e.target.value })
-								}}
+								onChange={handleHrefChange}
 								type='text'
 								id='href'
 								style={{
@@ -310,7 +415,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(({ childCount, clone, 
 										borderRadius: '3px',
 										fontSize: '13px',
 									}}
-									onClick={() => setOpen(false)}
+									onClick={handleCancel}
 								>
 									Cancel
 								</button>
@@ -325,12 +430,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(({ childCount, clone, 
 										borderRadius: '3px',
 										fontSize: '13px',
 									}}
-									onClick={() => {
-										if (updateitem) {
-											updateitem(value, newData)
-										}
-										setOpen(false)
-									}}
+									onClick={handleUpdate}
 								>
 									Update Menu Item
 								</button>
@@ -340,231 +440,8 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(({ childCount, clone, 
 				)}
 			</li>
 		)
-	}
-
-	return (
-		<li
-			className={classNames({
-				Wrapper: true,
-				clone: clone,
-				ghost: ghost,
-				indicator: indicator,
-				disableSelection: disableSelection,
-				disableInteraction: disableInteraction,
-			})}
-			ref={wrapperRef}
-			style={
-				{
-					listStyle: 'none',
-					boxSizing: 'border-box',
-					marginBottom: '-1px',
-					WebkitFontSmoothing: 'subpixel-antialiased',
-					...(!clone
-						? {
-								paddingLeft: `${indentationWidth * depth}px`,
-							}
-						: {
-								display: 'inline-block',
-								pointerEvents: 'none',
-								padding: 0,
-								paddingLeft: '10px',
-								paddingTop: '5px',
-							}),
-				} as React.CSSProperties
-			}
-			// Filtra props que não devem ir para o DOM
-			{...Object.fromEntries(Object.entries(props).filter(([key]) => !['collapsed', 'onCollapse', 'onRemove', 'childs', 'show', 'updateitem', 'otherfields', 'childCount', 'depth', 'indentationWidth', 'indicator', 'value'].includes(key)))}
-		>
-			<div
-				{...handleProps}
-				className='TreeItem'
-				ref={ref}
-				style={{
-					...style,
-					width: '100%',
-					maxWidth: '414px',
-					height: ghost && indicator && childCount ? `${childCount * 42 + (childCount - 1) * 9}px` : '42px',
-					position: 'relative',
-					display: 'flex',
-					alignItems: 'center',
-					padding: '10px',
-					backgroundColor: ghost && indicator ? 'transparent' : '#f6f7f7', // Fundo transparente para placeholder
-					border: ghost && indicator ? '2px dashed #c3c4c7' : '1px solid #dcdcde', // Borda tracejada para placeholder
-					color: '#1d2327',
-					boxSizing: 'border-box',
-					marginTop: '9px',
-					cursor: 'move',
-					opacity: ghost && indicator ? 0.6 : 1, // Opacidade reduzida para placeholder
-					...(clone && {
-						paddingRight: '24px',
-						borderRadius: '4px',
-						boxShadow: '0px 15px 15px 0 rgba(34, 33, 81, 0.1)',
-						minWidth: '414px',
-					}),
-				}}
-			>
-				<span
-					className={'Text'}
-					style={{
-						flexGrow: 1,
-						paddingLeft: '0.5rem',
-						whiteSpace: 'nowrap',
-						textOverflow: 'ellipsis',
-						overflow: 'hidden',
-						fontWeight: '600',
-						fontSize: '13px',
-					}}
-				>
-					{clone ? `📋 Movendo: ${props?.otherfields?.name as string}` : (props?.otherfields?.name as string)}{' '}
-					{!(ghost && indicator) && (
-						<span
-							style={{
-								fontSize: '13px',
-								fontWeight: '400',
-								fontStyle: 'italic',
-								color: '#50575e',
-								marginLeft: '4px',
-							}}
-						>
-							{depth > 0 ? 'sub item' : ''}
-							{clone && childCount && childCount > 1 ? ` (${childCount - 1} filhos)` : ''}
-						</span>
-					)}
-				</span>
-				{!clone && onRemove && !(ghost && indicator) && <Collapse open={open} handleOpen={() => setOpen(!open)} />}
-				{clone && childCount && childCount > 1 && props.childs ? (
-					<div
-						className={'Count'}
-						style={{
-							position: 'absolute',
-							top: '100%',
-							left: 0,
-							display: 'flex',
-							flexDirection: 'column',
-						}}
-					>
-						{props.childs.map((child: TreeItemType) => (
-							<RecursiveItem key={child.id as string} child={child} nDepth={1} />
-						))}
-					</div>
-				) : null}
-			</div>
-			{!(props.show === 'true') && open && (
-				<div
-					style={{
-						width: '412px',
-						border: '1px solid #c3c4c7',
-						marginTop: '-1px',
-					}}
-				>
-					<div
-						style={{
-							padding: '10px',
-							display: 'flex',
-							flexDirection: 'column',
-						}}
-					>
-						<label
-							style={{
-								marginTop: '5px',
-								marginBottom: '5px',
-								fontSize: '13px',
-								color: '#646970',
-							}}
-							htmlFor='label'
-						>
-							Navigation Label
-						</label>
-						<input
-							value={newData.name}
-							onChange={(e) => {
-								setNewData({ ...newData, name: e.target.value })
-							}}
-							type='text'
-							id='label'
-							style={{
-								border: '1px solid #dcdcde',
-								height: '30px',
-								borderRadius: '4px',
-								padding: '0 10px',
-							}}
-						/>
-						<label
-							style={{
-								marginTop: '10px',
-								marginBottom: '5px',
-								fontSize: '13px',
-								color: '#646970',
-							}}
-							htmlFor='href'
-						>
-							Navigation Url
-						</label>
-						<input
-							value={newData.href}
-							onChange={(e) => {
-								setNewData({ ...newData, href: e.target.value })
-							}}
-							type='text'
-							id='href'
-							style={{
-								border: '1px solid #dcdcde',
-								height: '30px',
-								borderRadius: '4px',
-								padding: '0 10px',
-							}}
-						/>
-						<div
-							style={{
-								display: 'flex',
-								justifyContent: 'flex-end',
-								marginTop: '10px',
-								gap: '12px',
-							}}
-						>
-							<button
-								style={{
-									all: 'unset',
-									cursor: 'pointer',
-									padding: '8px 16px',
-									backgroundColor: '#f0f0f1',
-									border: '1px solid #c3c4c7',
-									borderRadius: '3px',
-									fontSize: '13px',
-								}}
-								onClick={() => setOpen(false)}
-							>
-								Cancel
-							</button>
-							<button
-								style={{
-									all: 'unset',
-									cursor: 'pointer',
-									padding: '8px 16px',
-									backgroundColor: '#2271b1',
-									color: 'white',
-									border: '1px solid #2271b1',
-									borderRadius: '3px',
-									fontSize: '13px',
-								}}
-								onClick={() => {
-									if (updateitem) {
-										updateitem(value, newData)
-									}
-									setOpen(false)
-								}}
-							>
-								Update Menu Item
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
-		</li>
-	)
-})
-
-TreeItem.displayName = 'TreeItem'
+	}),
+)
 
 // SortableTreeItem Props
 interface SortableProps extends Props {
@@ -575,19 +452,23 @@ interface SortableProps extends Props {
 	otherfields?: Record<string, unknown>
 }
 
-// Animation Layout Changes
+// Animation Layout Changes - Otimizado
 const animateLayoutChanges: AnimateLayoutChanges = ({ isSorting, wasDragging }) => (isSorting || wasDragging ? false : true)
 
-// SortableTreeItem Component
-export function SortableTreeItem({ id, depth, ...props }: SortableProps) {
+// SortableTreeItem Component - Memoizado para performance
+export const SortableTreeItem = memo(function SortableTreeItem({ id, depth, ...props }: SortableProps) {
 	const { attributes, isDragging, isSorting, listeners, setDraggableNodeRef, setDroppableNodeRef, transform, transition } = useSortable({
 		id,
 		animateLayoutChanges,
 	})
-	const style: CSSProperties = {
-		transform: CSS.Translate.toString(transform),
-		transition,
-	}
+
+	const style: CSSProperties = useMemo(
+		() => ({
+			transform: CSS.Translate.toString(transform),
+			transition,
+		}),
+		[transform, transition],
+	)
 
 	return (
 		<TreeItem
@@ -605,4 +486,4 @@ export function SortableTreeItem({ id, depth, ...props }: SortableProps) {
 			{...props}
 		/>
 	)
-}
+})

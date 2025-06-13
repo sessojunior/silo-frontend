@@ -365,6 +365,42 @@ const dropAnimationConfig: DropAnimation = {
 	},
 }
 
+// Debounce utility para otimizar drag move
+function useDebounce<T extends (...args: any[]) => void>(callback: T, delay: number): T {
+	const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+	return useCallback(
+		(...args: Parameters<T>) => {
+			if (timeoutRef.current) {
+				clearTimeout(timeoutRef.current)
+			}
+			timeoutRef.current = setTimeout(() => callback(...args), delay)
+		},
+		[callback, delay],
+	) as T
+}
+
+// Debounce para operações pesadas (como buildTree)
+function useDebouncedCallback<T extends (...args: any[]) => void>(callback: T, delay: number): T {
+	const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+	const callbackRef = useRef(callback)
+
+	// Atualiza callback ref sem quebrar memoização
+	useEffect(() => {
+		callbackRef.current = callback
+	}, [callback])
+
+	return useCallback(
+		(...args: Parameters<T>) => {
+			if (timeoutRef.current) {
+				clearTimeout(timeoutRef.current)
+			}
+			timeoutRef.current = setTimeout(() => callbackRef.current(...args), delay)
+		},
+		[delay],
+	) as T
+}
+
 // Props Interface
 interface Props {
 	style?: 'bordered' | 'shadow'
@@ -379,11 +415,17 @@ export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems }:
 	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
 	const [overId, setOverId] = useState<UniqueIdentifier | null>(null)
 	const [offsetLeft, setOffsetLeft] = useState(0)
+
+	// Estado estável para evitar re-renders durante drag
+	const [stableFlattenedItems, setStableFlattenedItems] = useState<FlattenedItem[]>([])
+
+	// Estado para posição atual (memoizado para evitar loops)
 	const [currentPosition, setCurrentPosition] = useState<{
 		parentId: UniqueIdentifier | null
 		overId: UniqueIdentifier
 	} | null>(null)
 
+	// Memoização do updateItem para evitar re-criações
 	const updateItem = useCallback((id: UniqueIdentifier, data: Omit<TreeItemType, 'children'>, items: TreeItems) => {
 		const newItems = []
 
@@ -404,40 +446,58 @@ export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems }:
 		return newItems
 	}, [])
 
+	// Otimização: flattenedItems estável durante drag
 	const flattenedItems = useMemo(() => {
 		const flattenedTree = flattenTree(items)
 		const collapsedItems = flattenedTree.reduce<UniqueIdentifier[]>((acc, { children, collapsed, id }) => (collapsed && children.length ? [...acc, id] : acc), [])
+		const result = removeChildrenOf(flattenedTree, activeId ? [activeId, ...collapsedItems] : collapsedItems)
 
-		return removeChildrenOf(flattenedTree, activeId ? [activeId, ...collapsedItems] : collapsedItems)
-	}, [activeId, items])
+		// Só atualiza estado estável quando não está em drag
+		if (!activeId) {
+			setStableFlattenedItems(result)
+		}
 
+		return result
+	}, [items, activeId]) // Incluindo activeId mas controlando updates via estado estável
+
+	// Usa estado estável durante drag para evitar flickering
+	const currentFlattenedItems = activeId ? stableFlattenedItems : flattenedItems
+
+	// Memoização da projeção
 	const projected = useMemo(() => {
-		return activeId && overId ? getProjection(flattenedItems, activeId, overId, offsetLeft, indentationWidth) : null
-	}, [activeId, overId, offsetLeft, flattenedItems, indentationWidth])
+		return activeId && overId ? getProjection(currentFlattenedItems, activeId, overId, offsetLeft, indentationWidth) : null
+	}, [activeId, overId, offsetLeft, currentFlattenedItems, indentationWidth])
 
 	const sensorContext = useRef({
-		items: flattenedItems,
+		items: currentFlattenedItems,
 		offset: offsetLeft,
 	})
 
 	const [coordinateGetter] = useState(() => sortableTreeKeyboardCoordinates(sensorContext, style == 'bordered', indentationWidth))
 	const sensors = useSensors(
-		useSensor(PointerSensor),
+		useSensor(PointerSensor, {
+			// Configuração otimizada para drag funcional
+			activationConstraint: {
+				distance: 2, // Reduzido para permitir drag mais fácil
+			},
+		}),
 		useSensor(KeyboardSensor, {
 			coordinateGetter,
 		}),
 	)
 
-	const sortedIds = useMemo(() => flattenedItems.map(({ id }) => id), [flattenedItems])
-	const activeItem = useMemo(() => (activeId ? flattenedItems.find(({ id }) => id === activeId) : null), [activeId, flattenedItems])
+	const sortedIds = useMemo(() => currentFlattenedItems.map(({ id }) => id), [currentFlattenedItems])
+	const activeItem = useMemo(() => (activeId ? currentFlattenedItems.find(({ id }) => id === activeId) : null), [activeId, currentFlattenedItems])
 
+	// Atualiza sensor context de forma otimizada
 	useEffect(() => {
 		sensorContext.current = {
-			items: flattenedItems,
+			items: currentFlattenedItems,
 			offset: offsetLeft,
 		}
-	}, [flattenedItems, offsetLeft])
+	}, [currentFlattenedItems, offsetLeft])
 
+	// Callback estabilizado para reset
 	const resetState = useCallback(() => {
 		setOverId(null)
 		setActiveId(null)
@@ -445,15 +505,23 @@ export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems }:
 		setCurrentPosition(null)
 		if (typeof document !== 'undefined') {
 			document.body.style.setProperty('cursor', '')
+			// Reabilita seleção de texto após drag
+			document.body.style.removeProperty('user-select')
+			document.body.style.removeProperty('-webkit-user-select')
+			document.body.style.removeProperty('-moz-user-select')
+			document.body.style.removeProperty('-ms-user-select')
 		}
 	}, [])
+
+	// Otimização: debounce no drag move para reduzir updates
+	const debouncedSetOffsetLeft = useDebounce(setOffsetLeft, 16) // ~60fps
 
 	const handleDragStart = useCallback(
 		({ active: { id: activeId } }: DragStartEvent) => {
 			setActiveId(activeId)
 			setOverId(activeId)
 
-			const activeItem = flattenedItems.find(({ id }) => id === activeId)
+			const activeItem = currentFlattenedItems.find(({ id }) => id === activeId)
 
 			if (activeItem) {
 				setCurrentPosition({
@@ -464,18 +532,29 @@ export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems }:
 
 			if (typeof document !== 'undefined') {
 				document.body.style.setProperty('cursor', 'grabbing')
+				// Desabilita seleção de texto durante drag
+				document.body.style.setProperty('user-select', 'none')
+				document.body.style.setProperty('-webkit-user-select', 'none')
+				document.body.style.setProperty('-moz-user-select', 'none')
+				document.body.style.setProperty('-ms-user-select', 'none')
 			}
 		},
-		[flattenedItems],
+		[currentFlattenedItems],
 	)
 
-	const handleDragMove = useCallback(({ delta }: DragMoveEvent) => {
-		setOffsetLeft(delta.x)
-	}, [])
+	// Otimização: drag move com debounce
+	const handleDragMove = useCallback(
+		({ delta }: DragMoveEvent) => {
+			debouncedSetOffsetLeft(delta.x)
+		},
+		[debouncedSetOffsetLeft],
+	)
 
 	const handleDragOver = useCallback(({ over }: DragOverEvent) => {
 		setOverId(over?.id ?? null)
 	}, [])
+
+	// Removido debounce desnecessário que estava causando problemas
 
 	const handleDragEnd = useCallback(
 		({ active, over }: DragEndEvent) => {
@@ -493,11 +572,10 @@ export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems }:
 
 				const sortedItems = arrayMove(clonedItems, activeIndex, overIndex)
 				const newItems = buildTree(sortedItems)
-
 				setItems(newItems)
 			}
 		},
-		[projected, items, setItems, resetState],
+		[projected, items, resetState, setItems],
 	)
 
 	const handleDragCancel = useCallback(() => {
@@ -520,6 +598,7 @@ export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems }:
 		[setItems, items],
 	)
 
+	// Memoização do announcement para evitar recálculos
 	const getMovementAnnouncement = useCallback(
 		(eventName: string, activeId: UniqueIdentifier, overId?: UniqueIdentifier) => {
 			if (overId && projected) {
@@ -572,34 +651,42 @@ export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems }:
 		[projected, currentPosition, items],
 	)
 
-	const announcements: Announcements = {
-		onDragStart({ active }) {
-			return `Picked up ${active.id}.`
-		},
-		onDragMove({ active, over }) {
-			return getMovementAnnouncement('onDragMove', active.id, over?.id)
-		},
-		onDragOver({ active, over }) {
-			return getMovementAnnouncement('onDragOver', active.id, over?.id)
-		},
-		onDragEnd({ active, over }) {
-			return getMovementAnnouncement('onDragEnd', active.id, over?.id)
-		},
-		onDragCancel({ active }) {
-			return `Moving was cancelled. ${active.id} was dropped in its original position.`
-		},
-	}
+	// Memoização dos announcements
+	const announcements: Announcements = useMemo(
+		() => ({
+			onDragStart({ active }) {
+				return `Picked up ${active.id}.`
+			},
+			onDragMove({ active, over }) {
+				return getMovementAnnouncement('onDragMove', active.id, over?.id)
+			},
+			onDragOver({ active, over }) {
+				return getMovementAnnouncement('onDragOver', active.id, over?.id)
+			},
+			onDragEnd({ active, over }) {
+				return getMovementAnnouncement('onDragEnd', active.id, over?.id)
+			},
+			onDragCancel({ active }) {
+				return `Moving was cancelled. ${active.id} was dropped in its original position.`
+			},
+		}),
+		[getMovementAnnouncement],
+	)
 
 	return (
 		<div
 			style={{
 				display: 'flex',
 				flexDirection: 'column',
+				userSelect: 'none' as const,
+				WebkitUserSelect: 'none' as const,
+				MozUserSelect: 'none' as const,
+				msUserSelect: 'none' as const,
 			}}
 		>
 			<DndContext accessibility={{ announcements }} sensors={sensors} collisionDetection={closestCenter} measuring={measuring} onDragStart={handleDragStart} onDragMove={handleDragMove} onDragOver={handleDragOver} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
 				<SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
-					{flattenedItems.map(({ id, children, collapsed, depth, ...otherFields }) => {
+					{currentFlattenedItems.map(({ id, children, collapsed, depth, ...otherFields }) => {
 						return (
 							<SortableTreeItem
 								show={activeId && activeItem ? true.toString() : false.toString()}
