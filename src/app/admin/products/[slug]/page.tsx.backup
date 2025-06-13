@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
+import Image from 'next/image'
 
 // Removido @dnd-kit - usando HTML5 drag & drop nativo
 
-import { type TreeNode } from '@/components/ui/TreeView'
-import { type Section } from '@/components/ui/Accordion'
+import TreeView, { type TreeNode } from '@/components/ui/TreeView'
+import Accordion, { type Section } from '@/components/ui/Accordion'
+import Button from '@/components/ui/Button'
 import { toast } from '@/lib/toast'
 import { type ProductDependencyItem } from '@/components/admin/products/ProductDependencyMenuBuilder'
 
@@ -15,12 +17,6 @@ import DependencyManagementOffcanvas from '@/components/admin/products/Dependenc
 import DependencyItemFormOffcanvas from '@/components/admin/products/DependencyItemFormOffcanvas'
 import ManualSectionFormOffcanvas from '@/components/admin/products/ManualSectionFormOffcanvas'
 import DeleteDependencyDialog from '@/components/admin/products/DeleteDependencyDialog'
-
-// Componente coluna esquerda (dependências) - ETAPA 1 REFATORAÇÃO
-import ProductDependenciesColumn from '@/components/admin/products/ProductDependenciesColumn'
-
-// Componente coluna direita (detalhes do produto) - ETAPA 2 REFATORAÇÃO
-import ProductDetailsColumn from '@/components/admin/products/ProductDetailsColumn'
 
 // Função utilitária para converter ProductDependency para TreeNode (compatível com TreeView)
 function convertDependenciesToTreeNodes(dependencies: ProductDependency[]): TreeNode[] {
@@ -755,11 +751,156 @@ export default function ProductsPage() {
 
 	return (
 		<div className='flex w-full'>
-			{/* Componente Coluna Esquerda - ETAPA 1 REFATORAÇÃO */}
-			<ProductDependenciesColumn dependencies={dependencies} loading={loading} treeNodes={treeNodes} onOpenManagement={openManagement} />
+			{/* Side left */}
+			<div className='flex md:w-[420px] flex-shrink-0 flex-col border-r border-zinc-200 dark:border-zinc-700'>
+				<div className='scrollbar size-full h-[calc(100vh-131px)] overflow-y-auto'>
+					{/* TreeView */}
+					<div className='p-6' role='tree' aria-orientation='vertical'>
+						{/* Header */}
+						<div className='flex w-full items-center justify-between gap-2 mb-6'>
+							<div>
+								<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100'>Dependências</h3>
+								<p className='text-sm text-zinc-500 dark:text-zinc-400'>
+									{dependencies.length} {dependencies.length === 1 ? 'categoria' : 'categorias'}
+								</p>
+							</div>
+							<Button type='button' icon='icon-[lucide--settings]' style='unstyled' className='size-9 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800' onClick={openManagement} title='Gerenciar dependências' />
+						</div>
 
-			{/* Componente Coluna Direita - ETAPA 2 REFATORAÇÃO */}
-			<ProductDetailsColumn sections={sections} contacts={contacts} problemsCount={problemsCount} solutionsCount={solutionsCount} lastUpdated={lastUpdated} totalChapters={totalChapters} accordionSections={accordionSections} onAddSection={handleAddSection} formatTimeAgo={formatTimeAgo} />
+						{/* TreeView Items */}
+						{treeNodes.length > 0 ? (
+							<TreeView nodes={treeNodes} defaultExpanded={true} />
+						) : (
+							<div className='flex flex-col items-center justify-center py-12 text-center'>
+								<div className='size-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-4'>
+									<span className='icon-[lucide--layers] size-6 text-zinc-400' />
+								</div>
+								<h4 className='text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2'>Nenhuma dependência</h4>
+								<p className='text-xs text-zinc-500 dark:text-zinc-500 mb-4'>Configure as dependências deste produto</p>
+								<Button type='button' icon='icon-[lucide--plus]' style='filled' className='text-xs px-3 py-1.5' onClick={openManagement}>
+									Adicionar
+								</Button>
+							</div>
+						)}
+					</div>
+				</div>
+			</div>
+
+			{/* Side right */}
+			<div className='flex w-full flex-grow flex-col'>
+				<div className='scrollbar size-full h-[calc(100vh-131px)] overflow-y-auto'>
+					{/* Cabeçalho */}
+					<div className='flex flex-col gap-2 border-b border-zinc-200 p-8 md:grid md:grid-cols-2 dark:border-zinc-700'>
+						<div className='flex'>
+							<div className='flex w-8 items-center justify-center'>
+								<span className='icon-[lucide--book-text] size-4'></span>
+							</div>
+							<div className='flex'>
+								<span>
+									{sections.length} seções & {totalChapters} capítulos
+								</span>
+							</div>
+						</div>
+						<div className='flex'>
+							<div className='flex w-8 items-center justify-center'>
+								<span className='icon-[lucide--users-round] size-4'></span>
+							</div>
+							<div className='flex'>
+								<span>Técnicos responsáveis: {contacts.length}</span>
+							</div>
+						</div>
+						<div className='flex'>
+							<div className='flex w-8 items-center justify-center'>
+								<span className='icon-[lucide--triangle-alert] size-4'></span>
+							</div>
+							<div className='flex'>
+								<span>Problemas reportados: {problemsCount}</span>
+							</div>
+						</div>
+						<div className='flex'>
+							<div className='flex w-8 items-center justify-center'>
+								<span className='icon-[lucide--book-check] size-4'></span>
+							</div>
+							<div className='flex'>
+								<span>Soluções encontradas: {solutionsCount}</span>
+							</div>
+						</div>
+						<div className='flex'>
+							<div className='flex w-8 items-center justify-center'>
+								<span className='icon-[lucide--clock-4] size-4'></span>
+							</div>
+							<div className='flex'>
+								<span>Atualizado {formatTimeAgo(lastUpdated)}</span>
+							</div>
+						</div>
+					</div>
+
+					{/* Responsáveis técnicos */}
+					<div className='border-b border-zinc-200 p-8 dark:border-zinc-700'>
+						<div className='flex w-full items-center justify-between pb-6'>
+							<div>
+								<h3 className='text-xl font-medium'>Contatos em caso de problemas</h3>
+								<div>
+									<span className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>{contacts.length} responsáveis técnicos</span>
+								</div>
+							</div>
+							<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='py-2'>
+								Adicionar contato
+							</Button>
+						</div>
+						<div className='flex flex-col gap-4 md:grid md:grid-cols-2'>
+							{/* Contatos */}
+							{contacts.map((contact) => (
+								<div key={contact.id} className='flex gap-x-2'>
+									<div className='size-12 shrink-0'>
+										<Image src={contact.image || '/images/profile.png'} alt={contact.name} width={40} height={40} className='size-full rounded-full' />
+									</div>
+									<div className='flex flex-col'>
+										<div className='text-base font-bold'>{contact.name}</div>
+										<div className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>
+											{contact.role} <span className='text-zinc-300 dark:text-zinc-600'>•</span> {contact.team}
+										</div>
+										<div className='text-sm font-medium'>
+											<a href={`mailto:${contact.email}`} className='text-zinc-500 hover:text-zinc-600 dark:text-zinc-400 dark:hover:text-zinc-300'>
+												{contact.email}
+											</a>
+										</div>
+									</div>
+								</div>
+							))}
+						</div>
+					</div>
+
+					{/* Manual do produto */}
+					<div className='p-8'>
+						<div className='flex w-full items-center justify-between pb-6'>
+							<div>
+								<h3 className='text-xl font-medium'>Manual do produto</h3>
+								<div>
+									<span className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>
+										{sections.length} seções <span className='text-zinc-300 dark:text-zinc-600'>•</span> {totalChapters} capítulos
+									</span>
+								</div>
+							</div>
+							<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='py-2' onClick={handleAddSection}>
+								Adicionar seção
+							</Button>
+						</div>
+						<div className='flex flex-col'>
+							{/* Manual */}
+							{accordionSections.length > 0 ? (
+								<Accordion sections={accordionSections} />
+							) : (
+								<div className='flex flex-col items-center justify-center py-12 text-center'>
+									<span className='icon-[lucide--book-open] mb-4 text-4xl text-zinc-400'></span>
+									<h4 className='text-lg font-medium text-zinc-600 dark:text-zinc-300'>Nenhum manual encontrado</h4>
+									<p className='text-sm text-zinc-500 dark:text-zinc-400'>Adicione seções e capítulos para começar a documentar este produto.</p>
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
+			</div>
 
 			{/* Offcanvas para gerenciamento de dependências */}
 			<DependencyManagementOffcanvas open={managementOffcanvasOpen} onClose={() => setManagementOffcanvasOpen(false)} dependencies={dependencies} loadingManagement={loadingManagement} convertToProductDependencyItems={convertToProductDependencyItems} convertFromProductDependencyItems={convertFromProductDependencyItems} handleReorderDependencies={handleReorderDependencies} openEditItemForm={openEditItemForm} openDeleteDialog={openDeleteDialog} openAddItemForm={openAddItemForm} />
