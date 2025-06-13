@@ -1096,9 +1096,9 @@ export default function ProductsPage() {
 								<button
 									type='button'
 									key={iconClass}
-									className={`
-										p-3 border rounded-lg transition-colors
-										${editFormData.icon === iconClass ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600'}
+									className={`flex items-center justify-center
+										size-10 border rounded-lg transition-colors
+										${editFormData.icon === iconClass ? 'border-blue-600 text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800'}
 									`}
 									onClick={() => setEditFormData((prev) => ({ ...prev, icon: iconClass }))}
 									title={iconClass.replace('icon-[lucide--', '').replace(']', '')}
@@ -1180,7 +1180,7 @@ export default function ProductsPage() {
 
 			{/* Dialog de confirmação de exclusão */}
 			{deleteDialogOpen && (
-				<div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
+				<div className='fixed inset-0 z-[100] flex items-center justify-center bg-black/40'>
 					<div className='bg-white dark:bg-zinc-800 rounded-lg shadow-lg max-w-md mx-4 p-6'>
 						<div className='flex items-center gap-3 mb-4'>
 							<span className='icon-[lucide--alert-triangle] size-6 text-red-600' />

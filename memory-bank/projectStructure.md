@@ -392,7 +392,7 @@ return NextResponse.json({
 console.log('✅ Sucesso operação')
 console.log('❌ Erro crítico')
 console.log('⚠️ Aviso importante')
-console.log('🔵Informação debug')
+console.log('🔵 Informação debug')
 ```
 
 ## PRÓXIMAS IMPLEMENTAÇÕES
@@ -411,7 +411,7 @@ console.log('🔵Informação debug')
 - **Middleware**: Autorização baseada em grupos
 - **UI**: Componentes seleção/gestão grupos
 
-### 3. Notificações Real-time (Prioridade MÉDIA)
+### 3. Notificações Real-time (Prioridade BAIXA)
 
 - **WebSockets**: Server-Sent Events para push
 - **Email**: SMTP para notificações críticas
