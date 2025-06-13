@@ -20,10 +20,12 @@ interface ProductDependencyProps {
 	style?: 'bordered' | 'shadow'
 	items: ProductDependencyItem[]
 	setItems(items: ProductDependencyItem[]): void
+	onEdit?: (id: string, data: any) => void
+	onDelete?: (id: string, data: any) => void
 }
 
 // ProductDependency MenuBuilder Component - Componente específico separado
-export default function ProductDependencyMenuBuilder({ style = 'bordered', items: itemsProps, setItems }: ProductDependencyProps) {
+export default function ProductDependencyMenuBuilder({ style = 'bordered', items: itemsProps, setItems, onEdit, onDelete }: ProductDependencyProps) {
 	// Converte ProductDependencyItem[] para TreeItemType[] mantendo compatibilidade
 	// Inclui campos extras como otherfields para acesso no TreeItem
 	const convertedItems: TreeItemType[] = itemsProps.map((item) => {
@@ -106,5 +108,5 @@ export default function ProductDependencyMenuBuilder({ style = 'bordered', items
 	}
 
 	// Reutiliza o MenuBuilder original
-	return <MenuBuilder style={style} items={convertedItems} setItems={handleSetItems} />
+	return <MenuBuilder style={style} items={convertedItems} setItems={handleSetItems} onEdit={onEdit} onDelete={onDelete} />
 }

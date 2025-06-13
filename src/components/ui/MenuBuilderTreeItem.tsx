@@ -68,6 +68,8 @@ export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
 	value: string
 	onCollapse?(): void
 	onRemove?(): void
+	onEdit?: (id: string, data: any) => void
+	onDelete?: (id: string, data: any) => void
 	wrapperRef?(node: HTMLLIElement): void
 	childs?: TreeItems
 	show?: string
@@ -117,10 +119,11 @@ const RecursiveItem = memo(function RecursiveItem(props: { child: TreeItemType; 
 
 // TreeItem Component - Otimizado com memoização
 export const TreeItem = memo(
-	forwardRef<HTMLDivElement, Props>(function TreeItem({ childCount, clone, depth, disableSelection, disableInteraction, ghost, handleProps, indentationWidth, indicator, onRemove, style, value, updateitem, wrapperRef, ...props }, ref) {
+	forwardRef<HTMLDivElement, Props>(function TreeItem({ childCount, clone, depth, disableSelection, disableInteraction, ghost, handleProps, indentationWidth, indicator, onRemove, onEdit, onDelete, style, value, updateitem, wrapperRef, ...props }, ref) {
 		const [open, setOpen] = useState(false)
 		const [editDialogOpen, setEditDialogOpen] = useState(false)
 		const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+		const [isHovered, setIsHovered] = useState(false)
 
 		// Evita problemas de hidratação SSR
 		const [isMounted, setIsMounted] = useState(false)
@@ -213,16 +216,26 @@ export const TreeItem = memo(
 
 		// Callbacks otimizados
 		const handleToggleOpen = useCallback(() => setOpen(!open), [open])
-		const handleEdit = useCallback((e: React.MouseEvent) => {
-			e.stopPropagation()
-			e.preventDefault()
-			setEditDialogOpen(true)
-		}, [])
-		const handleDelete = useCallback((e: React.MouseEvent) => {
-			e.stopPropagation()
-			e.preventDefault()
-			setDeleteDialogOpen(true)
-		}, [])
+		const handleEdit = useCallback(
+			(e: React.MouseEvent) => {
+				e.stopPropagation()
+				e.preventDefault()
+				if (onEdit) {
+					onEdit(value, itemData)
+				}
+			},
+			[onEdit, value, itemData],
+		)
+		const handleDelete = useCallback(
+			(e: React.MouseEvent) => {
+				e.stopPropagation()
+				e.preventDefault()
+				if (onDelete) {
+					onDelete(value, itemData)
+				}
+			},
+			[onDelete, value, itemData],
+		)
 
 		// Renderização otimizada para SSR
 		if (!isMounted) {
@@ -397,11 +410,13 @@ export const TreeItem = memo(
 					onMouseEnter={(e) => {
 						if (!clone && !ghost) {
 							e.currentTarget.style.backgroundColor = '#f9fafb'
+							setIsHovered(true)
 						}
 					}}
 					onMouseLeave={(e) => {
 						if (!clone && !ghost) {
 							e.currentTarget.style.backgroundColor = '#ffffff'
+							setIsHovered(false)
 						}
 					}}
 				>
@@ -443,12 +458,7 @@ export const TreeItem = memo(
 							}}
 						>
 							{clone ? `📋 Movendo: ${itemName}` : itemName}
-							{!(ghost && indicator) && (
-								<span style={{ fontSize: '12px', fontWeight: '400', color: '#6b7280', marginLeft: '4px' }}>
-									{depth > 0 ? 'sub item' : ''}
-									{clone && childCount && childCount > 1 ? ` (${childCount - 1} filhos)` : ''}
-								</span>
-							)}
+							{clone && childCount && childCount > 1 && <span style={{ fontSize: '12px', fontWeight: '400', color: '#6b7280', marginLeft: '4px' }}>({childCount - 1} filhos)</span>}
 						</span>
 					</div>
 
@@ -490,8 +500,8 @@ export const TreeItem = memo(
 							</span>
 						)}
 
-						{/* Action Buttons */}
-						{!clone && !(ghost && indicator) && (
+						{/* Action Buttons - Só aparecem no hover */}
+						{!clone && !(ghost && indicator) && isHovered && (
 							<>
 								<button
 									onClick={handleEdit}
@@ -555,9 +565,11 @@ export const TreeItem = memo(
 										<line x1='14' x2='14' y1='11' y2='17' />
 									</svg>
 								</button>
-								<Collapse open={open} handleOpen={handleToggleOpen} />
 							</>
 						)}
+
+						{/* Botão de Expandir/Recolher - sempre visível */}
+						{!clone && !(ghost && indicator) && <Collapse open={open} handleOpen={handleToggleOpen} />}
 					</div>
 
 					{/* Children Preview for Clone */}
@@ -654,6 +666,8 @@ interface SortableProps extends Props {
 	show?: string
 	updateitem?: (id: UniqueIdentifier, data: Omit<TreeItemType, 'children'>) => void
 	otherfields?: Record<string, unknown>
+	onEdit?: (id: string, data: any) => void
+	onDelete?: (id: string, data: any) => void
 }
 
 // Animation Layout Changes - Otimizado

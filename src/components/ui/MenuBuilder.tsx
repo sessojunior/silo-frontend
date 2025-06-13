@@ -370,10 +370,12 @@ interface Props {
 	style?: 'bordered' | 'shadow'
 	items: TreeItemType[]
 	setItems(items: TreeItemType[]): void
+	onEdit?: (id: string, data: any) => void
+	onDelete?: (id: string, data: any) => void
 }
 
 // Main MenuBuilder Component - Original mantido para compatibilidade
-export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems }: Props) {
+export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems, onEdit, onDelete }: Props) {
 	const items = generateItemChildren(itemsProps)
 	const indentationWidth = 50
 	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
@@ -489,6 +491,8 @@ export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems }:
 								onCollapse={undefined}
 								childCount={getChildCount(items, activeId) + 1}
 								onRemove={() => handleRemove(id)}
+								onEdit={onEdit}
+								onDelete={onDelete}
 							/>
 						)
 					})}

@@ -409,17 +409,61 @@ export default function ProductsPage() {
 	}
 
 	// Abrir formulário para editar item existente
-	// const openEditItemForm = (item: ProductDependency) => { // Removido - não utilizado
-	//	setIsAddingNewItem(false)
-	//	setSelectedItemForEdit(item)
-	//	setEditFormData({
-	//		name: item.name,
-	//		icon: item.icon || '',
-	//		description: item.description || '',
-	//		parentId: item.parentId || null,
-	//	})
-	//	setEditItemOffcanvasOpen(true)
-	// }
+	const openEditItemForm = (item: ProductDependency) => {
+		setIsAddingNewItem(false)
+		setSelectedItemForEdit(item)
+		setEditFormData({
+			name: item.name,
+			icon: item.icon || '',
+			description: item.description || '',
+			parentId: item.parentId || null,
+		})
+		setEditItemOffcanvasOpen(true)
+	}
+
+	// Estados para dialog de confirmação de exclusão
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+	const [itemToDelete, setItemToDelete] = useState<ProductDependency | null>(null)
+
+	// Abrir dialog de confirmação de exclusão
+	const openDeleteDialog = (item: ProductDependency) => {
+		setItemToDelete(item)
+		setDeleteDialogOpen(true)
+	}
+
+	// Confirmar exclusão
+	const handleConfirmDelete = async () => {
+		if (!itemToDelete) return
+		setFormLoading(true)
+		try {
+			const res = await fetch('/api/products/dependencies', {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id: itemToDelete.id }),
+			})
+
+			if (res.ok) {
+				toast({
+					type: 'success',
+					title: 'Dependência excluída com sucesso!',
+				})
+				setDeleteDialogOpen(false)
+				setItemToDelete(null)
+				await refreshDependencies()
+			} else {
+				const error = await res.json()
+				toast({
+					type: 'error',
+					title: error.message || 'Erro ao excluir dependência',
+				})
+			}
+		} catch (error) {
+			console.error('❌ Erro ao excluir dependência:', error)
+			toast({ type: 'error', title: 'Erro inesperado. Tente novamente.' })
+		} finally {
+			setFormLoading(false)
+		}
+	}
 
 	// Submeter formulário de item
 	const handleSubmitItemForm = async (e: React.FormEvent) => {
@@ -981,6 +1025,40 @@ export default function ProductsPage() {
 									// ✅ Apenas chama handleReorderDependencies que já atualiza o estado
 									handleReorderDependencies(convertedDeps)
 								}}
+								onEdit={(id, data) => {
+									// Busca a dependência completa pelo ID
+									const findDependency = (deps: ProductDependency[], searchId: string): ProductDependency | null => {
+										for (const dep of deps) {
+											if (dep.id === searchId) return dep
+											if (dep.children) {
+												const found = findDependency(dep.children, searchId)
+												if (found) return found
+											}
+										}
+										return null
+									}
+									const dependency = findDependency(dependencies, id)
+									if (dependency) {
+										openEditItemForm(dependency)
+									}
+								}}
+								onDelete={(id, data) => {
+									// Busca a dependência completa pelo ID
+									const findDependency = (deps: ProductDependency[], searchId: string): ProductDependency | null => {
+										for (const dep of deps) {
+											if (dep.id === searchId) return dep
+											if (dep.children) {
+												const found = findDependency(dep.children, searchId)
+												if (found) return found
+											}
+										}
+										return null
+									}
+									const dependency = findDependency(dependencies, id)
+									if (dependency) {
+										openDeleteDialog(dependency)
+									}
+								}}
 							/>
 						</div>
 					)}
@@ -1100,7 +1178,38 @@ export default function ProductsPage() {
 				</form>
 			</Offcanvas>
 
-			{/* Dialogs removidos - TreeView tem dialog próprio integrado */}
+			{/* Dialog de confirmação de exclusão */}
+			{deleteDialogOpen && (
+				<div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
+					<div className='bg-white dark:bg-zinc-800 rounded-lg shadow-lg max-w-md mx-4 p-6'>
+						<div className='flex items-center gap-3 mb-4'>
+							<span className='icon-[lucide--alert-triangle] size-6 text-red-600' />
+							<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100'>Confirmar Exclusão</h3>
+						</div>
+
+						<p className='text-sm text-zinc-600 dark:text-zinc-400 mb-6'>
+							Tem certeza que deseja excluir a dependência <strong>{itemToDelete?.name}</strong>? Esta ação não pode ser desfeita.
+						</p>
+
+						<div className='flex gap-3 justify-end'>
+							<button
+								type='button'
+								onClick={() => {
+									setDeleteDialogOpen(false)
+									setItemToDelete(null)
+								}}
+								className='px-4 py-2 text-sm font-medium text-zinc-700 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600 rounded-lg transition-colors'
+								disabled={formLoading}
+							>
+								Cancelar
+							</button>
+							<button type='button' onClick={handleConfirmDelete} disabled={formLoading} className='px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg transition-colors'>
+								{formLoading ? 'Excluindo...' : 'Excluir'}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }
