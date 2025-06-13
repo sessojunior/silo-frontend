@@ -1,4 +1,4 @@
-import React, { forwardRef, HTMLAttributes, CSSProperties, memo, useCallback, useMemo } from 'react'
+import React, { forwardRef, HTMLAttributes, CSSProperties, memo, useCallback, useMemo, useState } from 'react'
 import classNames from 'classnames'
 import type { UniqueIdentifier } from '@dnd-kit/core'
 import { AnimateLayoutChanges, useSortable } from '@dnd-kit/sortable'
@@ -18,34 +18,38 @@ export const Collapse = memo(function Collapse(props: { open: boolean; handleOpe
 	)
 
 	return (
-		<div
+		<button
 			onPointerDown={handleClick}
 			style={{
 				display: 'flex',
 				justifyContent: 'center',
 				alignItems: 'center',
-				height: '30px',
-				width: '30px',
+				height: '32px',
+				width: '32px',
 				cursor: 'pointer',
+				backgroundColor: 'transparent',
+				border: 'none',
+				borderRadius: '50%',
+				transition: 'background-color 0.2s',
 			}}
+			onMouseEnter={(e) => {
+				e.currentTarget.style.backgroundColor = '#f4f4f5'
+			}}
+			onMouseLeave={(e) => {
+				e.currentTarget.style.backgroundColor = 'transparent'
+			}}
+			title={props.open ? 'Recolher' : 'Expandir'}
 		>
 			{!props.open ? (
-				<svg width='12' style={{}} viewBox='0 0 22 22' xmlns='http://www.w3.org/2000/svg'>
-					<path strokeLinecap='round' strokeLinejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' />
+				<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+					<path d='m6 9 6 6 6-6' />
 				</svg>
 			) : (
-				<svg
-					width='12'
-					style={{
-						rotate: '180deg',
-					}}
-					viewBox='0 0 22 22'
-					xmlns='http://www.w3.org/2000/svg'
-				>
-					<path strokeLinecap='round' strokeLinejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' />
+				<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ transform: 'rotate(180deg)' }}>
+					<path d='m6 9 6 6 6-6' />
 				</svg>
 			)}
-		</div>
+		</button>
 	)
 })
 
@@ -82,36 +86,29 @@ const RecursiveItem = memo(function RecursiveItem(props: { child: TreeItemType; 
 		<>
 			<div
 				style={{
-					width: '414px',
+					width: '100%',
+					maxWidth: '414px',
 					height: '42px',
-					border: '1px solid #dcdcde',
-					marginTop: '9px',
-					marginLeft: `${marginLeft}px`, // Esta é a chave para a indentação!
-					backgroundColor: '#f6f7f7',
-					borderRadius: '4px',
+					border: '1px solid #e4e4e7',
+					marginTop: '4px',
+					marginLeft: `${marginLeft}px`,
+					backgroundColor: '#fafafa',
+					borderRadius: '8px',
 					display: 'flex',
 					alignItems: 'center',
-					paddingLeft: '0.5rem',
-					fontWeight: '600',
-					fontSize: '13px',
+					paddingLeft: '12px',
+					paddingRight: '12px',
+					fontWeight: '500',
+					fontSize: '14px',
+					color: '#52525b',
 					userSelect: 'none' as const,
 					WebkitUserSelect: 'none' as const,
 					MozUserSelect: 'none' as const,
 					msUserSelect: 'none' as const,
 				}}
 			>
-				{props.child.name}{' '}
-				<span
-					style={{
-						fontSize: '13px',
-						fontWeight: '400',
-						fontStyle: 'italic',
-						color: '#50575e',
-						marginLeft: '4px',
-					}}
-				>
-					sub item
-				</span>
+				<span style={{ marginRight: '8px', color: '#71717a', fontSize: '12px' }}>└</span>
+				{props.child.name}
 			</div>
 			{childItems}
 		</>
@@ -121,25 +118,28 @@ const RecursiveItem = memo(function RecursiveItem(props: { child: TreeItemType; 
 // TreeItem Component - Otimizado com memoização
 export const TreeItem = memo(
 	forwardRef<HTMLDivElement, Props>(function TreeItem({ childCount, clone, depth, disableSelection, disableInteraction, ghost, handleProps, indentationWidth, indicator, onRemove, style, value, updateitem, wrapperRef, ...props }, ref) {
-		const [open, setOpen] = React.useState(false)
-		const [newData, setNewData] = React.useState<Omit<TreeItemType, 'children'>>(() => ({
-			id: value,
-			href: (props?.otherfields?.href as string) || '',
-			name: (props?.otherfields?.name as string) || '',
-		}))
+		const [open, setOpen] = useState(false)
+		const [editDialogOpen, setEditDialogOpen] = useState(false)
+		const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
 		// Evita problemas de hidratação SSR
-		const [isMounted, setIsMounted] = React.useState(false)
+		const [isMounted, setIsMounted] = useState(false)
 		React.useEffect(() => {
 			setIsMounted(true)
 		}, [])
+
+		// Dados do item
+		const itemData = props?.otherfields as unknown as TreeItemType
+		const itemName = itemData?.name || 'Item sem nome'
+		const itemHref = itemData?.href || ''
+		const itemDescription = `URL: ${itemHref || 'Não definida'}`
 
 		// Memoização de estilos para evitar recálculos
 		const wrapperStyle = useMemo(
 			() => ({
 				listStyle: 'none' as const,
 				boxSizing: 'border-box' as const,
-				marginBottom: '-1px',
+				marginBottom: '4px',
 				WebkitFontSmoothing: 'subpixel-antialiased' as const,
 				...(!clone
 					? {
@@ -161,54 +161,51 @@ export const TreeItem = memo(
 				...style,
 				width: '100%',
 				maxWidth: '414px',
-				height: ghost && indicator && childCount ? `${childCount * 42 + (childCount - 1) * 9}px` : '42px',
+				minHeight: ghost && indicator && childCount ? `${childCount * 46 + (childCount - 1) * 4}px` : '44px',
 				position: 'relative' as const,
 				display: 'flex',
 				alignItems: 'center',
-				padding: '10px',
-				backgroundColor: ghost && indicator ? 'transparent' : '#f6f7f7',
-				border: ghost && indicator ? '2px dashed #c3c4c7' : '1px solid #dcdcde',
-				color: '#1d2327',
+				gap: '8px',
+				padding: '12px',
+				backgroundColor: ghost && indicator ? 'transparent' : '#ffffff',
+				border: ghost && indicator ? '2px dashed #d4d4d8' : '1px solid #e4e4e7',
+				borderRadius: '8px',
+				color: '#18181b',
 				boxSizing: 'border-box' as const,
-				marginTop: '9px',
-				cursor: 'move',
+				cursor: 'grab',
 				opacity: ghost && indicator ? 0.6 : 1,
 				userSelect: 'none' as const,
 				WebkitUserSelect: 'none' as const,
 				MozUserSelect: 'none' as const,
 				msUserSelect: 'none' as const,
+				transition: 'all 0.2s ease',
 				...(clone && {
 					paddingRight: '24px',
-					borderRadius: '4px',
-					boxShadow: '0px 15px 15px 0 rgba(34, 33, 81, 0.1)',
+					boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
 					minWidth: '414px',
+					backgroundColor: '#ffffff',
+					border: '1px solid #e4e4e7',
 				}),
+				...(!clone &&
+					!ghost && {
+						'&:hover': {
+							backgroundColor: '#f9fafb',
+						},
+					}),
 			}),
 			[style, ghost, indicator, childCount, clone],
 		)
 
 		// Callbacks otimizados
 		const handleToggleOpen = useCallback(() => setOpen(!open), [open])
-
-		const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-			setNewData((prev) => ({ ...prev, name: e.target.value }))
+		const handleEdit = useCallback((e: React.MouseEvent) => {
+			e.stopPropagation()
+			setEditDialogOpen(true)
 		}, [])
-
-		const handleHrefChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-			setNewData((prev) => ({ ...prev, href: e.target.value }))
+		const handleDelete = useCallback((e: React.MouseEvent) => {
+			e.stopPropagation()
+			setDeleteDialogOpen(true)
 		}, [])
-
-		const handleCancel = useCallback(() => setOpen(false), [])
-
-		const handleUpdate = useCallback(() => {
-			if (updateitem) {
-				updateitem(value, newData)
-			}
-			setOpen(false)
-		}, [updateitem, value, newData])
-
-		// Filtro de props otimizado
-		const filteredProps = useMemo(() => Object.fromEntries(Object.entries(props).filter(([key]) => !['collapsed', 'onCollapse', 'onRemove', 'childs', 'show', 'updateitem', 'otherfields', 'childCount', 'depth', 'indentationWidth', 'indicator', 'value'].includes(key))), [props])
 
 		// Renderização otimizada para SSR
 		if (!isMounted) {
@@ -224,45 +221,135 @@ export const TreeItem = memo(
 					})}
 					ref={wrapperRef}
 					style={wrapperStyle}
-					{...filteredProps}
 				>
 					<div {...handleProps} className='TreeItem' ref={ref} style={treeItemStyle}>
+						{/* Grip Icon */}
+						<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#9ca3af', cursor: 'grab', flexShrink: 0 }}>
+							<circle cx='9' cy='12' r='1' />
+							<circle cx='9' cy='5' r='1' />
+							<circle cx='9' cy='19' r='1' />
+							<circle cx='15' cy='12' r='1' />
+							<circle cx='15' cy='5' r='1' />
+							<circle cx='15' cy='19' r='1' />
+						</svg>
+
+						{/* Item Icon */}
+						<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#6b7280', flexShrink: 0 }}>
+							<circle cx='12' cy='12' r='10' />
+						</svg>
+
+						{/* Item Name */}
 						<span
-							className={'Text'}
 							style={{
-								flexGrow: 1,
-								paddingLeft: '0.5rem',
+								flex: 1,
+								fontWeight: '500',
+								fontSize: '14px',
+								color: '#374151',
 								whiteSpace: 'nowrap',
 								textOverflow: 'ellipsis',
 								overflow: 'hidden',
-								fontWeight: '600',
-								fontSize: '13px',
 							}}
 						>
-							{clone ? `📋 Movendo: ${props?.otherfields?.name as string}` : (props?.otherfields?.name as string)}{' '}
+							{clone ? `📋 Movendo: ${itemName}` : itemName}
+							{clone && childCount && childCount > 1 && <span style={{ fontSize: '12px', fontWeight: '400', color: '#6b7280', marginLeft: '4px' }}>({childCount - 1} filhos)</span>}
+						</span>
+
+						{/* Level Badge */}
+						{!clone && (
 							<span
 								style={{
-									fontSize: '13px',
-									fontWeight: '400',
-									fontStyle: 'italic',
-									color: '#50575e',
-									marginLeft: '4px',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									width: '32px',
+									height: '32px',
+									backgroundColor: '#f3f4f6',
+									borderRadius: '50%',
+									fontSize: '12px',
+									fontWeight: '500',
+									color: '#6b7280',
+									flexShrink: 0,
 								}}
 							>
-								{depth > 0 ? 'sub item' : ''}
-								{clone && childCount && childCount > 1 ? ` (${childCount - 1} filhos)` : ''}
+								L{depth + 1}
 							</span>
-						</span>
-						{!clone && onRemove && !(ghost && indicator) && <Collapse open={open} handleOpen={handleToggleOpen} />}
+						)}
+
+						{/* Action Buttons */}
+						{!clone && !(ghost && indicator) && (
+							<>
+								<button
+									onClick={handleEdit}
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										width: '32px',
+										height: '32px',
+										backgroundColor: 'transparent',
+										border: 'none',
+										borderRadius: '50%',
+										cursor: 'pointer',
+										transition: 'background-color 0.2s',
+									}}
+									onMouseEnter={(e) => {
+										e.currentTarget.style.backgroundColor = '#f3f4f6'
+									}}
+									onMouseLeave={(e) => {
+										e.currentTarget.style.backgroundColor = 'transparent'
+									}}
+									title='Editar'
+								>
+									<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#6b7280' }}>
+										<path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7' />
+										<path d='m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z' />
+									</svg>
+								</button>
+								<button
+									onClick={handleDelete}
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										width: '32px',
+										height: '32px',
+										backgroundColor: 'transparent',
+										border: 'none',
+										borderRadius: '50%',
+										cursor: 'pointer',
+										transition: 'background-color 0.2s',
+									}}
+									onMouseEnter={(e) => {
+										e.currentTarget.style.backgroundColor = '#fef2f2'
+									}}
+									onMouseLeave={(e) => {
+										e.currentTarget.style.backgroundColor = 'transparent'
+									}}
+									title='Excluir'
+								>
+									<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#ef4444' }}>
+										<path d='m3 6 3 0' />
+										<path d='m19 6-3 0' />
+										<path d='m8 6 0-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2' />
+										<path d='m4 6h16l-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6Z' />
+										<line x1='10' x2='10' y1='11' y2='17' />
+										<line x1='14' x2='14' y1='11' y2='17' />
+									</svg>
+								</button>
+								<Collapse open={open} handleOpen={handleToggleOpen} />
+							</>
+						)}
+
+						{/* Children Preview for Clone */}
 						{clone && childCount && childCount > 1 && props.childs ? (
 							<div
-								className={'Count'}
 								style={{
 									position: 'absolute',
 									top: '100%',
 									left: 0,
 									display: 'flex',
 									flexDirection: 'column',
+									zIndex: 1000,
 								}}
 							>
 								{props.childs.map((child: TreeItemType) => (
@@ -287,47 +374,155 @@ export const TreeItem = memo(
 				})}
 				ref={wrapperRef}
 				style={wrapperStyle}
-				{...filteredProps}
 			>
-				<div {...handleProps} className='TreeItem' ref={ref} style={treeItemStyle}>
+				<div
+					{...handleProps}
+					className='TreeItem'
+					ref={ref}
+					style={treeItemStyle}
+					onMouseEnter={(e) => {
+						if (!clone && !ghost) {
+							e.currentTarget.style.backgroundColor = '#f9fafb'
+						}
+					}}
+					onMouseLeave={(e) => {
+						if (!clone && !ghost) {
+							e.currentTarget.style.backgroundColor = '#ffffff'
+						}
+					}}
+				>
+					{/* Grip Icon */}
+					<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#9ca3af', cursor: 'grab', flexShrink: 0 }}>
+						<circle cx='9' cy='12' r='1' />
+						<circle cx='9' cy='5' r='1' />
+						<circle cx='9' cy='19' r='1' />
+						<circle cx='15' cy='12' r='1' />
+						<circle cx='15' cy='5' r='1' />
+						<circle cx='15' cy='19' r='1' />
+					</svg>
+
+					{/* Item Icon */}
+					<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#6b7280', flexShrink: 0 }}>
+						<circle cx='12' cy='12' r='10' />
+					</svg>
+
+					{/* Item Name */}
 					<span
-						className={'Text'}
 						style={{
-							flexGrow: 1,
-							paddingLeft: '0.5rem',
+							flex: 1,
+							fontWeight: '500',
+							fontSize: '14px',
+							color: '#374151',
 							whiteSpace: 'nowrap',
 							textOverflow: 'ellipsis',
 							overflow: 'hidden',
-							fontWeight: '600',
-							fontSize: '13px',
 						}}
 					>
-						{clone ? `📋 Movendo: ${props?.otherfields?.name as string}` : (props?.otherfields?.name as string)}{' '}
+						{clone ? `📋 Movendo: ${itemName}` : itemName}
 						{!(ghost && indicator) && (
-							<span
-								style={{
-									fontSize: '13px',
-									fontWeight: '400',
-									fontStyle: 'italic',
-									color: '#50575e',
-									marginLeft: '4px',
-								}}
-							>
+							<span style={{ fontSize: '12px', fontWeight: '400', color: '#6b7280', marginLeft: '4px' }}>
 								{depth > 0 ? 'sub item' : ''}
 								{clone && childCount && childCount > 1 ? ` (${childCount - 1} filhos)` : ''}
 							</span>
 						)}
 					</span>
-					{!clone && onRemove && !(ghost && indicator) && <Collapse open={open} handleOpen={handleToggleOpen} />}
+
+					{/* Level Badge */}
+					{!clone && (
+						<span
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: '32px',
+								height: '32px',
+								backgroundColor: '#f3f4f6',
+								borderRadius: '50%',
+								fontSize: '12px',
+								fontWeight: '500',
+								color: '#6b7280',
+								flexShrink: 0,
+							}}
+						>
+							L{depth + 1}
+						</span>
+					)}
+
+					{/* Action Buttons */}
+					{!clone && !(ghost && indicator) && (
+						<>
+							<button
+								onClick={handleEdit}
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									width: '32px',
+									height: '32px',
+									backgroundColor: 'transparent',
+									border: 'none',
+									borderRadius: '50%',
+									cursor: 'pointer',
+									transition: 'background-color 0.2s',
+								}}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.backgroundColor = '#f3f4f6'
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.backgroundColor = 'transparent'
+								}}
+								title='Editar'
+							>
+								<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#6b7280' }}>
+									<path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7' />
+									<path d='m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z' />
+								</svg>
+							</button>
+							<button
+								onClick={handleDelete}
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									width: '32px',
+									height: '32px',
+									backgroundColor: 'transparent',
+									border: 'none',
+									borderRadius: '50%',
+									cursor: 'pointer',
+									transition: 'background-color 0.2s',
+								}}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.backgroundColor = '#fef2f2'
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.backgroundColor = 'transparent'
+								}}
+								title='Excluir'
+							>
+								<svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#ef4444' }}>
+									<path d='m3 6 3 0' />
+									<path d='m19 6-3 0' />
+									<path d='m8 6 0-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2' />
+									<path d='m4 6h16l-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6Z' />
+									<line x1='10' x2='10' y1='11' y2='17' />
+									<line x1='14' x2='14' y1='11' y2='17' />
+								</svg>
+							</button>
+							<Collapse open={open} handleOpen={handleToggleOpen} />
+						</>
+					)}
+
+					{/* Children Preview for Clone */}
 					{clone && childCount && childCount > 1 && props.childs ? (
 						<div
-							className={'Count'}
 							style={{
 								position: 'absolute',
 								top: '100%',
 								left: 0,
 								display: 'flex',
 								flexDirection: 'column',
+								zIndex: 1000,
 							}}
 						>
 							{props.childs.map((child: TreeItemType) => (
@@ -336,104 +531,68 @@ export const TreeItem = memo(
 						</div>
 					) : null}
 				</div>
+
+				{/* Dropdown Content - Informações do Item */}
 				{!(props.show === 'true') && open && (
 					<div
 						style={{
-							width: '412px',
-							border: '1px solid #c3c4c7',
+							width: '100%',
+							maxWidth: '414px',
+							border: '1px solid #e4e4e7',
+							borderTop: 'none',
+							borderRadius: '0 0 8px 8px',
+							backgroundColor: '#ffffff',
 							marginTop: '-1px',
+							boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
 						}}
 					>
 						<div
 							style={{
-								padding: '10px',
+								padding: '16px',
 								display: 'flex',
 								flexDirection: 'column',
+								gap: '12px',
 							}}
 						>
-							<label
-								style={{
-									marginTop: '5px',
-									marginBottom: '5px',
-									fontSize: '13px',
-									color: '#646970',
-								}}
-								htmlFor='label'
-							>
-								Navigation Label
-							</label>
-							<input
-								value={newData.name}
-								onChange={handleNameChange}
-								type='text'
-								id='label'
-								style={{
-									border: '1px solid #dcdcde',
-									height: '30px',
-									borderRadius: '4px',
-									padding: '0 10px',
-								}}
-							/>
-							<label
-								style={{
-									marginTop: '10px',
-									marginBottom: '5px',
-									fontSize: '13px',
-									color: '#646970',
-								}}
-								htmlFor='href'
-							>
-								Navigation Url
-							</label>
-							<input
-								value={newData.href}
-								onChange={handleHrefChange}
-								type='text'
-								id='href'
-								style={{
-									border: '1px solid #dcdcde',
-									height: '30px',
-									borderRadius: '4px',
-									padding: '0 10px',
-								}}
-							/>
+							{/* Header com ícone e nome */}
+							<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+								<svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#6b7280', flexShrink: 0 }}>
+									<circle cx='12' cy='12' r='10' />
+								</svg>
+								<h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#111827' }}>{itemName}</h4>
+							</div>
+
+							{/* Descrição */}
+							<div>
+								<p
+									style={{
+										margin: 0,
+										fontSize: '14px',
+										color: '#6b7280',
+										lineHeight: '1.5',
+										display: '-webkit-box',
+										WebkitLineClamp: 4,
+										WebkitBoxOrient: 'vertical',
+										overflow: 'hidden',
+										textOverflow: 'ellipsis',
+									}}
+								>
+									{itemDescription}
+								</p>
+							</div>
+
+							{/* Informações adicionais */}
 							<div
 								style={{
 									display: 'flex',
-									justifyContent: 'flex-end',
-									marginTop: '10px',
-									gap: '12px',
+									justifyContent: 'space-between',
+									alignItems: 'center',
+									paddingTop: '8px',
+									borderTop: '1px solid #f3f4f6',
 								}}
 							>
-								<button
-									style={{
-										all: 'unset',
-										cursor: 'pointer',
-										padding: '8px 16px',
-										backgroundColor: '#f0f0f1',
-										border: '1px solid #c3c4c7',
-										borderRadius: '3px',
-										fontSize: '13px',
-									}}
-									onClick={handleCancel}
-								>
-									Cancel
-								</button>
-								<button
-									style={{
-										all: 'unset',
-										cursor: 'pointer',
-										padding: '8px 16px',
-										backgroundColor: '#2271b1',
-										color: 'white',
-										border: '1px solid #2271b1',
-										borderRadius: '3px',
-										fontSize: '13px',
-									}}
-									onClick={handleUpdate}
-								>
-									Update Menu Item
-								</button>
+								<span style={{ fontSize: '12px', color: '#9ca3af' }}>Nível {depth + 1}</span>
+								<span style={{ fontSize: '12px', color: '#9ca3af' }}>ID: {value}</span>
 							</div>
 						</div>
 					</div>
