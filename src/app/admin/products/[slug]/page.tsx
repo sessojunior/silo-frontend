@@ -218,7 +218,7 @@ function MenuBuilder({ dependencies, onEdit, onDelete, onReorder }: MenuBuilderP
 				{/* Item atual */}
 				<div className={`flex items-center gap-2 px-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-750 transition-all ${dropIndicatorClass} ${isDragging ? 'opacity-50' : ''}`} style={{ marginLeft: `${marginLeft}px` }} draggable={!isDragging} onDragStart={(e) => handleDragStart(e, item)} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, item)} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, item)}>
 					<span className='icon-[lucide--grip-vertical] size-4 text-zinc-400 cursor-grab active:cursor-grabbing' />
-					{item.icon && <span className={`icon-[lucide--${item.icon}] size-4 text-zinc-600 dark:text-zinc-400`} />}
+					{item.icon && <span className={`${item.icon} size-4 text-zinc-600 dark:text-zinc-400`} />}
 					{!item.icon && <span className='icon-[lucide--circle] size-4 text-zinc-600 dark:text-zinc-400' />}
 					<span className='flex-1 font-medium'>{item.name}</span>
 					<span className='flex items-center justify-center size-8 bg-zinc-100 dark:bg-zinc-700 rounded-full text-xs text-zinc-500'>L{level + 1}</span>
@@ -420,8 +420,8 @@ export default function ProductsPage() {
 		return () => window.removeEventListener('resize', checkMobile)
 	}, [])
 
-	// Lista de ícones disponíveis para seleção
-	const availableIcons = ['server', 'database', 'monitor', 'smartphone', 'wifi', 'network', 'shield', 'key', 'lock', 'globe', 'terminal', 'code', 'git-branch', 'package', 'puzzle', 'zap', 'activity', 'alert-triangle', 'tool', 'settings-2', 'layers', 'workflow', 'cpu', 'hard-drive', 'cloud', 'router', 'usb', 'memory-stick']
+	// Lista de ícones disponíveis para seleção (classes completas do Iconify)
+	const availableIcons = ['icon-[lucide--server]', 'icon-[lucide--database]', 'icon-[lucide--monitor]', 'icon-[lucide--smartphone]', 'icon-[lucide--wifi]', 'icon-[lucide--network]', 'icon-[lucide--shield]', 'icon-[lucide--key]', 'icon-[lucide--lock]', 'icon-[lucide--globe]', 'icon-[lucide--terminal]', 'icon-[lucide--code]', 'icon-[lucide--git-branch]', 'icon-[lucide--package]', 'icon-[lucide--puzzle]', 'icon-[lucide--zap]', 'icon-[lucide--activity]', 'icon-[lucide--alert-triangle]', 'icon-[lucide--tool]', 'icon-[lucide--settings-2]', 'icon-[lucide--layers]', 'icon-[lucide--workflow]', 'icon-[lucide--cpu]', 'icon-[lucide--hard-drive]', 'icon-[lucide--cloud]', 'icon-[lucide--router]', 'icon-[lucide--usb]', 'icon-[lucide--memory-stick]']
 
 	// Busca o ID do produto pelo slug
 	useEffect(() => {
@@ -1273,18 +1273,18 @@ export default function ProductsPage() {
 					<div>
 						<Label htmlFor='item-icon'>Ícone (opcional)</Label>
 						<div className={`grid gap-2 ${isMobile ? 'grid-cols-6' : 'grid-cols-12'}`}>
-							{availableIcons.map((iconName) => (
+							{availableIcons.map((iconClass) => (
 								<button
 									type='button'
-									key={iconName}
+									key={iconClass}
 									className={`
 										p-3 border rounded-lg transition-colors
-										${editFormData.icon === iconName ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600'}
+										${editFormData.icon === iconClass ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600'}
 									`}
-									onClick={() => setEditFormData((prev) => ({ ...prev, icon: iconName }))}
-									title={iconName}
+									onClick={() => setEditFormData((prev) => ({ ...prev, icon: iconClass }))}
+									title={iconClass.replace('icon-[lucide--', '').replace(']', '')}
 								>
-									<span className={`icon-[lucide--${iconName}] size-5`} />
+									<span className={`${iconClass} size-5`} />
 								</button>
 							))}
 							{/* Botão para remover ícone */}

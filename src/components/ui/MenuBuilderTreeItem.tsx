@@ -138,9 +138,8 @@ export const TreeItem = memo(
 		// Função para renderizar o ícone correto
 		const renderItemIcon = useCallback(() => {
 			if (itemIcon) {
-				// Usa ícone específico - seguindo padrão visto no projeto
-				const iconClass = `icon-[lucide--${itemIcon}] size-4 text-zinc-600 dark:text-zinc-400`
-				return <span className={iconClass} style={{ flexShrink: 0 }} />
+				// Usa ícone específico - classe completa do Iconify/Lucide
+				return <span className={`${itemIcon} size-4 text-zinc-600 dark:text-zinc-400`} style={{ flexShrink: 0 }} />
 			}
 			// Ícone SVG padrão
 			return (
