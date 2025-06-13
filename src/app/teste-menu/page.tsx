@@ -1,95 +1,94 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import MenuBuilder from '@/components/ui/MenuBuilder'
+import ProductDependencyMenuBuilder, { type ProductDependencyItem } from './ProductDependencyMenuBuilder'
 
 export default function TesteMenuPage() {
 	const [isMounted, setIsMounted] = useState(false)
-	const [menus, setMenus] = useState([
+
+	// Dados fictícios baseados na estrutura da tabela product_dependency
+	const [dependencies, setDependencies] = useState<ProductDependencyItem[]>([
 		{
-			id: 'home',
-			name: 'Início',
-			href: '/',
-			children: [],
-		},
-		{
-			id: 'produtos',
-			name: 'Produtos',
-			href: '/produtos',
+			id: 'infra-principal',
+			productId: 'produto-teste-001',
+			name: 'Infraestrutura Principal',
+			icon: 'server',
+			description: 'Servidores e infraestrutura base necessária para execução',
+			parentId: null,
+			treePath: '/0',
+			treeDepth: 0,
+			sortKey: '000',
+			href: undefined,
+			collapsed: false,
 			children: [
 				{
-					id: 'roupas',
-					name: 'Roupas',
-					href: '/produtos/roupas',
+					id: 'servidor-web',
+					productId: 'produto-teste-001',
+					name: 'Servidor Web Apache',
+					icon: 'globe',
+					description: 'Servidor web principal responsável pelo frontend',
+					parentId: 'infra-principal',
+					treePath: '/0/0',
+					treeDepth: 1,
+					sortKey: '000.000',
+					href: undefined,
+					collapsed: false,
 					children: [
 						{
-							id: 'camisetas',
-							name: 'Camisetas',
-							href: '/produtos/roupas/camisetas',
-							children: [
-								{
-									id: 'camisetas-masculinas',
-									name: 'Masculinas',
-									href: '/produtos/roupas/camisetas/masculinas',
-									children: [],
-								},
-								{
-									id: 'camisetas-femininas',
-									name: 'Femininas',
-									href: '/produtos/roupas/camisetas/femininas',
-									children: [],
-								},
-							],
+							id: 'ssl-certificado',
+							productId: 'produto-teste-001',
+							name: 'Certificado SSL',
+							icon: 'shield',
+							description: 'Certificado de segurança HTTPS',
+							parentId: 'servidor-web',
+							treePath: '/0/0/0',
+							treeDepth: 2,
+							sortKey: '000.000.000',
+							href: undefined,
+							collapsed: false,
+							children: [],
 						},
 						{
-							id: 'calcas',
-							name: 'Calças',
-							href: '/produtos/roupas/calcas',
-							children: [
-								{
-									id: 'jeans',
-									name: 'Jeans',
-									href: '/produtos/roupas/calcas/jeans',
-									children: [],
-								},
-								{
-									id: 'sociais',
-									name: 'Sociais',
-									href: '/produtos/roupas/calcas/sociais',
-									children: [],
-								},
-							],
+							id: 'dns-config',
+							productId: 'produto-teste-001',
+							name: 'Configuração DNS',
+							icon: 'network',
+							description: 'Configuração de DNS e subdomínios',
+							parentId: 'servidor-web',
+							treePath: '/0/0/1',
+							treeDepth: 2,
+							sortKey: '000.000.001',
+							href: undefined,
+							collapsed: false,
+							children: [],
 						},
 					],
 				},
 				{
-					id: 'calcados',
-					name: 'Calçados',
-					href: '/produtos/calcados',
+					id: 'banco-dados',
+					productId: 'produto-teste-001',
+					name: 'Banco de Dados PostgreSQL',
+					icon: 'database',
+					description: 'Sistema de gerenciamento de banco de dados',
+					parentId: 'infra-principal',
+					treePath: '/0/1',
+					treeDepth: 1,
+					sortKey: '000.001',
+					href: undefined,
+					collapsed: false,
 					children: [
 						{
-							id: 'tenis',
-							name: 'Tênis',
-							href: '/produtos/calcados/tenis',
-							children: [
-								{
-									id: 'corrida',
-									name: 'Corrida',
-									href: '/produtos/calcados/tenis/corrida',
-									children: [],
-								},
-								{
-									id: 'casual',
-									name: 'Casual',
-									href: '/produtos/calcados/tenis/casual',
-									children: [],
-								},
-							],
-						},
-						{
-							id: 'sapatos',
-							name: 'Sapatos',
-							href: '/produtos/calcados/sapatos',
+							id: 'backup-diario',
+							productId: 'produto-teste-001',
+							name: 'Backup Diário',
+							icon: 'hard-drive',
+							description: 'Rotina automatizada de backup',
+							parentId: 'banco-dados',
+							treePath: '/0/1/0',
+							treeDepth: 2,
+							sortKey: '000.001.000',
+							href: undefined,
+							collapsed: false,
 							children: [],
 						},
 					],
@@ -97,106 +96,105 @@ export default function TesteMenuPage() {
 			],
 		},
 		{
-			id: 'servicos',
-			name: 'Serviços',
-			href: '/servicos',
+			id: 'sistemas-externos',
+			productId: 'produto-teste-001',
+			name: 'Sistemas Externos',
+			icon: 'workflow',
+			description: 'Dependências de sistemas externos e APIs',
+			parentId: null,
+			treePath: '/1',
+			treeDepth: 0,
+			sortKey: '001',
+			href: undefined,
+			collapsed: false,
 			children: [
 				{
-					id: 'consultoria',
-					name: 'Consultoria',
-					href: '/servicos/consultoria',
+					id: 'api-meteorologia',
+					productId: 'produto-teste-001',
+					name: 'API Meteorologia INPE',
+					icon: 'cloud',
+					description: 'Interface com dados meteorológicos',
+					parentId: 'sistemas-externos',
+					treePath: '/1/0',
+					treeDepth: 1,
+					sortKey: '001.000',
+					href: undefined,
+					collapsed: false,
 					children: [
 						{
-							id: 'consultoria-ti',
-							name: 'Tecnologia da Informação',
-							href: '/servicos/consultoria/ti',
-							children: [
-								{
-									id: 'desenvolvimento',
-									name: 'Desenvolvimento',
-									href: '/servicos/consultoria/ti/desenvolvimento',
-									children: [],
-								},
-								{
-									id: 'infraestrutura',
-									name: 'Infraestrutura',
-									href: '/servicos/consultoria/ti/infraestrutura',
-									children: [],
-								},
-							],
-						},
-						{
-							id: 'consultoria-marketing',
-							name: 'Marketing Digital',
-							href: '/servicos/consultoria/marketing',
+							id: 'token-acesso',
+							productId: 'produto-teste-001',
+							name: 'Token de Acesso',
+							icon: 'key',
+							description: 'Chave de autenticação da API',
+							parentId: 'api-meteorologia',
+							treePath: '/1/0/0',
+							treeDepth: 2,
+							sortKey: '001.000.000',
+							href: undefined,
+							collapsed: false,
 							children: [],
 						},
 					],
 				},
 				{
-					id: 'suporte',
-					name: 'Suporte Técnico',
-					href: '/servicos/suporte',
-					children: [
-						{
-							id: 'suporte-nivel1',
-							name: 'Nível 1',
-							href: '/servicos/suporte/nivel1',
-							children: [],
-						},
-						{
-							id: 'suporte-nivel2',
-							name: 'Nível 2',
-							href: '/servicos/suporte/nivel2',
-							children: [],
-						},
-						{
-							id: 'suporte-nivel3',
-							name: 'Nível 3',
-							href: '/servicos/suporte/nivel3',
-							children: [],
-						},
-					],
+					id: 'servico-email',
+					productId: 'produto-teste-001',
+					name: 'Serviço de Email',
+					icon: 'mail',
+					description: 'Sistema de envio de notificações',
+					parentId: 'sistemas-externos',
+					treePath: '/1/1',
+					treeDepth: 1,
+					sortKey: '001.001',
+					href: undefined,
+					collapsed: false,
+					children: [],
 				},
 			],
 		},
 		{
-			id: 'sobre',
-			name: 'Sobre Nós',
-			href: '/sobre',
+			id: 'ferramentas-dev',
+			productId: 'produto-teste-001',
+			name: 'Ferramentas de Desenvolvimento',
+			icon: 'code',
+			description: 'Ambiente de desenvolvimento e deployment',
+			parentId: null,
+			treePath: '/2',
+			treeDepth: 0,
+			sortKey: '002',
+			href: undefined,
+			collapsed: false,
 			children: [
 				{
-					id: 'historia',
-					name: 'Nossa História',
-					href: '/sobre/historia',
+					id: 'docker-containers',
+					productId: 'produto-teste-001',
+					name: 'Containers Docker',
+					icon: 'package',
+					description: 'Containerização da aplicação',
+					parentId: 'ferramentas-dev',
+					treePath: '/2/0',
+					treeDepth: 1,
+					sortKey: '002.000',
+					href: undefined,
+					collapsed: false,
 					children: [],
 				},
 				{
-					id: 'equipe',
-					name: 'Equipe',
-					href: '/sobre/equipe',
-					children: [
-						{
-							id: 'diretoria',
-							name: 'Diretoria',
-							href: '/sobre/equipe/diretoria',
-							children: [],
-						},
-						{
-							id: 'desenvolvedores',
-							name: 'Desenvolvedores',
-							href: '/sobre/equipe/desenvolvedores',
-							children: [],
-						},
-					],
+					id: 'ci-cd-pipeline',
+					productId: 'produto-teste-001',
+					name: 'Pipeline CI/CD',
+					icon: 'git-branch',
+					description: 'Integração e deploy contínuo',
+					parentId: 'ferramentas-dev',
+					treePath: '/2/1',
+					treeDepth: 1,
+					sortKey: '002.001',
+					href: undefined,
+					collapsed: false,
+					children: [],
 				},
 			],
-		},
-		{
-			id: 'contato',
-			name: 'Contato',
-			href: '/contato',
-			children: [],
 		},
 	])
 
@@ -204,8 +202,9 @@ export default function TesteMenuPage() {
 		setIsMounted(true)
 	}, [])
 
-	const handleSetMenus = (newMenus: any) => {
-		setMenus(newMenus)
+	const handleSetDependencies = (newDependencies: ProductDependencyItem[]) => {
+		setDependencies(newDependencies)
+		console.log('✅ Dependências atualizadas:', newDependencies)
 	}
 
 	// Evita problemas de hidratação SSR
@@ -213,7 +212,7 @@ export default function TesteMenuPage() {
 		return (
 			<div className='p-8 space-y-6 min-h-screen bg-gray-50'>
 				<div className='text-center'>
-					<h1 className='text-3xl font-bold'>Teste MenuBuilder - Drag & Drop</h1>
+					<h1 className='text-3xl font-bold'>Teste ProductDependencyMenuBuilder</h1>
 					<p className='text-gray-600 mt-2'>Carregando...</p>
 				</div>
 			</div>
@@ -223,18 +222,22 @@ export default function TesteMenuPage() {
 	return (
 		<div className='p-8 space-y-6 min-h-screen bg-gray-50'>
 			<div className='text-center'>
-				<h1 className='text-3xl font-bold'>Teste MenuBuilder - Drag & Drop</h1>
-				<p className='text-gray-600 mt-2'>Teste o drag & drop hierárquico com múltiplos níveis. Arraste itens para reordenar e criar hierarquias.</p>
+				<h1 className='text-3xl font-bold'>Teste ProductDependencyMenuBuilder</h1>
+				<p className='text-gray-600 mt-2'>
+					Teste do drag & drop com dados baseados na tabela product_dependency.
+					<br />
+					Campos: id, productId, name, icon, description, parentId, treePath, treeDepth, sortKey
+				</p>
 			</div>
 
 			<div className='max-w-4xl mx-auto bg-white border rounded-lg p-6 shadow'>
-				<h3 className='text-lg font-semibold mb-4'>MenuBuilder Component ({menus.length} itens principais):</h3>
-				<MenuBuilder items={menus} setItems={handleSetMenus} />
+				<h3 className='text-lg font-semibold mb-4'>ProductDependencyMenuBuilder ({dependencies.length} dependências principais):</h3>
+				<ProductDependencyMenuBuilder items={dependencies} setItems={handleSetDependencies} />
 			</div>
 
 			<div className='max-w-4xl mx-auto bg-white border rounded-lg p-6 shadow'>
-				<h2 className='text-xl font-semibold mb-4'>Estado Atual (JSON):</h2>
-				<pre className='bg-gray-100 p-4 rounded text-sm overflow-auto max-h-96'>{JSON.stringify(menus, null, 2)}</pre>
+				<h2 className='text-xl font-semibold mb-4'>Estado Atual (JSON com campos do banco):</h2>
+				<pre className='bg-gray-100 p-4 rounded text-sm overflow-auto max-h-96'>{JSON.stringify(dependencies, null, 2)}</pre>
 			</div>
 		</div>
 	)

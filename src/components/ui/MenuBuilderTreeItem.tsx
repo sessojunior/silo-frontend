@@ -129,10 +129,26 @@ export const TreeItem = memo(
 		}, [])
 
 		// Dados do item
-		const itemData = props?.otherfields as unknown as TreeItemType
-		const itemName = itemData?.name || 'Item sem nome'
+		const itemData = props?.otherfields as unknown as { icon?: string; description?: string; name?: string; href?: string }
+		const itemName = itemData?.name || value || 'Item sem nome'
 		const itemHref = itemData?.href || ''
-		const itemDescription = `URL: ${itemHref || 'Não definida'}`
+		const itemIcon = itemData?.icon
+		const itemDescription = itemData?.description || `URL: ${itemHref || 'Não definida'}`
+
+		// Função para renderizar o ícone correto
+		const renderItemIcon = useCallback(() => {
+			if (itemIcon) {
+				// Usa ícone específico - seguindo padrão visto no projeto
+				const iconClass = `icon-[lucide--${itemIcon}] size-4 text-zinc-600 dark:text-zinc-400`
+				return <span className={iconClass} style={{ flexShrink: 0 }} />
+			}
+			// Ícone SVG padrão
+			return (
+				<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#6b7280', flexShrink: 0 }}>
+					<circle cx='12' cy='12' r='10' />
+				</svg>
+			)
+		}, [itemIcon])
 
 		// Memoização de estilos para evitar recálculos
 		const wrapperStyle = useMemo(
@@ -234,9 +250,7 @@ export const TreeItem = memo(
 						</svg>
 
 						{/* Item Icon */}
-						<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#6b7280', flexShrink: 0 }}>
-							<circle cx='12' cy='12' r='10' />
-						</svg>
+						{renderItemIcon()}
 
 						{/* Item Name */}
 						<span
@@ -402,9 +416,7 @@ export const TreeItem = memo(
 					</svg>
 
 					{/* Item Icon */}
-					<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#6b7280', flexShrink: 0 }}>
-						<circle cx='12' cy='12' r='10' />
-					</svg>
+					{renderItemIcon()}
 
 					{/* Item Name */}
 					<span
@@ -556,9 +568,7 @@ export const TreeItem = memo(
 						>
 							{/* Header com ícone e nome */}
 							<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-								<svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' style={{ color: '#6b7280', flexShrink: 0 }}>
-									<circle cx='12' cy='12' r='10' />
-								</svg>
+								{renderItemIcon()}
 								<h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#111827' }}>{itemName}</h4>
 							</div>
 
