@@ -9,9 +9,10 @@ interface ModalProps extends HTMLAttributes<HTMLDivElement> {
 	onClose: () => void
 	title?: string
 	children: React.ReactNode
+	showFooter?: boolean
 }
 
-export default function Modal({ isOpen, onClose, title, children, className, ...props }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, className, showFooter = false, ...props }: ModalProps) {
 	const [visible, setVisible] = useState(false)
 	const [shouldAnimateIn, setShouldAnimateIn] = useState(false)
 
@@ -73,12 +74,14 @@ export default function Modal({ isOpen, onClose, title, children, className, ...
 				{/* Conteúdo */}
 				<div className='flex flex-col divide-y divide-zinc-200 dark:divide-zinc-700'>{children}</div>
 
-				{/* Rodapé */}
-				<div className='flex items-center justify-end gap-x-2 rounded-xl border-t border-gray-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800'>
-					<button onClick={onClose} aria-label='Fechar modal' className='inline-flex items-center gap-x-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-800 shadow-2xs hover:bg-gray-50 focus:bg-gray-50 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:focus:bg-zinc-800'>
-						Fechar
-					</button>
-				</div>
+				{/* Rodapé (opcional) */}
+				{showFooter && (
+					<div className='flex items-center justify-end gap-x-2 rounded-xl border-t border-gray-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800'>
+						<button onClick={onClose} aria-label='Fechar modal' className='inline-flex items-center gap-x-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-800 shadow-2xs hover:bg-gray-50 focus:bg-gray-50 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:focus:bg-zinc-800'>
+							Fechar
+						</button>
+					</div>
+				)}
 			</div>
 		</div>
 	)
