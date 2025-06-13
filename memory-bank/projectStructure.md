@@ -54,7 +54,17 @@
 │   ├── dashboard/       # Charts ApexCharts
 │   ├── nav/             # Navegação e tabs
 │   ├── sidebar/         # Menu lateral
-│   └── topbar/          # Barra superior
+│   ├── topbar/          # Barra superior
+│   └── products/        # 🏆 COMPONENTES REFATORADOS (NOVO)
+│       ├── ProblemsListColumn.tsx      # Lista problemas (150 linhas)
+│       ├── ProblemDetailColumn.tsx     # Detalhes problema (84 linhas)
+│       ├── ProblemSolutionsSection.tsx # Seções soluções (211 linhas)
+│       ├── SolutionFormModal.tsx       # Modal soluções (193 linhas)
+│       ├── DeleteSolutionDialog.tsx    # Dialog exclusão (57 linhas)
+│       ├── DependencyManagementOffcanvas.tsx    # Gerenciador dependências
+│       ├── DependencyItemFormOffcanvas.tsx      # Formulário dependências
+│       ├── ManualSectionFormOffcanvas.tsx       # Formulário manual
+│       └── DeleteDependencyDialog.tsx           # Dialog exclusão dependências
 ├── auth/                # Componentes autenticação
 └── ui/                  # Design System base
     ├── Button.tsx       # Botão universal
