@@ -3,23 +3,20 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
 
 // Removido @dnd-kit - usando HTML5 drag & drop nativo
 
 import TreeView, { type TreeNode } from '@/components/ui/TreeView'
 import Accordion, { type Section } from '@/components/ui/Accordion'
 import Button from '@/components/ui/Button'
-import Offcanvas from '@/components/ui/Offcanvas'
-import Label from '@/components/ui/Label'
-import Input from '@/components/ui/Input'
 import { toast } from '@/lib/toast'
-import ProductDependencyMenuBuilder, { type ProductDependencyItem } from '@/components/admin/products/ProductDependencyMenuBuilder'
+import { type ProductDependencyItem } from '@/components/admin/products/ProductDependencyMenuBuilder'
 
-// Removido MenuBuilder interno - agora usando ProductDependencyMenuBuilder
-
-// Importação dinâmica do Markdown para evitar problemas de SSR
-const Markdown = dynamic(() => import('@/components/ui/Markdown'), { ssr: false })
+// Novos componentes Offcanvas e Dialog extraídos
+import DependencyManagementOffcanvas from '@/components/admin/products/DependencyManagementOffcanvas'
+import DependencyItemFormOffcanvas from '@/components/admin/products/DependencyItemFormOffcanvas'
+import ManualSectionFormOffcanvas from '@/components/admin/products/ManualSectionFormOffcanvas'
+import DeleteDependencyDialog from '@/components/admin/products/DeleteDependencyDialog'
 
 // Função utilitária para converter ProductDependency para TreeNode (compatível com TreeView)
 function convertDependenciesToTreeNodes(dependencies: ProductDependency[]): TreeNode[] {
@@ -367,20 +364,6 @@ export default function ProductsPage() {
 			if (dep.children && dep.children.length > 0) {
 				// ✅ CORREÇÃO: Passa o ID atual como parentId para os filhos
 				result.push(...flattenWithNewSortKeys(dep.children, dep.id, currentPath, level + 1))
-			}
-		})
-
-		return result
-	}
-
-	// Converte dependências hierárquicas para lista flat com níveis
-	const convertToFlatList = (deps: ProductDependency[], level = 0): Array<ProductDependency & { level: number }> => {
-		const result: Array<ProductDependency & { level: number }> = []
-
-		deps.forEach((dep) => {
-			result.push({ ...dep, level })
-			if (dep.children && dep.children.length > 0) {
-				result.push(...convertToFlatList(dep.children, level + 1))
 			}
 		})
 
@@ -760,7 +743,7 @@ export default function ProductsPage() {
 			<div className='flex h-[calc(100vh-131px)] w-full items-center justify-center'>
 				<div className='text-center'>
 					<div className='animate-spin text-4xl'>⏳</div>
-					<p className='mt-2 text-zinc-600 dark:text-zinc-400'>Carregando dependências...</p>
+					<p className='mt-2 text-zinc-600 dark:text-zinc-400'>Carregando base de conhecimento...</p>
 				</div>
 			</div>
 		)
@@ -920,296 +903,25 @@ export default function ProductsPage() {
 			</div>
 
 			{/* Offcanvas para gerenciamento de dependências */}
-			<Offcanvas
-				open={managementOffcanvasOpen}
-				onClose={() => setManagementOffcanvasOpen(false)}
-				title={
-					<div className='flex items-center gap-3'>
-						<span className='icon-[lucide--layers] size-5 text-blue-600' />
-						<div>
-							<h2 className='text-lg font-semibold'>Gerenciar Dependências</h2>
-							<p className='text-sm font-normal text-zinc-500 dark:text-zinc-400'>Organize e configure as dependências do produto</p>
-						</div>
-					</div>
-				}
-				width='xl'
-			>
-				<div className='flex flex-col gap-6 h-full'>
-					{/* Cabeçalho com estatísticas */}
-					<div className='flex flex-col gap-4 pb-4 border-b border-dashed border-zinc-200 dark:border-zinc-700'>
-						<div className='flex items-center justify-between'>
-							<div className='flex items-center gap-4'>
-								<div className='flex items-center gap-2'>
-									<span className='icon-[lucide--folder-tree] size-4 text-zinc-600 dark:text-zinc-400' />
-									<span className='text-base font-medium text-zinc-600 dark:text-zinc-400'>{dependencies.length} dependências principais</span>
-								</div>
-								<div className='flex items-center gap-2'>
-									<span className='icon-[lucide--git-branch] size-4 text-zinc-600 dark:text-zinc-400' />
-									<span className='text-base font-medium text-zinc-600 dark:text-zinc-400'>{convertToFlatList(dependencies).length} itens no total</span>
-								</div>
-							</div>
-							<Button type='button' icon='icon-[lucide--plus]' style='filled' className='py-2 px-4' onClick={openAddItemForm}>
-								Nova Dependência
-							</Button>
-						</div>
-
-						<div className='bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-2'>
-							<div className='flex items-start gap-3'>
-								<span className='icon-[lucide--info] size-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0' />
-								<div className='text-base text-blue-700 dark:text-blue-300'>
-									<p className='font-medium mb-1'>Instruções:</p>
-									<ul className='space-y-1 text-base'>
-										<li>• Arraste e solte para reordenar as dependências.</li>
-										<li>• Use o botão de grip para mover itens entre níveis.</li>
-										<li>• Clique nos botões de ação para editar ou excluir.</li>
-									</ul>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					{/* Skeleton de carregamento realista */}
-					{loadingManagement && (
-						<div className='flex flex-col gap-1'>
-							{/* Simula estrutura hierárquica real do MenuBuilder */}
-							{[
-								{ level: 0, width: '85%' },
-								{ level: 1, width: '70%' },
-								{ level: 2, width: '60%' },
-								{ level: 2, width: '65%' },
-								{ level: 1, width: '75%' },
-								{ level: 2, width: '55%' },
-								{ level: 0, width: '90%' },
-								{ level: 1, width: '68%' },
-								{ level: 1, width: '72%' },
-								{ level: 2, width: '58%' },
-								{ level: 0, width: '80%' },
-								{ level: 1, width: '66%' },
-							].map((item, i) => (
-								<div
-									key={i}
-									className='animate-pulse'
-									style={{
-										marginLeft: `${item.level * 50}px`,
-										maxWidth: '414px',
-									}}
-								>
-									<div className='flex items-center gap-2 p-3 bg-white border border-zinc-200 dark:border-zinc-700 rounded-lg dark:bg-zinc-800'>
-										{/* Grip icon skeleton */}
-										<div className='w-4 h-4 bg-zinc-200 dark:bg-zinc-700 rounded flex-shrink-0' />
-										{/* Item icon skeleton */}
-										<div className='w-4 h-4 bg-zinc-200 dark:bg-zinc-700 rounded flex-shrink-0' />
-										{/* Text skeleton com largura variável */}
-										<div className='h-4 bg-zinc-200 dark:bg-zinc-700 rounded flex-1' style={{ width: item.width }} />
-										{/* Level badge skeleton */}
-										<div className='w-8 h-8 bg-zinc-200 dark:bg-zinc-700 rounded-full flex-shrink-0' />
-										{/* Action buttons skeleton */}
-										<div className='flex gap-1 flex-shrink-0'>
-											<div className='w-8 h-8 bg-zinc-200 dark:bg-zinc-700 rounded-full' />
-											<div className='w-8 h-8 bg-zinc-200 dark:bg-zinc-700 rounded-full' />
-											<div className='w-8 h-8 bg-zinc-200 dark:bg-zinc-700 rounded-full' />
-										</div>
-									</div>
-								</div>
-							))}
-						</div>
-					)}
-
-					{/* MenuBuilder principal */}
-					{!loadingManagement && (
-						<div className='flex-1 min-h-0'>
-							<ProductDependencyMenuBuilder
-								items={convertToProductDependencyItems(dependencies)}
-								setItems={(newItems) => {
-									const convertedDeps = convertFromProductDependencyItems(newItems)
-									// ✅ Apenas chama handleReorderDependencies que já atualiza o estado
-									handleReorderDependencies(convertedDeps)
-								}}
-								onEdit={(id, data) => {
-									// Busca a dependência completa pelo ID
-									const findDependency = (deps: ProductDependency[], searchId: string): ProductDependency | null => {
-										for (const dep of deps) {
-											if (dep.id === searchId) return dep
-											if (dep.children) {
-												const found = findDependency(dep.children, searchId)
-												if (found) return found
-											}
-										}
-										return null
-									}
-									const dependency = findDependency(dependencies, id)
-									if (dependency) {
-										openEditItemForm(dependency)
-									}
-								}}
-								onDelete={(id, data) => {
-									// Busca a dependência completa pelo ID
-									const findDependency = (deps: ProductDependency[], searchId: string): ProductDependency | null => {
-										for (const dep of deps) {
-											if (dep.id === searchId) return dep
-											if (dep.children) {
-												const found = findDependency(dep.children, searchId)
-												if (found) return found
-											}
-										}
-										return null
-									}
-									const dependency = findDependency(dependencies, id)
-									if (dependency) {
-										openDeleteDialog(dependency)
-									}
-								}}
-							/>
-						</div>
-					)}
-
-					{/* Estado vazio */}
-					{!loadingManagement && dependencies.length === 0 && (
-						<div className='flex-1 flex flex-col items-center justify-center py-12 text-center'>
-							<span className='icon-[lucide--layers] mb-4 text-4xl text-zinc-400' />
-							<h4 className='text-lg font-medium text-zinc-600 dark:text-zinc-300'>Nenhuma dependência encontrada</h4>
-							<p className='text-sm text-zinc-500 dark:text-zinc-400 mb-6'>Comece adicionando as primeiras dependências deste produto.</p>
-							<Button type='button' icon='icon-[lucide--plus]' style='filled' onClick={openAddItemForm}>
-								Adicionar primeira dependência
-							</Button>
-						</div>
-					)}
-				</div>
-			</Offcanvas>
+			<DependencyManagementOffcanvas open={managementOffcanvasOpen} onClose={() => setManagementOffcanvasOpen(false)} dependencies={dependencies} loadingManagement={loadingManagement} convertToProductDependencyItems={convertToProductDependencyItems} convertFromProductDependencyItems={convertFromProductDependencyItems} handleReorderDependencies={handleReorderDependencies} openEditItemForm={openEditItemForm} openDeleteDialog={openDeleteDialog} openAddItemForm={openAddItemForm} />
 
 			{/* Offcanvas para edição/criação de item */}
-			<Offcanvas open={editItemOffcanvasOpen} onClose={() => setEditItemOffcanvasOpen(false)} title={isAddingNewItem ? 'Adicionar Dependência' : 'Editar Dependência'} width='lg'>
-				<form className='flex flex-col gap-6' onSubmit={handleSubmitItemForm}>
-					{/* Nome */}
-					<div>
-						<Label htmlFor='item-name' required>
-							Nome
-						</Label>
-						<Input id='item-name' type='text' value={editFormData.name} setValue={(value) => setEditFormData((prev) => ({ ...prev, name: value }))} required placeholder='Ex: Servidor Principal, Base de Dados' />
-					</div>
-
-					{/* Ícone */}
-					<div>
-						<Label htmlFor='item-icon'>Ícone (opcional)</Label>
-						<div className={`grid gap-2 ${isMobile ? 'grid-cols-6' : 'grid-cols-12'}`}>
-							{availableIcons.map((iconClass) => (
-								<button
-									type='button'
-									key={iconClass}
-									className={`flex items-center justify-center
-										size-10 border rounded-lg transition-colors
-										${editFormData.icon === iconClass ? 'border-blue-600 text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800'}
-									`}
-									onClick={() => setEditFormData((prev) => ({ ...prev, icon: iconClass }))}
-									title={iconClass.replace('icon-[lucide--', '').replace(']', '')}
-								>
-									<span className={`${iconClass} size-5`} />
-								</button>
-							))}
-							{/* Botão para remover ícone */}
-							<button
-								type='button'
-								className={`
-									p-3 border rounded-lg transition-colors
-									${editFormData.icon === '' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600'}
-								`}
-								onClick={() => setEditFormData((prev) => ({ ...prev, icon: '' }))}
-								title='Sem ícone'
-							>
-								<span className='icon-[lucide--x] size-5 text-zinc-400' />
-							</button>
-						</div>
-					</div>
-
-					{/* Descrição */}
-					<div>
-						<Label htmlFor='item-description'>Descrição (opcional)</Label>
-						<textarea id='item-description' value={editFormData.description} onChange={(e) => setEditFormData((prev) => ({ ...prev, description: e.target.value }))} className='block w-full rounded-lg border-zinc-200 px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500' rows={3} placeholder='Descrição detalhada sobre esta dependência...' />
-					</div>
-
-					{/* Botões de ação */}
-					<div className='flex gap-2 justify-end'>
-						<Button type='button' style='bordered' onClick={() => setEditItemOffcanvasOpen(false)}>
-							Cancelar
-						</Button>
-						<Button type='submit' disabled={formLoading}>
-							{formLoading ? 'Salvando...' : 'Salvar'}
-						</Button>
-					</div>
-				</form>
-			</Offcanvas>
+			<DependencyItemFormOffcanvas open={editItemOffcanvasOpen} onClose={() => setEditItemOffcanvasOpen(false)} isAddingNewItem={isAddingNewItem} editFormData={editFormData} setEditFormData={setEditFormData} onSubmit={handleSubmitItemForm} formLoading={formLoading} availableIcons={availableIcons} isMobile={isMobile} />
 
 			{/* Offcanvas para adicionar seção ou editar capítulo */}
-			<Offcanvas open={offcanvasOpen} onClose={() => setOffcanvasOpen(false)} title={formMode === 'section' ? 'Adicionar seção' : 'Editar capítulo'} width='xl'>
-				<form className='flex flex-col gap-6 h-full' onSubmit={formMode === 'section' ? handleSubmitSection : handleSubmitChapter}>
-					<div>
-						<Label htmlFor='form-title' required>
-							{formMode === 'section' ? 'Título da seção' : 'Título do capítulo'}
-						</Label>
-						<Input id='form-title' type='text' value={formTitle} setValue={setFormTitle} required placeholder={formMode === 'section' ? 'Ex: Instalação e Configuração' : 'Ex: Configurando o ambiente'} />
-					</div>
-
-					{formMode === 'section' && (
-						<div>
-							<Label htmlFor='form-description'>Descrição da seção (opcional)</Label>
-							<textarea id='form-description' value={formDescription} onChange={(e) => setFormDescription(e.target.value)} className='block w-full rounded-lg border-zinc-200 px-4 py-3 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500' rows={3} placeholder='Breve descrição sobre esta seção...' />
-						</div>
-					)}
-
-					{formMode === 'chapter' && (
-						<div className='flex-1 flex flex-col min-h-0'>
-							<Label htmlFor='form-content' required>
-								Conteúdo do capítulo
-							</Label>
-							<div className='flex-1 min-h-[300px] max-h-[60vh]'>
-								<Markdown value={formContent} onChange={(val) => setFormContent(val || '')} preview='edit' data-color-mode={isDarkMode ? 'dark' : 'light'} className='flex-1 h-full' />
-							</div>
-						</div>
-					)}
-
-					<div className='flex gap-2 justify-end'>
-						<Button type='button' style='bordered' onClick={() => setOffcanvasOpen(false)}>
-							Cancelar
-						</Button>
-						<Button type='submit' disabled={formLoading}>
-							{formLoading ? 'Salvando...' : 'Salvar'}
-						</Button>
-					</div>
-				</form>
-			</Offcanvas>
+			<ManualSectionFormOffcanvas open={offcanvasOpen} onClose={() => setOffcanvasOpen(false)} formMode={formMode} formTitle={formTitle} setFormTitle={setFormTitle} formDescription={formDescription} setFormDescription={setFormDescription} formContent={formContent} setFormContent={setFormContent} onSubmit={formMode === 'section' ? handleSubmitSection : handleSubmitChapter} formLoading={formLoading} isDarkMode={isDarkMode} />
 
 			{/* Dialog de confirmação de exclusão */}
-			{deleteDialogOpen && (
-				<div className='fixed inset-0 z-[100] flex items-center justify-center bg-black/40'>
-					<div className='bg-white dark:bg-zinc-800 rounded-lg shadow-lg max-w-md mx-4 p-6'>
-						<div className='flex items-center gap-3 mb-4'>
-							<span className='icon-[lucide--alert-triangle] size-6 text-red-600' />
-							<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100'>Confirmar Exclusão</h3>
-						</div>
-
-						<p className='text-sm text-zinc-600 dark:text-zinc-400 mb-6'>
-							Tem certeza que deseja excluir a dependência <strong>{itemToDelete?.name}</strong>? Esta ação não pode ser desfeita.
-						</p>
-
-						<div className='flex gap-3 justify-end'>
-							<button
-								type='button'
-								onClick={() => {
-									setDeleteDialogOpen(false)
-									setItemToDelete(null)
-								}}
-								className='px-4 py-2 text-sm font-medium text-zinc-700 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600 rounded-lg transition-colors'
-								disabled={formLoading}
-							>
-								Cancelar
-							</button>
-							<button type='button' onClick={handleConfirmDelete} disabled={formLoading} className='px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg transition-colors'>
-								{formLoading ? 'Excluindo...' : 'Excluir'}
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
+			<DeleteDependencyDialog
+				open={deleteDialogOpen}
+				onClose={() => {
+					setDeleteDialogOpen(false)
+					setItemToDelete(null)
+				}}
+				itemToDelete={itemToDelete}
+				onConfirm={handleConfirmDelete}
+				loading={formLoading}
+			/>
 		</div>
 	)
 }

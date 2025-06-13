@@ -174,8 +174,7 @@ export async function DELETE(req: NextRequest) {
 			return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 		}
 
-		const { searchParams } = new URL(req.url)
-		const id = searchParams.get('id')
+		const { id } = await req.json()
 
 		if (!id) {
 			return NextResponse.json({ error: 'ID é obrigatório' }, { status: 400 })
