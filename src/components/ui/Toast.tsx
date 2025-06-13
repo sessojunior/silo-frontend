@@ -67,8 +67,57 @@ export default function ToastContainer() {
 		}, 400) // mesma duração da animação .toast-out
 	}
 
+	// CSS Styles inline para as animações do Toast
+	const styles = `
+		@keyframes progress-bar {
+			from {
+				width: 100%;
+			}
+			to {
+				width: 0%;
+			}
+		}
+
+		@keyframes toast-in {
+			from {
+				opacity: 0;
+				transform: translateY(-20px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes toast-out {
+			from {
+				opacity: 1;
+				transform: translateY(0);
+			}
+			to {
+				opacity: 0;
+				transform: translateY(-20px);
+			}
+		}
+
+		.animate-progress-bar {
+			animation: progress-bar linear forwards;
+		}
+
+		.animate-toast-in {
+			animation: toast-in 0.5s ease forwards;
+		}
+
+		.animate-toast-out {
+			animation: toast-out 0.5s ease forwards;
+		}
+	`
+
 	return (
 		<>
+			{/* Inject styles */}
+			<style dangerouslySetInnerHTML={{ __html: styles }} />
+
 			{(Object.keys(positionClasses) as ToastPosition[]).map((position) => (
 				<div key={position} className={clsx('fixed z-[1000] flex flex-col gap-3 pointer-events-none', positionClasses[position])}>
 					{toasts
@@ -83,9 +132,9 @@ export default function ToastContainer() {
 
 									{toast.duration > 0 && (
 										<div
-											className='absolute bottom-0 left-0 h-1 bg-white/30'
+											className='absolute bottom-0 left-0 h-1 bg-white/30 animate-progress-bar'
 											style={{
-												animation: `progress-bar ${toast.duration}ms linear forwards`,
+												animationDuration: `${toast.duration}ms`,
 											}}
 										/>
 									)}

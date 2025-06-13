@@ -391,7 +391,7 @@ A migração para PostgreSQL garante que o sistema seja robusto e escalável par
 
 ```tsx
 // Configuração no componente
-<MDEditor value={value} onChange={setValue} preview='edit' className='md-editor-custom' data-color-mode={theme} />
+<Markdown value={value} onChange={setValue} preview='edit' data-color-mode={theme} />
 ```
 
 **CSS Patterns para Customização**:

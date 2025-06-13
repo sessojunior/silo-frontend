@@ -54,7 +54,9 @@ function MenuBuilder({ dependencies, onEdit, onDelete, onReorder }: MenuBuilderP
 		e.preventDefault()
 		e.dataTransfer.dropEffect = 'move'
 
-		if (!draggedItem || draggedItem.id === item.id) return
+		if (!draggedItem || draggedItem.id === item.id) {
+			return
+		}
 
 		setDragOverItem(item)
 
@@ -63,18 +65,23 @@ function MenuBuilder({ dependencies, onEdit, onDelete, onReorder }: MenuBuilderP
 		const y = e.clientY - rect.top
 		const height = rect.height
 
+		let newPosition: 'before' | 'after' | 'inside'
 		if (y < height * 0.25) {
-			setDropPosition('before')
+			newPosition = 'before'
 		} else if (y > height * 0.75) {
-			setDropPosition('after')
+			newPosition = 'after'
 		} else {
-			setDropPosition('inside')
+			newPosition = 'inside'
 		}
+
+		setDropPosition(newPosition)
 	}
 
 	const handleDragLeave = (e: React.DragEvent) => {
 		// Só limpa se estamos saindo do elemento de fato
-		if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+		const isLeavingElement = !e.currentTarget.contains(e.relatedTarget as Node)
+
+		if (isLeavingElement) {
 			setDragOverItem(null)
 			setDropPosition(null)
 		}
@@ -281,8 +288,8 @@ function MenuBuilder({ dependencies, onEdit, onDelete, onReorder }: MenuBuilderP
 	)
 }
 
-// Importação dinâmica do MDEditor para evitar problemas de SSR
-const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false })
+// Importação dinâmica do Markdown para evitar problemas de SSR
+const Markdown = dynamic(() => import('@/components/ui/Markdown'), { ssr: false })
 
 // Tipos para os dados da API
 interface ProductDependency {
@@ -493,8 +500,6 @@ export default function ProductsPage() {
 		if (!productId) return
 
 		try {
-			console.log('ℹ️ Iniciando reordenação de dependências...')
-
 			// Otimista: atualiza UI imediatamente
 			setDependencies(reorderedDependencies)
 
@@ -512,7 +517,6 @@ export default function ProductsPage() {
 			})
 
 			if (res.ok) {
-				console.log('✅ Dependências reordenadas com sucesso!')
 				toast({
 					type: 'success',
 					title: 'Ordem atualizada com sucesso!',
@@ -522,7 +526,6 @@ export default function ProductsPage() {
 				await refreshDependencies()
 			} else {
 				const error = await res.json()
-				console.log('❌ Erro ao reordenar dependências:', error.message)
 				toast({
 					type: 'error',
 					title: error.message || 'Erro ao reordenar dependências',
@@ -1319,7 +1322,7 @@ export default function ProductsPage() {
 
 			{/* Offcanvas para adicionar seção ou editar capítulo */}
 			<Offcanvas open={offcanvasOpen} onClose={() => setOffcanvasOpen(false)} title={formMode === 'section' ? 'Adicionar seção' : 'Editar capítulo'} width='xl'>
-				<form className='flex flex-col gap-6' onSubmit={formMode === 'section' ? handleSubmitSection : handleSubmitChapter}>
+				<form className='flex flex-col gap-6 h-full' onSubmit={formMode === 'section' ? handleSubmitSection : handleSubmitChapter}>
 					<div>
 						<Label htmlFor='form-title' required>
 							{formMode === 'section' ? 'Título da seção' : 'Título do capítulo'}
@@ -1335,12 +1338,12 @@ export default function ProductsPage() {
 					)}
 
 					{formMode === 'chapter' && (
-						<div>
+						<div className='flex-1 flex flex-col min-h-0'>
 							<Label htmlFor='form-content' required>
 								Conteúdo do capítulo
 							</Label>
-							<div className='md-editor-custom'>
-								<MDEditor value={formContent} onChange={(val) => setFormContent(val || '')} height={400} preview='edit' data-color-mode={isDarkMode ? 'dark' : 'light'} />
+							<div className='flex-1 min-h-[300px] max-h-[60vh]'>
+								<Markdown value={formContent} onChange={(val) => setFormContent(val || '')} preview='edit' data-color-mode={isDarkMode ? 'dark' : 'light'} className='flex-1 h-full' />
 							</div>
 						</div>
 					)}

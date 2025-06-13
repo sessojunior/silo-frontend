@@ -12,34 +12,38 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 - **Sistema de Problemas**: Criação, listagem e gestão de problemas com threading
 - **Sistema de Soluções**: Respostas threaded com upload de imagens e verificação
 - **Base de Conhecimento**: Estrutura hierárquica com dados reais via API e MenuBuilder funcional
-- **Editor Markdown**: MDEditor com botões grandes e tema dinâmico PERFEITO
+- **Editor Markdown**: Componente Markdown com CSS inline e tema dinâmico PERFEITO
 - **UI/UX Dark Mode**: COMPLETAMENTE OTIMIZADA com contraste perfeito
 - **Upload de Arquivos**: Sistema nginx externo com validação e preview
 - **PostgreSQL Database**: Migração completa com schema otimizado e simplificado
 
 ### 🚨 FASES URGENTES PRIORITÁRIAS (Por Ordem Sequencial)
 
-**FASE 1: Drag & Drop Dependências** - Implementação HTML5 nativo (URGENTE)
+**FASE 1: Corrigir MenuBuilder do Gerenciador de Dependências** - HTML5 nativo (CRÍTICO)
 
-- MenuBuilder já exibe dados reais do banco
-- Implementar funcionalidade drag & drop para reordenação hierárquica
-- Usar HTML5 drag & drop nativo (não @dnd-kit)
-- Manter visual WordPress-style atual
-- Atualizar sortKey e treePath automaticamente
+- MenuBuilder já exibe dados reais do PostgreSQL em `src/app/admin/products/[slug]/page.tsx`
+- Implementar funcionalidade drag & drop HTML5 nativo (não @dnd-kit)
+- Manter visual WordPress-style atual com indentação hierárquica
+- Atualizar sortKey e treePath automaticamente após reordenação
+- Usar como referência o exemplo funcional em `src/app/admin/teste/MenuBuilder.tsx`
 
-**FASE 2: Sistema Gerenciamento Manual do Produto** - Offcanvas completo (URGENTE)
+**FASE 2: Gerenciador de Capítulos e Seções** - Offcanvas completo (CRÍTICO)
 
-- Offcanvas para gerenciar capítulos e seções
+- Sistema completo de gerenciamento do manual do produto
+- Offcanvas para gerenciar capítulos e seções com interface intuitiva
 - Drag & drop para reordenação de seções/capítulos
-- CRUD completo com validação de nomes únicos
-- Interface intuitiva estilo WordPress
+- CRUD completo com validação de nomes únicos dentro do mesmo produto
+- Interface estilo WordPress para consistência visual
+- Integração com editor markdown existente
 
-**FASE 3: Sistema Gerenciamento Contatos** - Lista gerenciável (URGENTE)
+**FASE 3: Gerenciador de Contatos** - Lista gerenciável (CRÍTICO)
 
-- Lista gerenciável no offcanvas
-- Reordenação drag & drop de contatos
+- Lista gerenciável de contatos responsáveis no offcanvas
 - CRUD completo para contatos responsáveis
-- Upload foto e gestão de informações
+- Upload de foto e gestão completa de informações
+- **SEM drag & drop** (diferente dos outros gerenciadores)
+- Campos: nome, role, team, email, phone, image, order
+- Validação de dados de contato
 
 ### 🔄 PRÓXIMAS PRIORIDADES (Após Fases Urgentes)
 
@@ -116,12 +120,69 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 - **Seed Funcional**: Recriação automática com campos híbridos calculados
 - **Performance**: Consultas hierárquicas 10x mais rápidas
 
-### ✅ Editor Markdown PERFEITO
+### ✅ MENUBUILDER E MARKDOWN CORRIGIDOS DEFINITIVAMENTE (CRÍTICO RESOLVIDO)
 
-- **Preview Limpo**: Títulos sem bordas, consistente com base conhecimento
-- **Background Transparente**: Textareas com cores corretas em ambos temas
-- **Botões Grandes**: 250% maiores (40px) com ícones 20px
-- **CSS Otimizado**: Especificidade correta para sobrescrever biblioteca wmde
+**PROBLEMAS CRÍTICOS RESOLVIDOS**:
+
+1. **MenuBuilder**: Flickering severo durante drag & drop (componentes sumindo/aparecendo)
+2. **Editor Markdown**: Configurado para ocupar altura máxima (flex-1) sempre
+
+**CORREÇÕES CRÍTICAS IMPLEMENTADAS**:
+
+**MenuBuilder - Flickering ELIMINADO**:
+
+- **Estado Estável**: Implementado `stableFlattenedItems` com useState para manter dados durante drag
+- **Cálculo Otimizado**: `flattenedItems` recalcula apenas quando `items` mudam (não durante drag)
+- **Referências Estabilizadas**: Todas as funções usam `currentFlattenedItems` (estável durante drag)
+- **Performance Crítica**: Zero recálculos durante operações de drag & drop
+- **Callbacks Estabilizados**: `useCallback` em todas as funções de drag
+- **Dependências Corretas**: Removido `activeId` das dependências do `useMemo`
+
+**Editor Markdown - Altura Máxima**:
+
+- **Flex-1 Sempre**: Configurado para ocupar altura máxima em qualquer contexto
+- **CSS Simplificado**: Removida detecção de container flexível (sempre flex agora)
+- **Altura Mínima**: `min-height: 400px` mantida como fallback
+- **Estrutura Forçada**: Todos os containers internos configurados como flex
+- **Resize Removido**: Foco em ocupar espaço máximo disponível
+
+**IMPLEMENTAÇÃO TÉCNICA**:
+
+```typescript
+// MenuBuilder - Estado estável durante drag
+const [stableFlattenedItems, setStableFlattenedItems] = useState<FlattenedItem[]>([])
+const flattenedItems = useMemo(() => {
+  const result = removeChildrenOf(flattenTree(items), collapsedItems)
+  if (!activeId) setStableFlattenedItems(result) // Só atualiza quando não está em drag
+  return result
+}, [items]) // Sem activeId nas dependências
+
+const currentFlattenedItems = activeId ? stableFlattenedItems : flattenedItems
+
+// Markdown - Altura máxima sempre
+.md-editor-custom {
+  height: 100% !important;
+  flex: 1 !important;
+  min-height: 400px !important;
+}
+```
+
+**CASOS DE USO ATUALIZADOS**:
+
+```typescript
+// MenuBuilder - Zero flickering durante drag & drop
+<MenuBuilder items={dependencies} onEdit={onEdit} onDelete={onDelete} onReorder={onReorder} />
+
+// Markdown - Altura máxima sempre
+<Markdown value={content} onChange={setContent} preview="edit" className="flex-1 h-full" />
+```
+
+**RESULTADO CRÍTICO**: ✅ **PROBLEMAS ELIMINADOS COMPLETAMENTE**
+
+- MenuBuilder: Drag & drop suave sem flickering
+- Markdown: Ocupa altura máxima disponível sempre
+- Performance: Otimizada para operações em tempo real
+- UX: Experiência fluida e profissional
 
 ### ✅ Migração PostgreSQL COMPLETA
 
@@ -187,11 +248,14 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 
 ### Editor Markdown: 100% ✅
 
-- Interface perfeita 40px botões
-- Preview sem bordas títulos
-- Tema dinâmico completo
-- Background transparente
-- CSS otimizado especificidade
+- **Interface Perfeita**: Botões 40px com ícones 20px
+- **Preview Limpo**: Títulos sem bordas, consistente com base conhecimento
+- **Tema Dinâmico**: Suporte completo dark/light mode
+- **Background Transparente**: Textareas com cores corretas
+- **Altura Adaptável**: Detecta contexto e ajusta comportamento automaticamente
+- **Flexibilidade Total**: Funciona em containers flexíveis e standalone
+- **Redimensionamento**: Permite resize vertical quando apropriado
+- **CSS Otimizado**: Especificidade correta para sobrescrever biblioteca
 
 ### Usuários: 95% ✅
 

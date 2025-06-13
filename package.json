@@ -21,6 +21,7 @@
     "apexcharts": "^4.7.0",
     "arctic": "^3.7.0",
     "bcryptjs": "^3.0.2",
+    "classnames": "^2.5.1",
     "clsx": "^2.1.1",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.43.1",
@@ -29,6 +30,7 @@
     "pg": "^8.12.0",
     "react": "^19.0.0",
     "react-apexcharts": "^1.7.0",
+    "react-dnd-menu-builder": "^0.0.8",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "tailwind-merge": "^3.3.0"

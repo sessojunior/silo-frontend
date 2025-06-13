@@ -323,7 +323,7 @@ export type Section = {
 1. **GET** seções produto via API
 2. **Para cada seção**: buscar capítulos ordenados
 3. **Accordion** expansível/colapsável
-4. **MDEditor** para edição capítulos
+4. **Markdown** para edição capítulos
 5. **Markdown preview** estilizado
 
 ## OTIMIZAÇÕES
