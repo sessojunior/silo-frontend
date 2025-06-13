@@ -6,7 +6,7 @@ import { Announcements, DndContext, closestCenter, KeyboardSensor, PointerSensor
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
-import { SortableTreeItem } from './TreeItem'
+import { SortableTreeItem } from './MenuBuilderTreeItem'
 
 // Types
 export interface TreeItemType {
