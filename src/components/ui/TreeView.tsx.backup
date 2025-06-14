@@ -5,17 +5,12 @@ import { twMerge } from 'tailwind-merge'
 import clsx from 'clsx'
 import Dialog from '@/components/ui/Dialog'
 
-export interface TreeNodeData {
-	description?: string
-	[key: string]: unknown
-}
-
 export interface TreeNode {
 	id: string
 	name: string
 	icon?: string | null
 	children?: TreeNode[]
-	data?: TreeNodeData
+	data?: any
 }
 
 interface TreeViewProps {

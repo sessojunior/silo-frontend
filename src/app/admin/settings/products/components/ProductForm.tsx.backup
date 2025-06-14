@@ -25,9 +25,8 @@ export default function ProductForm({ initialData, onSubmit, onCancel, loading }
 		try {
 			await onSubmit({ id: initialData?.id, name: name.trim(), slug: slug.trim(), available })
 			toast({ type: 'success', title: initialData ? 'Produto atualizado' : 'Produto criado' })
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : 'Erro ao salvar produto.'
-			toast({ type: 'error', title: 'Erro', description: errorMessage })
+		} catch (err: any) {
+			toast({ type: 'error', title: 'Erro', description: err?.message || 'Erro ao salvar produto.' })
 		}
 	}
 

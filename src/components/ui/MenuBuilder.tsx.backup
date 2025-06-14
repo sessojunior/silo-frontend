@@ -31,8 +31,6 @@ export type SensorContext = React.MutableRefObject<{
 }>
 
 // Utilities
-const iOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.platform)
-
 function getDragDepth(offset: number, indentationWidth: number) {
 	return Math.round(offset / indentationWidth)
 }
@@ -570,14 +568,6 @@ export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems, o
 
 	function handleRemove(id: UniqueIdentifier) {
 		setItems(removeItem(items, id))
-	}
-
-	function handleCollapse(id: UniqueIdentifier) {
-		setItems(
-			setProperty(items, id, 'collapsed', (value) => {
-				return !value
-			}),
-		)
 	}
 
 	function getMovementAnnouncement(eventName: string, activeId: UniqueIdentifier, overId?: UniqueIdentifier) {

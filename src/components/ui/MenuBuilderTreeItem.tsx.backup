@@ -119,8 +119,10 @@ const RecursiveItem = memo(function RecursiveItem(props: { child: TreeItemType; 
 
 // TreeItem Component - Otimizado com memoização
 export const TreeItem = memo(
-	forwardRef<HTMLDivElement, Props>(function TreeItem({ childCount, clone, depth, disableSelection, disableInteraction, ghost, handleProps, indentationWidth, indicator, onEdit, onDelete, style, value, wrapperRef, ...props }, ref) {
+	forwardRef<HTMLDivElement, Props>(function TreeItem({ childCount, clone, depth, disableSelection, disableInteraction, ghost, handleProps, indentationWidth, indicator, onRemove, onEdit, onDelete, style, value, updateitem, wrapperRef, ...props }, ref) {
 		const [open, setOpen] = useState(false)
+		const [editDialogOpen, setEditDialogOpen] = useState(false)
+		const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 		const [isHovered, setIsHovered] = useState(false)
 
 		// Evita problemas de hidratação SSR

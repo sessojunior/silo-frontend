@@ -37,6 +37,13 @@ const problemDescriptions = [
 	['Dificuldades para acessar o manual do usuário podem ser causadas por links quebrados ou arquivos ausentes.', 'Verifique se o manual está instalado corretamente e se o caminho de acesso está configurado.', 'Consulte a versão online do manual caso o arquivo local não esteja disponível.'],
 ]
 
+interface DependencyItem {
+	name: string
+	icon: string | null
+	description?: string
+	children?: DependencyItem[]
+}
+
 const solutionDescriptions = ['Verifique se os dados meteorológicos estão no formato esperado.', 'Confirme se os arquivos possuem as permissões corretas.', 'Reinicie o sistema e tente novamente.', 'Otimize os parâmetros de simulação para melhorar a performance.', 'Siga o passo a passo do manual de configuração.', 'Ajuste as permissões dos diretórios de trabalho.', 'Compare os resultados com execuções anteriores para identificar padrões.', 'Limpe o cache do navegador e recarregue a página.', 'Verifique o caminho de destino dos logs no arquivo de configuração.', 'Consulte a documentação para os parâmetros aceitos.', 'Atualize o software para a versão mais recente.', 'Aumente o tempo limite de execução nas configurações.', 'Verifique a conexão com a internet e serviços externos.', 'Reimporte os dados de entrada após validação.', 'Instale as dependências compatíveis com seu sistema operacional.', 'Libere memória ou feche outros aplicativos antes de executar.', 'Execute o comando de atualização de dependências novamente.', 'Revise os dados utilizados para gerar os gráficos.', 'Corrija os parâmetros conforme as mensagens de erro.', 'Acesse o manual diretamente pelo site oficial.', 'Sincronize os dados manualmente se necessário.', 'Salve as configurações e reinicie o sistema.', 'Verifique as credenciais do usuário e tente novamente.', 'Ajuste o timezone nas configurações do sistema.', 'Reinstale os plugins e reinicie o software.', 'Limpe o cache do sistema e tente novamente.', 'Configure corretamente o serviço de notificações.', 'Restaure o backup em um ambiente limpo.', 'Renomeie os arquivos conforme o padrão exigido.', 'Recrie o ambiente virtual seguindo o tutorial oficial.']
 
 // Base de Conhecimento - Estrutura de dependências
@@ -563,7 +570,7 @@ function generateSolutions() {
 	}))
 }
 
-async function insertDependencies(productId: string, dependencies: any[], parentId: string | null = null, parentPath: string = '', parentDepth: number = 0, siblingIndex: number = 0) {
+async function insertDependencies(productId: string, dependencies: DependencyItem[], parentId: string | null = null, parentPath: string = '', parentDepth: number = 0, siblingIndex: number = 0) {
 	for (let i = 0; i < dependencies.length; i++) {
 		const dep = dependencies[i]
 		const depId = randomUUID()

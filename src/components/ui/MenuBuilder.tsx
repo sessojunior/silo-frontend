@@ -9,12 +9,21 @@ import { CSS } from '@dnd-kit/utilities'
 import { SortableTreeItem } from './MenuBuilderTreeItem'
 
 // Types
+export interface MenuItemData {
+	icon?: string
+	description?: string
+	name?: string
+	href?: string
+	[key: string]: unknown
+}
+
 export interface TreeItemType {
 	id: UniqueIdentifier
 	href?: string
 	children: TreeItemType[]
 	collapsed?: boolean
 	name: string
+	otherfields?: MenuItemData
 }
 
 export type TreeItems = TreeItemType[]
@@ -368,8 +377,8 @@ interface Props {
 	style?: 'bordered' | 'shadow'
 	items: TreeItemType[]
 	setItems(items: TreeItemType[]): void
-	onEdit?: (id: string, data: any) => void
-	onDelete?: (id: string, data: any) => void
+	onEdit?: (id: string, data: MenuItemData) => void
+	onDelete?: (id: string, data: MenuItemData) => void
 }
 
 // Main MenuBuilder Component - Original mantido para compatibilidade
@@ -470,7 +479,7 @@ export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems, o
 				<SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
 					{flattenedItems.map(({ id, children, collapsed, depth, ...otherFields }) => {
 						// Extrai corretamente os otherfields passados do ProductDependencyMenuBuilder
-						const actualOtherFields = (otherFields as any)?.otherfields || otherFields
+						const actualOtherFields = (otherFields as unknown as TreeItemType & { otherfields?: MenuItemData })?.otherfields || (otherFields as MenuItemData)
 
 						return (
 							<SortableTreeItem
@@ -497,7 +506,7 @@ export function MenuBuilder({ style = 'bordered', items: itemsProps, setItems, o
 					{typeof document !== 'undefined' &&
 						createPortal(
 							<DragOverlay dropAnimation={dropAnimationConfig} modifiers={style == 'bordered' ? [adjustTranslate] : undefined}>
-								{activeId && activeItem ? <SortableTreeItem id={activeId} depth={activeItem.depth} clone childCount={getChildCount(items, activeId) + 1} value={activeId.toString()} otherfields={(activeItem as any)?.otherfields || (activeItem as unknown as Record<string, unknown>)} indentationWidth={indentationWidth} childs={getChildrens(items, activeId)} /> : null}
+								{activeId && activeItem ? <SortableTreeItem id={activeId} depth={activeItem.depth} clone childCount={getChildCount(items, activeId) + 1} value={activeId.toString()} otherfields={(activeItem as unknown as TreeItemType)?.otherfields || (activeItem as unknown as MenuItemData)} indentationWidth={indentationWidth} childs={getChildrens(items, activeId)} /> : null}
 							</DragOverlay>,
 							document.body,
 						)}
