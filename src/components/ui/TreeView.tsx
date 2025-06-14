@@ -69,7 +69,7 @@ function TreeItem({ node, depth, isLast, parentLines, onLeafClick, defaultExpand
 
 				{/* Conector do nível atual (├ ou └) */}
 				{depth > 0 && (
-					<div className='relative w-6 flex-shrink-0'>
+					<div className='relative w-2 flex-shrink-0'>
 						{/* Linha vertical contínua para itens não-últimos */}
 						{!isLast && <div className='absolute left-2 top-0 bottom-0 w-0.5' />}
 						{/* Linha vertical apenas até o meio para o último item */}
@@ -87,8 +87,8 @@ function TreeItem({ node, depth, isLast, parentLines, onLeafClick, defaultExpand
 						</button>
 					) : (
 						// Espaçamento equivalente ao botão para manter alinhamento
-						<div className='size-6 flex items-center justify-center text-gray-400'>
-							<span className='size-3 icon-[lucide--corner-down-right]'></span>
+						<div className='size-6 flex items-center justify-end text-gray-400'>
+							<span className='size-3 icon-[lucide--corner-down-right] mr-1'></span>
 						</div>
 					)}
 				</div>

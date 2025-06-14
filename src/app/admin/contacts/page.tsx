@@ -79,13 +79,42 @@ export default function ContactsPage() {
 	}
 
 	function openCreateForm() {
-		setEditingContact(null)
-		setFormOpen(true)
+		console.log('🔵 Abrindo formulário para novo contato')
+
+		// Fechar formulário primeiro se estiver aberto
+		if (formOpen) {
+			setFormOpen(false)
+			setTimeout(() => {
+				setEditingContact(null)
+				setTimeout(() => setFormOpen(true), 50)
+			}, 100)
+		} else {
+			setEditingContact(null)
+			setTimeout(() => setFormOpen(true), 50)
+		}
 	}
 
 	function openEditForm(contact: Contact) {
-		setEditingContact(contact)
-		setFormOpen(true)
+		console.log('🔵 Abrindo formulário de edição para:', {
+			id: contact.id,
+			name: contact.name,
+			email: contact.email,
+			active: contact.active,
+			timestamp: new Date().toISOString(),
+		})
+
+		// Fechar formulário primeiro se estiver aberto
+		if (formOpen) {
+			setFormOpen(false)
+			setTimeout(() => {
+				setEditingContact(contact)
+				setTimeout(() => setFormOpen(true), 50)
+			}, 100)
+		} else {
+			setEditingContact(contact)
+			// Pequeno delay para garantir que o estado seja atualizado antes de abrir o offcanvas
+			setTimeout(() => setFormOpen(true), 50)
+		}
 	}
 
 	function openDeleteDialog(contact: Contact) {
@@ -261,7 +290,7 @@ export default function ContactsPage() {
 			</div>
 
 			{/* Componentes de formulário */}
-			<ContactFormOffcanvas isOpen={formOpen} onClose={() => setFormOpen(false)} contact={editingContact} onSuccess={fetchContacts} />
+			<ContactFormOffcanvas key={editingContact?.id || 'new'} isOpen={formOpen} onClose={() => setFormOpen(false)} contact={editingContact} onSuccess={fetchContacts} />
 
 			<ContactDeleteDialog isOpen={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} contact={contactToDelete} onSuccess={fetchContacts} />
 		</div>

@@ -6,6 +6,7 @@ import { toast } from '@/lib/toast'
 import Offcanvas from '@/components/ui/Offcanvas'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import Switch from '@/components/ui/Switch'
 import { Contact } from '@/lib/db/schema'
 
 interface ContactFormOffcanvasProps {
@@ -33,7 +34,19 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 
 	// Atualizar form quando contato mudar
 	useEffect(() => {
-		if (contact) {
+		console.log('🔵 useEffect ContactForm disparado:', {
+			contact: contact ? `${contact.name} (${contact.id})` : 'null',
+			isOpen,
+			timestamp: new Date().toISOString(),
+		})
+
+		if (contact && isOpen) {
+			console.log('🔵 Carregando dados do contato para edição:', {
+				id: contact.id,
+				name: contact.name,
+				email: contact.email,
+				active: contact.active,
+			})
 			setFormData({
 				name: contact.name,
 				role: contact.role,
@@ -44,7 +57,8 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 			})
 			setImagePreview(contact.image || null)
 			setRemoveImage(false)
-		} else {
+		} else if (!contact && isOpen) {
+			console.log('🔵 Resetando formulário para novo contato')
 			setFormData({
 				name: '',
 				role: '',
@@ -56,7 +70,7 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 			setImagePreview(null)
 			setRemoveImage(false)
 		}
-	}, [contact])
+	}, [contact, contact?.id, isOpen]) // Adicionada dependência isOpen para garantir que apenas execute quando offcanvas estiver aberto
 
 	const handleInputChange = (field: string, value: string | boolean) => {
 		setFormData((prev) => ({ ...prev, [field]: value }))
@@ -224,9 +238,11 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 
 	const handleClose = () => {
 		if (!loading) {
+			console.log('🔵 Fechando offcanvas de contato')
 			onClose()
 			// Reset form apenas se não estiver carregando
 			setTimeout(() => {
+				console.log('🔵 Resetando formulário após fechamento')
 				setFormData({
 					name: '',
 					role: '',
@@ -311,11 +327,7 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 
 					{/* Status */}
 					<div>
-						<label className='flex items-center gap-3'>
-							<input type='checkbox' checked={formData.active} onChange={(e) => handleInputChange('active', e.target.checked)} className='size-4 text-blue-600 bg-zinc-100 border-zinc-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600' />
-							<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Contato ativo</span>
-						</label>
-						<p className='text-xs text-zinc-500 mt-1 ml-7'>Contatos ativos aparecem na seleção de produtos</p>
+						<Switch id='contact-active' name='active' size='xs' checked={formData.active} onChange={(value) => handleInputChange('active', value)} title='Contato ativo' description='Contatos ativos aparecem na seleção de produtos' />
 					</div>
 				</div>
 

@@ -78,7 +78,7 @@ export default function Sidebar() {
 					},
 					{
 						id: '1.3',
-						title: 'Projetos da divisão',
+						title: 'Projetos importantes',
 						icon: 'icon-[lucide--square-chart-gantt]',
 						url: '#',
 						items: [],

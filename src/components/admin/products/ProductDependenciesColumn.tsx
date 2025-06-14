@@ -31,7 +31,7 @@ export default function ProductDependenciesColumn({ dependencies, loading, treeN
 	}
 
 	return (
-		<div className='flex md:w-[420px] flex-shrink-0 flex-col border-r border-zinc-200 dark:border-zinc-700'>
+		<div className='flex md:w-[380px] flex-shrink-0 flex-col border-r border-zinc-200 dark:border-zinc-700'>
 			<div className='scrollbar size-full h-[calc(100vh-131px)] overflow-y-auto'>
 				{/* TreeView */}
 				<div className='p-6' role='tree' aria-orientation='vertical'>
@@ -43,7 +43,9 @@ export default function ProductDependenciesColumn({ dependencies, loading, treeN
 								{dependencies.length} {dependencies.length === 1 ? 'categoria' : 'categorias'}
 							</p>
 						</div>
-						<Button type='button' icon='icon-[lucide--settings]' style='unstyled' className='size-9 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800' onClick={onOpenManagement} title='Gerenciar dependências' />
+						<Button type='button' icon='icon-[lucide--folder-tree]' style='unstyled' className='py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800' onClick={onOpenManagement} title='Gerenciar dependências'>
+							Gerenciar dep.
+						</Button>
 					</div>
 
 					{/* TreeView Items */}

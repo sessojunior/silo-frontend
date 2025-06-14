@@ -197,7 +197,7 @@ export default function ContactSelectorOffcanvas({ isOpen, onClose, productId, o
 					</div>
 
 					{/* Lista de contatos */}
-					<div className='flex-1 overflow-y-auto p-6'>
+					<div className='flex-1 overflow-y-auto p-6 scrollbar max-h-[calc(100vh-400px)]'>
 						{loading ? (
 							<div className='text-center py-8'>
 								<div className='inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400'>

@@ -41,7 +41,7 @@ export default function Switch({ id, name, checked = false, onChange, size = 'md
 			<div className='flex items-center justify-between gap-3'>
 				<label htmlFor={id} className='flex-1'>
 					{title && <h3 className='text-lg font-bold tracking-tight text-zinc-600 dark:text-zinc-200'>{title}</h3>}
-					{description && <p className='mt-1 text-base text-zinc-400 dark:text-zinc-600'>{description}</p>}
+					{description && <p className='text-base text-zinc-400 dark:text-zinc-600'>{description}</p>}
 				</label>
 
 				<label htmlFor={id} className={twMerge(clsx('relative inline-block shrink-0 cursor-pointer', selectedSize.container))}>
