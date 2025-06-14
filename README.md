@@ -29,14 +29,14 @@ Este projeto usa o diretório `/memory-bank` como única fonte de verdade de doc
 
 ### 🎯 Próximas Implementações - Roadmap 8 Etapas
 
-1. **Proteger APIs Admin** - Migrar `/api/*` para `/api/admin/*` com autenticação
-2. **Resolver ESLint** - Corrigir todos warnings sem quebrar funcionalidades
-3. **Implementar Grupos** - CRUD completo similar ao sistema de contatos
-4. **Implementar Usuários** - Sistema de usuários/Auth Users CRUD
-5. **Implementar Chat** - Sistema de chat estilo WhatsApp
-6. **Implementar Ajuda** - Sistema de ajuda e documentação
-7. **Implementar Configurações** - Configurações gerais do sistema
-8. **Implementar Dashboard** - Dashboard/Visão geral melhorada
+1. **Resolver ESLint** - Corrigir todos warnings sem quebrar funcionalidades
+2. **Implementar Grupos** - CRUD completo similar ao sistema de contatos
+3. **Implementar Usuários** - Sistema de usuários/Auth Users CRUD
+4. **Implementar Chat** - Sistema de chat estilo WhatsApp
+5. **Implementar Ajuda** - Sistema de ajuda e documentação
+6. **Implementar Configurações** - Configurações gerais do sistema
+7. **Implementar Dashboard** - Dashboard/Visão geral melhorada
+8. **Proteger APIs Admin** - Migrar `/api/*` para `/api/admin/*` com autenticação
 
 ### 🏆 Conquistas Técnicas Recentes
 

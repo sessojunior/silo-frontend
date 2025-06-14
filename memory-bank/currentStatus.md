@@ -20,7 +20,125 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 - **🆕 SISTEMA DE CONTATOS**: **100% FINALIZADO COM ASSOCIAÇÃO PRODUTO-CONTATO**
 - **🆕 PADRÃO DE DESIGN ADMIN**: **ESTABELECIDO COM PÁGINAS PADRONIZADAS**
 
-## 🚀 CONQUISTAS MAIS RECENTES - DEZEMBRO 2024
+## 🎯 ROADMAP ATUALIZADO - 9 PASSOS ESTRATÉGICOS
+
+### 🔄 REORGANIZAÇÃO SOLICITADA
+
+**PASSO 1**: **MOVIDO PARA O FINAL** (era proteger APIs admin)
+
+**CRONOGRAMA ATUAL**:
+
+### ⚡ PASSO 2 - RESOLVER ESLINT (PRÓXIMO)
+
+**STATUS**: 🔄 **PENDENTE** - Próxima prioridade imediata
+
+**OBJETIVO**: Resolver TODOS os erros e warnings de lint do `npm run build` do projeto SEM quebrar as funcionalidades já existentes.
+
+**REGRAS CRÍTICAS**:
+
+- ✅ **Modo de Cautela**: Extremamente cauteloso com funcionalidades existentes
+- ✅ **Preservar Design**: Não mudar ou quebrar design existente
+- ✅ **Zero Regressões**: Não quebrar nenhuma funcionalidade implementada
+- ✅ **Reutilizar Componentes**: Sempre reaproveitar código existente
+
+### 🔄 PASSO 3 - IMPLEMENTAR GRUPOS
+
+**STATUS**: 🔄 **PENDENTE** - Após resolver ESLint
+
+**OBJETIVO**: Implementar CRUD completo de Grupos (semelhante ao sistema de Contatos)
+
+**FUNCIONALIDADES PLANEJADAS**:
+
+- CRUD completo para gestão de grupos
+- Interface moderna seguindo padrão admin estabelecido
+- Busca e filtros por status
+- Associação com usuários e produtos
+
+### 🔄 PASSO 4 - IMPLEMENTAR USUÁRIOS DO SISTEMA
+
+**STATUS**: 🔄 **PENDENTE** - Após grupos
+
+**OBJETIVO**: Implementar AUTH USERS - Gerenciar CRUD de usuários do sistema (semelhante aos contatos)
+
+**FUNCIONALIDADES PLANEJADAS**:
+
+- CRUD completo para usuários do sistema
+- Gestão de permissões e níveis de acesso
+- Interface de gerenciamento administrativo
+- Integração com sistema de autenticação existente
+
+### 🔄 PASSO 5 - IMPLEMENTAR BATE-PAPO
+
+**STATUS**: 🔄 **PENDENTE** - Após usuários
+
+**OBJETIVO**: Implementar bate-papo estilo WhatsApp para usuários e grupos
+
+**FUNCIONALIDADES PLANEJADAS**:
+
+- Chat em tempo real estilo WhatsApp
+- Grupos de chat (categorias)
+- Mensagens privadas entre usuários
+- Histórico de conversas
+- Notificações em tempo real
+
+### 🔄 PASSO 6 - IMPLEMENTAR AJUDA
+
+**STATUS**: 🔄 **PENDENTE** - Após chat
+
+**OBJETIVO**: Implementar sistema de ajuda completo
+
+**FUNCIONALIDADES PLANEJADAS**:
+
+- Documentação de uso do sistema
+- FAQ dinâmico
+- Tutoriais interativos
+- Sistema de tickets de suporte
+
+### 🔄 PASSO 7 - IMPLEMENTAR CONFIGURAÇÕES GERAIS
+
+**STATUS**: 🔄 **PENDENTE** - Após ajuda
+
+**OBJETIVO**: Implementar configurações gerais do sistema
+
+**FUNCIONALIDADES PLANEJADAS**:
+
+- Configurações globais da aplicação
+- Parâmetros de sistema
+- Customização de interface
+- Configurações de notificações
+
+### 🔄 PASSO 8 - IMPLEMENTAR DASHBOARD MELHORADO
+
+**STATUS**: 🔄 **PENDENTE** - Após configurações
+
+**OBJETIVO**: Implementar visão geral/dashboard aprimorado
+
+**FUNCIONALIDADES PLANEJADAS**:
+
+- Métricas avançadas
+- Gráficos interativos
+- Relatórios customizáveis
+- Painéis personalizáveis
+
+### 🔄 PASSO 9 - PROTEGER APIS ADMIN (FINAL)
+
+**STATUS**: 🔄 **PENDENTE** - Finalização de todos os passes
+
+**OBJETIVO**: Todas as APIs das páginas de Admin (/app/admin/_) deveriam ter rota protegida na api (/api/admin/_).
+
+**IMPLEMENTAÇÃO OBRIGATÓRIA**:
+
+```typescript
+import { getAuthUser } from '@/lib/auth/token'
+const user = await getAuthUser()
+if (!user) {
+	return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
+}
+```
+
+**SEGURANÇA CRÍTICA**: Verificação de autenticação em todas as APIs admin
+
+## 🚀 CONQUISTAS MAIS RECENTES - JUNHO 2025
 
 ### ✅ SISTEMA DE CONTATOS 100% FINALIZADO - SUCESSO TOTAL
 
@@ -112,20 +230,7 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 
 **NOVA REGRA CRÍTICA**: NUNCA mais usar `h-screen overflow-hidden` com `flex-1 overflow-auto` complexo
 
-## 🎯 PRÓXIMAS PRIORIDADES - ROADMAP 8 ETAPAS
-
-### FASE ATUAL: PRONTO PARA PASSO 1
-
-**PASSO 1**: **Proteger APIs Admin** - Migrar `/api/*` para `/api/admin/*` com autenticação obrigatória
-**PASSO 2**: **Resolver ESLint** - Corrigir TODOS erros/warnings ESLint sem quebrar funcionalidades
-**PASSO 3**: **Implementar Grupos** - CRUD completo similar ao sistema de contatos
-**PASSO 4**: **Implementar Usuários** - Sistema de usuários/Auth Users CRUD
-**PASSO 5**: **Implementar Chat** - Sistema de chat estilo WhatsApp
-**PASSO 6**: **Implementar Ajuda** - Sistema de ajuda e documentação
-**PASSO 7**: **Implementar Configurações** - Configurações gerais do sistema
-**PASSO 8**: **Implementar Dashboard** - Dashboard/Visão geral melhorada
-
-## 🆕 MELHORIAS IMPLEMENTADAS - DEZEMBRO 2024
+## 🆕 MELHORIAS IMPLEMENTADAS - JUNHO 2025
 
 ### ✅ MELHORIA UX - DIALOG DEPENDÊNCIAS APRIMORADO
 
@@ -137,23 +242,6 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 - ✅ **Placeholder inteligente**: Quando não há descrição, mostra mensagem amigável
 - ✅ **UX aprimorada**: Interface mais intuitiva e informativa
 
-**CÓDIGO IMPLEMENTADO**:
-
-```typescript
-// TreeView.tsx - Dialog aprimorado
-<Dialog title={dialogNode?.name} description='Descrição da dependência'>
-  {dialogNode?.data?.description ? (
-    <div className='text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed'>
-      {dialogNode.data.description}
-    </div>
-  ) : (
-    <div className='text-sm text-zinc-500 dark:text-zinc-400 italic text-center py-8'>
-      Nenhuma descrição disponível para esta dependência.
-    </div>
-  )}
-</Dialog>
-```
-
 ### ✅ README.MD PRINCIPAL ATUALIZADO
 
 **CONQUISTA**: README.md da raiz completamente atualizado com informações essenciais do memory-bank
@@ -161,19 +249,12 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 **MELHORIAS IMPLEMENTADAS**:
 
 - ✅ **Status atual do projeto** com todas funcionalidades implementadas
-- ✅ **Roadmap 8 etapas** claramente definido
+- ✅ **Roadmap 9 etapas** claramente definido
 - ✅ **Stack tecnológico** detalhado e atualizado
 - ✅ **Comandos de desenvolvimento** organizados
 - ✅ **Padrões estabelecidos** documentados
 - ✅ **Seções de autenticação e Google OAuth** preservadas integralmente
 - ✅ **Estrutura melhorada** com emojis e organização visual
-
-**BENEFÍCIOS**:
-
-- Documentação centralizada e acessível
-- Onboarding facilitado para novos desenvolvedores
-- Referência rápida para comandos e configurações
-- Visão geral completa do projeto atualizada
 
 ### ✅ REDESIGN PLACEHOLDER DIALOG DEPENDÊNCIAS
 
@@ -187,23 +268,6 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 - ✅ **Texto informativo**: Orientação sobre como adicionar descrição
 - ✅ **Responsividade**: Layout adaptável e bem estruturado
 
-**CÓDIGO IMPLEMENTADO**:
-
-```typescript
-// Estado vazio redesenhado
-<div className='flex flex-col items-center justify-center py-12 px-6'>
-  <div className='size-16 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-4'>
-    <span className='icon-[lucide--file-text] size-8 text-zinc-400 dark:text-zinc-500' />
-  </div>
-  <h4 className='text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2'>
-    Descrição não disponível
-  </h4>
-  <p className='text-xs text-zinc-500 dark:text-zinc-500 text-center leading-relaxed max-w-xs'>
-    Esta dependência ainda não possui uma descrição detalhada. Você pode adicionar uma através do gerenciador de dependências.
-  </p>
-</div>
-```
-
 ### ✅ README.MD REFINADO E ESTRUTURA ADICIONADA
 
 **MELHORIAS IMPLEMENTADAS**:
@@ -213,297 +277,73 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 - ✅ **Organização melhorada**: Diretórios principais destacados com comentários
 - ✅ **Memory-bank destacado**: Documentação central bem evidenciada
 
-**ESTRUTURA ADICIONADA**:
-
-```
-silo/
-├── src/app/                 # Next.js App Router
-├── src/components/          # Componentes reutilizáveis
-├── src/lib/                 # Utilitários e configurações
-├── memory-bank/             # Documentação central
-└── public/                  # Arquivos estáticos
-```
-
-**BENEFÍCIOS CONQUISTADOS**:
-
-- Navegação facilitada na estrutura do projeto
-- Compreensão rápida da organização de arquivos
-- Destaque para o memory-bank como documentação central
-- README mais limpo e profissional
-
-- **🆕 SISTEMA DE CONTATOS**: **100% FINALIZADO COM ASSOCIAÇÃO PRODUTO-CONTATO**
-- **🆕 PADRÃO DE DESIGN ADMIN**: **ESTABELECIDO COM PÁGINAS PADRONIZADAS**
-
-## 🚀 CONQUISTAS MAIS RECENTES - DEZEMBRO 2024
-
-### ✅ SISTEMA DE CONTATOS 100% FINALIZADO - SUCESSO TOTAL
-
-**STATUS**: ✅ **IMPLEMENTAÇÃO COMPLETA EM 2 ETAPAS FINALIZADAS**
-
-**ETAPA 1**: **CRUD Completo de Contatos** - `/admin/contacts`
-
-- ✅ Interface moderna com busca em tempo real
-- ✅ Filtros por status (ativo/inativo)
-- ✅ Upload de fotos, gestão completa de informações
-- ✅ Switch.tsx implementado substituindo checkbox
-- ✅ Performance 95%+ otimizada (carregamento instantâneo)
-- ✅ Resolução de problemas críticos de timing
-
-**ETAPA 2**: **Sistema de Associação Produto-Contato**
-
-- ✅ API `/api/products/contacts` com GET/POST/DELETE
-- ✅ Seção contatos integrada na página de produtos
-- ✅ Seletor offcanvas para associação múltipla
-- ✅ Exibição apenas de contatos ativos associados
-- ✅ Scrollbar personalizada para listas extensas
-
-**COMPONENTES FINALIZADOS**:
-
-- `ContactFormOffcanvas.tsx` - Formulário completo com timing otimizado
-- `ContactDeleteDialog.tsx` - Dialog de confirmação
-- `ContactSelectorOffcanvas.tsx` - Seletor multi-contatos
-- Seção contatos integrada em `ProductDetailsColumn.tsx`
-
-**PROBLEMAS CRÍTICOS RESOLVIDOS**:
-
-- ✅ **Timing de carregamento**: useEffect otimizado com dependência correta
-- ✅ **Switch.tsx**: Substituído checkbox HTML por componente Switch
-- ✅ **Performance**: Mantida otimização de 95%+ redução em chamadas API
-- ✅ **Scrollbar dupla**: Corrigida com altura relativa e scrollbar personalizada
-
-### ✅ REDESIGN COMPLETO PÁGINAS ADMIN - PADRÃO ESTABELECIDO
-
-**STATUS**: ✅ **PADRÃO DE DESIGN DEFINITIVAMENTE ESTABELECIDO**
-
-**PÁGINAS COMPLETAMENTE REDESENHADAS**:
-
-- ✅ `/admin/contacts` - Referência principal do design
-- ✅ `/admin/settings/products` - Completamente alinhada ao padrão
-
-**NOVO PADRÃO DE DESIGN OBRIGATÓRIO**:
-
-```typescript
-<div className='min-h-screen w-full'>
-  {/* Cabeçalho fixo */}
-  <div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
-    <h1 className='text-2xl font-bold'>Título da Página</h1>
-    <p className='text-zinc-600 dark:text-zinc-400'>Descrição da página</p>
-  </div>
-
-  {/* Conteúdo com scroll natural */}
-  <div className='p-6'>
-    <div className='max-w-7xl mx-auto space-y-6'>
-      {/* Seção Ações e Filtros */}
-      {/* Seção Estatísticas (3 cards) */}
-      {/* Seção Lista/Tabela principal */}
-    </div>
-  </div>
-</div>
-```
-
-**FUNCIONALIDADES PADRÃO IMPLEMENTADAS**:
-
-- ✅ **Busca em tempo real** com ícone Search à esquerda
-- ✅ **Filtros Select** com opções consistentes
-- ✅ **Cards de estatísticas** (3 colunas, ícones coloridos)
-- ✅ **Tabela moderna** com hover effects e responsividade
-- ✅ **Botões de ação** arredondados (editar azul, excluir vermelho)
-- ✅ **Estados vazios** inteligentes com call-to-actions
-- ✅ **Toggle de status** clicável nos badges
-
-**REDESIGN PÁGINA PRODUTOS**:
-
-- ✅ **Dashboard de estatísticas**: Total/Disponível/Indisponível com ícones
-- ✅ **Filtros integrados**: Busca + Status em linha única
-- ✅ **Performance otimizada**: Frontend filtering ao invés de paginação
-- ✅ **Ações visuais**: Toggle de disponibilidade via badge clicável
-- ✅ **Responsividade**: Design mobile-first mantido
-
-### ✅ CORREÇÃO CRÍTICA DUPLO SCROLL - PROBLEMA RESOLVIDO
-
-**STATUS**: ✅ **DUPLO SCROLL COMPLETAMENTE ELIMINADO**
-
-**PROBLEMA IDENTIFICADO**: Layout complexo com múltiplos containers de scroll:
-
-```typescript
-// ❌ PROBLEMA: Estrutura complexa causando duplo scroll
-<div className='flex h-screen overflow-hidden'>           // Container 1
-  <div className='flex-1 flex flex-col overflow-hidden'>  // Container 2
-    <div className='flex-1 overflow-auto p-6'>            // Container 3 (DUPLO SCROLL)
-```
-
-**SOLUÇÃO IMPLEMENTADA**: Simplificação radical da estrutura:
-
-```typescript
-// ✅ SOLUÇÃO: Estrutura simples com scroll natural
-<div className='min-h-screen w-full'>
-  {/* Cabeçalho fixo */}
-  <div className='p-6 border-b'>
-  {/* Conteúdo com scroll natural único */}
-  <div className='p-6'>
-```
-
-**BENEFÍCIOS CONQUISTADOS**:
-
-- ✅ **UX melhorada**: Scroll único e natural como esperado
-- ✅ **Performance superior**: Menos containers aninhados
-- ✅ **Código mais limpo**: Estrutura simplificada e manutenível
-- ✅ **Responsividade mantida**: Comportamento consistente
-
-**PÁGINAS CORRIGIDAS**:
-
-- ✅ `/admin/contacts` - Scroll único implementado
-- ✅ `/admin/settings/products` - Scroll único implementado
-- ✅ **Padrão estabelecido**: NUNCA mais usar `h-screen` com `overflow-auto` complexo
-
-### ✅ NOVA REGRA CRÍTICA ESTABELECIDA
-
-**🚨 REGRA CRÍTICA PARA LAYOUTS ADMIN**:
-
-- ✅ **SEMPRE usar**: `min-h-screen w-full` para container principal
-- ❌ **NUNCA usar**: `h-screen overflow-hidden` com `flex-1 overflow-auto`
-- ✅ **Padrão obrigatório**: Scroll natural único do browser
-
-## 🎯 PRÓXIMAS PRIORIDADES - ROADMAP 8 ETAPAS
-
-### FASE ATUAL: PRONTO PARA PASSO 1
-
-**PASSO 1**: **Proteger APIs Admin** - Migrar `/api/*` para `/api/admin/*` com autenticação obrigatória (getAuthUser)
-
-**PASSO 2**: **Resolver ESLint** - Corrigir TODOS erros/warnings ESLint (npm run build) sem quebrar funcionalidades
-
-**PASSO 3**: **Implementar Grupos** - CRUD completo similar ao sistema de contatos
-
-**PASSO 4**: **Implementar Usuários** - Sistema de usuários/Auth Users CRUD
-
-**PASSO 5**: **Implementar Chat** - Sistema de chat estilo WhatsApp (usuários+grupos)
-
-**PASSO 6**: **Implementar Ajuda** - Sistema de ajuda e documentação
-
-**PASSO 7**: **Implementar Configurações** - Configurações gerais do sistema
-
-**PASSO 8**: **Implementar Dashboard** - Dashboard/Visão geral melhorada
-
-### DIRETRIZES CRÍTICAS PARA PRÓXIMAS IMPLEMENTAÇÕES
-
-**🚨 OBRIGATÓRIO SEGUIR**:
-
-- ✅ **Modo de cautela extrema**: Reutilizar componentes existentes
-- ✅ **Reaproveitar**: Hooks, libs e funções já criadas
-- ✅ **Centralizar**: Código na página, criar componentes específicos por página
-- ✅ **PLANEJAMENTO**: SEMPRE planejar antes de implementar
-- ✅ **Preservar**: NUNCA quebrar design ou funcionalidades existentes
-- ✅ **Arquitetura**: Manter arquitetura Memory Bank rigorosamente
-- ✅ **Padrão**: Seguir padrão de design estabelecido (min-h-screen + scroll natural)
-
 ## 🏆 CONQUISTAS HISTÓRICAS ANTERIORES
 
-### ✅ OTIMIZAÇÃO CRÍTICA DE PERFORMANCE - COMPLETAMENTE FINALIZADA
+### ✅ OTIMIZAÇÃO CRÍTICA DE PERFORMANCE - APIs COMPLETAMENTE OTIMIZADAS
 
-**STATUS**: ✅ **PROBLEMA CRÍTICO DE PERFORMANCE RESOLVIDO COM SUCESSO TOTAL**
+**PROBLEMA CRÍTICO RESOLVIDO**: Múltiplas chamadas de API desnecessárias eliminadas
 
-**CONQUISTA EXTRAORDINÁRIA**: Eliminação de múltiplas chamadas de API desnecessárias com **95%+ de redução** nas requisições.
+**APIS CRIADAS E IMPLEMENTADAS**:
 
-#### 📊 **PROBLEMA IDENTIFICADO E RESOLVIDO**
+1. `/api/products/solutions/summary/route.ts` - Query SQL otimizada com JOINs
+2. `/api/products/solutions/count/route.ts` - Query SQL com GROUP BY para contagens
 
-**PÁGINAS COM MÚLTIPLAS CHAMADAS DESNECESSÁRIAS**:
+**RESULTADO**: **95%+ de redução nas chamadas de API** (20+ chamadas → 2 chamadas únicas)
 
-1. **`/admin/products/[slug]/page.tsx`** - Fazendo 20+ chamadas simultâneas para buscar contagem de soluções
-2. **`/admin/products/[slug]/problems/page.tsx`** - Fazendo múltiplas chamadas em 3 locais diferentes
+### ✅ REFATORAÇÃO EXTRAORDINÁRIA CONCLUÍDA
 
-**ANTES (PROBLEMA CRÍTICO)**:
+**Página de Problemas**: `/admin/products/[slug]/problems/page.tsx`
 
-```
-GET /api/products/solutions?problemId=316bee29... 200 in 303ms
-GET /api/products/solutions?problemId=2a3d07fa... 200 in 316ms
-GET /api/products/solutions?problemId=3cb9846b... 200 in 332ms
-... (20+ chamadas simultâneas por carregamento)
-```
+- **Redução Massiva**: 1.506 → 629 linhas (**58,2% de redução**)
+- **5 Componentes Criados**: Arquitetura modular perfeita
+- **Zero Bugs**: Funcionalidade 100% preservada
+- **Novo Padrão**: Modelo de referência para futuras refatorações
 
-#### 🛠️ **SOLUÇÃO IMPLEMENTADA - ARQUITETURA SQL OTIMIZADA**
-
-**NOVAS APIS CRIADAS E IMPLEMENTADAS**:
-
-1. **`/api/products/solutions/summary/route.ts`**
-
-   - **Função**: Summary de soluções por produto slug
-   - **Query SQL**: JOIN otimizado `product → productProblem → productSolution`
-   - **Retorna**: Total de soluções + data de última atualização
-   - **Usado em**: Página principal `/admin/products/[slug]/page.tsx`
-
-2. **`/api/products/solutions/count/route.ts`**
-   - **Função**: Contagem de soluções para múltiplos problemas
-   - **Query SQL**: GROUP BY com COUNT() em uma única consulta
-   - **Recebe**: Array de problemIds via POST
-   - **Retorna**: `{ problemId: count }` para todos os problemas
-   - **Usado em**: Página de problemas `/admin/products/[slug]/problems/page.tsx`
-
-### ✅ REFATORAÇÃO HISTÓRICA CONCLUÍDA - PÁGINA DE PROBLEMAS
-
-**STATUS**: ✅ **COMPLETAMENTE FINALIZADA COM SUCESSO EXTRAORDINÁRIO**
-
-**CONQUISTA HISTÓRICA**: Refatoração da página `/admin/products/[slug]/problems/page.tsx` com **58,2% de redução total** - uma das maiores refatorações já realizadas no projeto.
-
-#### 📊 **RESULTADOS FINAIS EXTRAORDINÁRIOS**
-
-**REDUÇÃO MASSIVA DE LINHAS**:
-
-- **Estado Inicial**: 1.506 linhas (página monolítica)
-- **Estado Final**: 629 linhas (página modular)
-- **Redução Total**: 877 linhas removidas (**58,2% de redução**)
-- **Página reduzida para menos de 1/3 do tamanho original**
-
-**COMPONENTES ESPECIALIZADOS EXTRAÍDOS**:
-
-1. **`ProblemsListColumn.tsx`** (150 linhas)
-2. **`ProblemDetailColumn.tsx`** (84 linhas)
-3. **`ProblemSolutionsSection.tsx`** (211 linhas)
-4. **`SolutionFormModal.tsx`** (193 linhas)
-5. **`DeleteSolutionDialog.tsx`** (57 linhas)
+**MAIOR REFATORAÇÃO JÁ REALIZADA NO PROJETO**
 
 ### ✅ SISTEMA DE MANUAL DO PRODUTO COMPLETO
 
-**STATUS**: ✅ **COMPLETAMENTE IMPLEMENTADO E FUNCIONAL**
-
 **FUNCIONALIDADES IMPLEMENTADAS**:
 
-- ✅ Estrutura hierárquica com dropdown inteligente
-- ✅ Editor markdown completo com preview
-- ✅ Estilização perfeita usando ReactMarkdown
-- ✅ Performance otimizada com useMemo
-- ✅ Responsividade completa
+- Estrutura hierárquica com dropdown inteligente
+- Editor markdown completo com preview
+- Estilização perfeita usando ReactMarkdown
+- Performance otimizada com useMemo
+- Responsividade completa
 
 **COMPONENTES CRIADOS**:
 
 - `ProductManualSection.tsx` - Sistema hierárquico principal
 - `ManualEditorOffcanvas.tsx` - Editor markdown completo
 
-## STATUS DE BUILD E QUALIDADE
+## 🎯 PRINCÍPIOS OBRIGATÓRIOS PARA TODOS OS PASSOS
 
-### ✅ BUILD STATUS
+### ✅ DIRETRIZES CRÍTICAS PARA IMPLEMENTAÇÃO
 
-- **Compilação**: ✅ **Totalmente limpa e bem-sucedida**
-- **TypeScript**: ✅ **Zero erros de tipo**
-- **ESLint**: ⚠️ **Apenas warnings menores (não críticos)**
-- **Funcionalidades**: ✅ **100% preservadas**
-- **Performance**: ✅ **Otimizada com 95%+ redução em chamadas API**
+**LEMBRETE SEMPRE**: Estas diretrizes DEVEM ser seguidas em CADA FINAL DE PASSO:
 
-### ✅ QUALIDADE GERAL
+- 🛡️ **MODO DE CAUTELA**: Sempre reutilizar componentes já criados
+- 🔄 **REAPROVEITAR**: Hooks, libs e funções já criadas
+- 📋 **CENTRALIZAR**: Código na página e criar componentes para a página
+- 📋 **PLANEJAMENTO**: SEMPRE entrar em modo de planejamento antes de implementar
+- 🚫 **NÃO QUEBRAR**: Nunca mudar ou quebrar design do que já existe
+- 🚫 **NÃO REGREDIR**: Não quebrar nenhuma funcionalidade já implementada
+- ⚠️ **EXTREMA CAUTELA**: Ser extremamente cauteloso com funcionalidades existentes
 
-- **Arquitetura**: ✅ **Memory Bank seguida rigorosamente**
-- **Design**: ✅ **Padrão consistente estabelecido**
-- **UX**: ✅ **Scroll único, interface moderna**
-- **Performance**: ✅ **Carregamento instantâneo**
-- **Segurança**: ✅ **Validações e error handling em todas as camadas**
+### 🎯 PADRÕES ESTABELECIDOS
 
-## PRÓXIMA SESSÃO: PASSO 1 - PROTEGER APIS
+- **Logs**: Apenas ✅❌⚠️ℹ️ (4 emojis padronizados)
+- **Error Handling**: `{ success: boolean, error?: string }`
+- **Imports**: SEMPRE usar alias `@/` para módulos internos
+- **TypeScript**: Strict mode, sem `any`, tipos seguros
+- **Layout**: min-h-screen + scroll natural (NUNCA h-screen com overflow complexo)
 
-**Objetivo**: Migrar todas as APIs para `/api/admin/*` com autenticação obrigatória usando `getAuthUser()`.
+## Status de Produção
 
-**Preparação**:
+- **Build**: 🔄 Pendente limpeza ESLint (Passo 2)
+- **Performance**: ✅ Otimizada com 95%+ redução em chamadas API
+- **UX**: ✅ Design consistente e responsivo
+- **Funcionalidades**: ✅ Todas principais implementadas e testadas
+- **Segurança**: 🔄 Pendente proteção APIs (Passo 9)
 
-- Identificar todas as rotas `/api/*` atuais
-- Criar nova estrutura `/api/admin/*`
-- Implementar middleware de autenticação
-- Testar todas as funcionalidades após migração
-- Manter zero quebras de funcionalidade
+**PRÓXIMO FOCO**: Resolver todos os erros e warnings de ESLint (Passo 2) sem quebrar funcionalidades existentes.

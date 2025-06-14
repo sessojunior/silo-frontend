@@ -112,6 +112,35 @@ Senha: #Admin123
 - Código mais limpo e manutenível
 - Responsividade mantida
 
+## 🎯 ROADMAP ATUALIZADO - 9 PASSOS ESTRATÉGICOS
+
+### 🔄 REORGANIZAÇÃO ESTRATÉGICA
+
+**PASSO 1**: **MOVIDO PARA O FINAL** (Proteger APIs Admin)
+
+### ⚡ CRONOGRAMA ATUAL
+
+**PASSO 2**: **Resolver ESLint** - Corrigir TODOS erros/warnings sem quebrar funcionalidades  
+**PASSO 3**: **Implementar Grupos** - CRUD completo similar contatos  
+**PASSO 4**: **Implementar Usuários** - Sistema de usuários/Auth Users CRUD  
+**PASSO 5**: **Implementar Chat** - Sistema de chat estilo WhatsApp  
+**PASSO 6**: **Implementar Ajuda** - Sistema de ajuda e documentação  
+**PASSO 7**: **Implementar Configurações** - Configurações gerais do sistema  
+**PASSO 8**: **Implementar Dashboard** - Dashboard/Visão geral melhorada  
+**PASSO 9**: **Proteger APIs Admin** - Migrar para `/api/admin/*` com autenticação
+
+### 🛡️ SEGURANÇA CRÍTICA (PASSO 9)
+
+Todas as APIs admin devem implementar:
+
+```typescript
+import { getAuthUser } from '@/lib/auth/token'
+const user = await getAuthUser()
+if (!user) {
+	return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
+}
+```
+
 ## Fases de Desenvolvimento
 
 ### ✅ FASES CONCLUÍDAS
@@ -121,16 +150,11 @@ Senha: #Admin123
 3. **FASE 3: ✅ CONCLUÍDA** - Sistema de Contatos completo com associação produto-contato
 4. **FASE 4: ✅ CONCLUÍDA** - Redesign páginas admin com padrão estabelecido
 
-### 🎯 PRÓXIMAS FASES - ROADMAP 8 ETAPAS
+### 🎯 PRÓXIMAS FASES - ROADMAP 9 ETAPAS
 
-**PASSO 1**: Proteger APIs Admin - Migrar `/api/*` para `/api/admin/*` com autenticação obrigatória
-**PASSO 2**: Resolver TODOS erros/warnings ESLint sem quebrar funcionalidades
-**PASSO 3**: Implementar Grupos CRUD (similar contatos)
-**PASSO 4**: Implementar Usuários do Sistema/Auth Users CRUD
-**PASSO 5**: Implementar Chat estilo WhatsApp (usuários+grupos)
-**PASSO 6**: Implementar sistema de Ajuda
-**PASSO 7**: Implementar Configurações Gerais
-**PASSO 8**: Implementar Dashboard/Visão Geral
+**PRÓXIMO PASSO**: Resolver TODOS erros/warnings ESLint (Passo 2)  
+**FOCO ATUAL**: Limpeza de código sem quebrar funcionalidades  
+**SEGURANÇA**: Proteger APIs admin será o último passo (Passo 9)
 
 ## 🏆 CONQUISTAS HISTÓRICAS ANTERIORES
 
@@ -171,9 +195,11 @@ Senha: #Admin123
 - `ProductManualSection.tsx` - Sistema hierárquico principal
 - `ManualEditorOffcanvas.tsx` - Editor markdown completo
 
-## Diretrizes de Desenvolvimento
+## 🛡️ Diretrizes de Desenvolvimento
 
-### ✅ PRINCÍPIOS OBRIGATÓRIOS
+### ✅ PRINCÍPIOS OBRIGATÓRIOS PARA TODOS OS PASSOS
+
+**LEMBRETE SEMPRE**: Estas diretrizes DEVEM ser seguidas em CADA FINAL DE PASSO:
 
 - **Modo de Cautela**: Sempre reutilizar componentes existentes
 - **Reaproveitar**: Hooks, libs e funções já criadas
@@ -192,8 +218,10 @@ Senha: #Admin123
 
 ## Status de Produção
 
-- **Build**: ✅ Compilação limpa (apenas warnings ESLint menores)
+- **Build**: 🔄 Pendente limpeza ESLint (Passo 2)
 - **Performance**: ✅ Otimizada com 95%+ redução em chamadas API
 - **UX**: ✅ Design consistente e responsivo
 - **Funcionalidades**: ✅ Todas principais implementadas e testadas
-- **Segurança**: ✅ Validações e error handling em todas as camadas
+- **Segurança**: 🔄 Pendente proteção APIs (Passo 9)
+
+**PRÓXIMO FOCO**: Resolver todos os erros e warnings de ESLint sem quebrar funcionalidades existentes.
