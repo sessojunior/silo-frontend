@@ -1,17 +1,18 @@
 'use client'
 
-import { useState, useRef, useEffect, type ReactNode, type HTMLAttributes } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { twMerge } from 'tailwind-merge'
 import clsx from 'clsx'
 
 type Position = 'top-left' | 'top-right' | 'top-center' | 'bottom-left' | 'bottom-right' | 'bottom-center' | 'right-bottom' | 'left-bottom'
 
-type PopoverProps = {
-	children: ReactNode
-	content: ReactNode
+interface PopoverProps {
+	children: React.ReactNode
+	content: React.ReactNode
 	position?: Position
 	className?: string
-} & HTMLAttributes<HTMLButtonElement>
+	onClick?: () => void
+}
 
 const positionMap: Record<Position, string> = {
 	'top-left': 'bottom-full left-0 mb-2',
@@ -24,7 +25,7 @@ const positionMap: Record<Position, string> = {
 	'left-bottom': 'right-full top-full mr-2',
 }
 
-export default function Popover({ children, content, position = 'top-center', className, ...props }: PopoverProps) {
+export default function Popover({ children, content, position = 'top-center', className, onClick }: PopoverProps) {
 	const [open, setOpen] = useState(false)
 	const buttonRef = useRef<HTMLButtonElement>(null)
 	const popoverRef = useRef<HTMLDivElement>(null)
@@ -40,9 +41,16 @@ export default function Popover({ children, content, position = 'top-center', cl
 		return () => document.removeEventListener('mousedown', handleClickOutside)
 	}, [])
 
+	const handleClick = () => {
+		setOpen((prev) => !prev)
+		if (onClick) {
+			onClick()
+		}
+	}
+
 	return (
 		<div className='relative inline-block'>
-			<button ref={buttonRef} onClick={() => setOpen((prev) => !prev)} className='focus:outline-none' {...props}>
+			<button ref={buttonRef} onClick={handleClick} className='focus:outline-none'>
 				{children}
 			</button>
 

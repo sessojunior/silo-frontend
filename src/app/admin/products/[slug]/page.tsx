@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 
 // Removido @dnd-kit - usando HTML5 drag & drop nativo
 
-import { type TreeNode } from '@/components/ui/TreeView'
+import { type TreeNode, type TreeNodeData } from '@/components/ui/TreeView'
 // import { type Section } from '@/components/ui/Accordion' // Removido - não usado
 
 import { toast } from '@/lib/toast'
@@ -35,7 +35,10 @@ function convertDependenciesToTreeNodes(dependencies: ProductDependency[]): Tree
 		name: dep.name,
 		icon: dep.icon || null,
 		children: dep.children ? convertDependenciesToTreeNodes(dep.children) : undefined,
-		data: dep, // Inclui todos os campos do banco como data
+		data: {
+			description: dep.description,
+			...dep, // Spread operator para incluir todos os campos
+		} as TreeNodeData,
 	}))
 }
 

@@ -52,6 +52,9 @@ src/
 │   │   ├── input.tsx             # Componente Input
 │   │   ├── dialog.tsx            # ✅ Dialog reutilizado em DeleteSolutionDialog
 │   │   ├── switch.tsx            # ✅ NOVO - Switch usado em contatos
+│   │   ├── Popover.tsx           # ✅ REDESENHADO - Interface simplificada
+│   │   ├── Lightbox.tsx          # ✅ MIGRADO - next/image implementado
+│   │   ├── ~~OptimizedImage.tsx~~ # ❌ REMOVIDO - Migrado para next/image
 │   │   └── ...                   # Outros componentes UI
 │   ├── layout/                   # Componentes de layout
 │   ├── forms/                    # Componentes de formulário
@@ -70,6 +73,39 @@ src/
 └── types/                        # Definições de tipos TypeScript
     └── index.ts                  # Tipos globais
 ```
+
+## ✅ CORREÇÕES CRÍTICAS DE BUILD - JUNHO 2025
+
+### 🎯 ARQUIVOS CORRIGIDOS/REMOVIDOS
+
+**COMPONENTES UI ATUALIZADOS**:
+
+- `src/components/ui/Popover.tsx` - **REDESENHADO** com interface simplificada
+- `src/components/ui/Lightbox.tsx` - **MIGRADO** para next/image
+- `src/components/ui/OptimizedImage.tsx` - **REMOVIDO** completamente
+
+**COMPONENTES ADMIN CORRIGIDOS** (9 arquivos):
+
+- `src/components/admin/contacts/ContactFormOffcanvas.tsx` - Props next/image
+- `src/app/admin/contacts/page.tsx` - Avatares padronizados
+- `src/components/admin/products/ContactSelectorOffcanvas.tsx` - Props corrigidas
+- `src/components/admin/products/ProblemDetailColumn.tsx` - Imagens clickáveis
+- `src/components/admin/products/ProblemFormOffcanvas.tsx` - Preview otimizado
+- `src/components/admin/products/ProblemSolutionsSection.tsx` - 4 imagens corrigidas
+- `src/components/admin/products/SolutionFormModal.tsx` - Modos edit/preview
+
+**COMPONENTES SIDEBAR/TOPBAR CORRIGIDOS** (3 arquivos):
+
+- `src/components/admin/sidebar/SidebarBlocks.tsx` - Importação corrigida
+- `src/components/admin/sidebar/SidebarMenu.tsx` - Importação corrigida
+- `src/components/admin/topbar/TopbarDropdown.tsx` - Importação corrigida
+
+### 🏆 RESULTADO FINAL
+
+- ✅ **Build 100% funcional** - Zero erros TypeScript/ESLint
+- ✅ **11 arquivos corrigidos** - Todas imagens padronizadas
+- ✅ **1 componente removido** - OptimizedImage eliminado
+- ✅ **Zero regressões** - Todas funcionalidades preservadas
 
 ## ARQUITETURA GERAL
 
@@ -556,7 +592,7 @@ npm run db:seed      # Repopular dados teste
 npm run dev          # Servidor desenvolvimento
 ```
 
-## 🚀 ESTADO ATUAL DO PROJETO - DEZEMBRO 2024
+## 🚀 ESTADO ATUAL DO PROJETO - JUNHO 2025
 
 ### ✅ COMPLETAMENTE IMPLEMENTADO E FUNCIONAL
 

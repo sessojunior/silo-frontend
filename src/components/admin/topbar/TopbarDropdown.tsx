@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useUser } from '@/context/UserContext'
-import type { AccountProps } from '@/app/admin/layout'
+import type { AccountProps } from '@/components/admin/topbar/Topbar'
 
 export default function TopbarDropdown({ account }: { account: AccountProps }) {
 	const user = useUser()

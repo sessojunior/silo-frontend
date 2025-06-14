@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { toast } from '@/lib/toast'
+import Image from 'next/image'
 
 import Offcanvas from '@/components/ui/Offcanvas'
 import Button from '@/components/ui/Button'
@@ -40,13 +41,7 @@ export default function ContactSelectorOffcanvas({ isOpen, onClose, productId, o
 	// Filtrar contatos por busca
 	const filteredContacts = allContacts.filter((contact) => contact.name.toLowerCase().includes(search.toLowerCase()) || contact.email.toLowerCase().includes(search.toLowerCase()) || contact.role.toLowerCase().includes(search.toLowerCase()) || contact.team.toLowerCase().includes(search.toLowerCase()))
 
-	useEffect(() => {
-		if (isOpen) {
-			fetchData()
-		}
-	}, [isOpen, productId])
-
-	const fetchData = async () => {
+	const fetchData = useCallback(async () => {
 		try {
 			setLoading(true)
 
@@ -77,7 +72,13 @@ export default function ContactSelectorOffcanvas({ isOpen, onClose, productId, o
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [productId])
+
+	useEffect(() => {
+		if (isOpen) {
+			fetchData()
+		}
+	}, [isOpen, fetchData])
 
 	const handleContactToggle = (contactId: string) => {
 		setSelectedContactIds((prev) => {
@@ -224,7 +225,7 @@ export default function ContactSelectorOffcanvas({ isOpen, onClose, productId, o
 									>
 										<div className='flex items-center gap-3'>
 											{contact.image ? (
-												<img src={contact.image} alt={contact.name} className='size-12 rounded-full object-cover flex-shrink-0' />
+												<Image src={contact.image} alt={contact.name} className='size-12 rounded-full object-cover flex-shrink-0' width={48} height={48} style={{ objectFit: 'cover' }} />
 											) : (
 												<div className='size-12 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0'>
 													<span className='icon-[lucide--user] size-6 text-zinc-500 dark:text-zinc-400' />

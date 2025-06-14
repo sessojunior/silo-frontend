@@ -9,6 +9,7 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import ContactFormOffcanvas from '@/components/admin/contacts/ContactFormOffcanvas'
 import ContactDeleteDialog from '@/components/admin/contacts/ContactDeleteDialog'
+import Image from 'next/image'
 import { Contact } from '@/lib/db/schema'
 
 export default function ContactsPage() {
@@ -243,7 +244,7 @@ export default function ContactsPage() {
 												<td className='px-6 py-4 whitespace-nowrap'>
 													<div className='flex items-center gap-3'>
 														{contact.image ? (
-															<img src={contact.image} alt={contact.name} className='size-10 rounded-full object-cover' />
+															<Image src={contact.image} alt={contact.name} className='size-10 rounded-full object-cover' width={40} height={40} style={{ objectFit: 'cover' }} />
 														) : (
 															<div className='size-10 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center'>
 																<span className='icon-[lucide--user] size-5 text-zinc-500 dark:text-zinc-400' />

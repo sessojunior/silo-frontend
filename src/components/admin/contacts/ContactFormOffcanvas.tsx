@@ -7,6 +7,7 @@ import Offcanvas from '@/components/ui/Offcanvas'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Switch from '@/components/ui/Switch'
+import Image from 'next/image'
 import { Contact } from '@/lib/db/schema'
 
 interface ContactFormOffcanvasProps {
@@ -270,7 +271,7 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 
 						<div className='flex items-center gap-4'>
 							{/* Preview da imagem */}
-							<div className='size-20 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center'>{imagePreview ? <img src={imagePreview} alt='Preview' className='size-full object-cover' /> : <span className='icon-[lucide--user] size-8 text-zinc-400' />}</div>
+							<div className='size-20 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center'>{imagePreview ? <Image src={imagePreview} alt='Preview do contato' className='size-full object-cover' width={80} height={80} objectFit='cover' unoptimized={true} /> : <span className='icon-[lucide--user] size-8 text-zinc-400' />}</div>
 
 							{/* Controles */}
 							<div className='flex-1 space-y-2'>

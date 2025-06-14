@@ -597,7 +597,7 @@ export default function ProblemsPage() {
 			/>
 
 			{/* Modal de solução */}
-			<SolutionFormModal isOpen={solutionModalOpen} onClose={closeSolutionModal} mode={solutionMode} editingSolution={editingSolution} replyTo={replyTo} solutionDescription={solutionDescription} setSolutionDescription={setSolutionDescription} solutionImage={solutionImage} setSolutionImage={setSolutionImage} solutionImagePreview={solutionImagePreview} setSolutionImagePreview={setSolutionImagePreview} solutionLoading={solutionLoading} solutionError={solutionError} setSolutionError={setSolutionError} onSubmit={handleSolutionSubmit} onDeleteSolution={openDeleteSolutionDialog} onUpdateSolutions={atualizarSolucoes} onUpdateEditingSolution={setEditingSolution} problemId={problem?.id || null} />
+			<SolutionFormModal isOpen={solutionModalOpen} onClose={closeSolutionModal} mode={solutionMode} editingSolution={editingSolution} solutionDescription={solutionDescription} setSolutionDescription={setSolutionDescription} setSolutionImage={setSolutionImage} solutionImagePreview={solutionImagePreview} setSolutionImagePreview={setSolutionImagePreview} solutionLoading={solutionLoading} solutionError={solutionError} setSolutionError={setSolutionError} onSubmit={handleSolutionSubmit} onDeleteSolution={openDeleteSolutionDialog} onUpdateSolutions={atualizarSolucoes} onUpdateEditingSolution={setEditingSolution} problemId={problem?.id || null} />
 
 			{/* Dialog de confirmação de exclusão de solução */}
 			<DeleteSolutionDialog
@@ -606,7 +606,6 @@ export default function ProblemsPage() {
 					setDeleteSolutionDialogOpen(false)
 					setSolutionToDelete(null)
 				}}
-				solutionToDelete={solutionToDelete}
 				deleteSolutionLoading={deleteSolutionLoading}
 				onConfirmDelete={confirmDeleteSolution}
 			/>

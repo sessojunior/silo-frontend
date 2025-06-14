@@ -8,7 +8,7 @@ import Content from '@/components/admin/nav/Content'
 
 interface Props {
 	children: ReactNode
-	params: { slug: string }
+	params: Promise<{ slug: string }>
 }
 
 export default async function ProductsLayout({ children, params }: Props) {

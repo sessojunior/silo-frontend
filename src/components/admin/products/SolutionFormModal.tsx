@@ -5,6 +5,7 @@ import Label from '@/components/ui/Label'
 import Button from '@/components/ui/Button'
 import clsx from 'clsx'
 import { toast } from '@/lib/toast'
+import Image from 'next/image'
 
 // Tipo customizado para soluções retornadas pela API
 interface SolutionWithDetails {
@@ -94,7 +95,7 @@ export default function SolutionFormModal({ isOpen, onClose, mode, editingSoluti
 					{/* Se está editando e já existe imagem, exibe só a imagem com botão de remover */}
 					{mode === 'edit' && editingSolution?.image && editingSolution.image.image && !solutionImagePreview ? (
 						<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-blue-400 rounded-lg relative'>
-							<img src={editingSolution.image.image} alt={editingSolution.image.description || 'Imagem da solução'} className='object-contain h-full w-full rounded-lg' style={{ maxHeight: '8rem', maxWidth: '8rem' }} />
+							<Image src={editingSolution.image.image} alt={editingSolution.image.description || 'Imagem da solução'} className='object-contain h-full w-full rounded-lg' width={128} height={128} style={{ objectFit: 'contain', maxHeight: '8rem', maxWidth: '8rem' }} />
 							<button
 								type='button'
 								className='absolute top-1 right-1 bg-red-100/75 hover:bg-red-100 dark:bg-red-800/30 dark:hover:bg-red-700/40 text-red-500 dark:text-red-400 rounded-full size-8 flex items-center justify-center transition'
@@ -151,7 +152,7 @@ export default function SolutionFormModal({ isOpen, onClose, mode, editingSoluti
 							)}
 							{solutionImagePreview && (
 								<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-blue-400 rounded-lg relative'>
-									<img src={solutionImagePreview} alt='Preview' className='object-contain h-full w-full rounded-lg' style={{ maxHeight: '8rem', maxWidth: '8rem' }} />
+									<Image src={solutionImagePreview} alt='Preview' className='object-contain h-full w-full rounded-lg' width={128} height={128} style={{ objectFit: 'contain', maxHeight: '8rem', maxWidth: '8rem' }} unoptimized={true} />
 									<button
 										type='button'
 										className='absolute top-1 right-1 bg-red-100/75 hover:bg-red-100 dark:bg-red-800/30 dark:hover:bg-red-700/40 text-red-500 dark:text-red-400 rounded-full size-8 flex items-center justify-center transition'

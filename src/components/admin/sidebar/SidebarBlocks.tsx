@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { SidebarBlockProps } from '@/app/admin/layout'
+import { SidebarBlockProps } from '@/components/admin/sidebar/Sidebar'
 
 export default function SidebarBlocks({ blocks }: { blocks: SidebarBlockProps[] }) {
 	const [hiddenBlocks, setHiddenBlocks] = useState<string[]>([])

@@ -3,6 +3,7 @@
 import ReactMarkdown from 'react-markdown'
 import Button from '@/components/ui/Button'
 import { getMarkdownClasses } from '@/lib/markdown'
+import Image from 'next/image'
 import { ProductProblem, ProductProblemImage } from '@/lib/db/schema'
 
 interface SolutionWithDetails {
@@ -73,8 +74,8 @@ export function ProblemDetailColumn({ loadingDetail, problem, solutions, images,
 				<div className='flex gap-6 pt-6'>
 					{images.length > 0 &&
 						images.map(({ id, image, description }) => (
-							<div key={id}>
-								<img className='h-32 w-auto rounded-lg cursor-pointer transition hover:brightness-90' src={image} alt={description} onClick={() => onImageClick(image, description)} />
+							<div key={id} className='cursor-pointer' onClick={() => onImageClick(image, description)}>
+								<Image src={image} alt={description} className='h-32 w-auto rounded-lg transition hover:brightness-90' width={200} height={128} style={{ objectFit: 'cover' }} />
 							</div>
 						))}
 				</div>

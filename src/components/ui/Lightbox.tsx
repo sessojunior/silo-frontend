@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react'
+import Image from 'next/image'
 
 interface LightboxProps {
 	open: boolean
@@ -31,7 +32,7 @@ export default function Lightbox({ open, image, alt, onClose }: LightboxProps) {
 				<button onClick={onClose} className='absolute -top-10 -right-10 z-10 rounded-full bg-zinc-800/80 size-10 flex items-center justify-center text-white hover:bg-black focus:outline-none focus:ring-2 focus:ring-blue-500' aria-label='Fechar'>
 					<span className='icon-[lucide--x] size-5' />
 				</button>
-				<img src={image} alt={alt || ''} className='rounded-lg shadow-2xl max-h-[75vh] max-w-[75vw] object-contain border-4 border-white dark:border-zinc-800' />
+				<Image src={image} alt={alt || 'Imagem ampliada'} className='rounded-lg shadow-2xl max-h-[75vh] max-w-[75vw] border-4 border-white dark:border-zinc-800' width={800} height={600} priority={true} unoptimized={true} style={{ objectFit: 'contain' }} />
 			</div>
 		</div>
 	)

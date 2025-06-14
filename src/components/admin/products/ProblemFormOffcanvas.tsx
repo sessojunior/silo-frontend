@@ -7,6 +7,7 @@ import Dialog from '@/components/ui/Dialog'
 import Lightbox from '@/components/ui/Lightbox'
 import { toast } from '@/lib/toast'
 import clsx from 'clsx'
+import Image from 'next/image'
 import type { ProductProblem, ProductProblemImage } from '@/lib/db/schema'
 
 interface ProblemFormOffcanvasProps {
@@ -77,7 +78,7 @@ export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle
 													setLightboxOpen(true)
 												}}
 											>
-												<img src={img.image} alt={img.description} className='object-contain h-full w-full transition-transform duration-200 group-hover:scale-105' style={{ maxHeight: '8rem', maxWidth: '8rem' }} />
+												<Image src={img.image} alt={img.description} className='object-contain h-full w-full transition-transform duration-200 group-hover:scale-105 max-h-32 max-w-32' width={128} height={128} style={{ objectFit: 'contain' }} />
 												{/* Botão de apagar no canto superior direito */}
 												<button
 													type='button'
@@ -114,7 +115,7 @@ export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle
 								{/* Preview da imagem selecionada */}
 								{previewFile && (
 									<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-blue-400 rounded-lg relative'>
-										<img src={URL.createObjectURL(previewFile)} alt='Preview' className='object-contain h-full w-full rounded-lg' style={{ maxHeight: '8rem', maxWidth: '8rem' }} />
+										<Image src={URL.createObjectURL(previewFile)} alt='Preview' className='object-contain h-full w-full rounded-lg max-h-32 max-w-32' width={128} height={128} style={{ objectFit: 'contain' }} unoptimized={true} />
 										<button
 											type='button'
 											className='absolute bottom-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white rounded-full px-3 py-1 text-xs font-semibold shadow hover:bg-blue-700 transition'

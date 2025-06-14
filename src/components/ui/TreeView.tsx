@@ -43,7 +43,7 @@ export default function TreeView({ nodes, defaultExpanded = false }: TreeViewPro
 				))}
 			</div>
 
-			<Dialog open={!!dialogNode} onClose={() => setDialogNode(null)} title={dialogNode?.name} description='Descrição da dependência'>
+			<Dialog open={!!dialogNode} onClose={() => setDialogNode(null)} title={dialogNode?.name}>
 				<div className='space-y-4'>
 					{dialogNode?.data?.description ? (
 						<div className='text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed'>{dialogNode.data.description}</div>

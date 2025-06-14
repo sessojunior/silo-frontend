@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import Button from '@/components/ui/Button'
 import { getMarkdownClasses } from '@/lib/markdown'
 import clsx from 'clsx'
+import Image from 'next/image'
 
 interface SolutionWithDetails {
 	id: string
@@ -64,7 +65,7 @@ export function ProblemSolutionsSection({ solutions, expandedSolutionIds, onOpen
 						return (
 							<div key={solution.id} className='flex gap-x-2'>
 								<div className='size-12 shrink-0'>
-									<img src={solution.user.image} alt={solution.user.name} className='size-full rounded-full' />
+									<Image src={solution.user.image} alt={solution.user.name} className='size-full rounded-full' width={48} height={48} style={{ objectFit: 'cover' }} />
 								</div>
 								<div className='flex flex-col'>
 									<div className='flex flex-col'>
@@ -97,17 +98,15 @@ export function ProblemSolutionsSection({ solutions, expandedSolutionIds, onOpen
 										)}
 										{/* Imagem da solução */}
 										{solution.image && solution.image.image && (
-											<div>
-												<img
-													src={solution.image.image}
-													alt={solution.image.description || 'Imagem da solução'}
-													className='mt-2 h-32 w-auto rounded-lg border border-zinc-200 shadow-sm cursor-pointer hover:brightness-90'
-													onClick={() => {
-														if (solution.image && solution.image.image) {
-															onImageClick(solution.image.image, solution.image.description || '')
-														}
-													}}
-												/>
+											<div
+												onClick={() => {
+													if (solution.image && solution.image.image) {
+														onImageClick(solution.image.image, solution.image.description || '')
+													}
+												}}
+												className='cursor-pointer'
+											>
+												<Image src={solution.image.image} alt={solution.image.description || 'Imagem da solução'} className='mt-2 h-32 w-auto rounded-lg border border-zinc-200 shadow-sm hover:brightness-90' width={200} height={128} style={{ objectFit: 'cover' }} />
 											</div>
 										)}
 									</div>
@@ -137,7 +136,7 @@ export function ProblemSolutionsSection({ solutions, expandedSolutionIds, onOpen
 												return (
 													<div key={reply.id} className='flex gap-x-2 ml-4 mt-2'>
 														<div className='size-12 shrink-0'>
-															<img src={reply.user.image} alt={reply.user.name} className='size-full rounded-full' />
+															<Image src={reply.user.image} alt={reply.user.name} className='size-full rounded-full' width={48} height={48} style={{ objectFit: 'cover' }} />
 														</div>
 														<div className='flex flex-col'>
 															<div className='flex flex-col'>
@@ -169,15 +168,14 @@ export function ProblemSolutionsSection({ solutions, expandedSolutionIds, onOpen
 																)}
 																{/* Imagem da reply */}
 																{reply.image && reply.image.image && (
-																	<img
-																		src={reply.image.image}
-																		alt={reply.image.description || 'Imagem da solução'}
-																		className='mt-2 h-32 w-auto rounded-lg border border-zinc-200 shadow-sm cursor-pointer hover:brightness-90'
+																	<div
 																		onClick={() => {
-																			// Já verificado que image existe no conditional acima
 																			onImageClick(reply.image!.image, reply.image!.description || '')
 																		}}
-																	/>
+																		className='cursor-pointer'
+																	>
+																		<Image src={reply.image.image} alt={reply.image.description || 'Imagem da solução'} className='mt-2 h-32 w-auto rounded-lg border border-zinc-200 shadow-sm hover:brightness-90' width={200} height={128} style={{ objectFit: 'cover' }} />
+																	</div>
 																)}
 															</div>
 															{/* Botões de ação para replies */}

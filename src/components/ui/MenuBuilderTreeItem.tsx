@@ -14,7 +14,7 @@ export const Collapse = memo(function Collapse(props: { open: boolean; handleOpe
 			e.preventDefault()
 			props.handleOpen(!props.open)
 		},
-		[props.open, props.handleOpen],
+		[props],
 	)
 
 	return (

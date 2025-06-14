@@ -91,7 +91,7 @@ export default function ProductTurn() {
 									<ul className='p-2'>
 										{day.turns.map((turn, index) => {
 											let bgClass = ''
-											let text: React.ReactNode = ''
+											let text = ''
 
 											switch (turn.status) {
 												case 'pending':
@@ -104,11 +104,11 @@ export default function ProductTurn() {
 													break
 												case 'alert':
 													bgClass = 'bg-orange-600 text-white'
-													text = turn.description ? <i>{turn.description}</i> : 'Alerta'
+													text = turn.description || 'Alerta'
 													break
 												case 'danger':
 													bgClass = 'bg-red-600 text-white'
-													text = turn.description ? <i>{turn.description}</i> : 'Crítico'
+													text = turn.description || 'Crítico'
 													break
 												default:
 													bgClass = 'bg-zinc-100 text-zinc-600'

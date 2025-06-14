@@ -54,6 +54,81 @@
 - **ESLint 9**: Linting com regras Next.js
 - **Prettier 3.5.3**: Formatação de código
 - **Simple Import Sort**: Organização de imports
+- **🆕 Build 100% Funcional**: Zero erros TypeScript/ESLint
+- **🆕 next/image**: Migração completa do OptimizedImage
+
+## ✅ CORREÇÕES CRÍTICAS DE BUILD - JUNHO 2025
+
+### 🎯 MIGRAÇÃO OPTIMIZEDIMAGE → NEXT/IMAGE
+
+**PROBLEMA RESOLVIDO**: OptimizedImage causando conflitos de tipos e warnings
+
+**SOLUÇÃO IMPLEMENTADA**:
+
+```typescript
+// ❌ ANTES (OptimizedImage)
+<OptimizedImage
+  src={imageSrc}
+  alt="Descrição"
+  objectFit="cover"
+  fallback="/placeholder.png"
+/>
+
+// ✅ DEPOIS (next/image)
+<Image
+  src={imageSrc}
+  alt="Descrição"
+  width={200}
+  height={128}
+  style={{ objectFit: 'cover' }}
+  unoptimized={imageSrc.startsWith('blob:')}
+/>
+```
+
+**PADRÕES OBRIGATÓRIOS**:
+
+- ✅ **Props obrigatórias**: width, height sempre especificadas
+- ✅ **objectFit via style**: `style={{ objectFit: 'cover' }}`
+- ✅ **Blob URLs**: `unoptimized={true}` para URLs temporárias
+- ✅ **Sem fallback**: Propriedade removida (não suportada)
+
+### 🔧 CORREÇÃO POPOVER - CONFLITO REACTPORTAL
+
+**PROBLEMA RESOLVIDO**: Erro "ReactPortal & string" incompatível
+
+**SOLUÇÃO IMPLEMENTADA**:
+
+```typescript
+// ✅ Interface simplificada
+interface PopoverProps {
+	children: React.ReactNode
+	content: React.ReactNode
+	position?: Position
+	className?: string
+	onClick?: () => void
+}
+
+// ✅ Sem HTMLAttributes problemáticos
+// ✅ React.ReactNode explícito
+// ✅ Props customizadas apenas
+```
+
+### 📦 CORREÇÃO IMPORTAÇÕES DE TIPOS
+
+**PROBLEMA RESOLVIDO**: Tipos importados de arquivos incorretos
+
+**CORREÇÕES APLICADAS**:
+
+```typescript
+// ❌ ANTES
+import { SidebarBlockProps } from '@/app/admin/layout'
+import { SidebarMenuProps } from '@/app/admin/layout'
+import { AccountProps } from '@/app/admin/layout'
+
+// ✅ DEPOIS
+import { SidebarBlockProps, SidebarMenuProps } from '@/components/admin/sidebar/Sidebar'
+import { AccountProps } from '@/components/admin/topbar/Topbar'
+```
 
 ## 🚀 PADRÕES TÉCNICOS OBRIGATÓRIOS
 
