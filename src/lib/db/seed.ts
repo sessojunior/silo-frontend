@@ -185,8 +185,8 @@ const dependencyStructure = [
 	},
 ]
 
-// Contatos para os produtos
-const productContacts = [
+// Contatos globais da organização
+const contacts = [
 	{
 		name: 'Dr. Marcelo Silvano',
 		role: 'Coordenador Técnico',
@@ -194,6 +194,7 @@ const productContacts = [
 		email: 'marcelo.silvano@inpe.br',
 		phone: '+55 12 3186-8000',
 		image: '/uploads/profile/10.jpg',
+		active: true,
 	},
 	{
 		name: 'José Santana',
@@ -202,6 +203,7 @@ const productContacts = [
 		email: 'jose.santana@inpe.br',
 		phone: '+55 12 3186-8001',
 		image: '/uploads/profile/20.jpg',
+		active: true,
 	},
 	{
 		name: 'Dra. Aline Mendez',
@@ -210,6 +212,25 @@ const productContacts = [
 		email: 'aline.mendez@inpe.br',
 		phone: '+55 12 3186-8002',
 		image: '/uploads/profile/30.jpg',
+		active: true,
+	},
+	{
+		name: 'Carlos Santos',
+		role: 'Analista de Sistemas',
+		team: 'TI',
+		email: 'carlos.santos@inpe.br',
+		phone: '+55 12 3186-8003',
+		image: '/uploads/profile/40.jpg',
+		active: true,
+	},
+	{
+		name: 'Ana Oliveira',
+		role: 'Suporte Técnico',
+		team: 'TI',
+		email: 'ana.oliveira@inpe.br',
+		phone: '+55 12 3186-8004',
+		image: '/uploads/profile/50.jpg',
+		active: false, // Ex-funcionária
 	},
 ]
 
@@ -623,6 +644,23 @@ async function seed() {
 
 	inserted.forEach((p) => productMap.set(p.slug, p.id))
 
+	// 3. Contatos Globais
+	console.log('🔵 Inserindo contatos globais...')
+	const insertedContacts = await db
+		.insert(schema.contact)
+		.values(
+			contacts.map((contact) => ({
+				id: randomUUID(),
+				...contact,
+			})),
+		)
+		.returning()
+
+	// Criar mapa de contatos para facilitar associações
+	const contactMap = new Map<string, string>()
+	insertedContacts.forEach((c) => contactMap.set(c.email, c.id))
+	console.log(`✅ ${insertedContacts.length} contatos inseridos com sucesso!`)
+
 	for (const { slug } of products) {
 		const productId = productMap.get(slug)!
 
@@ -632,16 +670,18 @@ async function seed() {
 		console.log(`🔵 Inserindo dependências para ${slug}...`)
 		await insertDependencies(productId, dependencyStructure)
 
-		// 3. Contatos
-		console.log(`🔵 Inserindo contatos para ${slug}...`)
-		await db.insert(schema.productContact).values(
-			productContacts.map((contact, index) => ({
-				id: randomUUID(),
-				productId,
-				...contact,
-				order: index,
-			})),
-		)
+		// 3. Associações Produto-Contato
+		console.log(`🔵 Associando contatos ao produto: ${slug}...`)
+		// Associar os 3 primeiros contatos ativos a cada produto (exemplo)
+		const activeContacts = insertedContacts.filter((c) => c.active).slice(0, 3)
+		const associations = activeContacts.map((contact) => ({
+			id: randomUUID(),
+			productId,
+			contactId: contact.id,
+		}))
+
+		await db.insert(schema.productContact).values(associations)
+		console.log(`✅ ${associations.length} contatos associados ao produto ${slug}!`)
 
 		// 4. Manual do produto (markdown único)
 		console.log(`🔵 Inserindo manual para ${slug}...`)

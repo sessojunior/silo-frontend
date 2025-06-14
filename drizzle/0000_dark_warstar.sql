@@ -29,6 +29,20 @@ CREATE TABLE "auth_user" (
 	CONSTRAINT "auth_user_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
+CREATE TABLE "contact" (
+	"id" text PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"role" text NOT NULL,
+	"team" text NOT NULL,
+	"email" text NOT NULL,
+	"phone" text,
+	"image" text,
+	"active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "contact_email_unique" UNIQUE("email")
+);
+--> statement-breakpoint
 CREATE TABLE "product" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
@@ -39,15 +53,8 @@ CREATE TABLE "product" (
 CREATE TABLE "product_contact" (
 	"id" text PRIMARY KEY NOT NULL,
 	"product_id" text NOT NULL,
-	"name" text NOT NULL,
-	"role" text NOT NULL,
-	"team" text NOT NULL,
-	"email" text NOT NULL,
-	"phone" text,
-	"image" text,
-	"order" integer DEFAULT 0 NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"contact_id" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "product_dependency" (
@@ -156,6 +163,7 @@ ALTER TABLE "auth_code" ADD CONSTRAINT "auth_code_user_id_auth_user_id_fk" FOREI
 ALTER TABLE "auth_provider" ADD CONSTRAINT "auth_provider_user_id_auth_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."auth_user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "auth_session" ADD CONSTRAINT "auth_session_user_id_auth_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."auth_user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_contact" ADD CONSTRAINT "product_contact_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "product_contact" ADD CONSTRAINT "product_contact_contact_id_contact_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contact"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_dependency" ADD CONSTRAINT "product_dependency_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_manual" ADD CONSTRAINT "product_manual_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_problem" ADD CONSTRAINT "product_problem_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

@@ -162,21 +162,31 @@ export const productDependency = pgTable('product_dependency', {
 })
 export type ProductDependency = typeof productDependency.$inferSelect
 
-// Base de Conhecimento - Contatos
+// Base de Conhecimento - Contatos Globais
+export const contact = pgTable('contact', {
+	id: text('id').primaryKey(),
+	name: text('name').notNull(),
+	role: text('role').notNull(),
+	team: text('team').notNull(),
+	email: text('email').notNull().unique(), // email único globalmente
+	phone: text('phone'),
+	image: text('image'), // caminho para foto do contato
+	active: boolean('active').notNull().default(true), // status ativo/inativo
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+export type Contact = typeof contact.$inferSelect
+
+// Base de Conhecimento - Associação Produto-Contato
 export const productContact = pgTable('product_contact', {
 	id: text('id').primaryKey(),
 	productId: text('product_id')
 		.notNull()
 		.references(() => product.id),
-	name: text('name').notNull(),
-	role: text('role').notNull(),
-	team: text('team').notNull(),
-	email: text('email').notNull(),
-	phone: text('phone'),
-	image: text('image'), // caminho para foto do contato
-	order: integer('order').notNull().default(0),
+	contactId: text('contact_id')
+		.notNull()
+		.references(() => contact.id),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 export type ProductContact = typeof productContact.$inferSelect
 
