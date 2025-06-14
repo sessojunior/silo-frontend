@@ -1,23 +1,4 @@
-interface DateTurn {
-	dateStatus: 'green' | 'orange' | 'red' | string
-}
-
-interface CalendarDate {
-	dateWeek: string
-	dateDay: number
-	dateTurns: DateTurn[]
-}
-
-interface Calendar {
-	month: number
-	dates: CalendarDate[]
-}
-
-interface ProductCalendarProps {
-	calendar: Calendar
-}
-
-export default function ProductCalendar({ calendar }: ProductCalendarProps) {
+export default function ProductCalendar({ calendar }) {
 	const monthFullName = (month: number): string => ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][month - 1] || ''
 	const weekDayLetter = (day: string): string => ({ sunday: 'D', monday: 'S', tuesday: 'T', wednesday: 'Q', thursday: 'Q', friday: 'S', saturday: 'S' })[day.toLowerCase()] || ''
 	const turns = [0, 6, 12, 18]
@@ -65,7 +46,7 @@ export default function ProductCalendar({ calendar }: ProductCalendarProps) {
 					{date.dateTurns.map((turn, index) => (
 						<div key={index} className={dayTurn}>
 							<div className={dayButton}>
-								<div className={turn.dateStatus === 'green' ? dayGreen : turn.dateStatus === 'orange' ? dayOrange : turn.dateStatus === 'red' ? dayRed : dayNone}></div>
+								<div className={turn.dateStatus === 'green' ? dayGreen : turn.dateStatus === 'orange' ? dayOrange : turn.dateStatus === 'red' ? dayRed : ''}></div>
 							</div>
 						</div>
 					))}

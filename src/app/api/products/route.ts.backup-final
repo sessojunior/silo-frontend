@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 		try {
 			const products = await db.select().from(product).where(eq(product.slug, slug)).limit(1)
 			return NextResponse.json({ products }, { status: 200 })
-		} catch {
+		} catch (e) {
 			return NextResponse.json({ field: null, message: 'Erro ao buscar produto.' }, { status: 500 })
 		}
 	}
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
 		if (where) query.where(where)
 		const items = await query
 		return NextResponse.json({ items }, { status: 200 })
-	} catch {
+	} catch (e) {
 		return NextResponse.json({ field: null, message: 'Erro ao buscar produtos.' }, { status: 500 })
 	}
 }
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
 			available,
 		})
 		return NextResponse.json({ success: true }, { status: 200 })
-	} catch {
+	} catch (e) {
 		return NextResponse.json({ field: null, message: 'Erro ao criar produto.' }, { status: 500 })
 	}
 }
@@ -91,11 +91,11 @@ export async function PUT(request: Request) {
 
 	try {
 		const result = await db.update(product).set({ name, slug, available }).where(eq(product.id, id))
-		if (!result.rowCount) {
+		if (result.rowsAffected === 0) {
 			return NextResponse.json({ field: 'id', message: 'Produto não encontrado.' }, { status: 404 })
 		}
 		return NextResponse.json({ success: true }, { status: 200 })
-	} catch {
+	} catch (e) {
 		return NextResponse.json({ field: null, message: 'Erro ao atualizar produto.' }, { status: 500 })
 	}
 }
@@ -109,11 +109,11 @@ export async function DELETE(request: Request) {
 	}
 	try {
 		const result = await db.delete(product).where(eq(product.id, id))
-		if (!result.rowCount) {
+		if (result.rowsAffected === 0) {
 			return NextResponse.json({ field: 'id', message: 'Produto não encontrado.' }, { status: 404 })
 		}
 		return NextResponse.json({ success: true }, { status: 200 })
-	} catch {
+	} catch (e) {
 		return NextResponse.json({ field: null, message: 'Erro ao excluir produto.' }, { status: 500 })
 	}
 }
