@@ -1,6 +1,5 @@
 import Image from 'next/image'
-// import Accordion, { type Section } from '@/components/ui/Accordion' // Removido - não usado
-// import Button from '@/components/ui/Button' // Removido - não usado
+import Button from '@/components/ui/Button'
 
 // Tipos para os dados da API (copiados da página principal)
 interface ProductContact {
@@ -36,7 +35,8 @@ interface ProductDetailsColumnProps {
 	solutionsCount: number
 	lastUpdated: Date | null
 
-	// Handlers removidos - manual agora é gerenciado externamente
+	// Handlers
+	onOpenContactSelector: () => void
 
 	// Utilitários
 	formatTimeAgo: (date: Date | null) => string
@@ -45,7 +45,7 @@ interface ProductDetailsColumnProps {
 	children?: React.ReactNode
 }
 
-export default function ProductDetailsColumn({ contacts, problemsCount, solutionsCount, lastUpdated, formatTimeAgo, children }: ProductDetailsColumnProps) {
+export default function ProductDetailsColumn({ contacts, problemsCount, solutionsCount, lastUpdated, onOpenContactSelector, formatTimeAgo, children }: ProductDetailsColumnProps) {
 	return (
 		<div className='flex w-full flex-grow flex-col'>
 			<div className='scrollbar size-full h-[calc(100vh-131px)] overflow-y-auto'>
@@ -102,28 +102,47 @@ export default function ProductDetailsColumn({ contacts, problemsCount, solution
 								<span className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>{contacts.length} responsáveis técnicos</span>
 							</div>
 						</div>
+						<Button type='button' icon='icon-[lucide--user-plus]' style='unstyled' className='py-2' onClick={onOpenContactSelector}>
+							Gerenciar contatos
+						</Button>
 					</div>
-					<div className='flex flex-col gap-4 md:grid md:grid-cols-2'>
-						{/* Contatos */}
-						{contacts.map((contact) => (
-							<div key={contact.id} className='flex gap-x-2'>
-								<div className='size-12 shrink-0'>
-									<Image src={contact.image || '/images/profile.png'} alt={contact.name} width={40} height={40} className='size-full rounded-full' />
-								</div>
-								<div className='flex flex-col'>
-									<div className='text-base font-bold'>{contact.name}</div>
-									<div className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>
-										{contact.role} <span className='text-zinc-300 dark:text-zinc-600'>•</span> {contact.team}
-									</div>
-									<div className='text-sm font-medium'>
-										<a href={`mailto:${contact.email}`} className='text-zinc-500 hover:text-zinc-600 dark:text-zinc-400 dark:hover:text-zinc-300'>
-											{contact.email}
-										</a>
-									</div>
-								</div>
+					{contacts.length === 0 ? (
+						<div className='text-center pt-8'>
+							<div className='max-w-md mx-auto'>
+								<span className='icon-[lucide--users] size-12 text-zinc-400 mx-auto block mb-4' />
+								<h3 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>Nenhum contato associado</h3>
+								<p className='text-zinc-600 dark:text-zinc-400 mb-6'>Gerencie os contatos responsáveis por este produto para facilitar a comunicação.</p>
 							</div>
-						))}
-					</div>
+						</div>
+					) : (
+						<div className='flex flex-col gap-4 md:grid md:grid-cols-2'>
+							{/* Contatos */}
+							{contacts.map((contact) => (
+								<div key={contact.id} className='flex gap-x-2'>
+									<div className='size-12 shrink-0'>
+										{contact.image ? (
+											<Image src={contact.image} alt={contact.name} width={48} height={48} className='size-full rounded-full object-cover' />
+										) : (
+											<div className='size-12 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center'>
+												<span className='icon-[lucide--user] size-6 text-zinc-500 dark:text-zinc-400' />
+											</div>
+										)}
+									</div>
+									<div className='flex flex-col'>
+										<div className='text-base font-bold'>{contact.name}</div>
+										<div className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>
+											{contact.role} <span className='text-zinc-300 dark:text-zinc-600'>•</span> {contact.team}
+										</div>
+										<div className='text-sm font-medium'>
+											<a href={`mailto:${contact.email}`} className='text-zinc-500 hover:text-zinc-600 dark:text-zinc-400 dark:hover:text-zinc-300'>
+												{contact.email}
+											</a>
+										</div>
+									</div>
+								</div>
+							))}
+						</div>
+					)}
 				</div>
 
 				{/* Manual renderizado via children */}

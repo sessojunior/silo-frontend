@@ -18,6 +18,10 @@ import ManualEditorOffcanvas from '@/components/admin/products/ManualEditorOffca
 import ProductManualSection from '@/components/admin/products/ProductManualSection'
 import DeleteDependencyDialog from '@/components/admin/products/DeleteDependencyDialog'
 
+// Componentes ETAPA 2 - Sistema de Contatos
+
+import ContactSelectorOffcanvas from '@/components/admin/products/ContactSelectorOffcanvas'
+
 // Componente coluna esquerda (dependências) - ETAPA 1 REFATORAÇÃO
 import ProductDependenciesColumn from '@/components/admin/products/ProductDependenciesColumn'
 
@@ -106,6 +110,9 @@ export default function ProductsPage() {
 	const [isMobile, setIsMobile] = useState(false)
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 	const [itemToDelete, setItemToDelete] = useState<ProductDependency | null>(null)
+
+	// Estados ETAPA 2 - Sistema de Contatos
+	const [contactSelectorOpen, setContactSelectorOpen] = useState(false)
 
 	// ✅ Debounce para evitar chamadas excessivas
 	const [reorderTimeout, setReorderTimeout] = useState<NodeJS.Timeout | null>(null)
@@ -217,7 +224,7 @@ export default function ProductsPage() {
 				const [depsData, contactsData, manualData, problemsData] = await Promise.all([depsRes.json(), contactsRes.json(), manualRes.json(), problemsRes.json()])
 
 				setDependencies(depsData.dependencies || [])
-				setContacts(contactsData.contacts || [])
+				setContacts(contactsData.data?.contacts || [])
 				setManual(manualData.data || null)
 
 				// Contagem de problemas
@@ -257,6 +264,19 @@ export default function ProductsPage() {
 			setDependencies(data.dependencies || [])
 		} catch (error) {
 			console.error('❌ Erro ao recarregar dependências:', error)
+		}
+	}
+
+	// Função para recarregar contatos
+	const refreshContacts = async () => {
+		if (!productId) return
+		try {
+			const res = await fetch(`/api/products/contacts?productId=${productId}`)
+			const data = await res.json()
+			setContacts(data.data?.contacts || [])
+			console.log('✅ Contatos recarregados:', data.data?.contacts?.length || 0)
+		} catch (error) {
+			console.error('❌ Erro ao recarregar contatos:', error)
 		}
 	}
 
@@ -633,7 +653,7 @@ export default function ProductsPage() {
 
 			{/* Componente Coluna Direita - ETAPA 2 REFATORAÇÃO com manual markdown */}
 			<div className='flex-1'>
-				<ProductDetailsColumn contacts={contacts} problemsCount={problemsCount} solutionsCount={solutionsCount} lastUpdated={lastUpdated} formatTimeAgo={formatTimeAgo}>
+				<ProductDetailsColumn contacts={contacts} problemsCount={problemsCount} solutionsCount={solutionsCount} lastUpdated={lastUpdated} onOpenContactSelector={() => setContactSelectorOpen(true)} formatTimeAgo={formatTimeAgo}>
 					{/* Seção do Manual dentro da área scrollable */}
 					<ProductManualSection manual={manual} onEditManual={handleEditManual} />
 				</ProductDetailsColumn>
@@ -659,6 +679,20 @@ export default function ProductsPage() {
 				onConfirm={handleConfirmDelete}
 				loading={formLoading}
 			/>
+
+			{/* ETAPA 2 - Offcanvas Seletor de Contatos */}
+			{productId && (
+				<ContactSelectorOffcanvas
+					isOpen={contactSelectorOpen}
+					onClose={() => setContactSelectorOpen(false)}
+					productId={productId}
+					onSuccess={async () => {
+						console.log('✅ Contatos atualizados com sucesso!')
+						await refreshContacts()
+						setContactSelectorOpen(false)
+					}}
+				/>
+			)}
 		</div>
 	)
 }
