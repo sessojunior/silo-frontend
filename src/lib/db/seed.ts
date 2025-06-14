@@ -213,48 +213,26 @@ const productContacts = [
 	},
 ]
 
-// Seções e capítulos do manual
+// Manual do produto em formato markdown único
 const manualData = [
 	{
-		title: '1. Introdução',
-		description: 'Visão geral do sistema e conceitos fundamentais',
-		chapters: [
-			{
-				title: '1.1. Como funciona o modelo',
-				content: `O modelo meteorológico funciona através de uma série de cálculos complexos que simulam o comportamento da atmosfera. Este capítulo explica os conceitos fundamentais.
+		productSlug: 'bam',
+		description: `# Manual do BAM
 
-# Princípios básicos
+## Introdução
 
-O modelo utiliza equações diferenciais parciais para simular:
+O BAM (Brazilian Global Atmospheric Model) é um modelo atmosférico global desenvolvido pelo CPTEC/INPE para previsão numérica do tempo. Este manual apresenta as principais características e procedimentos operacionais.
+
+### Como funciona o modelo
+
+O modelo meteorológico BAM funciona através de uma série de cálculos complexos que simulam o comportamento da atmosfera. Utiliza equações diferenciais parciais para simular:
+
 - Dinâmica dos fluidos atmosféricos
 - Termodinâmica
 - Radiação solar e terrestre
 - Microfísica de nuvens
 
-# Estrutura do código
-
-O sistema está organizado em módulos funcionais que processam diferentes aspectos da simulação.
-
-## Inicialização
-- Leitura de dados observacionais
-- Interpolação para a grade do modelo
-- Verificação de consistência
-
-## Processamento
-- Integração temporal das equações
-- Cálculos de física atmosférica
-- Aplicação de condições de contorno
-
-## Saída
-- Geração de campos meteorológicos
-- Formatação em NetCDF
-- Disponibilização via web`,
-			},
-			{
-				title: '1.2. Descrição do funcionamento interno',
-				content: `Este capítulo detalha a arquitetura interna e o fluxo de dados do sistema.
-
-# Arquitetura do sistema
+### Arquitetura do sistema
 
 O sistema é composto por várias camadas:
 
@@ -262,173 +240,288 @@ O sistema é composto por várias camadas:
 2. **Camada de processamento**: Executa os cálculos do modelo numérico
 3. **Camada de apresentação**: Interface para visualização e análise
 
-# Fluxo de dados
+## Funcionamento
 
-## Entrada de dados
-- Dados observacionais (estações, radiossondas, satélites)
-- Condições de contorno (modelos globais)
-- Parâmetros de configuração
+### Pré-processamento
 
-## Processamento
-- Pré-processamento e controle de qualidade
-- Assimilação de dados
-- Integração do modelo
-- Pós-processamento
+O pré-processamento é uma etapa crucial que prepara os dados para a simulação numérica.
 
-## Saída
-- Campos meteorológicos em grade regular
-- Produtos específicos para usuários
-- Arquivos de verificação e diagnóstico`,
-			},
-		],
-	},
-	{
-		title: '2. Funcionamento',
-		description: 'Procedimentos operacionais e configuração do sistema',
-		chapters: [
-			{
-				title: '2.1. Pré-processamento',
-				content: `O pré-processamento é uma etapa crucial que prepara os dados para a simulação numérica.
+#### Controle de qualidade
 
-# Controle de qualidade
-
-## Verificação de consistência
 - Análise de valores extremos
 - Verificação temporal e espacial
 - Detecção de erros sistemáticos
 
-## Correção de dados
-- Interpolação de dados faltantes
-- Correção de bias sistemático
-- Filtragem de ruído
+#### Interpolação
 
-# Interpolação
-
-## Métodos de interpolação
 - Interpolação bilinear para dados em grade
 - Interpolação cúbica para suavização
 - Interpolação ótima para assimilação
 
-## Transformação de coordenadas
-- Conversão entre sistemas de projeção
-- Interpolação vertical entre níveis
-- Ajuste para topografia local`,
-			},
-			{
-				title: '2.2. Operações realizadas',
-				content: `Este capítulo descreve as principais operações realizadas durante a execução do modelo.
+### Operações realizadas
 
-# Integração temporal
+#### Integração temporal
 
-## Esquemas numéricos
 - Método de Runge-Kutta de 4ª ordem
 - Esquema semi-implícito para ondas gravitacionais
 - Filtro temporal para estabilidade
 
-## Passo de tempo
-- Determinação automática do passo de tempo
-- Critério de estabilidade CFL
-- Adaptação dinâmica para eficiência
+#### Cálculos físicos
 
-# Cálculos físicos
-
-## Radiação
-- Cálculo de radiação solar direta e difusa
-- Radiação terrestre de onda longa
-- Interação com nuvens e aerossóis
-
-## Convecção
+- Radiação solar direta e difusa
 - Parametrização de convecção profunda
-- Convecção rasa e turbulência
-- Liberação de calor latente
-
-## Microfísica
 - Formação e evolução de nuvens
-- Processos de precipitação
-- Conversão entre fases da água`,
-			},
-			{
-				title: '2.3. Pós-processamento',
-				content: `O pós-processamento transforma as saídas brutas do modelo em produtos úteis para os usuários.
 
-# Interpolação de saída
+### Pós-processamento
 
-## Grades de saída
-- Interpolação para grades regulares
-- Projeção para diferentes sistemas de coordenadas
-- Recorte para regiões específicas
+O pós-processamento transforma as saídas brutas do modelo em produtos úteis para os usuários.
 
-## Níveis verticais
-- Interpolação para níveis de pressão
-- Cálculo de variáveis derivadas
-- Extração de perfis verticais
+#### Produtos meteorológicos
 
-# Produtos meteorológicos
-
-## Campos básicos
 - Temperatura, umidade, vento
 - Pressão ao nível do mar
 - Altura geopotencial
-
-## Produtos derivados
 - Índices de instabilidade
-- Parâmetros de convecção
-- Variáveis de superfície
 
-# Formatação de dados
+## Resolução de conflitos
 
-## Formatos de arquivo
-- NetCDF para dados científicos
-- GRIB para intercâmbio operacional
-- CSV para análise estatística
+### Problemas de inicialização
 
-## Metadados
-- Informações sobre a simulação
-- Coordenadas e projeção
-- Unidades e convenções`,
-			},
-		],
-	},
-	{
-		title: '3. Resolução de conflitos',
-		description: 'Procedimentos para solução de problemas comuns',
-		chapters: [
-			{
-				title: '3.1. Problemas de inicialização',
-				content: `Este capítulo aborda os problemas mais comuns durante a inicialização do modelo.
+#### Dados de entrada
 
-# Dados de entrada
-
-## Verificação de arquivos
 - Conferir se todos os arquivos necessários estão presentes
 - Verificar permissões de leitura
 - Validar formato e estrutura dos dados
 
-## Diagnóstico de problemas
-- Análise de logs de erro
-- Verificação de integridade dos dados
-- Teste com dados alternativos
+#### Configuração
 
-# Configuração
-
-## Parâmetros do modelo
 - Verificar consistência dos parâmetros
 - Validar domain e resolução
 - Conferir configurações de física
 
-## Ambiente computacional
-- Verificar recursos disponíveis (CPU, memória)
-- Configurar variáveis de ambiente
-- Testar conectividade de rede
+### Soluções comuns
 
-# Soluções comuns
-
-## Reinicialização
 - Procedimentos para reinício limpo
 - Recuperação de estado anterior
 - Backup e restauração de configurações`,
-			},
-		],
+	},
+	{
+		productSlug: 'smec',
+		description: `# Manual do SMEC
+
+## Introdução
+
+O SMEC (Sistema de Monitoramento e Estudos Climáticos) é uma ferramenta desenvolvida pelo CPTEC/INPE para análise e monitoramento de dados climáticos.
+
+### Características principais
+
+- Processamento de dados meteorológicos
+- Análise estatística de séries temporais
+- Geração de produtos climáticos
+- Interface web para visualização
+
+## Instalação
+
+### Pré-requisitos
+
+- Sistema operacional Linux/Windows
+- Python 3.8+
+- Bibliotecas científicas (NumPy, SciPy, Matplotlib)
+
+### Processo de instalação
+
+1. Download do software
+2. Configuração do ambiente virtual
+3. Instalação das dependências
+4. Configuração inicial
+
+## Configuração
+
+### Configuração básica
+
+Configurações essenciais para funcionamento:
+
+- Diretórios de dados
+- Parâmetros de processamento
+- Configurações de saída
+
+### Configuração avançada
+
+Para usuários experientes:
+
+- Otimização de performance
+- Configurações de paralelização
+- Integração com outros sistemas
+
+## Troubleshooting
+
+### Problemas comuns
+
+- Erros de importação de dados
+- Problemas de performance
+- Falhas na geração de produtos
+
+### Soluções
+
+- Verificação de formatos de arquivo
+- Otimização de recursos
+- Validação de dados de entrada`,
+	},
+	{
+		productSlug: 'brams-ams-15km',
+		description: `# Manual do BRAMS AMS 15KM
+
+## Introdução
+
+O BRAMS (Brazilian developments on the Regional Atmospheric Modeling System) é um modelo atmosférico regional desenvolvido para previsão de alta resolução.
+
+### Características técnicas
+
+- Resolução horizontal de 15km
+- Múltiplos níveis verticais
+- Física atmosférica avançada
+- Assimilação de dados
+
+## Operação
+
+### Inicialização
+
+#### Dados de entrada
+
+- Dados de análise global
+- Observações de superfície
+- Dados de radiossondagem
+- Imagens de satélite
+
+#### Configuração do domínio
+
+- Definição da grade
+- Configuração de níveis verticais
+- Condições de contorno
+
+### Execução
+
+#### Processamento
+
+- Integração temporal
+- Cálculos de física
+- Assimilação de dados
+- Geração de produtos
+
+#### Monitoramento
+
+- Verificação de logs
+- Análise de performance
+- Controle de qualidade
+
+## Produtos
+
+### Campos meteorológicos
+
+- Temperatura
+- Umidade
+- Vento
+- Precipitação
+- Pressão
+
+### Produtos derivados
+
+- Índices de instabilidade
+- Parâmetros de convecção
+- Variáveis de superfície
+
+## Manutenção
+
+### Procedimentos regulares
+
+- Backup de dados
+- Limpeza de arquivos temporários
+- Verificação de integridade
+
+### Resolução de problemas
+
+- Análise de erros
+- Procedimentos de recuperação
+- Contato com suporte técnico`,
+	},
+	{
+		productSlug: 'wrf',
+		description: `# Manual do WRF
+
+## Introdução
+
+O WRF (Weather Research and Forecasting) é um modelo atmosférico de mesoescala desenvolvido para pesquisa e previsão operacional.
+
+### Características
+
+- Modelo não-hidrostático
+- Múltiplas opções de física
+- Grades aninhadas
+- Paralelização eficiente
+
+## Configuração
+
+### Pré-processamento
+
+#### WPS (WRF Preprocessing System)
+
+- Definição de domínios
+- Interpolação de dados
+- Preparação de dados de entrada
+
+#### Namelist
+
+- Configuração de parâmetros
+- Definição de física
+- Configurações de execução
+
+### Execução
+
+#### WRF Model
+
+- Integração temporal
+- Cálculos de dinâmica
+- Parametrizações físicas
+
+#### Paralelização
+
+- Configuração MPI
+- Distribuição de domínios
+- Otimização de recursos
+
+## Pós-processamento
+
+### Extração de dados
+
+- Interpolação para pontos
+- Cálculo de variáveis derivadas
+- Formatação de saída
+
+### Visualização
+
+- Geração de mapas
+- Plots de séries temporais
+- Análise estatística
+
+## Troubleshooting
+
+### Problemas comuns
+
+- Erros de compilação
+- Problemas de namelist
+- Falhas de execução
+
+### Soluções
+
+- Verificação de dependências
+- Validação de configurações
+- Análise de logs de erro
+
+### Suporte
+
+- Documentação oficial
+- Fóruns de usuários
+- Contato com desenvolvedores`,
 	},
 ]
 
@@ -550,30 +643,15 @@ async function seed() {
 			})),
 		)
 
-		// 4. Manual - Seções e Capítulos
+		// 4. Manual do produto (markdown único)
 		console.log(`🔵 Inserindo manual para ${slug}...`)
-		for (let i = 0; i < manualData.length; i++) {
-			const section = manualData[i]
-			const sectionId = randomUUID()
-
-			await db.insert(schema.productManualSection).values({
-				id: sectionId,
+		const manual = manualData.find((m) => m.productSlug === slug)
+		if (manual) {
+			await db.insert(schema.productManual).values({
+				id: randomUUID(),
 				productId,
-				title: section.title,
-				description: section.description,
-				order: i,
+				description: manual.description,
 			})
-
-			for (let j = 0; j < section.chapters.length; j++) {
-				const chapter = section.chapters[j]
-				await db.insert(schema.productManualChapter).values({
-					id: randomUUID(),
-					sectionId,
-					title: chapter.title,
-					content: chapter.content,
-					order: j,
-				})
-			}
 		}
 
 		// 5. Problemas e Soluções

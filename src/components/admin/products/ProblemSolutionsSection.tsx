@@ -67,7 +67,7 @@ export function ProblemSolutionsSection({ solutions, expandedSolutionIds, onOpen
 									<img src={solution.user.image} alt={solution.user.name} className='size-full rounded-full' />
 								</div>
 								<div className='flex flex-col'>
-									<div className='flex flex-col gap-y-1'>
+									<div className='flex flex-col'>
 										<div className='text-base'>
 											<span className='font-bold text-zinc-700 dark:text-zinc-200'>{solution.user.name}</span> <span className='text-zinc-300 dark:text-zinc-600'>•</span> <span className='text-sm text-zinc-400'>{formatDate(solution.date)}</span>
 											{solution.verified && (
@@ -140,7 +140,7 @@ export function ProblemSolutionsSection({ solutions, expandedSolutionIds, onOpen
 															<img src={reply.user.image} alt={reply.user.name} className='size-full rounded-full' />
 														</div>
 														<div className='flex flex-col'>
-															<div className='flex flex-col gap-y-1'>
+															<div className='flex flex-col'>
 																<div className='text-base'>
 																	<span className='font-bold text-zinc-700 dark:text-zinc-200'>{reply.user.name}</span> <span className='text-zinc-300 dark:text-zinc-600'>•</span> <span className='text-sm text-zinc-400'>{formatDate(reply.date)}</span>
 																	{reply.verified && (

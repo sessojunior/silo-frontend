@@ -6,14 +6,16 @@ import { useParams } from 'next/navigation'
 // Removido @dnd-kit - usando HTML5 drag & drop nativo
 
 import { type TreeNode } from '@/components/ui/TreeView'
-import { type Section } from '@/components/ui/Accordion'
+// import { type Section } from '@/components/ui/Accordion' // Removido - não usado
+
 import { toast } from '@/lib/toast'
 import { type ProductDependencyItem } from '@/components/admin/products/ProductDependencyMenuBuilder'
 
 // Novos componentes Offcanvas e Dialog extraídos
 import DependencyManagementOffcanvas from '@/components/admin/products/DependencyManagementOffcanvas'
 import DependencyItemFormOffcanvas from '@/components/admin/products/DependencyItemFormOffcanvas'
-import ManualSectionFormOffcanvas from '@/components/admin/products/ManualSectionFormOffcanvas'
+import ManualEditorOffcanvas from '@/components/admin/products/ManualEditorOffcanvas'
+import ProductManualSection from '@/components/admin/products/ProductManualSection'
 import DeleteDependencyDialog from '@/components/admin/products/DeleteDependencyDialog'
 
 // Componente coluna esquerda (dependências) - ETAPA 1 REFATORAÇÃO
@@ -57,19 +59,12 @@ interface ProductContact {
 	image?: string
 }
 
-interface ProductManualChapter {
+interface ProductManual {
 	id: string
-	title: string
-	content: string
-	order: number
-}
-
-interface ProductManualSection {
-	id: string
-	title: string
-	description?: string
-	order: number
-	chapters: ProductManualChapter[]
+	productId: string
+	description: string
+	createdAt: string
+	updatedAt: string
 }
 
 // Removido - não mais necessário com novo Tree component
@@ -82,19 +77,14 @@ export default function ProductsPage() {
 	const [isDarkMode, setIsDarkMode] = useState(false)
 	const [dependencies, setDependencies] = useState<ProductDependency[]>([])
 	const [contacts, setContacts] = useState<ProductContact[]>([])
-	const [sections, setSections] = useState<ProductManualSection[]>([])
+	const [manual, setManual] = useState<ProductManual | null>(null)
 	const [loading, setLoading] = useState(true)
 	const [problemsCount, setProblemsCount] = useState<number>(0)
 	const [solutionsCount, setSolutionsCount] = useState<number>(0)
 	const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
-	const [offcanvasOpen, setOffcanvasOpen] = useState(false)
-	const [formMode, setFormMode] = useState<'section' | 'chapter'>('section')
-	const [formTitle, setFormTitle] = useState('')
-	const [formDescription, setFormDescription] = useState('')
+	const [manualOffcanvasOpen, setManualOffcanvasOpen] = useState(false)
 	const [formContent, setFormContent] = useState('')
 	const [formLoading, setFormLoading] = useState(false)
-	const [editingSection, setEditingSection] = useState<ProductManualSection | null>(null)
-	const [editingChapter, setEditingChapter] = useState<ProductManualChapter | null>(null)
 
 	// Estados para gerenciar dependências - removidos, TreeView tem dialog próprio
 	// const [dependencyOffcanvasOpen, setDependencyOffcanvasOpen] = useState(false) // Removido - não utilizado
@@ -114,6 +104,8 @@ export default function ProductsPage() {
 	const [loadingManagement, setLoadingManagement] = useState(false)
 	const [isAddingNewItem, setIsAddingNewItem] = useState(false)
 	const [isMobile, setIsMobile] = useState(false)
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+	const [itemToDelete, setItemToDelete] = useState<ProductDependency | null>(null)
 
 	// ✅ Debounce para evitar chamadas excessivas
 	const [reorderTimeout, setReorderTimeout] = useState<NodeJS.Timeout | null>(null)
@@ -226,7 +218,7 @@ export default function ProductsPage() {
 
 				setDependencies(depsData.dependencies || [])
 				setContacts(contactsData.contacts || [])
-				setSections(manualData.sections || [])
+				setManual(manualData.data || null)
 
 				// Contagem de problemas
 				const problems = problemsData.items || []
@@ -410,10 +402,6 @@ export default function ProductsPage() {
 		setEditItemOffcanvasOpen(true)
 	}
 
-	// Estados para dialog de confirmação de exclusão
-	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-	const [itemToDelete, setItemToDelete] = useState<ProductDependency | null>(null)
-
 	// Abrir dialog de confirmação de exclusão
 	const openDeleteDialog = (item: ProductDependency) => {
 		setItemToDelete(item)
@@ -540,144 +528,45 @@ export default function ProductsPage() {
 	// Funções removidas - não mais necessárias com TreeView component
 	// As ações agora são feitas através do gerenciador de dependências
 
-	// Função para abrir formulário de seção
-	const handleAddSection = () => {
-		setFormMode('section')
-		setEditingSection(null)
-		setEditingChapter(null)
-		setFormTitle('')
-		setFormDescription('')
-		setFormContent('')
-		setOffcanvasOpen(true)
+	// Função para abrir editor do manual
+	const handleEditManual = () => {
+		// Carrega o markdown atual do manual
+		setFormContent(manual?.description || '')
+		setManualOffcanvasOpen(true)
 	}
 
-	// Função para abrir formulário de capítulo
-	const handleEditChapter = (chapter: ProductManualChapter, section: ProductManualSection) => {
-		setFormMode('chapter')
-		setEditingSection(section)
-		setEditingChapter(chapter)
-		setFormTitle(chapter.title)
-		setFormDescription('')
-		setFormContent(chapter.content)
-		setOffcanvasOpen(true)
-	}
-
-	// Função para salvar seção
-	const handleSubmitSection = async (e: React.FormEvent) => {
+	// Função para salvar o manual markdown
+	const handleSubmitManual = async (e: React.FormEvent) => {
 		e.preventDefault()
 		if (!productId) return
-		if (!formTitle.trim()) {
-			toast({
-				type: 'error',
-				title: 'Título da seção é obrigatório',
-			})
-			return
-		}
 
 		setFormLoading(true)
 		try {
-			console.log('🔵 Enviando seção:', { productId, title: formTitle, description: formDescription })
-			const res = await fetch('/api/products/manual', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					productId,
-					title: formTitle,
-					description: formDescription,
-				}),
-			})
-
-			if (res.ok) {
-				const { section } = await res.json()
-				toast({
-					type: 'success',
-					title: 'Seção adicionada com sucesso!',
-				})
-				setOffcanvasOpen(false)
-				// Atualizar dados localmente
-				setSections((prev) => [...prev, { ...section, chapters: [] }])
-			} else {
-				let errorMessage = 'Erro ao adicionar seção'
-				try {
-					const error = await res.json()
-					errorMessage = error.message || errorMessage
-				} catch {
-					// Se não conseguir parsear JSON, usar status text
-					errorMessage = `Erro ${res.status}: ${res.statusText}`
-				}
-				toast({
-					type: 'error',
-					title: errorMessage,
-				})
-			}
-		} catch (error) {
-			console.error('❌ Erro ao adicionar seção:', error)
-			toast({
-				type: 'error',
-				title: 'Erro inesperado. Tente novamente.',
-			})
-		} finally {
-			setFormLoading(false)
-		}
-	}
-
-	// Função para salvar capítulo
-	const handleSubmitChapter = async (e: React.FormEvent) => {
-		e.preventDefault()
-		if (!editingChapter || !editingSection) return
-		if (!formTitle.trim()) {
-			toast({
-				type: 'error',
-				title: 'Título do capítulo é obrigatório',
-			})
-			return
-		}
-		if (!formContent.trim()) {
-			toast({
-				type: 'error',
-				title: 'Conteúdo do capítulo é obrigatório',
-			})
-			return
-		}
-
-		setFormLoading(true)
-		try {
-			console.log('🔵 Editando capítulo:', { id: editingChapter.id, title: formTitle, content: formContent })
+			console.log('🔵 Salvando manual:', { productId, contentLength: formContent.length })
 			const res = await fetch('/api/products/manual', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					id: editingChapter.id,
-					title: formTitle,
-					content: formContent,
+					productId,
+					description: formContent,
 				}),
 			})
 
 			if (res.ok) {
-				const { chapter } = await res.json()
+				const result = await res.json()
 				toast({
 					type: 'success',
-					title: 'Capítulo atualizado com sucesso!',
+					title: 'Manual salvo com sucesso!',
 				})
-				setOffcanvasOpen(false)
+				setManualOffcanvasOpen(false)
 				// Atualizar dados localmente
-				setSections((prev) =>
-					prev.map((section) =>
-						section.id === editingSection.id
-							? {
-									...section,
-									chapters: section.chapters.map((ch) => (ch.id === chapter.id ? chapter : ch)),
-								}
-							: section,
-					),
-				)
+				setManual(result.data)
 			} else {
-				let errorMessage = 'Erro ao atualizar capítulo'
+				let errorMessage = 'Erro ao salvar manual'
 				try {
 					const error = await res.json()
 					errorMessage = error.message || errorMessage
 				} catch {
-					// Se não conseguir parsear JSON, usar status text
 					errorMessage = `Erro ${res.status}: ${res.statusText}`
 				}
 				toast({
@@ -686,7 +575,7 @@ export default function ProductsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao atualizar capítulo:', error)
+			console.error('❌ Erro ao salvar manual:', error)
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -701,25 +590,7 @@ export default function ProductsPage() {
 
 	// Função removida - não mais necessária com TreeView que tem dialog próprio
 
-	// Converte as seções do manual para o formato do Accordion
-	const convertToAccordionSections = (sections: ProductManualSection[]): Section[] => {
-		return sections.map((section) => ({
-			id: section.id,
-			title: section.title,
-			description: section.description,
-			chapters: section.chapters.map((chapter) => ({
-				id: chapter.id,
-				title: chapter.title,
-				description: chapter.content,
-				onEdit: () => handleEditChapter(chapter, section),
-			})),
-		}))
-	}
-
-	const accordionSections = convertToAccordionSections(sections)
-
-	// Conta estatísticas do manual
-	const totalChapters = sections.reduce((acc, section) => acc + section.chapters.length, 0)
+	// Função removida - não mais necessária com novo sistema markdown
 
 	// Removidas funções @dnd-kit antigas - agora usando HTML5 drag & drop no MenuBuilder
 
@@ -760,8 +631,13 @@ export default function ProductsPage() {
 			{/* Componente Coluna Esquerda - ETAPA 1 REFATORAÇÃO */}
 			<ProductDependenciesColumn dependencies={dependencies} loading={loading} treeNodes={treeNodes} onOpenManagement={openManagement} />
 
-			{/* Componente Coluna Direita - ETAPA 2 REFATORAÇÃO */}
-			<ProductDetailsColumn sections={sections} contacts={contacts} problemsCount={problemsCount} solutionsCount={solutionsCount} lastUpdated={lastUpdated} totalChapters={totalChapters} accordionSections={accordionSections} onAddSection={handleAddSection} formatTimeAgo={formatTimeAgo} />
+			{/* Componente Coluna Direita - ETAPA 2 REFATORAÇÃO com manual markdown */}
+			<div className='flex-1'>
+				<ProductDetailsColumn contacts={contacts} problemsCount={problemsCount} solutionsCount={solutionsCount} lastUpdated={lastUpdated} formatTimeAgo={formatTimeAgo}>
+					{/* Seção do Manual dentro da área scrollable */}
+					<ProductManualSection manual={manual} onEditManual={handleEditManual} />
+				</ProductDetailsColumn>
+			</div>
 
 			{/* Offcanvas para gerenciamento de dependências */}
 			<DependencyManagementOffcanvas open={managementOffcanvasOpen} onClose={() => setManagementOffcanvasOpen(false)} dependencies={dependencies} loadingManagement={loadingManagement} convertToProductDependencyItems={convertToProductDependencyItems} convertFromProductDependencyItems={convertFromProductDependencyItems} handleReorderDependencies={handleReorderDependencies} openEditItemForm={openEditItemForm} openDeleteDialog={openDeleteDialog} openAddItemForm={openAddItemForm} />
@@ -769,8 +645,8 @@ export default function ProductsPage() {
 			{/* Offcanvas para edição/criação de item */}
 			<DependencyItemFormOffcanvas open={editItemOffcanvasOpen} onClose={() => setEditItemOffcanvasOpen(false)} isAddingNewItem={isAddingNewItem} editFormData={editFormData} setEditFormData={setEditFormData} onSubmit={handleSubmitItemForm} formLoading={formLoading} availableIcons={availableIcons} isMobile={isMobile} />
 
-			{/* Offcanvas para adicionar seção ou editar capítulo */}
-			<ManualSectionFormOffcanvas open={offcanvasOpen} onClose={() => setOffcanvasOpen(false)} formMode={formMode} formTitle={formTitle} setFormTitle={setFormTitle} formDescription={formDescription} setFormDescription={setFormDescription} formContent={formContent} setFormContent={setFormContent} onSubmit={formMode === 'section' ? handleSubmitSection : handleSubmitChapter} formLoading={formLoading} isDarkMode={isDarkMode} />
+			{/* Offcanvas para edição do manual */}
+			<ManualEditorOffcanvas open={manualOffcanvasOpen} onClose={() => setManualOffcanvasOpen(false)} formContent={formContent} setFormContent={setFormContent} onSubmit={handleSubmitManual} formLoading={formLoading} isDarkMode={isDarkMode} />
 
 			{/* Dialog de confirmação de exclusão */}
 			<DeleteDependencyDialog

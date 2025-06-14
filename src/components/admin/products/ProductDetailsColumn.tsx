@@ -1,6 +1,6 @@
 import Image from 'next/image'
-import Accordion, { type Section } from '@/components/ui/Accordion'
-import Button from '@/components/ui/Button'
+// import Accordion, { type Section } from '@/components/ui/Accordion' // Removido - não usado
+// import Button from '@/components/ui/Button' // Removido - não usado
 
 // Tipos para os dados da API (copiados da página principal)
 interface ProductContact {
@@ -31,24 +31,21 @@ interface ProductManualSection {
 // Props que o componente recebe da página principal
 interface ProductDetailsColumnProps {
 	// Dados
-	sections: ProductManualSection[]
 	contacts: ProductContact[]
 	problemsCount: number
 	solutionsCount: number
 	lastUpdated: Date | null
 
-	// Dados computados
-	totalChapters: number
-	accordionSections: Section[]
-
-	// Handlers (callbacks para página principal)
-	onAddSection: () => void
+	// Handlers removidos - manual agora é gerenciado externamente
 
 	// Utilitários
 	formatTimeAgo: (date: Date | null) => string
+
+	// Children para renderizar o manual
+	children?: React.ReactNode
 }
 
-export default function ProductDetailsColumn({ sections, contacts, problemsCount, solutionsCount, lastUpdated, totalChapters, accordionSections, onAddSection, formatTimeAgo }: ProductDetailsColumnProps) {
+export default function ProductDetailsColumn({ contacts, problemsCount, solutionsCount, lastUpdated, formatTimeAgo, children }: ProductDetailsColumnProps) {
 	return (
 		<div className='flex w-full flex-grow flex-col'>
 			<div className='scrollbar size-full h-[calc(100vh-131px)] overflow-y-auto'>
@@ -59,9 +56,7 @@ export default function ProductDetailsColumn({ sections, contacts, problemsCount
 							<span className='icon-[lucide--book-text] size-4'></span>
 						</div>
 						<div className='flex'>
-							<span>
-								{sections.length} seções & {totalChapters} capítulos
-							</span>
+							<span>Manual do produto disponível</span>
 						</div>
 					</div>
 					<div className='flex'>
@@ -107,9 +102,6 @@ export default function ProductDetailsColumn({ sections, contacts, problemsCount
 								<span className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>{contacts.length} responsáveis técnicos</span>
 							</div>
 						</div>
-						<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='py-2'>
-							Adicionar contato
-						</Button>
 					</div>
 					<div className='flex flex-col gap-4 md:grid md:grid-cols-2'>
 						{/* Contatos */}
@@ -134,34 +126,8 @@ export default function ProductDetailsColumn({ sections, contacts, problemsCount
 					</div>
 				</div>
 
-				{/* Manual do produto */}
-				<div className='p-8'>
-					<div className='flex w-full items-center justify-between pb-6'>
-						<div>
-							<h3 className='text-xl font-medium'>Manual do produto</h3>
-							<div>
-								<span className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>
-									{sections.length} seções <span className='text-zinc-300 dark:text-zinc-600'>•</span> {totalChapters} capítulos
-								</span>
-							</div>
-						</div>
-						<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='py-2' onClick={onAddSection}>
-							Adicionar seção
-						</Button>
-					</div>
-					<div className='flex flex-col'>
-						{/* Manual */}
-						{accordionSections.length > 0 ? (
-							<Accordion sections={accordionSections} />
-						) : (
-							<div className='flex flex-col items-center justify-center py-12 text-center'>
-								<span className='icon-[lucide--book-open] mb-4 text-4xl text-zinc-400'></span>
-								<h4 className='text-lg font-medium text-zinc-600 dark:text-zinc-300'>Nenhum manual encontrado</h4>
-								<p className='text-sm text-zinc-500 dark:text-zinc-400'>Adicione seções e capítulos para começar a documentar este produto.</p>
-							</div>
-						)}
-					</div>
-				</div>
+				{/* Manual renderizado via children */}
+				{children}
 			</div>
 		</div>
 	)

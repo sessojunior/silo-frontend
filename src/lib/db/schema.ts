@@ -180,33 +180,17 @@ export const productContact = pgTable('product_contact', {
 })
 export type ProductContact = typeof productContact.$inferSelect
 
-// Base de Conhecimento - Seções do Manual
-export const productManualSection = pgTable('product_manual_section', {
+// Base de Conhecimento - Manual do Produto (Markdown único)
+export const productManual = pgTable('product_manual', {
 	id: text('id').primaryKey(),
 	productId: text('product_id')
 		.notNull()
 		.references(() => product.id),
-	title: text('title').notNull(),
-	description: text('description'), // descrição opcional da seção
-	order: integer('order').notNull().default(0),
+	description: text('description').notNull(), // conteúdo markdown completo
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
-export type ProductManualSection = typeof productManualSection.$inferSelect
-
-// Base de Conhecimento - Capítulos do Manual
-export const productManualChapter = pgTable('product_manual_chapter', {
-	id: text('id').primaryKey(),
-	sectionId: text('section_id')
-		.notNull()
-		.references(() => productManualSection.id),
-	title: text('title').notNull(),
-	content: text('content').notNull(), // conteúdo em markdown/rich text
-	order: integer('order').notNull().default(0),
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow(),
-})
-export type ProductManualChapter = typeof productManualChapter.$inferSelect
+export type ProductManual = typeof productManual.$inferSelect
 
 // Arquivos do Sistema (para rich text editor)
 export const systemFile = pgTable('system_file', {

@@ -1,5 +1,5 @@
 {
-  "id": "c2b8ee1d-41f8-45c3-a632-b20ba2d93f6e",
+  "id": "c9946ebd-ce04-4a98-9d8c-5588e0a87fb9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -446,80 +446,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.product_manual_chapter": {
-      "name": "product_manual_chapter",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "section_id": {
-          "name": "section_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "content": {
-          "name": "content",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "order": {
-          "name": "order",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "product_manual_chapter_section_id_product_manual_section_id_fk": {
-          "name": "product_manual_chapter_section_id_product_manual_section_id_fk",
-          "tableFrom": "product_manual_chapter",
-          "tableTo": "product_manual_section",
-          "columnsFrom": [
-            "section_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.product_manual_section": {
-      "name": "product_manual_section",
+    "public.product_manual": {
+      "name": "product_manual",
       "schema": "",
       "columns": {
         "id": {
@@ -534,24 +462,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "description": {
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
-        },
-        "order": {
-          "name": "order",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -570,9 +485,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "product_manual_section_product_id_product_id_fk": {
-          "name": "product_manual_section_product_id_product_id_fk",
-          "tableFrom": "product_manual_section",
+        "product_manual_product_id_product_id_fk": {
+          "name": "product_manual_product_id_product_id_fk",
+          "tableFrom": "product_manual",
           "tableTo": "product",
           "columnsFrom": [
             "product_id"
