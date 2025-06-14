@@ -38,8 +38,20 @@ export default function TreeView({ nodes, defaultExpanded = false }: TreeViewPro
 				))}
 			</div>
 
-			<Dialog open={!!dialogNode} onClose={() => setDialogNode(null)} title={dialogNode?.name} description='Dados do nó selecionado'>
-				<pre className='text-xs whitespace-pre-wrap break-all'>{JSON.stringify(dialogNode?.data, null, 2)}</pre>
+			<Dialog open={!!dialogNode} onClose={() => setDialogNode(null)} title={dialogNode?.name} description='Descrição da dependência'>
+				<div className='space-y-4'>
+					{dialogNode?.data?.description ? (
+						<div className='text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed'>{dialogNode.data.description}</div>
+					) : (
+						<div className='flex flex-col items-center justify-center py-12 px-6'>
+							<div className='size-16 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-4'>
+								<span className='icon-[lucide--file-text] size-8 text-zinc-400 dark:text-zinc-500' />
+							</div>
+							<h4 className='text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2'>Descrição não disponível</h4>
+							<p className='text-xs text-zinc-500 dark:text-zinc-500 text-center leading-relaxed max-w-xs'>Esta dependência ainda não possui uma descrição detalhada. Você pode adicionar uma através do gerenciador de dependências.</p>
+						</div>
+					)}
+				</div>
 			</Dialog>
 		</>
 	)

@@ -131,160 +131,158 @@ export default function ContactsPage() {
 	}
 
 	return (
-		<div className='flex h-screen overflow-hidden'>
-			<div className='flex-1 flex flex-col overflow-hidden'>
-				{/* Cabeçalho */}
-				<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
-					<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Contatos</h1>
-					<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Gerencie os contatos da organização</p>
-				</div>
+		<div className='min-h-screen w-full'>
+			{/* Cabeçalho */}
+			<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
+				<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Contatos</h1>
+				<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Gerencie os contatos da organização</p>
+			</div>
 
-				{/* Conteúdo */}
-				<div className='flex-1 overflow-auto p-6'>
-					<div className='max-w-7xl mx-auto space-y-6'>
-						{/* Ações e Filtros */}
-						<div className='flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center'>
-							<div className='flex flex-col sm:flex-row gap-3 flex-1'>
-								{/* Busca */}
-								<div className='relative flex-1 min-w-80 max-w-md'>
-									<Input type='text' placeholder='Buscar contatos...' value={search} setValue={setSearch} className='pl-10' />
-									<span className='icon-[lucide--search] absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
-								</div>
-
-								{/* Filtro de Status */}
-								<Select
-									name='statusFilter'
-									selected={statusFilter}
-									onChange={(value) => setStatusFilter(value as 'all' | 'active' | 'inactive')}
-									options={[
-										{ value: 'all', label: 'Todos os status' },
-										{ value: 'active', label: 'Apenas ativos' },
-										{ value: 'inactive', label: 'Apenas inativos' },
-									]}
-									placeholder='Filtrar por status'
-								/>
+			{/* Conteúdo */}
+			<div className='p-6'>
+				<div className='max-w-7xl mx-auto space-y-6'>
+					{/* Ações e Filtros */}
+					<div className='flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center'>
+						<div className='flex flex-col sm:flex-row gap-3 flex-1'>
+							{/* Busca */}
+							<div className='relative flex-1 min-w-80 max-w-md'>
+								<Input type='text' placeholder='Buscar contatos...' value={search} setValue={setSearch} className='pl-10' />
+								<span className='icon-[lucide--search] absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
 							</div>
 
-							{/* Botão Criar */}
-							<Button onClick={openCreateForm} className='flex items-center gap-2'>
-								<span className='icon-[lucide--plus] size-4' />
-								Novo contato
-							</Button>
+							{/* Filtro de Status */}
+							<Select
+								name='statusFilter'
+								selected={statusFilter}
+								onChange={(value) => setStatusFilter(value as 'all' | 'active' | 'inactive')}
+								options={[
+									{ value: 'all', label: 'Todos os status' },
+									{ value: 'active', label: 'Apenas ativos' },
+									{ value: 'inactive', label: 'Apenas inativos' },
+								]}
+								placeholder='Filtrar por status'
+							/>
 						</div>
 
-						{/* Estatísticas */}
-						<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-							<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
-								<div className='flex items-center gap-2'>
-									<span className='icon-[lucide--users] size-5 text-blue-600' />
-									<div>
-										<p className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>Total de Contatos</p>
-										<p className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>{contacts.length}</p>
-									</div>
-								</div>
-							</div>
-							<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
-								<div className='flex items-center gap-2'>
-									<span className='icon-[lucide--user-check] size-5 text-green-600' />
-									<div>
-										<p className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>Contatos Ativos</p>
-										<p className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>{contacts.filter((c) => c.active).length}</p>
-									</div>
-								</div>
-							</div>
-							<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
-								<div className='flex items-center gap-2'>
-									<span className='icon-[lucide--user-x] size-5 text-red-600' />
-									<div>
-										<p className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>Contatos Inativos</p>
-										<p className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>{contacts.filter((c) => !c.active).length}</p>
-									</div>
+						{/* Botão Criar */}
+						<Button onClick={openCreateForm} className='flex items-center gap-2'>
+							<span className='icon-[lucide--plus] size-4' />
+							Novo contato
+						</Button>
+					</div>
+
+					{/* Estatísticas */}
+					<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+						<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
+							<div className='flex items-center gap-2'>
+								<span className='icon-[lucide--users] size-5 text-blue-600' />
+								<div>
+									<p className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>Total de Contatos</p>
+									<p className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>{contacts.length}</p>
 								</div>
 							</div>
 						</div>
-
-						{/* Lista de Contatos */}
-						<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700'>
-							<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
-								<h2 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100'>Contatos ({filteredContacts.length})</h2>
-								<p className='text-sm text-zinc-600 dark:text-zinc-400 mt-1'>Lista de todos os contatos da organização</p>
+						<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
+							<div className='flex items-center gap-2'>
+								<span className='icon-[lucide--user-check] size-5 text-green-600' />
+								<div>
+									<p className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>Contatos Ativos</p>
+									<p className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>{contacts.filter((c) => c.active).length}</p>
+								</div>
 							</div>
+						</div>
+						<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
+							<div className='flex items-center gap-2'>
+								<span className='icon-[lucide--user-x] size-5 text-red-600' />
+								<div>
+									<p className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>Contatos Inativos</p>
+									<p className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>{contacts.filter((c) => !c.active).length}</p>
+								</div>
+							</div>
+						</div>
+					</div>
 
-							{loading ? (
-								<div className='p-12 text-center'>
-									<div className='inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400'>
-										<span className='icon-[lucide--loader-2] size-4 animate-spin' />
-										Carregando contatos...
-									</div>
+					{/* Lista de Contatos */}
+					<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700'>
+						<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
+							<h2 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100'>Contatos ({filteredContacts.length})</h2>
+							<p className='text-sm text-zinc-600 dark:text-zinc-400 mt-1'>Lista de todos os contatos da organização</p>
+						</div>
+
+						{loading ? (
+							<div className='p-12 text-center'>
+								<div className='inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400'>
+									<span className='icon-[lucide--loader-2] size-4 animate-spin' />
+									Carregando contatos...
 								</div>
-							) : filteredContacts.length === 0 ? (
-								<div className='p-12 text-center'>
-									<div className='max-w-md mx-auto'>
-										<span className='icon-[lucide--users] size-12 text-zinc-400 mx-auto block mb-4' />
-										<h3 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>{search || statusFilter !== 'all' ? 'Nenhum contato encontrado' : 'Nenhum contato cadastrado'}</h3>
-										<p className='text-zinc-600 dark:text-zinc-400 mb-6'>{search || statusFilter !== 'all' ? 'Tente ajustar os filtros para encontrar contatos.' : 'Comece criando o primeiro contato da organização.'}</p>
-										{!search && statusFilter === 'all' && <Button onClick={openCreateForm}>Criar primeiro contato</Button>}
-									</div>
+							</div>
+						) : filteredContacts.length === 0 ? (
+							<div className='p-12 text-center'>
+								<div className='max-w-md mx-auto'>
+									<span className='icon-[lucide--users] size-12 text-zinc-400 mx-auto block mb-4' />
+									<h3 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>{search || statusFilter !== 'all' ? 'Nenhum contato encontrado' : 'Nenhum contato cadastrado'}</h3>
+									<p className='text-zinc-600 dark:text-zinc-400 mb-6'>{search || statusFilter !== 'all' ? 'Tente ajustar os filtros para encontrar contatos.' : 'Comece criando o primeiro contato da organização.'}</p>
+									{!search && statusFilter === 'all' && <Button onClick={openCreateForm}>Criar primeiro contato</Button>}
 								</div>
-							) : (
-								<div className='overflow-x-auto'>
-									<table className='w-full'>
-										<thead className='bg-zinc-50 dark:bg-zinc-800'>
-											<tr>
-												<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Contato</th>
-												<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Função & Equipe</th>
-												<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Email & Telefone</th>
-												<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Status</th>
-												<th className='px-6 py-3 text-right text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Ações</th>
-											</tr>
-										</thead>
-										<tbody className='bg-white dark:bg-zinc-900 divide-y divide-zinc-200 dark:divide-zinc-700'>
-											{filteredContacts.map((contact) => (
-												<tr key={contact.id} className='hover:bg-zinc-50 dark:hover:bg-zinc-800/50'>
-													<td className='px-6 py-4 whitespace-nowrap'>
-														<div className='flex items-center gap-3'>
-															{contact.image ? (
-																<img src={contact.image} alt={contact.name} className='size-10 rounded-full object-cover' />
-															) : (
-																<div className='size-10 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center'>
-																	<span className='icon-[lucide--user] size-5 text-zinc-500 dark:text-zinc-400' />
-																</div>
-															)}
-															<div>
-																<div className='text-sm font-medium text-zinc-900 dark:text-zinc-100'>{contact.name}</div>
+							</div>
+						) : (
+							<div className='overflow-x-auto'>
+								<table className='w-full'>
+									<thead className='bg-zinc-50 dark:bg-zinc-800'>
+										<tr>
+											<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Contato</th>
+											<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Função & Equipe</th>
+											<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Email & Telefone</th>
+											<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Status</th>
+											<th className='px-6 py-3 text-right text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Ações</th>
+										</tr>
+									</thead>
+									<tbody className='bg-white dark:bg-zinc-900 divide-y divide-zinc-200 dark:divide-zinc-700'>
+										{filteredContacts.map((contact) => (
+											<tr key={contact.id} className='hover:bg-zinc-50 dark:hover:bg-zinc-800/50'>
+												<td className='px-6 py-4 whitespace-nowrap'>
+													<div className='flex items-center gap-3'>
+														{contact.image ? (
+															<img src={contact.image} alt={contact.name} className='size-10 rounded-full object-cover' />
+														) : (
+															<div className='size-10 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center'>
+																<span className='icon-[lucide--user] size-5 text-zinc-500 dark:text-zinc-400' />
 															</div>
-														</div>
-													</td>
-													<td className='px-6 py-4 whitespace-nowrap'>
+														)}
 														<div>
-															<div className='text-sm font-medium text-zinc-900 dark:text-zinc-100'>{contact.role}</div>
-															<div className='text-sm text-zinc-600 dark:text-zinc-400'>{contact.team}</div>
+															<div className='text-sm font-medium text-zinc-900 dark:text-zinc-100'>{contact.name}</div>
 														</div>
-													</td>
-													<td className='px-6 py-4 whitespace-nowrap'>
-														<div>
-															<div className='text-sm text-zinc-900 dark:text-zinc-100'>{contact.email}</div>
-															{contact.phone && <div className='text-sm text-zinc-600 dark:text-zinc-400'>{contact.phone}</div>}
-														</div>
-													</td>
-													<td className='px-6 py-4 whitespace-nowrap'>{getStatusBadge(contact.active)}</td>
-													<td className='px-6 py-4 whitespace-nowrap text-right'>
-														<div className='flex items-center justify-end gap-2'>
-															<button onClick={() => openEditForm(contact)} className='size-10 rounded-full flex items-center justify-center text-blue-600 hover:text-blue-700 hover:bg-gray-100 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-zinc-800 transition-colors' title='Editar contato'>
-																<span className='icon-[lucide--edit] size-4' />
-															</button>
-															<button onClick={() => openDeleteDialog(contact)} className='size-10 rounded-full flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-gray-100 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-zinc-800 transition-colors' title='Excluir contato'>
-																<span className='icon-[lucide--trash] size-4' />
-															</button>
-														</div>
-													</td>
-												</tr>
-											))}
-										</tbody>
-									</table>
-								</div>
-							)}
-						</div>
+													</div>
+												</td>
+												<td className='px-6 py-4 whitespace-nowrap'>
+													<div>
+														<div className='text-sm font-medium text-zinc-900 dark:text-zinc-100'>{contact.role}</div>
+														<div className='text-sm text-zinc-600 dark:text-zinc-400'>{contact.team}</div>
+													</div>
+												</td>
+												<td className='px-6 py-4 whitespace-nowrap'>
+													<div>
+														<div className='text-sm text-zinc-900 dark:text-zinc-100'>{contact.email}</div>
+														{contact.phone && <div className='text-sm text-zinc-600 dark:text-zinc-400'>{contact.phone}</div>}
+													</div>
+												</td>
+												<td className='px-6 py-4 whitespace-nowrap'>{getStatusBadge(contact.active)}</td>
+												<td className='px-6 py-4 whitespace-nowrap text-right'>
+													<div className='flex items-center justify-end gap-2'>
+														<button onClick={() => openEditForm(contact)} className='size-10 rounded-full flex items-center justify-center text-blue-600 hover:text-blue-700 hover:bg-gray-100 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-zinc-800 transition-colors' title='Editar contato'>
+															<span className='icon-[lucide--edit] size-4' />
+														</button>
+														<button onClick={() => openDeleteDialog(contact)} className='size-10 rounded-full flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-gray-100 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-zinc-800 transition-colors' title='Excluir contato'>
+															<span className='icon-[lucide--trash] size-4' />
+														</button>
+													</div>
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>

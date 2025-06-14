@@ -120,7 +120,7 @@ export default function Sidebar() {
 								id: '2.3.1',
 								title: 'Config. gerais',
 								icon: null,
-								url: '/admin/settings/general',
+								url: '/admin/settings',
 								items: null,
 							},
 							{

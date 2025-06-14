@@ -23,6 +23,7 @@
   - Plugin: `@iconify/tailwind4`
   - Icons: `@iconify/json`
 - **Componentes Personalizados**: Não usa ShadCN ou bibliotecas UI
+- **🆕 Design System Padronizado**: Padrão estabelecido para páginas admin
 
 ### Banco de Dados
 
@@ -54,7 +55,107 @@
 - **Prettier 3.5.3**: Formatação de código
 - **Simple Import Sort**: Organização de imports
 
-## 🚀 PADRÕES DE OTIMIZAÇÃO DE PERFORMANCE ESTABELECIDOS
+## 🚀 PADRÕES TÉCNICOS OBRIGATÓRIOS
+
+### 🎨 PADRÃO DE DESIGN ADMIN - OBRIGATÓRIO
+
+**REGRA CRÍTICA**: Todas as páginas admin DEVEM seguir este padrão exato:
+
+```typescript
+<div className='min-h-screen w-full'>
+  {/* Cabeçalho fixo */}
+  <div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
+    <h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>
+      Título da Página
+    </h1>
+    <p className='text-zinc-600 dark:text-zinc-400'>
+      Descrição da página
+    </p>
+  </div>
+
+  {/* Conteúdo com scroll natural */}
+  <div className='p-6'>
+    <div className='max-w-7xl mx-auto space-y-6'>
+      {/* Seção Ações e Filtros */}
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+        <div className='flex items-center gap-3'>
+          <Input>
+            <Search className='w-4 h-4' />
+          </Input>
+          <Select>
+            {/* Filtros */}
+          </Select>
+        </div>
+        <Button onClick={handleAction}>
+          {/* Ação Principal */}
+        </Button>
+      </div>
+
+      {/* Seção Estatísticas (3 cards) */}
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+        {/* Cards de estatísticas */}
+      </div>
+
+      {/* Seção Lista/Tabela principal */}
+      <div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700'>
+        {/* Conteúdo principal */}
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+**🚨 REGRAS CRÍTICAS**:
+
+- ✅ **SEMPRE usar**: `min-h-screen w-full` para container principal
+- ❌ **NUNCA usar**: `h-screen overflow-hidden` com `flex-1 overflow-auto`
+- ✅ **Scroll natural**: Deixar o browser gerenciar o scroll
+- ✅ **Responsividade**: Mobile-first com breakpoints consistentes
+
+### 📱 COMPONENTES PADRÃO OBRIGATÓRIOS
+
+**Busca em Tempo Real**:
+
+```typescript
+<Input
+  placeholder="Buscar..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  className="min-w-[300px]"
+>
+  <Search className="w-4 h-4" />
+</Input>
+```
+
+**Cards de Estatísticas**:
+
+```typescript
+<div className="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+  <div className="flex items-center justify-between">
+    <div>
+      <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Título</p>
+      <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{valor}</p>
+    </div>
+    <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+      <IconComponent className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+    </div>
+  </div>
+</div>
+```
+
+**Botões de Ação Padronizados**:
+
+```typescript
+// Botão Editar (azul)
+<Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+  <Edit className="w-4 h-4" />
+</Button>
+
+// Botão Excluir (vermelho)
+<Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50">
+  <Trash className="w-4 h-4" />
+</Button>
+```
 
 ### 📊 Otimização de APIs - Padrões Obrigatórios
 
