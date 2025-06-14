@@ -76,6 +76,33 @@ export default function ProblemsPage() {
 	const [deleteSolutionLoading, setDeleteSolutionLoading] = useState(false)
 	const [expandedSolutionIds, setExpandedSolutionIds] = useState<string[]>([])
 
+	// 🚀 FUNÇÃO HELPER OTIMIZADA: Busca contagem de soluções para múltiplos problemas
+	const fetchSolutionsCount = async (problems: ProductProblem[]): Promise<Record<string, number>> => {
+		if (problems.length === 0) return {}
+
+		try {
+			const problemIds = problems.map((p) => p.id)
+			const response = await fetch('/api/products/solutions/count', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ problemIds }),
+			})
+
+			const data = await response.json()
+
+			if (data.success) {
+				console.log('✅ Contagens obtidas via API otimizada:', data.data)
+				return data.data
+			} else {
+				console.error('❌ Erro na API de contagem:', data.error)
+				return {}
+			}
+		} catch (error) {
+			console.error('❌ Erro ao buscar contagens:', error)
+			return {}
+		}
+	}
+
 	// Função para selecionar um problema e buscar seus dados
 	const handleSelectProblem = async (selected: ProductProblem) => {
 		setProblem(selected)
@@ -115,15 +142,8 @@ export default function ProblemsPage() {
 				if (data.items && data.items.length > 0) {
 					setProductId(data.items[0].productId) // Salva o productId do primeiro problema
 
-					// Busca a contagem de soluções para cada problema
-					const counts: Record<string, number> = {}
-					await Promise.all(
-						data.items.map(async (problem: ProductProblem) => {
-							const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
-							const solData = await res.json()
-							counts[problem.id] = solData.items?.length || 0
-						}),
-					)
+					// 🚀 OTIMIZAÇÃO: Uma única chamada para obter contagens de todas as soluções
+					const counts = await fetchSolutionsCount(data.items)
 					setSolutionsCount(counts)
 
 					// Seleciona e carrega o primeiro problema
@@ -210,17 +230,11 @@ export default function ProblemsPage() {
 					const response = await fetch(`/api/products/problems?slug=${slug}`)
 					const data = await response.json()
 					setProblems(data.items || [])
-					const counts: Record<string, number> = {}
-					if (data.items && data.items.length > 0) {
-						await Promise.all(
-							data.items.map(async (problem: ProductProblem) => {
-								const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
-								const solData = await res.json()
-								counts[problem.id] = solData.items?.length || 0
-							}),
-						)
-					}
+
+					// 🚀 OTIMIZAÇÃO: Uma única chamada para obter contagens
+					const counts = await fetchSolutionsCount(data.items || [])
 					setSolutionsCount(counts)
+
 					// Após atualizar a lista de problemas
 					const updatedProblems: ProductProblem[] = data.items ?? []
 					const updated = updatedProblems.find((p: ProductProblem) => p.id === editing.id)
@@ -263,17 +277,11 @@ export default function ProblemsPage() {
 					const response = await fetch(`/api/products/problems?slug=${slug}`)
 					const data = await response.json()
 					setProblems(data.items || [])
-					const counts: Record<string, number> = {}
-					if (data.items && data.items.length > 0) {
-						await Promise.all(
-							data.items.map(async (problem: ProductProblem) => {
-								const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
-								const solData = await res.json()
-								counts[problem.id] = solData.items?.length || 0
-							}),
-						)
-					}
+
+					// 🚀 OTIMIZAÇÃO: Uma única chamada para obter contagens
+					const counts = await fetchSolutionsCount(data.items || [])
 					setSolutionsCount(counts)
+
 					// Após atualizar a lista de problemas
 					const updatedProblems: ProductProblem[] = data.items ?? []
 					const novo = updatedProblems[0]
@@ -321,17 +329,11 @@ export default function ProblemsPage() {
 				const response = await fetch(`/api/products/problems?slug=${slug}`)
 				const data = await response.json()
 				setProblems(data.items || [])
-				const counts: Record<string, number> = {}
-				if (data.items && data.items.length > 0) {
-					await Promise.all(
-						data.items.map(async (problem: ProductProblem) => {
-							const res = await fetch(`/api/products/solutions?problemId=${problem.id}`)
-							const solData = await res.json()
-							counts[problem.id] = solData.items?.length || 0
-						}),
-					)
-				}
+
+				// 🚀 OTIMIZAÇÃO: Uma única chamada para obter contagens
+				const counts = await fetchSolutionsCount(data.items || [])
 				setSolutionsCount(counts)
+
 				// Seleciona o primeiro problema, se houver
 				if (data.items[0]) {
 					handleSelectProblem(data.items[0])

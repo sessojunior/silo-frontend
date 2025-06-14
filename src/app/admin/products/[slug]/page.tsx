@@ -232,17 +232,19 @@ export default function ProductsPage() {
 				const problems = problemsData.items || []
 				setProblemsCount(problems.length)
 
-				// Buscar e contar soluções
-				if (problems.length > 0) {
-					const solutionsPromises = problems.map((problem: { id: string }) => fetch(`/api/products/solutions?problemId=${problem.id}`).then((res) => res.json()))
-					const solutionsResults = await Promise.all(solutionsPromises)
-					const totalSolutions = solutionsResults.reduce((total, result) => total + (result.items?.length || 0), 0)
-					setSolutionsCount(totalSolutions)
+				// 🚀 OTIMIZAÇÃO: Uma única chamada para obter summary de soluções
+				// Substitui múltiplas chamadas por query SQL otimizada
+				const solutionsSummaryRes = await fetch(`/api/products/solutions/summary?productSlug=${slug}`)
+				const solutionsSummaryData = await solutionsSummaryRes.json()
 
-					// Encontrar data de atualização mais recente
-					const allDates = problems.map((p: { updatedAt: string }) => new Date(p.updatedAt))
-					const latestDate = new Date(Math.max(...allDates.map((d: Date) => d.getTime())))
-					setLastUpdated(latestDate)
+				if (solutionsSummaryData.success) {
+					setSolutionsCount(solutionsSummaryData.data.totalSolutions)
+					setLastUpdated(solutionsSummaryData.data.lastUpdated ? new Date(solutionsSummaryData.data.lastUpdated) : null)
+					console.log('✅ Summary de soluções obtido:', solutionsSummaryData.data)
+				} else {
+					console.error('❌ Erro ao buscar summary de soluções:', solutionsSummaryData.error)
+					setSolutionsCount(0)
+					setLastUpdated(null)
 				}
 			} catch (error) {
 				console.error('❌ Erro ao buscar dados:', error)

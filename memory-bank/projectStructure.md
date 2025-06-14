@@ -1,5 +1,67 @@
 # Project Structure - Silo
 
+## 📁 ESTRUTURA ARQUITETURAL COMPLETA
+
+### 🎯 CORE ARCHITECTURE
+
+```
+src/
+├── app/                          # Next.js 15 App Router
+│   ├── (auth)/                   # Grupo de rotas autenticadas
+│   │   ├── login/                # Sistema de login
+│   │   └── register/             # Sistema de registro
+│   ├── admin/                    # Dashboard administrativo
+│   │   ├── dashboard/            # Página principal do admin
+│   │   ├── products/             # Gestão de produtos
+│   │   │   ├── [slug]/           # Página individual do produto
+│   │   │   │   ├── page.tsx      # ✅ REFATORADA (928→787 linhas, -15.2%)
+│   │   │   │   ├── problems/     # Gestão de problemas
+│   │   │   │   │   └── page.tsx  # ✅ REFATORADA HISTÓRICA (1.506→629 linhas, -58.2%)
+│   │   │   │   └── components/   # Componentes específicos do produto
+│   │   │   │       ├── ProductDependenciesColumn.tsx    # ✅ NOVO (80 linhas)
+│   │   │   │       ├── ProductDetailsColumn.tsx         # ✅ NOVO (165 linhas)
+│   │   │   │       ├── ProblemsListColumn.tsx           # ✅ NOVO (150 linhas)
+│   │   │   │       ├── ProblemDetailColumn.tsx          # ✅ NOVO (84 linhas)
+│   │   │   │       ├── ProblemSolutionsSection.tsx      # ✅ NOVO (211 linhas)
+│   │   │   │       ├── SolutionFormModal.tsx            # ✅ NOVO (193 linhas)
+│   │   │   │       └── DeleteSolutionDialog.tsx         # ✅ NOVO (57 linhas)
+│   │   │   └── create/           # Criação de produtos
+│   │   ├── knowledge-base/       # Base de conhecimento
+│   │   └── users/                # Gestão de usuários
+│   ├── api/                      # API Routes
+│   │   ├── auth/                 # Autenticação
+│   │   ├── products/             # APIs de produtos
+│   │   │   ├── solutions/        # APIs de soluções
+│   │   │   │   ├── summary/      # ✅ NOVA API - Summary otimizada
+│   │   │   │   │   └── route.ts  # JOIN otimizado product→problem→solution
+│   │   │   │   ├── count/        # ✅ NOVA API - Contagem em lote
+│   │   │   │   │   └── route.ts  # GROUP BY para múltiplos problemas
+│   │   │   │   └── route.ts      # API original de soluções
+│   │   │   └── route.ts          # CRUD de produtos
+│   │   ├── knowledge-base/       # APIs da base de conhecimento
+│   │   └── upload/               # Upload de arquivos
+│   └── globals.css               # Estilos globais
+├── components/                   # Componentes reutilizáveis
+│   ├── ui/                       # Componentes de UI
+│   │   ├── react-dnd-menu-builder/ # ✅ MenuBuilder PRODUÇÃO-READY
+│   │   │   └── src/Builder/      # Arquitetura de referência estável
+│   │   │       └── MenuBuilder.tsx # ✅ REESCRITO - Zero bugs, drag & drop perfeito
+│   │   ├── button.tsx            # Componente Button
+│   │   ├── input.tsx             # Componente Input
+│   │   ├── dialog.tsx            # ✅ Dialog reutilizado em DeleteSolutionDialog
+│   │   └── ...                   # Outros componentes UI
+│   ├── layout/                   # Componentes de layout
+│   └── forms/                    # Componentes de formulário
+├── lib/                          # Utilitários e configurações
+│   ├── db/                       # Configuração do banco
+│   │   ├── schema.ts             # ✅ Schema otimizado e simplificado
+│   │   └── index.ts              # Conexão Drizzle
+│   ├── auth/                     # Configuração de autenticação
+│   └── utils.ts                  # Utilitários gerais
+└── types/                        # Definições de tipos TypeScript
+    └── index.ts                  # Tipos globais
+```
+
 ## ARQUITETURA GERAL
 
 ### Stack Tecnológico

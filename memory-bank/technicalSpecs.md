@@ -54,6 +54,62 @@
 - **Prettier 3.5.3**: Formatação de código
 - **Simple Import Sort**: Organização de imports
 
+## 🚀 PADRÕES DE OTIMIZAÇÃO DE PERFORMANCE ESTABELECIDOS
+
+### 📊 Otimização de APIs - Padrões Obrigatórios
+
+**PRINCÍPIO FUNDAMENTAL**: Sempre consolidar múltiplas chamadas relacionadas em APIs únicas otimizadas.
+
+#### 🎯 Padrões de Query SQL Otimizada
+
+**1. APIs de Summary/Agregação**:
+
+```typescript
+// ✅ PADRÃO: JOIN otimizado para dados relacionados
+const result = await db
+	.select({
+		totalSolutions: count(productSolution.id),
+		lastUpdated: max(productSolution.updatedAt),
+	})
+	.from(product)
+	.leftJoin(productProblem, eq(product.id, productProblem.productId))
+	.leftJoin(productSolution, eq(productProblem.id, productSolution.problemId))
+	.where(eq(product.slug, productSlug))
+	.groupBy(product.id)
+```
+
+**2. APIs de Contagem em Lote**:
+
+```typescript
+// ✅ PADRÃO: GROUP BY para múltiplos IDs
+const result = await db
+	.select({
+		problemId: productSolution.problemId,
+		count: count(productSolution.id),
+	})
+	.from(productSolution)
+	.where(inArray(productSolution.problemId, problemIds))
+	.groupBy(productSolution.problemId)
+```
+
+#### 🛡️ Padrões de Segurança e Qualidade
+
+**OBRIGATÓRIO antes de qualquer otimização**:
+
+1. **Backup**: Criar backup da página/API original
+2. **Build Test**: Validar compilação após mudanças
+3. **Funcionalidade**: Confirmar zero regressões
+4. **Performance**: Medir impacto real das otimizações
+
+#### 📈 Métricas de Sucesso
+
+**Indicadores de otimização bem-sucedida**:
+
+- **Redução de Chamadas**: 90%+ menos requisições
+- **Latência**: Redução significativa no tempo de resposta
+- **Escalabilidade**: Queries preparadas para produção
+- **Manutenibilidade**: Código limpo e documentado
+
 ## Configuração de Desenvolvimento
 
 ### Scripts Disponíveis
