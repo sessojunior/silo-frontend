@@ -37,6 +37,8 @@ src/
 │   │   │   │   ├── count/        # ✅ NOVA API - Contagem em lote
 │   │   │   │   │   └── route.ts  # GROUP BY para múltiplos problemas
 │   │   │   │   └── route.ts      # API original de soluções
+│   │   │   ├── manual/           # ✅ NOVA API - Sistema de manual
+│   │   │   │   └── route.ts      # CRUD completo para manual do produto
 │   │   │   └── route.ts          # CRUD de produtos
 │   │   ├── knowledge-base/       # APIs da base de conhecimento
 │   │   └── upload/               # Upload de arquivos
@@ -126,7 +128,9 @@ src/
 │       ├── DependencyManagementOffcanvas.tsx    # Gerenciador dependências
 │       ├── DependencyItemFormOffcanvas.tsx      # Formulário dependências
 │       ├── ManualSectionFormOffcanvas.tsx       # Formulário manual
-│       └── DeleteDependencyDialog.tsx           # Dialog exclusão dependências
+│       ├── DeleteDependencyDialog.tsx           # Dialog exclusão dependências
+│       ├── ProductManualSection.tsx             # ✅ NOVO - Sistema manual hierárquico
+│       └── ManualEditorOffcanvas.tsx            # ✅ NOVO - Editor markdown completo
 ├── auth/                # Componentes autenticação
 └── ui/                  # Design System base
     ├── Button.tsx       # Botão universal
