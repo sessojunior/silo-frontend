@@ -4,14 +4,6 @@ import { db } from '@/lib/db'
 import { productDependency } from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
 
-interface ReorderItem {
-	id: string
-	parentId: string | null
-	treePath: string
-	treeDepth: number
-	sortKey: string
-}
-
 export async function PUT(req: NextRequest) {
 	try {
 		// Verificar autenticação
@@ -21,7 +13,7 @@ export async function PUT(req: NextRequest) {
 		}
 
 		const body = await req.json()
-		const { productId, items }: { productId: string; items: ReorderItem[] } = body
+		const { productId, items } = body
 
 		if (!productId || !items || !Array.isArray(items)) {
 			return NextResponse.json({ error: 'ProductId e items são obrigatórios' }, { status: 400 })
@@ -34,7 +26,7 @@ export async function PUT(req: NextRequest) {
 		const existingDependencies = await db.select({ id: productDependency.id }).from(productDependency).where(eq(productDependency.productId, productId))
 
 		const existingIds = existingDependencies.map((dep) => dep.id)
-		const invalidItems = items.filter((item: ReorderItem) => !existingIds.includes(item.id))
+		const invalidItems = items.filter((item: any) => !existingIds.includes(item.id))
 
 		if (invalidItems.length > 0) {
 			console.log('❌ Itens inválidos encontrados:', invalidItems)

@@ -8,36 +8,8 @@ import { CSS } from '@dnd-kit/utilities'
 
 import { SortableTreeItem } from './MenuBuilderTreeItem'
 
-// Types
-export interface MenuItemData {
-	icon?: string
-	description?: string
-	name?: string
-	href?: string
-	[key: string]: unknown
-}
-
-export interface TreeItemType {
-	id: UniqueIdentifier
-	href?: string
-	children: TreeItemType[]
-	collapsed?: boolean
-	name: string
-	otherfields?: MenuItemData
-}
-
-export type TreeItems = TreeItemType[]
-
-export interface FlattenedItem extends TreeItemType {
-	parentId: UniqueIdentifier | null
-	depth: number
-	index: number
-}
-
-export type SensorContext = React.MutableRefObject<{
-	items: FlattenedItem[]
-	offset: number
-}>
+// Import types from centralized file
+import { TreeItemType, TreeItems, FlattenedItem, SensorContext, MenuItemData } from './MenuBuilderTypes'
 
 // Utilities
 function getDragDepth(offset: number, indentationWidth: number) {

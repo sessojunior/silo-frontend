@@ -1,7 +1,8 @@
 'use client'
 
 import { UniqueIdentifier } from '@dnd-kit/core'
-import MenuBuilder, { type TreeItemType } from '@/components/ui/MenuBuilder'
+import MenuBuilder from '@/components/ui/MenuBuilder'
+import { type TreeItemType, type MenuItemData } from '@/components/ui/MenuBuilderTypes'
 
 // Interface que estende TreeItemType para suportar dados do banco product_dependency
 export interface ProductDependencyItem extends TreeItemType {
@@ -20,8 +21,8 @@ interface ProductDependencyProps {
 	style?: 'bordered' | 'shadow'
 	items: ProductDependencyItem[]
 	setItems(items: ProductDependencyItem[]): void
-	onEdit?: (id: string, data: any) => void
-	onDelete?: (id: string, data: any) => void
+	onEdit?: (id: string, data: MenuItemData) => void
+	onDelete?: (id: string, data: MenuItemData) => void
 }
 
 // ProductDependency MenuBuilder Component - Componente específico separado
@@ -48,7 +49,7 @@ export default function ProductDependencyMenuBuilder({ style = 'bordered', items
 				sortKey: item.sortKey,
 			},
 		}
-	}) as (TreeItemType & { otherfields?: any })[]
+	}) as (TreeItemType & { otherfields?: MenuItemData })[]
 
 	// Função auxiliar para conversão recursiva
 	function convertProductDependencyToTreeItems(items: ProductDependencyItem[]): TreeItemType[] {
@@ -70,7 +71,7 @@ export default function ProductDependencyMenuBuilder({ style = 'bordered', items
 				treeDepth: item.treeDepth,
 				sortKey: item.sortKey,
 			},
-		})) as (TreeItemType & { otherfields?: any })[]
+		})) as (TreeItemType & { otherfields?: MenuItemData })[]
 	}
 
 	// Função para converter de volta TreeItemType[] para ProductDependencyItem[]

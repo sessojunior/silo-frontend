@@ -132,16 +132,7 @@ export async function PUT(req: NextRequest) {
 		}
 
 		// Preparar dados para atualização
-		const updateData: {
-			name: string
-			icon: string | null
-			description: string | null
-			updatedAt: Date
-			parentId?: string | null
-			treePath?: string
-			sortKey?: string
-			treeDepth?: number
-		} = {
+		const updateData: any = {
 			name,
 			icon: icon || null,
 			description: description || null,

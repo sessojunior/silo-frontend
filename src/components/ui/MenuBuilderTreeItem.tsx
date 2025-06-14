@@ -4,7 +4,7 @@ import type { UniqueIdentifier } from '@dnd-kit/core'
 import { AnimateLayoutChanges, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
-import { TreeItemType, TreeItems } from './MenuBuilderTypes'
+import { TreeItemType, TreeItems, MenuItemData } from './MenuBuilderTypes'
 
 // Collapse Component - Memoizado para evitar re-renders
 export const Collapse = memo(function Collapse(props: { open: boolean; handleOpen: (open: boolean) => void }) {
@@ -68,8 +68,8 @@ export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
 	value: string
 	onCollapse?(): void
 	onRemove?(): void
-	onEdit?: (id: string, data: any) => void
-	onDelete?: (id: string, data: any) => void
+	onEdit?: (id: string, data: MenuItemData) => void
+	onDelete?: (id: string, data: MenuItemData) => void
 	wrapperRef?(node: HTMLLIElement): void
 	childs?: TreeItems
 	show?: string
@@ -664,8 +664,8 @@ interface SortableProps extends Props {
 	show?: string
 	updateitem?: (id: UniqueIdentifier, data: Omit<TreeItemType, 'children'>) => void
 	otherfields?: Record<string, unknown>
-	onEdit?: (id: string, data: any) => void
-	onDelete?: (id: string, data: any) => void
+	onEdit?: (id: string, data: MenuItemData) => void
+	onDelete?: (id: string, data: MenuItemData) => void
 }
 
 // Animation Layout Changes - Otimizado
