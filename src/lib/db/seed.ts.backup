@@ -713,7 +713,7 @@ async function seed() {
 			// Gera um número aleatório de soluções entre 2 e 10
 			const numSolutions = Math.floor(Math.random() * 9) + 2 // 2 a 10
 			const solutions = generateSolutions().slice(0, numSolutions)
-			const solutionRows = solutions.map((s) => ({
+			const solutionRows = solutions.map((s, i) => ({
 				id: randomUUID(),
 				userId: userId,
 				productProblemId: problem.id,

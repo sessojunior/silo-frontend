@@ -75,7 +75,7 @@ export default function ProductDependencyMenuBuilder({ style = 'bordered', items
 
 	// Função para converter de volta TreeItemType[] para ProductDependencyItem[]
 	function convertTreeItemsToProductDependency(items: TreeItemType[]): ProductDependencyItem[] {
-		return items.map((item) => {
+		return items.map((item, index) => {
 			// Pega o item original para manter campos extras
 			const originalItem = findOriginalItem(item.id, itemsProps)
 			return {

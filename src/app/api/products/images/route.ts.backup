@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 	try {
 		const images = await db.select().from(productProblemImage).where(eq(productProblemImage.productProblemId, problemId))
 		return NextResponse.json({ items: images })
-	} catch {
+	} catch (e) {
 		return NextResponse.json({ error: 'Erro ao buscar imagens.' }, { status: 500 })
 	}
 }
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 		})
 
 		return NextResponse.json({ success: true, image: imagePath }, { status: 200 })
-	} catch {
+	} catch (e) {
 		return NextResponse.json({ error: 'Erro ao fazer upload da imagem.' }, { status: 500 })
 	}
 }
@@ -82,11 +82,11 @@ export async function DELETE(req: NextRequest) {
 			if (fs.existsSync(filePath)) {
 				fs.unlinkSync(filePath)
 			}
-		} catch {
+		} catch (err) {
 			// Não interrompe se não conseguir deletar arquivo
 		}
 		return NextResponse.json({ success: true }, { status: 200 })
-	} catch {
+	} catch (e) {
 		return NextResponse.json({ error: 'Erro ao excluir imagem.' }, { status: 500 })
 	}
 }

@@ -295,7 +295,7 @@ export default function ProblemsPage() {
 					})
 				}
 			}
-		} catch (e) {
+		} catch {
 			setFormError('Erro ao salvar problema.')
 			toast({ type: 'error', title: 'Erro', description: 'Erro ao salvar problema.' })
 		} finally {
@@ -349,7 +349,7 @@ export default function ProblemsPage() {
 					description: data.message || 'Erro ao excluir problema.',
 				})
 			}
-		} catch (e) {
+		} catch {
 			toast({ type: 'error', title: 'Erro', description: 'Erro ao excluir problema.' })
 		} finally {
 			setDeleteLoading(false)
@@ -444,7 +444,7 @@ export default function ProblemsPage() {
 					description: data.message || 'Erro ao salvar solução.',
 				})
 			}
-		} catch (e) {
+		} catch {
 			setSolutionError('Erro ao salvar solução.')
 			toast({ type: 'error', title: 'Erro', description: 'Erro ao salvar solução.' })
 		} finally {
@@ -479,7 +479,7 @@ export default function ProblemsPage() {
 			} else {
 				toast({ type: 'error', title: 'Erro ao excluir solução' })
 			}
-		} catch (e) {
+		} catch {
 			toast({ type: 'error', title: 'Erro ao excluir solução' })
 		} finally {
 			setDeleteSolutionLoading(false)

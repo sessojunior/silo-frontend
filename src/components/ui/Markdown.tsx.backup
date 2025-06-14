@@ -12,7 +12,7 @@ interface MarkdownProps {
 	height?: string | number // Nova prop para controlar altura
 }
 
-export default function Markdown({ value, onChange, preview = 'edit', className = '', 'data-color-mode': colorMode, ...props }: MarkdownProps) {
+export default function Markdown({ value, onChange, preview = 'edit', className = '', 'data-color-mode': colorMode, height, ...props }: MarkdownProps) {
 	const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
 	useEffect(() => {

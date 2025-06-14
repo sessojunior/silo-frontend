@@ -30,8 +30,10 @@ interface SolutionFormModalProps {
 	onClose: () => void
 	mode: 'create' | 'edit' | 'reply'
 	editingSolution: SolutionWithDetails | null
+	replyTo: SolutionWithDetails | null
 	solutionDescription: string
 	setSolutionDescription: (value: string) => void
+	solutionImage: File | null
 	setSolutionImage: (file: File | null) => void
 	solutionImagePreview: string | null
 	setSolutionImagePreview: (preview: string | null) => void
@@ -45,7 +47,7 @@ interface SolutionFormModalProps {
 	problemId: string | null
 }
 
-export default function SolutionFormModal({ isOpen, onClose, mode, editingSolution, solutionDescription, setSolutionDescription, setSolutionImage, solutionImagePreview, setSolutionImagePreview, solutionLoading, solutionError, setSolutionError, onSubmit, onDeleteSolution, onUpdateSolutions, onUpdateEditingSolution, problemId }: SolutionFormModalProps) {
+export default function SolutionFormModal({ isOpen, onClose, mode, editingSolution, replyTo: _replyTo, solutionDescription, setSolutionDescription, solutionImage: _solutionImage, setSolutionImage, solutionImagePreview, setSolutionImagePreview, solutionLoading, solutionError, setSolutionError, onSubmit, onDeleteSolution, onUpdateSolutions, onUpdateEditingSolution, problemId }: SolutionFormModalProps) {
 	const getTitle = () => {
 		switch (mode) {
 			case 'edit':

@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
 		}
 		await db.insert(productProblem).values(newProblem)
 		return NextResponse.json({ success: true }, { status: 200 })
-	} catch {
+	} catch (e) {
 		return NextResponse.json({ field: null, message: 'Erro ao cadastrar problema.' }, { status: 500 })
 	}
 }
@@ -109,7 +109,7 @@ export async function PUT(req: NextRequest) {
 			return NextResponse.json({ field: null, message: 'Problema não encontrado.' }, { status: 404 })
 		}
 		return NextResponse.json({ success: true }, { status: 200 })
-	} catch {
+	} catch (e) {
 		return NextResponse.json({ field: null, message: 'Erro ao atualizar problema.' }, { status: 500 })
 	}
 }
@@ -150,7 +150,7 @@ export async function DELETE(req: NextRequest) {
 					if (fs.existsSync(filePath)) {
 						fs.unlinkSync(filePath)
 					}
-				} catch {
+				} catch (err) {
 					// Não interrompe a exclusão se não conseguir deletar arquivo
 				}
 			}
@@ -166,7 +166,7 @@ export async function DELETE(req: NextRequest) {
 		})
 
 		return NextResponse.json({ success: true }, { status: 200 })
-	} catch {
+	} catch (e) {
 		return NextResponse.json({ field: null, message: 'Erro ao excluir problema.' }, { status: 500 })
 	}
 }
