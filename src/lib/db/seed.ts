@@ -192,6 +192,64 @@ const dependencyStructure = [
 	},
 ]
 
+// Grupos padrão do sistema (categorias para chat futuro)
+const groups = [
+	{
+		name: 'Administradores',
+		description: 'Administradores do sistema com acesso completo',
+		icon: 'icon-[lucide--shield-check]',
+		color: '#DC2626',
+		active: true,
+		isDefault: false,
+		maxUsers: 10,
+	},
+	{
+		name: 'Meteorologistas',
+		description: 'Profissionais responsáveis por análises meteorológicas',
+		icon: 'icon-[lucide--cloud-sun]',
+		color: '#2563EB',
+		active: true,
+		isDefault: true, // Grupo padrão para novos usuários
+		maxUsers: null,
+	},
+	{
+		name: 'Pesquisadores',
+		description: 'Pesquisadores e cientistas do CPTEC',
+		icon: 'icon-[lucide--microscope]',
+		color: '#059669',
+		active: true,
+		isDefault: false,
+		maxUsers: null,
+	},
+	{
+		name: 'Operadores',
+		description: 'Operadores do sistema de monitoramento',
+		icon: 'icon-[lucide--monitor-speaker]',
+		color: '#D97706',
+		active: true,
+		isDefault: false,
+		maxUsers: 20,
+	},
+	{
+		name: 'Suporte Técnico',
+		description: 'Equipe de suporte técnico e manutenção',
+		icon: 'icon-[lucide--headphones]',
+		color: '#7C3AED',
+		active: true,
+		isDefault: false,
+		maxUsers: 15,
+	},
+	{
+		name: 'Visitantes',
+		description: 'Usuários visitantes com acesso limitado',
+		icon: 'icon-[lucide--user-round]',
+		color: '#6B7280',
+		active: true,
+		isDefault: false,
+		maxUsers: 50,
+	},
+]
+
 // Contatos globais da organização
 const contacts = [
 	{
@@ -603,19 +661,43 @@ async function insertDependencies(productId: string, dependencies: DependencyIte
 async function seed() {
 	console.log('🔵 Iniciando seed...')
 
-	// 1. Criar usuário de teste Mario Junior
+	// 1. Criar grupos padrão
+	console.log('🔵 Criando grupos padrão do sistema...')
+	const insertedGroups = await db
+		.insert(schema.group)
+		.values(
+			groups.map((group) => ({
+				id: randomUUID(),
+				...group,
+			})),
+		)
+		.returning()
+
+	// Encontrar o grupo padrão (Meteorologistas)
+	const defaultGroup = insertedGroups.find((g) => g.isDefault)
+	if (!defaultGroup) {
+		throw new Error('Grupo padrão não encontrado!')
+	}
+
+	console.log(`✅ ${insertedGroups.length} grupos criados com sucesso!`)
+	console.log(`✅ Grupo padrão: ${defaultGroup.name} (${defaultGroup.id})`)
+
+	// 2. Criar usuário de teste Mario Junior
 	console.log('🔵 Criando usuário de teste: Mario Junior...')
 
 	const userId = randomUUID()
 	const hashedPassword = await hashPassword('#Admin123')
 
-	// Criar usuário
+	// Criar usuário no grupo padrão
 	await db.insert(schema.authUser).values({
 		id: userId,
 		name: 'Mario Junior',
 		email: 'sessojunior@gmail.com',
 		emailVerified: true,
 		password: hashedPassword,
+		groupId: defaultGroup.id, // Atribuir ao grupo padrão
+		isActive: true,
+		lastLogin: null,
 	})
 
 	// Criar perfil do usuário

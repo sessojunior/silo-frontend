@@ -1,11 +1,29 @@
 import { pgTable, text, integer, timestamp, boolean } from 'drizzle-orm/pg-core'
 
+// Grupos de usuários (categorias para futuro chat)
+export const group = pgTable('group', {
+	id: text('id').primaryKey(),
+	name: text('name').notNull().unique(),
+	description: text('description'),
+	icon: text('icon').notNull().default('icon-[lucide--users]'), // ícone para o canal do chat
+	color: text('color').notNull().default('#3B82F6'), // cor do canal no chat
+	active: boolean('active').notNull().default(true),
+	isDefault: boolean('is_default').notNull().default(false), // grupo padrão para novos usuários
+	maxUsers: integer('max_users'), // limite opcional de usuários
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+export type Group = typeof group.$inferSelect
+
 export const authUser = pgTable('auth_user', {
 	id: text('id').primaryKey(),
 	name: text('name').notNull(),
 	email: text('email').notNull().unique(),
 	emailVerified: boolean('email_verified').notNull().default(false),
 	password: text('password').notNull(),
+	groupId: text('group_id').references(() => group.id), // referência ao grupo (será obrigatório após migration)
+	isActive: boolean('is_active').notNull().default(true), // status do usuário no sistema
+	lastLogin: timestamp('last_login'), // último acesso do usuário
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 export type AuthUser = typeof authUser.$inferSelect
