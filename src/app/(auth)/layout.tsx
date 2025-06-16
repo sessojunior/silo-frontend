@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 
 import AuthToggleTheme from '@/components/auth/AuthToggleTheme'
+import AuthImageSlider from '@/components/auth/AuthImageSlider'
 
 import Toast from '@/components/ui/Toast'
 
@@ -35,9 +36,9 @@ export default function AuthLayout({
 					</div>
 				</div>
 
-				{/* Fundo */}
+				{/* Slide de Imagens */}
 				<div className='hidden min-h-screen flex-grow md:flex md:w-1/2 lg:w-1/2'>
-					<Image src='/images/background-auth.png' alt='Fundo' width={1856} height={2464} className='size-full h-screen object-cover' />
+					<AuthImageSlider />
 				</div>
 
 				{/* Alternar modo escuro/claro */}
