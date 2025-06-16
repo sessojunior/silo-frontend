@@ -49,6 +49,235 @@
 - **ApexCharts 4.7.0**: Biblioteca de gráficos
 - **React-ApexCharts 1.7.0**: Wrapper React
 
+### 🚀 CHAT SYSTEM - ESPECIFICAÇÕES TÉCNICAS PLANEJADAS
+
+#### **Real-time Communication**
+
+- **WebSocket**: Comunicação bidirecional instantânea
+
+  - Conexão global ativa em toda aplicação via Context
+  - Reconexão automática com backoff exponencial
+  - Heartbeat para detecção de conexão perdida
+  - Autenticação via token na conexão WS
+
+- **Server-Sent Events (SSE)**: Fallback para notificações
+
+  - Unidirecional para notificações críticas
+  - Funciona através de proxies/firewalls corporativos
+  - Auto-reconexão nativa do browser
+
+- **Hybrid Approach**: WebSocket + SSE para máxima confiabilidade
+  - WebSocket para chat ativo (baixa latência)
+  - SSE para notificações globais (alta compatibilidade)
+
+#### **Context Global Pattern**
+
+```typescript
+// Arquitetura ChatProvider
+export const ChatProvider: React.FC = ({ children }) => {
+	const [notifications, setNotifications] = useState<ChatNotification[]>([])
+	const [unreadCount, setUnreadCount] = useState(0)
+	const [isConnected, setIsConnected] = useState(false)
+	const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([])
+
+	const wsRef = useRef<WebSocket | null>(null)
+
+	// Conectar WebSocket global na montagem
+	useEffect(() => {
+		connectChat()
+		return () => disconnectChat()
+	}, [])
+
+	// Handlers de tempo real
+	const handleGlobalChatUpdate = (data: RealTimeUpdate) => {
+		switch (data.type) {
+			case 'new_message':
+				handleNewMessageNotification(data.payload)
+			case 'mention':
+				handleMentionNotification(data.payload)
+			case 'user_online':
+				handleUserOnlineUpdate(data.payload)
+		}
+	}
+}
+
+// Hook de consumo
+export const useChat = () => {
+	const context = useContext(ChatContext)
+	if (!context) {
+		throw new Error('useChat deve ser usado dentro de ChatProvider')
+	}
+	return context
+}
+```
+
+#### **TopBar Integration Pattern**
+
+```typescript
+// Integração na TopBar existente
+export default function TopBarWithNotifications() {
+  const { notifications, unreadCount, markAsRead } = useChat()
+
+  return (
+    <header className="h-16 bg-white dark:bg-zinc-900 border-b">
+      <div className="flex items-center justify-between px-6">
+        {/* Conteúdo existente preservado */}
+
+        {/* Botão notificações do chat */}
+        <div className="relative">
+          <Button className="relative w-10 h-10 p-0">
+            <ActivityIcon className="w-5 h-5" />
+            {unreadCount > 0 && (
+              <Badge className="absolute -top-1 -right-1">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </Badge>
+            )}
+          </Button>
+
+          {/* Dropdown notificações */}
+          <ChatNotificationDropdown
+            notifications={notifications}
+            onMarkAsRead={markAsRead}
+          />
+        </div>
+      </div>
+    </header>
+  )
+}
+```
+
+#### **WhatsApp-like UI Patterns**
+
+**Layout Hierárquico**:
+
+```typescript
+// Preservação sidebar projeto + sidebar chat
+<div className="flex h-screen">
+  <ProjectSidebar className="w-64" />  {/* Sidebar existente */}
+  <div className="flex-1 flex">
+    <ChatSidebar className="w-80" />   {/* Sidebar chat */}
+    <ChatContent className="flex-1" /> {/* Área mensagens */}
+  </div>
+</div>
+```
+
+**Message Bubble Design**:
+
+```typescript
+// Bubbles estilo WhatsApp
+<div className={`
+  max-w-lg px-3 py-2 rounded-lg shadow-sm
+  ${isOwnMessage
+    ? 'bg-green-500 text-white ml-auto'
+    : 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+  }
+`}>
+  <p className="whitespace-pre-wrap">{message.content}</p>
+
+  {/* Status indicators */}
+  <div className="flex items-center gap-1 mt-1 text-xs">
+    <span>{formatTime(message.createdAt)}</span>
+    {isOwnMessage && (
+      <span className={getMessageStatusIcon(message.status)} />
+    )}
+  </div>
+</div>
+```
+
+**Emoji Picker Pattern**:
+
+```typescript
+// Grid 8x8 emojis com busca
+<div className="w-64 bg-white border rounded-lg shadow-lg p-3">
+  <Input placeholder="Buscar emoji..." className="mb-3" />
+  <div className="grid grid-cols-8 gap-1">
+    {emojis.map((emoji) => (
+      <button
+        key={emoji}
+        onClick={() => addEmoji(emoji)}
+        className="w-8 h-8 text-lg hover:bg-zinc-100 rounded"
+      >
+        {emoji}
+      </button>
+    ))}
+  </div>
+</div>
+```
+
+#### **Database Optimization for Chat**
+
+**Indices Estratégicos**:
+
+```sql
+-- Performance otimizada para chat
+CREATE INDEX idx_chat_message_channel_created ON chat_message(channelId, createdAt DESC);
+CREATE INDEX idx_chat_participant_user_channel ON chat_participant(userId, channelId);
+CREATE INDEX idx_chat_channel_type_active ON chat_channel(type, isActive);
+CREATE INDEX idx_chat_user_status_online ON chat_user_status(status, lastSeen);
+```
+
+**Query Patterns**:
+
+```typescript
+// Mensagens com paginação otimizada
+const messages = await db
+	.select()
+	.from(chatMessage)
+	.where(eq(chatMessage.channelId, channelId))
+	.orderBy(desc(chatMessage.createdAt))
+	.limit(50)
+	.offset(page * 50)
+
+// Contagem não lidas eficiente
+const unreadCount = await db
+	.select({ count: count() })
+	.from(chatMessage)
+	.innerJoin(chatParticipant, eq(chatMessage.channelId, chatParticipant.channelId))
+	.where(and(eq(chatParticipant.userId, currentUserId), gt(chatMessage.createdAt, chatParticipant.lastReadAt)))
+```
+
+#### **Security & Authentication**
+
+**WebSocket Authentication**:
+
+```typescript
+// Verificação token na conexão
+export async function GET(request: NextRequest) {
+	const { searchParams } = new URL(request.url)
+	const token = searchParams.get('token')
+
+	const user = await verifyAuthToken(token)
+	if (!user) {
+		return new Response('Unauthorized', { status: 401 })
+	}
+
+	// Upgrade para WebSocket apenas se autenticado
+	const { socket, response } = Deno.upgradeWebSocket(request)
+
+	socket.onopen = () => {
+		globalConnections.set(user.id, socket)
+		sendInitialState(socket, user.id)
+	}
+
+	return response
+}
+```
+
+**Permission-based Messaging**:
+
+```typescript
+// Validação permissões por canal
+async function canUserSendMessage(userId: string, channelId: string) {
+	const participant = await db
+		.select()
+		.from(chatParticipant)
+		.where(and(eq(chatParticipant.userId, userId), eq(chatParticipant.channelId, channelId), eq(chatParticipant.canWrite, true)))
+		.limit(1)
+
+	return participant.length > 0
+}
+```
+
 ### Desenvolvimento e Qualidade
 
 - **ESLint 9**: Linting com regras Next.js

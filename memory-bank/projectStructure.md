@@ -146,6 +146,26 @@ src/
 │   ├── products/[slug]/ # Produto específico
 │   ├── contacts/        # ✅ NOVO - Sistema de contatos
 │   │   └── page.tsx     # CRUD completo de contatos
+│   ├── groups/          # ✅ NOVO - Sistema de grupos e usuários
+│   │   ├── layout.tsx   # Layout com abas navegáveis (ProductTabs)
+│   │   ├── page.tsx     # CRUD grupos com expansão hierárquica
+│   │   └── users/       # Aba separada para CRUD usuários
+│   │       └── page.tsx # Interface moderna com filtros e estatísticas
+│   ├── chat/            # 🚀 PLANEJADO - Sistema de chat WhatsApp-like
+│   │   ├── layout.tsx   # Layout preservando sidebar + sidebar chat
+│   │   ├── page.tsx     # Chat principal com lista de conversas
+│   │   ├── [channelId]/ # Chat específico do canal
+│   │   │   └── page.tsx # Interface de mensagens estilo WhatsApp
+│   │   └── components/  # Componentes do chat
+│   │       ├── ChatSidebar.tsx         # Sidebar conversas (w-80)
+│   │       ├── WhatsAppChatContent.tsx # Área principal mensagens
+│   │       ├── ChatListItem.tsx        # Item lista conversas
+│   │       ├── MessageItem.tsx         # Bubble mensagem WhatsApp
+│   │       ├── MessageInput.tsx        # Input com emoji picker
+│   │       ├── TypingIndicator.tsx     # "João está digitando..."
+│   │       ├── UserStatusCard.tsx      # Card status usuário
+│   │       ├── EmojiPicker.tsx         # Dropdown emojis (8 cols)
+│   │       └── FileUpload.tsx          # Upload com preview
 │   ├── profile/         # Perfil usuário
 │   ├── settings/        # Configurações
 │   │   └── products/    # ✅ REDESENHADA - Padrão estabelecido
@@ -153,6 +173,23 @@ src/
 │   └── welcome/         # Onboarding
 └── api/                 # API Routes Backend
     ├── auth/            # Endpoints autenticação
+    ├── chat/            # 🚀 PLANEJADO - APIs do sistema de chat
+    │   ├── channels/    # CRUD canais de chat
+    │   │   ├── route.ts # GET/POST canais
+    │   │   └── [id]/    # Canal específico
+    │   │       ├── route.ts    # GET/PUT/DELETE canal
+    │   │       └── messages/   # Mensagens do canal
+    │   │           └── route.ts # GET/POST mensagens
+    │   ├── messages/    # CRUD mensagens
+    │   │   ├── route.ts # POST nova mensagem
+    │   │   └── [id]/    # Mensagem específica
+    │   │       └── route.ts # PUT/DELETE mensagem
+    │   ├── participants/ # Participantes dos canais
+    │   │   └── route.ts  # GET/POST participantes
+    │   ├── websocket/    # WebSocket global para tempo real
+    │   │   └── route.ts  # Conexão WS com auth
+    │   └── events/       # Server-Sent Events (fallback)
+    │       └── route.ts  # SSE para notificações
     ├── products/        # CRUD produtos e dependências
     │   ├── solutions/   # APIs de soluções otimizadas
     │   │   ├── summary/ # ✅ Summary de soluções otimizada
@@ -173,6 +210,33 @@ src/
 │   ├── nav/             # Navegação e tabs
 │   ├── sidebar/         # Menu lateral
 │   ├── topbar/          # Barra superior
+│   ├── contacts/        # ✅ Sistema de contatos
+│   │   ├── ContactFormOffcanvas.tsx    # Formulário completo
+│   │   ├── ContactDeleteDialog.tsx     # Dialog confirmação
+│   │   └── ContactSelectorOffcanvas.tsx # Seletor multi-contatos
+│   ├── groups/          # ✅ Sistema de grupos e usuários
+│   │   ├── GroupFormOffcanvas.tsx     # Formulário grupos
+│   │   ├── GroupDeleteDialog.tsx      # Dialog exclusão grupos
+│   │   ├── GroupUsersSection.tsx      # Seção usuários por grupo
+│   │   ├── UserFormOffcanvas.tsx      # Formulário usuários
+│   │   └── UserDeleteDialog.tsx       # Dialog exclusão usuários
+│   ├── chat/            # 🚀 PLANEJADO - Componentes chat WhatsApp-like
+│   │   ├── ChatProvider.tsx           # Context global com WebSocket
+│   │   ├── TopBarWithNotifications.tsx # TopBar com botão notificações
+│   │   ├── ChatNotificationDropdown.tsx # Dropdown ícone activity
+│   │   ├── NotificationItem.tsx       # Item individual notificação
+│   │   ├── WhatsAppChatSidebar.tsx    # Sidebar conversas estilo WhatsApp
+│   │   ├── ChatListItem.tsx           # Item lista conversas com preview
+│   │   ├── WhatsAppChatContent.tsx    # Área principal mensagens
+│   │   ├── MessagesList.tsx           # Lista mensagens com scroll
+│   │   ├── MessageItem.tsx            # Bubble mensagem (verde/branco)
+│   │   ├── WhatsAppMessageInput.tsx   # Input com emoji + upload
+│   │   ├── TypingIndicator.tsx        # "João está digitando..."
+│   │   ├── UserStatusCard.tsx         # Card perfil com status
+│   │   ├── EmojiPicker.tsx            # Grid 8x8 emojis dropdown
+│   │   ├── FileUploadPreview.tsx      # Preview arquivos/imagens
+│   │   ├── MessageReactions.tsx       # Sistema reações (👍❤️😊)
+│   │   └── ChatUsersList.tsx          # Lista usuários online
 │   └── products/        # 🏆 COMPONENTES REFATORADOS (NOVO)
 │       ├── ProblemsListColumn.tsx      # Lista problemas (150 linhas)
 │       ├── ProblemDetailColumn.tsx     # Detalhes problema (84 linhas)
@@ -325,12 +389,6 @@ src/
 - createdAt: timestamp
 ```
 
-- title: string
-- content: text (markdown)
-- order: integer
-
-````
-
 #### `product_contact` - Contatos Responsáveis
 
 ```sql
@@ -343,7 +401,87 @@ src/
 - phone: string (opcional)
 - image: string (foto perfil)
 - order: integer
-````
+```
+
+## 🚀 CHAT SYSTEM - DATABASE SCHEMA PLANEJADO
+
+### Tabelas do Sistema de Chat
+
+#### `chat_channel` - **🚀 PLANEJADO - Canais de Chat**
+
+```sql
+- id: string (PK)
+- type: string ('group'|'direct'|'announcement')
+- groupId: string (FK) # NULL para DMs, vincula aos grupos existentes
+- participantA: string (FK) # Para DMs - usuário A
+- participantB: string (FK) # Para DMs - usuário B
+- name: string # Nome personalizado (opcional para DMs)
+- description: string
+- icon: string # Herdado do grupo ou personalizado
+- color: string # Herdado do grupo ou personalizado
+- isActive: boolean (default: true)
+- isPrivate: boolean (default: false)
+- allowFileUpload: boolean (default: true)
+- createdBy: string (FK)
+- createdAt: timestamp
+- updatedAt: timestamp
+```
+
+#### `chat_message` - **🚀 PLANEJADO - Mensagens do Chat**
+
+```sql
+- id: string (PK)
+- channelId: string (FK)
+- senderId: string (FK)
+- content: text # Conteúdo da mensagem
+- messageType: string (default: 'text') # 'text'|'file'|'image'|'system'
+- fileUrl: string # Para anexos
+- fileName: string
+- fileSize: integer
+- fileMimeType: string
+- replyToId: string (FK) # Para threading/replies
+- threadCount: integer (default: 0)
+- isEdited: boolean (default: false)
+- editedAt: timestamp
+- createdAt: timestamp
+- deletedAt: timestamp # Soft delete
+```
+
+#### `chat_participant` - **🚀 PLANEJADO - Participantes dos Canais**
+
+```sql
+- id: string (PK)
+- channelId: string (FK)
+- userId: string (FK)
+- role: string (default: 'member') # 'admin'|'moderator'|'member'
+- canWrite: boolean (default: true)
+- canUpload: boolean (default: true)
+- lastReadAt: timestamp # Para controle de lidas
+- unreadCount: integer (default: 0)
+- muteUntil: timestamp # Silenciar notificações
+- joinedAt: timestamp
+- leftAt: timestamp # Histórico de participação
+```
+
+#### `chat_reaction` - **🚀 PLANEJADO - Reações às Mensagens**
+
+```sql
+- id: string (PK)
+- messageId: string (FK)
+- userId: string (FK)
+- emoji: string # 👍, ❤️, 😊, 😢, 😮, 😡
+- createdAt: timestamp
+```
+
+#### `chat_user_status` - **🚀 PLANEJADO - Status Online dos Usuários**
+
+```sql
+- id: string (PK)
+- userId: string (FK)
+- status: string (default: 'offline') # 'online'|'away'|'busy'|'offline'
+- lastSeen: timestamp
+- customMessage: string # "Trabalhando em previsões..."
+```
 
 ### Relacionamentos
 
