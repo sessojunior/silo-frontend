@@ -16,6 +16,12 @@ export default function Topbar({ title }: { title: string }) {
 	// Dados da conta para o dropdown da barra do topo
 	const account: AccountProps = [
 		{
+			id: '0',
+			icon: 'icon-[lucide--settings]',
+			title: 'Configurações',
+			url: '/admin/settings',
+		},
+		{
 			id: '1',
 			icon: 'icon-[lucide--user-round-pen]',
 			title: 'Alterar perfil',
