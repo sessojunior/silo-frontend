@@ -682,6 +682,24 @@ async function seed() {
 	console.log(`✅ ${insertedGroups.length} grupos criados com sucesso!`)
 	console.log(`✅ Grupo padrão: ${defaultGroup.name} (${defaultGroup.id})`)
 
+	// 1.1. Criar canais de chat baseados nos grupos
+	console.log('🔵 Criando canais de chat baseados nos grupos...')
+	const insertedChannels = await db
+		.insert(schema.chatChannel)
+		.values(
+			insertedGroups.map((group) => ({
+				name: `#${group.name.toLowerCase().replace(/\s+/g, '-')}`,
+				description: `Canal do grupo ${group.name} - ${group.description}`,
+				type: 'group',
+				icon: group.icon,
+				color: group.color,
+				isActive: group.active,
+			})),
+		)
+		.returning()
+
+	console.log(`✅ ${insertedChannels.length} canais de chat criados com sucesso!`)
+
 	// 2. Criar usuário de teste Mario Junior
 	console.log('🔵 Criando usuário de teste: Mario Junior...')
 
@@ -721,6 +739,27 @@ async function seed() {
 	})
 
 	console.log('✅ Usuário Mario Junior criado com sucesso!')
+
+	// 2.1. Adicionar usuário como participante de todos os canais
+	console.log('🔵 Adicionando usuário Mario Junior como participante dos canais...')
+	const participantRoles = insertedChannels.map((channel) => ({
+		channelId: channel.id,
+		userId: userId,
+		role: channel.name === '#administradores' ? 'admin' : 'member',
+		lastReadAt: null,
+	}))
+
+	await db.insert(schema.chatParticipant).values(participantRoles)
+	console.log(`✅ Usuário adicionado como participante de ${participantRoles.length} canais!`)
+
+	// 2.2. Criar status inicial do usuário no chat
+	console.log('🔵 Criando status inicial do usuário no chat...')
+	await db.insert(schema.chatUserStatus).values({
+		userId: userId,
+		status: 'offline',
+		lastSeenAt: new Date(),
+	})
+	console.log('✅ Status inicial do usuário criado!')
 
 	// 2. Produtos
 	console.log('🔵 Inserindo produtos...')

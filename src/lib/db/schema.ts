@@ -1,4 +1,5 @@
-import { pgTable, text, integer, timestamp, boolean } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, timestamp, boolean, unique } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
 // Grupos de usuários (categorias para futuro chat)
 export const group = pgTable('group', {
@@ -236,3 +237,117 @@ export const systemFile = pgTable('system_file', {
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 export type SystemFile = typeof systemFile.$inferSelect
+
+// === SISTEMA DE CHAT ===
+
+// Canais de Chat (grupos ou mensagens diretas)
+export const chatChannel = pgTable('chat_channel', {
+	id: text('id')
+		.primaryKey()
+		.default(sql`gen_random_uuid()`),
+	name: text('name').notNull(),
+	description: text('description'),
+	type: text('type').notNull(), // 'group' | 'direct'
+	icon: text('icon'),
+	color: text('color'),
+	isActive: boolean('is_active').notNull().default(true),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+export type ChatChannel = typeof chatChannel.$inferSelect
+
+// Mensagens do Chat
+export const chatMessage = pgTable('chat_message', {
+	id: text('id')
+		.primaryKey()
+		.default(sql`gen_random_uuid()`),
+	channelId: text('channel_id')
+		.notNull()
+		.references(() => chatChannel.id, { onDelete: 'cascade' }),
+	senderId: text('sender_id')
+		.notNull()
+		.references(() => authUser.id, { onDelete: 'cascade' }),
+	content: text('content'),
+	messageType: text('message_type').notNull().default('text'), // 'text' | 'file' | 'image'
+	fileUrl: text('file_url'),
+	fileName: text('file_name'),
+	fileSize: integer('file_size'),
+	fileMimeType: text('file_mime_type'),
+	replyToId: text('reply_to_id'),
+	threadCount: integer('thread_count').notNull().default(0),
+	isEdited: boolean('is_edited').notNull().default(false),
+	editedAt: timestamp('edited_at'),
+	deliveredAt: timestamp('delivered_at'), // Quando foi entregue globalmente
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	deletedAt: timestamp('deleted_at'),
+})
+export type ChatMessage = typeof chatMessage.$inferSelect
+
+// Participantes dos Canais
+export const chatParticipant = pgTable('chat_participant', {
+	id: text('id')
+		.primaryKey()
+		.default(sql`gen_random_uuid()`),
+	channelId: text('channel_id')
+		.notNull()
+		.references(() => chatChannel.id, { onDelete: 'cascade' }),
+	userId: text('user_id')
+		.notNull()
+		.references(() => authUser.id, { onDelete: 'cascade' }),
+	role: text('role').notNull().default('member'), // 'admin' | 'member'
+	joinedAt: timestamp('joined_at').notNull().defaultNow(),
+	lastReadAt: timestamp('last_read_at'),
+})
+export type ChatParticipant = typeof chatParticipant.$inferSelect
+
+// Nova tabela para tracking de leitura por usuário/mensagem
+export const chatMessageStatus = pgTable(
+	'chat_message_status',
+	{
+		id: text('id')
+			.primaryKey()
+			.default(sql`gen_random_uuid()`),
+		messageId: text('message_id')
+			.notNull()
+			.references(() => chatMessage.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => authUser.id, { onDelete: 'cascade' }),
+		readAt: timestamp('read_at').notNull().defaultNow(),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+	},
+	(table) => ({
+		// Constraint único para evitar duplicatas
+		uniqueMessageUser: unique('unique_message_user').on(table.messageId, table.userId),
+	}),
+)
+
+// Reações nas Mensagens
+export const chatReaction = pgTable('chat_reaction', {
+	id: text('id')
+		.primaryKey()
+		.default(sql`gen_random_uuid()`),
+	messageId: text('message_id')
+		.notNull()
+		.references(() => chatMessage.id, { onDelete: 'cascade' }),
+	userId: text('user_id')
+		.notNull()
+		.references(() => authUser.id, { onDelete: 'cascade' }),
+	emoji: text('emoji').notNull(),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+export type ChatReaction = typeof chatReaction.$inferSelect
+
+// Status dos Usuários no Chat
+export const chatUserStatus = pgTable('chat_user_status', {
+	id: text('id')
+		.primaryKey()
+		.default(sql`gen_random_uuid()`),
+	userId: text('user_id')
+		.notNull()
+		.references(() => authUser.id, { onDelete: 'cascade' }),
+	status: text('status').notNull().default('offline'), // 'online' | 'offline' | 'away'
+	lastSeenAt: timestamp('last_seen_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+export type ChatUserStatus = typeof chatUserStatus.$inferSelect

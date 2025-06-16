@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth/token'
 import { getProfileImagePath } from '@/lib/profileImage'
 import { UserProvider } from '@/context/UserContext'
+import { ChatProvider } from '@/context/ChatContext'
 import AdminWrapper from '@/components/admin/AdminWrapper'
 
 export type UserProps = {
@@ -40,7 +41,9 @@ export default async function AdminLayout({
 	// `resultValidateSessionToken.session` via context ou props se desejar.
 	return (
 		<UserProvider user={user}>
-			<AdminWrapper>{children}</AdminWrapper>
+			<ChatProvider>
+				<AdminWrapper>{children}</AdminWrapper>
+			</ChatProvider>
 		</UserProvider>
 	)
 }

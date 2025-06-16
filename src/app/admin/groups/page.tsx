@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { toast } from '@/lib/toast'
 
 import Button from '@/components/ui/Button'
@@ -246,9 +246,9 @@ export default function GroupsPage() {
 									{filteredGroups.map((group) => {
 										const isExpanded = expandedGroups.has(group.id)
 										return (
-											<>
+											<React.Fragment key={group.id}>
 												{/* Linha principal do grupo */}
-												<tr key={group.id} className='hover:bg-zinc-50 dark:hover:bg-zinc-800/50'>
+												<tr className='hover:bg-zinc-50 dark:hover:bg-zinc-800/50'>
 													<td className='px-4 py-4 cursor-pointer' onClick={() => toggleGroupExpansion(group.id)}>
 														<div className='flex items-center gap-3'>
 															{/* Ícone de expansão */}
@@ -287,7 +287,7 @@ export default function GroupsPage() {
 												</tr>
 												{/* Seção de usuários expandida */}
 												<GroupUsersSection group={group} isExpanded={isExpanded} onUserAdded={fetchTotalUsers} />
-											</>
+											</React.Fragment>
 										)
 									})}
 								</tbody>

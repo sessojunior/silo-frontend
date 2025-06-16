@@ -2,6 +2,7 @@ import TopbarDropdown from '@/components/admin/topbar/TopbarDropdown'
 import TopbarButton from '@/components/admin/topbar/TopbarButton'
 import TopbarDivider from '@/components/admin/topbar/TopbarDivider'
 import TopbarTitle from '@/components/admin/topbar/TopbarTitle'
+import ChatNotificationButton from '@/components/admin/topbar/ChatNotificationButton'
 
 export type AccountLinkProps = {
 	id: string
@@ -76,9 +77,7 @@ export default function Topbar({ title }: { title: string }) {
 								Configurações
 							</TopbarButton>
 							<TopbarDivider />
-							<TopbarButton href='#' icon='icon-[lucide--inbox]' style='alert'>
-								Mensagens
-							</TopbarButton>
+							<ChatNotificationButton />
 							<TopbarDivider />
 							<TopbarDropdown account={account} />
 						</div>

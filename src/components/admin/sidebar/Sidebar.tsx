@@ -107,7 +107,7 @@ export default function Sidebar() {
 						id: '2.2',
 						title: 'Bate-papo',
 						icon: 'icon-[lucide--messages-square]',
-						url: '#',
+						url: '/admin/chat',
 						items: null,
 					},
 					{

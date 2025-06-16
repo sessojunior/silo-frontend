@@ -73,12 +73,28 @@ export default function GroupUsersSection({ group, isExpanded, onUserAdded }: Gr
 		try {
 			console.log('🔵 Removendo usuário do grupo:', userName)
 
+			// Buscar dados completos do usuário
+			const userToUpdate = users.find((user) => user.id === userId)
+			if (!userToUpdate) {
+				console.error('❌ Usuário não encontrado na lista atual')
+				toast({
+					type: 'error',
+					title: 'Erro',
+					description: 'Usuário não encontrado na lista atual',
+				})
+				return
+			}
+
 			const response = await fetch('/api/users', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					id: userId,
+					name: userToUpdate.name,
+					email: userToUpdate.email,
+					emailVerified: userToUpdate.emailVerified,
 					groupId: null, // Remove do grupo
+					isActive: userToUpdate.isActive,
 				}),
 			})
 
@@ -94,11 +110,11 @@ export default function GroupUsersSection({ group, isExpanded, onUserAdded }: Gr
 				fetchUsers() // Recarregar lista
 				if (onUserAdded) onUserAdded() // Atualizar estatísticas
 			} else {
-				console.error('❌ Erro ao remover usuário:', data.error)
+				console.error('❌ Erro ao remover usuário:', data.error || data.message)
 				toast({
 					type: 'error',
 					title: 'Erro ao remover usuário',
-					description: data.error || 'Erro desconhecido',
+					description: data.error || data.message || 'Erro desconhecido',
 				})
 			}
 		} catch (error) {
@@ -145,7 +161,7 @@ export default function GroupUsersSection({ group, isExpanded, onUserAdded }: Gr
 								<p className='text-sm text-zinc-600 dark:text-zinc-400 mb-3'>Nenhum usuário neste grupo ainda.</p>
 								<Button onClick={handleOpenSelector} className='flex items-center gap-2 text-sm px-3 py-1.5 mx-auto' style='bordered'>
 									<span className='icon-[lucide--plus] size-3.5' />
-									Adicionar primeiro usuário
+									Adicionar usuário
 								</Button>
 							</div>
 						) : (
