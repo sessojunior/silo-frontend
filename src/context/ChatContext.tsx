@@ -86,29 +86,39 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 	const loadChannels = useCallback(async () => {
 		try {
-			console.log('🔵 Carregando canais de chat...')
+			console.log('🔵 [ChatContext] Carregando canais de chat...')
 			const response = await fetch('/api/chat/channels')
+			console.log('🔵 [ChatContext] Resposta da API canais:', response.status, response.statusText)
+
 			if (response.ok) {
 				const channelsData = await response.json()
+				console.log('✅ [ChatContext] Canais carregados:', channelsData.length, channelsData)
 				setChannels(channelsData)
-				console.log('✅ Canais carregados:', channelsData.length)
+			} else {
+				const errorText = await response.text()
+				console.log('❌ [ChatContext] Erro na API canais:', response.status, errorText)
 			}
 		} catch (error) {
-			console.log('❌ Erro ao carregar canais:', error)
+			console.log('❌ [ChatContext] Erro ao carregar canais:', error)
 		}
 	}, [])
 
 	const loadMessages = useCallback(async (channelId: string) => {
 		try {
-			console.log('🔵 Carregando mensagens do canal:', channelId)
-			const response = await fetch(`/api/chat/messages?channelId=${channelId}`)
+			console.log('🔵 [ChatContext] Carregando mensagens do canal:', channelId)
+			const response = await fetch(`/api/chat/channels/${channelId}/messages`)
+			console.log('🔵 [ChatContext] Resposta da API mensagens:', response.status, response.statusText)
+
 			if (response.ok) {
 				const messagesData = await response.json()
+				console.log('✅ [ChatContext] Mensagens carregadas:', messagesData.length, messagesData)
 				setMessages((prev) => ({ ...prev, [channelId]: messagesData }))
-				console.log('✅ Mensagens carregadas:', messagesData.length)
+			} else {
+				const errorText = await response.text()
+				console.log('❌ [ChatContext] Erro na API mensagens:', response.status, errorText)
 			}
 		} catch (error) {
-			console.log('❌ Erro ao carregar mensagens:', error)
+			console.log('❌ [ChatContext] Erro ao carregar mensagens:', error)
 		}
 	}, [])
 
@@ -123,11 +133,18 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 			if (response.ok) {
 				const newMessage = await response.json()
+				console.log('✅ Mensagem criada:', newMessage)
+
+				// Atualizar estado local imediatamente
 				setMessages((prev) => ({
 					...prev,
 					[channelId]: [...(prev[channelId] || []), newMessage],
 				}))
-				console.log('✅ Mensagem enviada!')
+
+				console.log('✅ Mensagem adicionada ao estado local!')
+			} else {
+				const errorText = await response.text()
+				console.log('❌ Erro na API ao enviar mensagem:', response.status, errorText)
 			}
 		} catch (error) {
 			console.log('❌ Erro ao enviar mensagem:', error)

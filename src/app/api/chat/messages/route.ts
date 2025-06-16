@@ -56,8 +56,9 @@ export async function POST(request: Request) {
 			}
 		}
 
-		// Criar nova mensagem
+		// Criar nova mensagem com timestamp atual
 		const messageId = nanoid()
+		const now = new Date()
 		const newMessage = {
 			id: messageId,
 			channelId,
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
 			replyToId: replyToId || null,
 			threadCount: 0,
 			isEdited: false,
+			createdAt: now,
 		}
 
 		await db.insert(chatMessage).values(newMessage)

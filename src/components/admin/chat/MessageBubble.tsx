@@ -31,8 +31,10 @@ type MessageBubbleProps = {
 }
 
 export default function MessageBubble({ message, isOwnMessage, showAvatar, readStatus = 'sent', readCount = 0, totalParticipants = 0 }: MessageBubbleProps) {
-	// Formatar timestamp
-	const timeAgo = formatDistanceToNow(new Date(message.createdAt), {
+	// Formatar timestamp - usando timezone local do Brasil
+	const messageDate = new Date(message.createdAt)
+
+	const timeAgo = formatDistanceToNow(messageDate, {
 		addSuffix: true,
 		locale: ptBR,
 	})

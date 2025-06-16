@@ -1,43 +1,53 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useChat } from '@/context/ChatContext'
 import ChatSidebar from '@/components/admin/chat/ChatSidebar'
 import ChatArea from '@/components/admin/chat/ChatArea'
+import type { ChatChannel } from '@/lib/db/schema'
 
 export default function ChatPage() {
 	// Estado global do chat (temporariamente usando mock)
-	const { isConnected, isConnecting } = useChat()
-
-	// Mock de canais até implementar corretamente
-	const mockChannels = [
-		{
-			id: '1',
-			name: 'Geral',
-			description: 'Canal geral para discussões',
-			type: 'group' as const,
-			icon: 'icon-[lucide--hash]',
-			color: '#3B82F6',
-			isActive: true,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		},
-		{
-			id: '2',
-			name: 'Meteorologia',
-			description: 'Discussões sobre dados meteorológicos',
-			type: 'group' as const,
-			icon: 'icon-[lucide--cloud]',
-			color: '#10B981',
-			isActive: true,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		},
-	]
+	const { isConnected, isConnecting, channels, loadChannels } = useChat()
 
 	// Estado local para responsividade
 	const [showSidebar, setShowSidebar] = useState(true)
 	const [activeChannelId, setActiveChannelId] = useState<string | null>(null)
+
+	// Debug: carregar canais e verificar se há dados
+	useEffect(() => {
+		console.log('🔵 [ChatPage] Verificando canais carregados:', channels?.length || 0)
+		if (channels?.length > 0) {
+			console.log(
+				'🔵 [ChatPage] Canais disponíveis:',
+				channels.map((c) => ({ id: c.id, name: c.name })),
+			)
+		}
+	}, [channels])
+
+	// Debug: monitorar mudanças de canal ativo
+	useEffect(() => {
+		console.log('🔵 [ChatPage] Canal ativo mudou para:', activeChannelId)
+	}, [activeChannelId])
+
+	// SEMPRE usar os canais do contexto (não misturar com mock)
+	const displayChannels: ChatChannel[] = (channels || []).map((ch) => ({
+		id: ch.id,
+		name: ch.name,
+		description: ch.description,
+		type: ch.type,
+		icon: ch.icon,
+		color: ch.color,
+		isActive: true,
+		createdAt: new Date(),
+		updatedAt: new Date(),
+	}))
+
+	console.log(
+		'🔵 [ChatPage] Renderizando com canais:',
+		displayChannels.length,
+		displayChannels.map((c) => c.name),
+	)
 
 	return (
 		<div className='flex h-full bg-zinc-50 dark:bg-zinc-900'>
@@ -49,7 +59,16 @@ export default function ChatPage() {
 					bg-white dark:bg-zinc-800 flex-shrink-0 overflow-hidden
 				`}
 			>
-				<ChatSidebar channels={mockChannels} activeChannelId={activeChannelId} onChannelSelect={setActiveChannelId} isConnected={isConnected} isReconnecting={isConnecting} />
+				<ChatSidebar
+					channels={displayChannels}
+					activeChannelId={activeChannelId}
+					onChannelSelect={(channelId) => {
+						console.log('🔵 [ChatPage] Selecionando canal:', channelId)
+						setActiveChannelId(channelId)
+					}}
+					isConnected={isConnected}
+					isReconnecting={isConnecting}
+				/>
 			</div>
 
 			{/* Área Principal de Chat */}

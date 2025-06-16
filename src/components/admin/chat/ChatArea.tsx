@@ -249,8 +249,10 @@ export default function ChatArea({ activeChannelId, onToggleSidebar }: ChatAreaP
 				{isLoading ? (
 					<div className='flex-1 flex items-center justify-center'>
 						<div className='text-center text-zinc-500 dark:text-zinc-400'>
-							<div className='h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600'></div>
-							<span className='text-sm'>Carregando mensagens...</span>
+							<div className='flex items-center justify-center gap-3 mb-4'>
+								<div className='h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600'></div>
+								<span className='text-sm'>Carregando mensagens...</span>
+							</div>
 						</div>
 					</div>
 				) : channelMessages.length === 0 ? (
