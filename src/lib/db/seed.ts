@@ -706,16 +706,22 @@ async function seed() {
 	const userId = randomUUID()
 	const hashedPassword = await hashPassword('#Admin123')
 
-	// Criar usuário no grupo padrão
+	// Criar usuário
 	await db.insert(schema.authUser).values({
 		id: userId,
 		name: 'Mario Junior',
 		email: 'sessojunior@gmail.com',
 		emailVerified: true,
 		password: hashedPassword,
-		groupId: defaultGroup.id, // Atribuir ao grupo padrão
 		isActive: true,
 		lastLogin: null,
+	})
+
+	// Adicionar usuário ao grupo padrão via tabela user_group
+	await db.insert(schema.userGroup).values({
+		userId: userId,
+		groupId: defaultGroup.id,
+		role: 'admin',
 	})
 
 	// Criar perfil do usuário

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useUser } from '@/context/UserContext'
-import type { ChatChannel } from '@/lib/db/schema'
+import type { ChatChannel } from '@/context/ChatContext'
 
 type ChatUser = {
 	id: string
@@ -24,7 +24,7 @@ type ChatSidebarProps = {
 	isReconnecting: boolean
 }
 
-export default function ChatSidebar({ channels, activeChannelId, onChannelSelect, isConnected, isReconnecting }: ChatSidebarProps) {
+export default function ChatSidebar({ channels, activeChannelId, onChannelSelect, isConnected }: ChatSidebarProps) {
 	const user = useUser()
 	const [searchQuery, setSearchQuery] = useState('')
 	const [activeTab, setActiveTab] = useState<'channels' | 'users'>('channels')
@@ -51,7 +51,7 @@ export default function ChatSidebar({ channels, activeChannelId, onChannelSelect
 
 	// Fechar menu de status quando clicar fora
 	useEffect(() => {
-		function handleClickOutside(event: MouseEvent) {
+		function handleClickOutside() {
 			if (showStatusMenu) {
 				setShowStatusMenu(false)
 			}
@@ -72,10 +72,11 @@ export default function ChatSidebar({ channels, activeChannelId, onChannelSelect
 					console.log('🔵 [ChatSidebar] Carregando usuários...')
 					const response = await fetch('/api/users')
 					if (response.ok) {
-						const usersData = await response.json()
+						const result = await response.json()
+						const usersData = result.data?.items || []
 						console.log('✅ [ChatSidebar] Usuários carregados:', usersData.length)
 						setUsers(
-							usersData.map((u: any) => ({
+							usersData.map((u: { id: string; name: string; email: string; image?: string; groupId: string | null; isActive: boolean; lastSeen?: string }) => ({
 								id: u.id,
 								name: u.name,
 								email: u.email,
@@ -108,15 +109,6 @@ export default function ChatSidebar({ channels, activeChannelId, onChannelSelect
 			chatUser.id !== user.id && // Excluir usuário atual
 			(chatUser.name?.toLowerCase().includes(searchQuery.toLowerCase()) || chatUser.email?.toLowerCase().includes(searchQuery.toLowerCase())),
 	)
-
-	// Status de conexão
-	const getConnectionStatus = () => {
-		if (isReconnecting) return { text: 'Reconectando...', color: 'text-amber-500' }
-		if (isConnected) return { text: 'Online', color: 'text-green-500' }
-		return { text: 'Offline', color: 'text-red-500' }
-	}
-
-	const connectionStatus = getConnectionStatus()
 
 	// Alterar status do usuário
 	const handleStatusChange = async (newStatus: 'online' | 'away' | 'busy' | 'offline') => {
@@ -188,7 +180,7 @@ export default function ChatSidebar({ channels, activeChannelId, onChannelSelect
 									{ key: 'busy', label: 'Ocupado', color: 'bg-red-400', icon: 'icon-[lucide--minus-circle]' },
 									{ key: 'offline', label: 'Offline', color: 'bg-gray-400', icon: 'icon-[lucide--x-circle]' },
 								].map((status) => (
-									<button key={status.key} onClick={() => handleStatusChange(status.key as any)} className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors ${currentStatus === status.key ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
+									<button key={status.key} onClick={() => handleStatusChange(status.key as 'online' | 'away' | 'busy' | 'offline')} className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors ${currentStatus === status.key ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
 										<div className={`w-3 h-3 rounded-full ${status.color}`} />
 										<span className='text-sm text-zinc-900 dark:text-white'>{status.label}</span>
 										{currentStatus === status.key && <span className='icon-[lucide--check] w-4 h-4 text-blue-500 ml-auto' />}

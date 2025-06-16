@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, boolean, unique } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, timestamp, boolean, unique, index } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 // Grupos de usuários (categorias para futuro chat)
@@ -16,13 +16,39 @@ export const group = pgTable('group', {
 })
 export type Group = typeof group.$inferSelect
 
+// Relacionamento Many-to-Many entre Usuários e Grupos
+export const userGroup = pgTable(
+	'user_group',
+	{
+		id: text('id')
+			.primaryKey()
+			.default(sql`gen_random_uuid()`),
+		userId: text('user_id')
+			.notNull()
+			.references(() => authUser.id, { onDelete: 'cascade' }),
+		groupId: text('group_id')
+			.notNull()
+			.references(() => group.id, { onDelete: 'cascade' }),
+		role: text('role').notNull().default('member'), // 'member' | 'admin' | 'owner'
+		joinedAt: timestamp('joined_at').notNull().defaultNow(),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+	},
+	(table) => ({
+		// Constraint único para evitar usuário duplicado no mesmo grupo
+		uniqueUserGroup: unique('unique_user_group').on(table.userId, table.groupId),
+		// Índices para performance
+		userIdIdx: index('idx_user_group_user_id').on(table.userId),
+		groupIdIdx: index('idx_user_group_group_id').on(table.groupId),
+	}),
+)
+export type UserGroup = typeof userGroup.$inferSelect
+
 export const authUser = pgTable('auth_user', {
 	id: text('id').primaryKey(),
 	name: text('name').notNull(),
 	email: text('email').notNull().unique(),
 	emailVerified: boolean('email_verified').notNull().default(false),
 	password: text('password').notNull(),
-	groupId: text('group_id').references(() => group.id), // referência ao grupo (será obrigatório após migration)
 	isActive: boolean('is_active').notNull().default(true), // status do usuário no sistema
 	lastLogin: timestamp('last_login'), // último acesso do usuário
 	createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -248,6 +274,7 @@ export const chatChannel = pgTable('chat_channel', {
 	name: text('name').notNull(),
 	description: text('description'),
 	type: text('type').notNull(), // 'group' | 'direct'
+	groupId: text('group_id').references(() => group.id), // Canal baseado em grupo (null para DMs)
 	icon: text('icon'),
 	color: text('color'),
 	isActive: boolean('is_active').notNull().default(true),

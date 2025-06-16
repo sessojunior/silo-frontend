@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { authUser, group } from '@/lib/db/schema'
-import { eq, desc, ilike, and, not } from 'drizzle-orm'
+import { authUser, group, userGroup } from '@/lib/db/schema'
+import { eq, desc, ilike, and, not, inArray } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import bcrypt from 'bcryptjs'
 
@@ -28,38 +28,77 @@ export async function GET(request: NextRequest) {
 			conditions.push(eq(authUser.isActive, false))
 		}
 
+		// Se filtro por grupo específico, buscar apenas usuários desse grupo
+		let userIdsInGroup: string[] = []
 		if (groupId) {
-			conditions.push(eq(authUser.groupId, groupId))
+			const usersInGroup = await db.select({ userId: userGroup.userId }).from(userGroup).where(eq(userGroup.groupId, groupId))
+
+			userIdsInGroup = usersInGroup.map((u) => u.userId)
+
+			if (userIdsInGroup.length > 0) {
+				conditions.push(inArray(authUser.id, userIdsInGroup))
+			} else {
+				// Se grupo não tem usuários, retornar array vazio
+				return NextResponse.json({
+					success: true,
+					data: {
+						items: [],
+						total: 0,
+					},
+				})
+			}
 		}
 
-		// Buscar usuários com informações do grupo
+		// Buscar usuários
 		const users = await db
 			.select({
 				id: authUser.id,
 				name: authUser.name,
 				email: authUser.email,
 				emailVerified: authUser.emailVerified,
-				groupId: authUser.groupId,
 				isActive: authUser.isActive,
 				lastLogin: authUser.lastLogin,
 				createdAt: authUser.createdAt,
-				// Informações do grupo
-				groupName: group.name,
-				groupIcon: group.icon,
-				groupColor: group.color,
 			})
 			.from(authUser)
-			.leftJoin(group, eq(authUser.groupId, group.id))
 			.where(conditions.length > 0 ? and(...conditions) : undefined)
 			.orderBy(desc(authUser.createdAt))
 
-		console.log('✅ Usuários carregados com sucesso:', users.length)
+		// Buscar grupos para cada usuário
+		const usersWithGroups = []
+		for (const user of users) {
+			const userGroups = await db
+				.select({
+					groupId: group.id,
+					groupName: group.name,
+					groupIcon: group.icon,
+					groupColor: group.color,
+					role: userGroup.role,
+				})
+				.from(userGroup)
+				.innerJoin(group, eq(group.id, userGroup.groupId))
+				.where(eq(userGroup.userId, user.id))
+
+			// Para compatibilidade com a interface existente, vamos usar o primeiro grupo como groupId
+			const primaryGroup = userGroups[0]
+
+			usersWithGroups.push({
+				...user,
+				groupId: primaryGroup?.groupId || null,
+				groupName: primaryGroup?.groupName || null,
+				groupIcon: primaryGroup?.groupIcon || null,
+				groupColor: primaryGroup?.groupColor || null,
+				groups: userGroups, // Lista completa de grupos
+			})
+		}
+
+		console.log('✅ Usuários carregados com sucesso:', usersWithGroups.length)
 
 		return NextResponse.json({
 			success: true,
 			data: {
-				items: users,
-				total: users.length,
+				items: usersWithGroups,
+				total: usersWithGroups.length,
 			},
 		})
 	} catch (error) {
@@ -159,19 +198,26 @@ export async function POST(request: NextRequest) {
 		const hashedPassword = await bcrypt.hash(password, 10)
 
 		// Criar usuário
+		const userId = randomUUID()
 		const newUser = {
-			id: randomUUID(),
+			id: userId,
 			name: name.trim(),
 			email: email.trim().toLowerCase(),
 			emailVerified: emailVerified || false,
 			password: hashedPassword,
-			groupId,
 			isActive: isActive !== undefined ? isActive : true,
 		}
 
 		await db.insert(authUser).values(newUser)
 
-		console.log('✅ Usuário criado com sucesso:', newUser.id)
+		// Adicionar usuário ao grupo via tabela user_group
+		await db.insert(userGroup).values({
+			userId: userId,
+			groupId: groupId,
+			role: 'member',
+		})
+
+		console.log('✅ Usuário criado com sucesso:', userId)
 
 		// Retornar usuário sem senha
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -179,7 +225,7 @@ export async function POST(request: NextRequest) {
 
 		return NextResponse.json({
 			success: true,
-			data: userWithoutPassword,
+			data: { ...userWithoutPassword, groupId }, // Incluir groupId para compatibilidade
 		})
 	} catch (error) {
 		console.error('❌ Erro ao criar usuário:', error)
@@ -296,14 +342,12 @@ export async function PUT(request: NextRequest) {
 			name: string
 			email: string
 			emailVerified: boolean
-			groupId: string
 			isActive: boolean
 			password?: string
 		} = {
 			name: name.trim(),
 			email: email.trim().toLowerCase(),
 			emailVerified: emailVerified !== undefined ? emailVerified : false,
-			groupId,
 			isActive: isActive !== undefined ? isActive : true,
 		}
 
@@ -315,6 +359,26 @@ export async function PUT(request: NextRequest) {
 		// Atualizar usuário
 		await db.update(authUser).set(updatedData).where(eq(authUser.id, id))
 
+		// Verificar se usuário já está no grupo
+		const existingUserGroup = await db
+			.select()
+			.from(userGroup)
+			.where(and(eq(userGroup.userId, id), eq(userGroup.groupId, groupId)))
+			.limit(1)
+
+		// Se não estiver no grupo, remover de outros grupos e adicionar ao novo
+		if (existingUserGroup.length === 0) {
+			// Remover de outros grupos
+			await db.delete(userGroup).where(eq(userGroup.userId, id))
+
+			// Adicionar ao novo grupo
+			await db.insert(userGroup).values({
+				userId: id,
+				groupId: groupId,
+				role: 'member',
+			})
+		}
+
 		console.log('✅ Usuário atualizado com sucesso:', id)
 
 		// Retornar dados sem senha
@@ -323,7 +387,7 @@ export async function PUT(request: NextRequest) {
 
 		return NextResponse.json({
 			success: true,
-			data: { id, ...responseData },
+			data: { id, ...responseData, groupId },
 		})
 	} catch (error) {
 		console.error('❌ Erro ao atualizar usuário:', error)
@@ -377,6 +441,9 @@ export async function DELETE(request: NextRequest) {
 				email: `deleted_${Date.now()}_${existingUser[0].email}`, // Garantir que email não conflite
 			})
 			.where(eq(authUser.id, id))
+
+		// Remover dos grupos
+		await db.delete(userGroup).where(eq(userGroup.userId, id))
 
 		console.log('✅ Usuário desativado com sucesso:', id)
 

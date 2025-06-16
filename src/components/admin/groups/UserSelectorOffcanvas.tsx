@@ -13,9 +13,17 @@ interface UserSelectorOffcanvasProps {
 	onSuccess: () => void
 }
 
+// Interface para usuário com informações do grupo
+interface UserWithGroup extends AuthUser {
+	groupId?: string // Adicionado para compatibilidade com novo sistema
+	groupName?: string
+	groupIcon?: string
+	groupColor?: string
+}
+
 export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSuccess }: UserSelectorOffcanvasProps) {
-	const [availableUsers, setAvailableUsers] = useState<AuthUser[]>([])
-	const [filteredUsers, setFilteredUsers] = useState<AuthUser[]>([])
+	const [availableUsers, setAvailableUsers] = useState<UserWithGroup[]>([])
+	const [filteredUsers, setFilteredUsers] = useState<UserWithGroup[]>([])
 	const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set())
 	const [loading, setLoading] = useState(false)
 	const [saving, setSaving] = useState(false)
@@ -34,7 +42,7 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 
 			if (data.success) {
 				// Filtrar usuários que não estão no grupo atual
-				const usersNotInGroup = data.data.items.filter((user: AuthUser) => user.groupId !== group.id)
+				const usersNotInGroup = data.data.items.filter((user: UserWithGroup) => user.groupId !== group.id)
 				setAvailableUsers(usersNotInGroup)
 				console.log('✅ Usuários disponíveis carregados:', usersNotInGroup.length)
 			} else {

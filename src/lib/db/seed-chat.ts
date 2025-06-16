@@ -101,7 +101,7 @@ async function seedChat() {
 
 		// Log dos usuários criados
 		insertedUsers.forEach((user) => {
-			console.log(`   - ${user.name} (${user.email}) - Grupo: ${user.groupId ? 'Sim' : 'Não'}`)
+			console.log(`   - ${user.name} (${user.email})`)
 		})
 	} else {
 		console.log('✅ Usuários de teste já existem!')
@@ -152,11 +152,10 @@ async function seedChat() {
 
 		for (const channel of insertedChannels) {
 			for (const user of allUsers) {
-				// Determinar role baseado no grupo
+				// Determinar role baseado no email (temporário)
 				let role = 'member'
-				const userGroup = existingGroups.find((g) => g.id === user.groupId)
 
-				if (user.email === 'sessojunior@gmail.com' || userGroup?.name === 'Administradores') {
+				if (user.email === 'sessojunior@gmail.com') {
 					role = 'admin'
 				}
 

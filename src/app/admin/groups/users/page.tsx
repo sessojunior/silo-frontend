@@ -12,9 +12,17 @@ import { AuthUser, Group } from '@/lib/db/schema'
 
 // Interface para usuário com informações do grupo
 interface UserWithGroup extends AuthUser {
+	groupId?: string // Adicionado para compatibilidade com novo sistema
 	groupName?: string
 	groupIcon?: string
 	groupColor?: string
+	groups?: Array<{
+		groupId: string
+		groupName: string
+		groupIcon: string
+		groupColor: string
+		role: string
+	}>
 }
 
 export default function UsersPage() {

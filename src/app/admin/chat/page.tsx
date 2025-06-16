@@ -4,11 +4,10 @@ import { useState, useEffect } from 'react'
 import { useChat } from '@/context/ChatContext'
 import ChatSidebar from '@/components/admin/chat/ChatSidebar'
 import ChatArea from '@/components/admin/chat/ChatArea'
-import type { ChatChannel } from '@/lib/db/schema'
 
 export default function ChatPage() {
 	// Estado global do chat (temporariamente usando mock)
-	const { isConnected, isConnecting, channels, loadChannels } = useChat()
+	const { isConnected, isConnecting, channels } = useChat()
 
 	// Estado local para responsividade
 	const [showSidebar, setShowSidebar] = useState(true)
@@ -31,17 +30,7 @@ export default function ChatPage() {
 	}, [activeChannelId])
 
 	// SEMPRE usar os canais do contexto (não misturar com mock)
-	const displayChannels: ChatChannel[] = (channels || []).map((ch) => ({
-		id: ch.id,
-		name: ch.name,
-		description: ch.description,
-		type: ch.type,
-		icon: ch.icon,
-		color: ch.color,
-		isActive: true,
-		createdAt: new Date(),
-		updatedAt: new Date(),
-	}))
+	const displayChannels = channels || []
 
 	console.log(
 		'🔵 [ChatPage] Renderizando com canais:',

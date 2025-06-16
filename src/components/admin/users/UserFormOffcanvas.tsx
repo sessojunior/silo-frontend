@@ -10,10 +10,18 @@ import Switch from '@/components/ui/Switch'
 import Button from '@/components/ui/Button'
 import { AuthUser, Group } from '@/lib/db/schema'
 
+// Interface para usuário com informações do grupo
+interface UserWithGroup extends AuthUser {
+	groupId?: string // Adicionado para compatibilidade com novo sistema
+	groupName?: string
+	groupIcon?: string
+	groupColor?: string
+}
+
 interface UserFormOffcanvasProps {
 	isOpen: boolean
 	onClose: () => void
-	user: AuthUser | null
+	user: UserWithGroup | null
 	groups: Group[]
 	onSuccess: () => void
 }

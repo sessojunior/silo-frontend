@@ -5,7 +5,7 @@ import { chatUserStatus } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 
 // GET - Obter status de presença de usuários
-export async function GET(request: NextRequest) {
+export async function GET() {
 	try {
 		const user = await getAuthUser()
 		if (!user) {
@@ -106,34 +106,5 @@ export async function PUT() {
 	} catch (error) {
 		console.log('❌ Erro ao marcar usuário como offline:', error)
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
-	}
-}
-
-// Função auxiliar para formatar "last seen"
-function formatLastSeen(lastSeenAt: Date | null, isOnline: boolean): string {
-	if (isOnline) {
-		return 'Online agora'
-	}
-
-	if (!lastSeenAt) {
-		return 'Último acesso: nunca'
-	}
-
-	const now = new Date()
-	const diffMs = now.getTime() - lastSeenAt.getTime()
-	const diffMinutes = Math.floor(diffMs / (1000 * 60))
-	const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-	if (diffMinutes < 1) {
-		return 'Visto agora mesmo'
-	} else if (diffMinutes < 60) {
-		return `Visto há ${diffMinutes} minuto${diffMinutes > 1 ? 's' : ''}`
-	} else if (diffHours < 24) {
-		return `Visto há ${diffHours} hora${diffHours > 1 ? 's' : ''}`
-	} else if (diffDays < 7) {
-		return `Visto há ${diffDays} dia${diffDays > 1 ? 's' : ''}`
-	} else {
-		return `Visto em ${lastSeenAt.toLocaleDateString('pt-BR')}`
 	}
 }

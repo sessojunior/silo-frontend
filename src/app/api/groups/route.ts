@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { group, authUser } from '@/lib/db/schema'
+import { group, userGroup } from '@/lib/db/schema'
 import { eq, desc, ilike, and, count, sql, not } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 
@@ -273,7 +273,7 @@ export async function DELETE(request: NextRequest) {
 		}
 
 		// Verificar se há usuários no grupo
-		const usersInGroup = await db.select({ count: count() }).from(authUser).where(eq(authUser.groupId, id))
+		const usersInGroup = await db.select({ count: count() }).from(userGroup).where(eq(userGroup.groupId, id))
 
 		if (usersInGroup[0].count > 0) {
 			return NextResponse.json(

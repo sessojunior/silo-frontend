@@ -7,6 +7,7 @@ import MessageBubble from './MessageBubble'
 import type { ChatMessage } from '@/context/ChatContext'
 import Button from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
+import FutureFeatureDialog from '@/components/ui/FutureFeatureDialog'
 
 type ChatAreaProps = {
 	activeChannelId: string | null
@@ -41,6 +42,8 @@ export default function ChatArea({ activeChannelId, onToggleSidebar }: ChatAreaP
 	const [messageText, setMessageText] = useState('')
 	const [isTyping, setIsTyping] = useState(false)
 	const [messageStatuses, setMessageStatuses] = useState<Record<string, { status: 'sent' | 'delivered' | 'read'; readCount: number; totalParticipants: number }>>({})
+	const [showEmojiDialog, setShowEmojiDialog] = useState(false)
+	const [showFileDialog, setShowFileDialog] = useState(false)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const inputRef = useRef<HTMLTextAreaElement>(null)
 	const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -280,8 +283,13 @@ export default function ChatArea({ activeChannelId, onToggleSidebar }: ChatAreaP
 			{/* Input de Mensagem */}
 			<div className='bg-white dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700 p-4'>
 				<div className='flex items-end gap-3'>
+					{/* Botão emoji */}
+					<button onClick={() => setShowEmojiDialog(true)} disabled={!isConnected} className='p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed' title='Emojis'>
+						<span className='icon-[lucide--smile] w-5 h-5' />
+					</button>
+
 					{/* Botão de anexo */}
-					<button disabled={!isConnected} className='p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
+					<button onClick={() => setShowFileDialog(true)} disabled={!isConnected} className='p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed' title='Anexar arquivo'>
 						<span className='icon-[lucide--paperclip] w-5 h-5' />
 					</button>
 
@@ -313,6 +321,11 @@ export default function ChatArea({ activeChannelId, onToggleSidebar }: ChatAreaP
 				{/* Dica de atalho */}
 				<p className='text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center'>Pressione Enter para enviar, Shift+Enter para nova linha</p>
 			</div>
+
+			{/* Dialogs de funcionalidades futuras */}
+			<FutureFeatureDialog open={showEmojiDialog} onClose={() => setShowEmojiDialog(false)} featureName='Seletor de Emojis' description='Um seletor de emojis completo com categorias e busca será implementado em breve. Você poderá adicionar emojis às suas mensagens de forma rápida e intuitiva.' icon='icon-[lucide--smile]' />
+
+			<FutureFeatureDialog open={showFileDialog} onClose={() => setShowFileDialog(false)} featureName='Envio de Arquivos' description='Em breve você poderá enviar arquivos, imagens, documentos e outros tipos de mídia diretamente no chat. O sistema incluirá preview de imagens e controle de upload.' icon='icon-[lucide--paperclip]' />
 		</div>
 	)
 }
