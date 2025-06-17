@@ -1,3 +1,5 @@
+'use client'
+
 import Product from '@/components/admin/dashboard/Product'
 import ChartColumn from '@/components/admin/dashboard/ChartColumn'
 import ChartLine from '@/components/admin/dashboard/ChartLine'

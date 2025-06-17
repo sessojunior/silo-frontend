@@ -48,7 +48,7 @@ export default function KanbanCard({ activity, onEdit, onStatusChange }: KanbanC
 	}
 
 	return (
-		<div ref={setNodeRef} style={style} {...attributes} {...listeners} className={`bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 cursor-grab transition-all duration-200 hover:shadow-md ${isDragging ? 'opacity-50 shadow-lg' : ''}`}>
+		<div ref={setNodeRef} style={style} {...attributes} {...listeners} className={`group bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 cursor-grab transition-all duration-200 hover:shadow-md ${isDragging ? 'opacity-50 shadow-lg' : ''}`}>
 			{/* Header do Card */}
 			<div className='flex items-start justify-between gap-2 mb-3'>
 				<h4 className='font-medium text-zinc-900 dark:text-zinc-100 text-sm leading-tight line-clamp-2'>{activity.name}</h4>

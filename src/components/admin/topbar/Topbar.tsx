@@ -1,7 +1,6 @@
 import TopbarDropdown from '@/components/admin/topbar/TopbarDropdown'
 import TopbarButton from '@/components/admin/topbar/TopbarButton'
 import TopbarDivider from '@/components/admin/topbar/TopbarDivider'
-import TopbarTitle from '@/components/admin/topbar/TopbarTitle'
 import ChatNotificationButton from '@/components/admin/topbar/ChatNotificationButton'
 
 export type AccountLinkProps = {
@@ -13,7 +12,7 @@ export type AccountLinkProps = {
 
 export type AccountProps = AccountLinkProps[]
 
-export default function Topbar({ title }: { title: string }) {
+export default function Topbar() {
 	// Dados da conta para o dropdown da barra do topo
 	const account: AccountProps = [
 		{
@@ -61,8 +60,11 @@ export default function Topbar({ title }: { title: string }) {
 								</TopbarButton>
 							</div>
 
-							{/* Título */}
-							<TopbarTitle>{title ?? <span className='icon-[lucide--loader-circle] shrink-0 animate-spin text-neutral-200'></span>}</TopbarTitle>
+							{/* Título fixo do sistema */}
+							<div className='flex items-center gap-2'>
+								<span className='icon-[lucide--layers] size-5 text-blue-600 dark:text-blue-400' />
+								<h1 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100'>Sistema de gestão de produtos e projetos</h1>
+							</div>
 						</div>
 
 						{/* Botoes, divisoria e dropdown */}

@@ -34,43 +34,98 @@ export default function KanbanColumn({ column, activities, isOverLimit, onEditAc
 	const sortableIds = activities.map((activity) => activity.id)
 
 	return (
-		<div className={`flex flex-col w-48 bg-zinc-50 dark:bg-zinc-800 rounded-lg border-2 transition-all duration-200 ${isOver ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'border-zinc-200 dark:border-zinc-700'} ${isOverLimit ? 'border-red-300 bg-red-50 dark:bg-red-900/10' : ''}`}>
-			{/* Header da Coluna */}
-			<div className='p-4 border-b border-zinc-200 dark:border-zinc-700' style={{ backgroundColor: `${column.color}10` }}>
-				<div className='flex items-center justify-between'>
-					{/* Título + Ícone */}
+		<div className={`flex flex-col w-52 bg-white dark:bg-zinc-900 rounded-xl border-2 transition-all duration-200 shadow-sm hover:shadow-md ${isOver ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20 shadow-blue-100' : 'border-zinc-200 dark:border-zinc-700'} ${isOverLimit ? 'border-red-300 bg-red-50 dark:bg-red-900/10' : ''}`}>
+			{/* Header da Coluna - Redesignado */}
+			<div
+				className='relative p-4 rounded-t-xl'
+				style={{
+					background: `linear-gradient(135deg, ${column.color}20, ${column.color}10)`,
+					borderBottom: `2px solid ${column.color}30`,
+				}}
+			>
+				{/* Título Principal */}
+				<div className='flex items-center justify-between mb-3'>
 					<div className='flex items-center gap-3'>
-						<div className='flex items-center gap-2'>
+						<div className='p-2 rounded-lg' style={{ backgroundColor: `${column.color}20` }}>
 							<span className={`icon-[lucide--${column.icon}] size-5`} style={{ color: column.color }} />
-							<h3 className='font-semibold text-zinc-900 dark:text-zinc-100'>{column.title}</h3>
+						</div>
+						<div>
+							<h3 className='font-bold text-zinc-900 dark:text-zinc-100 text-sm'>{column.title}</h3>
+							<p className='text-xs text-zinc-500 dark:text-zinc-400 mt-0.5'>
+								{activities.length} {activities.length === 1 ? 'atividade' : 'atividades'}
+							</p>
 						</div>
 					</div>
 
-					{/* Contador + Status */}
+					{/* Badge de Status Melhorado */}
 					<div className='flex items-center gap-2'>
-						<span className={`text-sm font-medium px-2 py-1 rounded-full ${isOverLimit ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-white dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300'}`}>
-							{activities.length}
-							{column.rules?.maxCards && `/${column.rules.maxCards}`}
-						</span>
+						<div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${isOverLimit ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-2 ring-red-200' : activities.length === 0 ? 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400' : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 shadow-sm'}`}>
+							<span className='font-semibold'>{activities.length}</span>
+							{column.rules?.maxCards && (
+								<>
+									<span>/</span>
+									<span className='text-zinc-400'>{column.rules.maxCards}</span>
+								</>
+							)}
+						</div>
 
-						{/* Indicador de limite */}
-						{isOverLimit && <span className='icon-[lucide--alert-triangle] size-4 text-red-500' title='Limite de atividades atingido' />}
+						{/* Indicador de limite com animação */}
+						{isOverLimit && (
+							<div className='animate-pulse'>
+								<span className='icon-[lucide--alert-triangle] size-4 text-red-500' title='Limite de atividades atingido' />
+							</div>
+						)}
 					</div>
 				</div>
 
-				{/* Regras da Coluna */}
+				{/* Barra de Progresso Visual */}
+				{column.rules?.maxCards && (
+					<div className='w-full h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden mb-3'>
+						<div
+							className={`h-full transition-all duration-500 ease-out rounded-full ${isOverLimit ? 'bg-red-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'}`}
+							style={{
+								width: `${Math.min((activities.length / column.rules.maxCards) * 100, 100)}%`,
+							}}
+						/>
+					</div>
+				)}
+
+				{/* Regras da Coluna Melhoradas */}
 				{column.rules && (
-					<div className='mt-2 space-y-1'>
+					<div className='space-y-2'>
 						{column.rules.maxCards && (
-							<div className='text-xs text-zinc-500 dark:text-zinc-400'>
-								<span className='icon-[lucide--layers] size-3 inline mr-1' />
-								Limite: {column.rules.maxCards} atividades
+							<div className='flex items-center gap-2 px-2 py-1 bg-white/50 dark:bg-zinc-800/50 rounded-md'>
+								<span className='icon-[lucide--layers] size-3 text-zinc-600 dark:text-zinc-400' />
+								<span className='text-xs text-zinc-600 dark:text-zinc-400'>
+									Limite máximo: <span className='font-medium'>{column.rules.maxCards}</span>
+								</span>
 							</div>
 						)}
 						{column.rules.allowPriorities && (
-							<div className='text-xs text-zinc-500 dark:text-zinc-400'>
-								<span className='icon-[lucide--filter] size-3 inline mr-1' />
-								Prioridades: {column.rules.allowPriorities.map((p) => ({ low: 'baixa', medium: 'média', high: 'alta', urgent: 'urgente' })[p]).join(', ')}
+							<div className='flex items-center gap-2 px-2 py-1 bg-white/50 dark:bg-zinc-800/50 rounded-md'>
+								<span className='icon-[lucide--filter] size-3 text-zinc-600 dark:text-zinc-400' />
+								<span className='text-xs text-zinc-600 dark:text-zinc-400'>
+									Prioridades:{' '}
+									<span className='font-medium'>
+										{column.rules.allowPriorities
+											.map(
+												(p) =>
+													({
+														low: 'baixa',
+														medium: 'média',
+														high: 'alta',
+														urgent: 'urgente',
+													})[p],
+											)
+											.join(', ')}
+									</span>
+								</span>
+							</div>
+						)}
+						{column.rules.blockIfFull && (
+							<div className='flex items-center gap-2 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-md'>
+								<span className='icon-[lucide--lock] size-3 text-amber-600 dark:text-amber-400' />
+								<span className='text-xs text-amber-700 dark:text-amber-400 font-medium'>Bloqueio automático quando cheio</span>
 							</div>
 						)}
 					</div>
@@ -85,25 +140,36 @@ export default function KanbanColumn({ column, activities, isOverLimit, onEditAc
 					))}
 				</SortableContext>
 
-				{/* Zona de Drop Vazia */}
+				{/* Zona de Drop Vazia Melhorada */}
 				{activities.length === 0 && (
-					<div className={`flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-lg transition-colors ${isOver ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'border-zinc-300 dark:border-zinc-600'}`}>
-						<span className={`icon-[lucide--${column.icon}] size-8 mb-2`} style={{ color: isOver ? '#3b82f6' : '#9ca3af' }} />
-						<p className='text-sm text-zinc-500 dark:text-zinc-400 text-center'>{isOver ? 'Solte aqui' : 'Arraste atividades para cá'}</p>
+					<div className={`flex flex-col items-center justify-center h-40 border-2 border-dashed rounded-xl transition-all duration-200 ${isOver ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20' : 'border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500'}`}>
+						<div className={`p-3 rounded-full mb-3 transition-all duration-200 ${isOver ? 'bg-blue-100 dark:bg-blue-800/30' : 'bg-zinc-100 dark:bg-zinc-800'}`}>
+							<span
+								className={`icon-[lucide--${column.icon}] size-6`}
+								style={{
+									color: isOver ? '#3b82f6' : column.color,
+								}}
+							/>
+						</div>
+						<p className='text-sm font-medium text-zinc-600 dark:text-zinc-400 text-center mb-1'>{isOver ? 'Solte a atividade aqui' : 'Nenhuma atividade'}</p>
+						<p className='text-xs text-zinc-500 dark:text-zinc-500 text-center'>{isOver ? 'Será movida para esta coluna' : 'Arraste atividades para cá'}</p>
 					</div>
 				)}
 
-				{/* Zona de Drop com Itens */}
+				{/* Zona de Drop com Itens Melhorada */}
 				{activities.length > 0 && isOver && (
-					<div className='h-8 border-2 border-dashed border-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center'>
-						<span className='text-xs text-blue-600 dark:text-blue-400'>Solte aqui</span>
+					<div className='h-10 border-2 border-dashed border-blue-400 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl flex items-center justify-center shadow-sm'>
+						<div className='flex items-center gap-2'>
+							<span className='icon-[lucide--move] size-4 text-blue-600 dark:text-blue-400' />
+							<span className='text-sm font-medium text-blue-700 dark:text-blue-300'>Solte aqui para mover</span>
+						</div>
 					</div>
 				)}
 			</div>
 
-			{/* Footer com Ações */}
-			<div className='p-3 border-t border-zinc-200 dark:border-zinc-700'>
-				<Button onClick={() => onCreateActivity?.(column.id)} className='w-full flex items-center justify-center gap-2 text-sm py-2' style='bordered'>
+			{/* Footer com Ações Melhorado */}
+			<div className='p-4 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 rounded-b-xl'>
+				<Button onClick={() => onCreateActivity?.(column.id)} className='w-full flex items-center justify-center gap-2 text-sm py-2.5 hover:shadow-sm transition-all duration-200' style='bordered'>
 					<span className='icon-[lucide--plus] size-4' />
 					Nova atividade
 				</Button>

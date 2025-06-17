@@ -8,6 +8,8 @@ import SidebarFooter from '@/components/admin/sidebar/SidebarFooter'
 import SidebarMenu from '@/components/admin/sidebar/SidebarMenu'
 import SidebarBlocks from '@/components/admin/sidebar/SidebarBlocks'
 import type { Product } from '@/lib/db/schema'
+import { mockProjects } from '@/lib/data/projects-mock'
+import type { Project } from '@/types/projects'
 
 export type SidebarMenuProps = {
 	id: string
@@ -31,6 +33,7 @@ export type SidebarProps = {
 export default function Sidebar() {
 	const { isOpenSidebar, closeSidebar } = useSidebar()
 	const [products, setProducts] = useState<Product[]>([])
+	const [projects, setProjects] = useState<Project[]>([])
 
 	// Obter dados dos produtos
 	useEffect(() => {
@@ -43,6 +46,13 @@ export default function Sidebar() {
 		}
 
 		fetchProducts()
+	}, [])
+
+	// Obter dados dos projetos (usando dados mockados)
+	useEffect(() => {
+		// Filtrar apenas projetos ativos e importantes (prioridade alta/urgente)
+		const importantProjects = mockProjects.filter((project) => project.status === 'active' && (project.priority === 'high' || project.priority === 'urgent'))
+		setProjects(importantProjects)
 	}, [])
 
 	// Dados para o menu lateral
@@ -81,7 +91,17 @@ export default function Sidebar() {
 						title: 'Projetos importantes',
 						icon: 'icon-[lucide--square-chart-gantt]',
 						url: '/admin/projects',
-						items: null,
+						items: [
+							...projects
+								.sort((a, b) => a.name.localeCompare(b.name))
+								.map((project) => ({
+									id: project.id,
+									title: project.name,
+									icon: null,
+									url: `/admin/projects/${project.id}`,
+									items: null,
+								})),
+						],
 					},
 					{
 						id: '1.4',
@@ -134,7 +154,7 @@ export default function Sidebar() {
 								id: '2.3.3',
 								title: 'Projetos',
 								icon: null,
-								url: '/admin/settings/projects',
+								url: '/admin/projects',
 								items: null,
 							},
 						],

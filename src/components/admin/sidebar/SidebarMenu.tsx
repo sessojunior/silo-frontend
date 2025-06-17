@@ -85,9 +85,10 @@ function SidebarMenuItem({ item }: { item: SidebarMenuProps }) {
 							${isActive ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-600 dark:text-white' : 'text-zinc-600 hover:bg-zinc-200 dark:text-zinc-200 dark:hover:bg-zinc-700'}
 							transition-all duration-300
 						`}
+						title={item.title} // Tooltip nativo do navegador
 					>
 						{item.icon && <span className={`${item.icon} size-5 shrink-0 text-zinc-500`}></span>}
-						<span>{item.title}</span>
+						<span className='truncate'>{item.title}</span>
 					</NextLink>
 				)
 			)}
