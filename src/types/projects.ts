@@ -42,7 +42,7 @@ export interface Activity {
 	projectId: string
 	name: string
 	description: string
-	status: 'todo' | 'in_progress' | 'review' | 'done' | 'blocked'
+	status: 'todo' | 'todo_doing' | 'todo_done' | 'in_progress' | 'in_progress_doing' | 'in_progress_done' | 'review' | 'review_doing' | 'review_done' | 'done' | 'blocked'
 	priority: 'low' | 'medium' | 'high' | 'urgent'
 	progress: number // 0-100
 	category: string // Sprint, Backlog, etc.

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from '@/lib/toast'
 import { notFound, useParams } from 'next/navigation'
 
-import ProjectDetailsHeader from '@/components/admin/projects/ProjectDetailsHeader'
+import Button from '@/components/ui/Button'
 
 import { Project, Activity } from '@/types/projects'
 import { mockProjects } from '@/lib/data/projects-mock'
@@ -156,15 +156,6 @@ export default function ProjectGanttPage() {
 		return `${diffDays} dia${diffDays !== 1 ? 's' : ''}`
 	}
 
-	function handleEditProject(project: Project) {
-		console.log('🔵 Editando projeto:', project.name)
-		toast({
-			type: 'info',
-			title: 'Em desenvolvimento',
-			description: 'Edição será implementada na próxima etapa',
-		})
-	}
-
 	if (loading) {
 		return (
 			<div className='flex items-center justify-center min-h-[400px] w-full'>
@@ -180,40 +171,61 @@ export default function ProjectGanttPage() {
 
 	return (
 		<div className='w-full'>
-			{/* Header do Projeto */}
-			<ProjectDetailsHeader project={project} onEdit={handleEditProject} />
-
-			{/* Conteúdo Principal */}
-			<div className='p-6'>
-				<div className='max-w-7xl mx-auto space-y-6'>
-					{/* Controles do Gantt */}
-					<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
-						<div className='flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between'>
-							<div>
-								<h2 className='text-xl font-bold text-zinc-900 dark:text-zinc-100'>Gantt do Projeto</h2>
-								<p className='text-zinc-600 dark:text-zinc-400'>
-									{filteredActivities.length} de {project.activities.length} atividade{project.activities.length !== 1 ? 's' : ''}
-								</p>
+			{/* Header do Projeto Customizado para Gantt */}
+			<div className='w-full p-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900'>
+				<div className='flex flex-col lg:flex-row lg:items-center justify-between gap-4'>
+					{/* Informações do Projeto */}
+					<div className='flex items-center gap-4 min-w-0 flex-1'>
+						{/* Detalhes */}
+						<div className='min-w-0 flex-1'>
+							<div className='flex items-center gap-3 mb-2'>
+								<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Gantt de {project.name}</h1>
+								<span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${project.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : project.status === 'paused' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' : project.status === 'completed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200'}`}>{project.status === 'active' ? '🟢 Ativo' : project.status === 'paused' ? '⏸️ Pausado' : project.status === 'completed' ? '✅ Concluído' : '⭕ Planejamento'}</span>
 							</div>
-
-							{/* Controles de Zoom */}
-							<div className='flex items-center gap-2'>
-								<span className='text-sm text-zinc-500 dark:text-zinc-400'>Visualizar por:</span>
-								<div className='flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1'>
-									<button onClick={() => setZoomLevel('days')} className={`px-3 py-1 text-sm rounded-md transition-colors ${zoomLevel === 'days' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'}`}>
-										Dias
-									</button>
-									<button onClick={() => setZoomLevel('weeks')} className={`px-3 py-1 text-sm rounded-md transition-colors ${zoomLevel === 'weeks' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'}`}>
-										Semanas
-									</button>
-									<button onClick={() => setZoomLevel('months')} className={`px-3 py-1 text-sm rounded-md transition-colors ${zoomLevel === 'months' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'}`}>
-										Meses
-									</button>
-								</div>
-							</div>
+							<p className='text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed'>{project.description}</p>
 						</div>
 					</div>
 
+					{/* Ações - Botões que estavam no Gantt */}
+					<div className='flex items-center gap-3 flex-shrink-0'>
+						{/* Botão Nova Atividade */}
+						<Button
+							onClick={() => {
+								console.log('🔵 Abrindo formulário de nova atividade no Gantt')
+								toast({
+									type: 'info',
+									title: 'Em desenvolvimento',
+									description: 'Formulário de atividades será implementado na próxima etapa',
+								})
+							}}
+							className='flex items-center gap-2'
+						>
+							<span className='icon-[lucide--plus] size-4' />
+							<span className='hidden sm:inline'>Nova atividade</span>
+						</Button>
+
+						{/* Controles de Zoom */}
+						<div className='flex items-center gap-2'>
+							<span className='text-sm text-zinc-500 dark:text-zinc-400 hidden lg:inline'>Visualizar por:</span>
+							<div className='flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1'>
+								<button onClick={() => setZoomLevel('days')} className={`px-3 py-1 text-sm rounded-md transition-colors ${zoomLevel === 'days' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'}`}>
+									Dias
+								</button>
+								<button onClick={() => setZoomLevel('weeks')} className={`px-3 py-1 text-sm rounded-md transition-colors ${zoomLevel === 'weeks' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'}`}>
+									Semanas
+								</button>
+								<button onClick={() => setZoomLevel('months')} className={`px-3 py-1 text-sm rounded-md transition-colors ${zoomLevel === 'months' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'}`}>
+									Meses
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Conteúdo Principal */}
+			<div className='p-6'>
+				<div className='w-full space-y-6'>
 					{/* Diagrama de Gantt */}
 					{filteredActivities.length === 0 ? (
 						<div className='text-center py-12'>

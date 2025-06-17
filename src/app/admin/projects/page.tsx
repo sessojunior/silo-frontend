@@ -5,28 +5,17 @@ import { useRouter } from 'next/navigation'
 import { toast } from '@/lib/toast'
 
 import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
-import Select from '@/components/ui/Select'
 import ProjectStatsCards from '@/components/admin/projects/ProjectStatsCards'
-import ProjectMainRow from '@/components/admin/projects/ProjectMainRow'
-import ProjectActivitiesSection from '@/components/admin/projects/ProjectActivitiesSection'
 import ProjectFormOffcanvas from '@/components/admin/projects/ProjectFormOffcanvas'
 import ProjectDeleteDialog from '@/components/admin/projects/ProjectDeleteDialog'
 
-import { Project, ProjectStatusFilter, ProjectPriorityFilter } from '@/types/projects'
+import { Project } from '@/types/projects'
 import { mockProjects } from '@/lib/data/projects-mock'
 
 export default function ProjectsPage() {
 	const router = useRouter()
 	const [projects, setProjects] = useState<Project[]>([])
-	const [filteredProjects, setFilteredProjects] = useState<Project[]>([])
 	const [loading, setLoading] = useState(true)
-	const [search, setSearch] = useState('')
-	const [statusFilter, setStatusFilter] = useState<ProjectStatusFilter>('all')
-	const [priorityFilter, setPriorityFilter] = useState<ProjectPriorityFilter>('all')
-
-	// Estados para expansão dos projetos
-	const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set())
 
 	// Estados para formulários e dialogs
 	const [formOpen, setFormOpen] = useState(false)
@@ -38,28 +27,6 @@ export default function ProjectsPage() {
 	useEffect(() => {
 		fetchProjects()
 	}, [])
-
-	// Filtrar projetos
-	useEffect(() => {
-		let filtered = projects
-
-		// Filtro de busca
-		if (search) {
-			filtered = filtered.filter((project) => project.name.toLowerCase().includes(search.toLowerCase()) || (project.description && project.description.toLowerCase().includes(search.toLowerCase())))
-		}
-
-		// Filtro de status
-		if (statusFilter !== 'all') {
-			filtered = filtered.filter((project) => project.status === statusFilter)
-		}
-
-		// Filtro de prioridade
-		if (priorityFilter !== 'all') {
-			filtered = filtered.filter((project) => project.priority === priorityFilter)
-		}
-
-		setFilteredProjects(filtered)
-	}, [projects, search, statusFilter, priorityFilter])
 
 	async function fetchProjects() {
 		try {
@@ -89,7 +56,8 @@ export default function ProjectsPage() {
 		setFormOpen(true)
 	}
 
-	function openEditForm(project: Project) {
+	function openEditForm(project: Project, event: React.MouseEvent) {
+		event.stopPropagation() // Evitar abrir página de detalhes
 		console.log('🔵 Abrindo formulário de edição para:', project.name)
 		setEditingProject(project)
 		setFormOpen(true)
@@ -111,24 +79,9 @@ export default function ProjectsPage() {
 		setProjectToDelete(null)
 	}
 
-	function handleViewDetails(projectId: string) {
+	function handleProjectClick(projectId: string) {
 		console.log('🔵 Redirecionando para detalhes do projeto:', projectId)
-		// Navegar para a página de detalhes do projeto usando Next.js router
 		router.push(`/admin/projects/${projectId}`)
-	}
-
-	function toggleProjectExpansion(projectId: string) {
-		setExpandedProjects((prev) => {
-			const newSet = new Set(prev)
-			if (newSet.has(projectId)) {
-				newSet.delete(projectId)
-				console.log('🔵 Colapsando projeto:', projectId)
-			} else {
-				newSet.add(projectId)
-				console.log('🔵 Expandindo projeto:', projectId)
-			}
-			return newSet
-		})
 	}
 
 	// Funções CRUD para projetos
@@ -172,16 +125,7 @@ export default function ProjectsPage() {
 	async function handleProjectDelete(projectId: string) {
 		try {
 			console.log('🔵 Excluindo projeto:', projectId)
-
 			setProjects((prev) => prev.filter((p) => p.id !== projectId))
-
-			// Remover da lista de expandidos se estiver expandido
-			setExpandedProjects((prev) => {
-				const newSet = new Set(prev)
-				newSet.delete(projectId)
-				return newSet
-			})
-
 			console.log('✅ Projeto excluído com sucesso')
 		} catch (error) {
 			console.error('❌ Erro ao excluir projeto:', error)
@@ -189,119 +133,128 @@ export default function ProjectsPage() {
 		}
 	}
 
+	// Função para status badge
+	const getStatusBadge = (status: Project['status']) => {
+		const statusStyles = {
+			active: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+			completed: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+			paused: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+			cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+		}
+
+		const statusLabels = {
+			active: '🟢 Ativo',
+			completed: '🔵 Finalizado',
+			paused: '🟡 Pausado',
+			cancelled: '🔴 Cancelado',
+		}
+
+		return <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusStyles[status]}`}>{statusLabels[status]}</span>
+	}
+
 	return (
 		<>
-			<div className='max-w-7xl mx-auto space-y-6 p-6'>
-				{/* Ações e Filtros */}
-				<div className='flex flex-col gap-4'>
-					{/* Linha superior: Busca e Botão */}
-					<div className='flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center'>
-						{/* Busca */}
-						<div className='relative flex-1 max-w-md w-full sm:w-auto'>
-							<Input type='text' placeholder='Buscar projetos...' value={search} setValue={setSearch} className='pl-10' />
-							<span className='icon-[lucide--search] absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
-						</div>
-
-						{/* Botão Criar */}
-						<Button onClick={openCreateForm} className='flex items-center gap-2 w-full sm:w-auto'>
-							<span className='icon-[lucide--plus] size-4' />
-							Novo projeto
-						</Button>
+			{/* Cabeçalho da Página de Projetos */}
+			<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
+				<div className='flex items-center justify-between'>
+					<div>
+						<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Projetos</h1>
+						<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Gerencie seus projetos e acompanhe o progresso</p>
 					</div>
-
-					{/* Linha inferior: Filtros */}
-					<div className='flex flex-col sm:flex-row gap-3'>
-						{/* Filtro de Status */}
-						<div className='flex-1 sm:flex-initial sm:min-w-48'>
-							<Select
-								name='statusFilter'
-								selected={statusFilter}
-								onChange={(value) => setStatusFilter(value as ProjectStatusFilter)}
-								options={[
-									{ value: 'all', label: 'Todos os status' },
-									{ value: 'active', label: 'Projetos ativos' },
-									{ value: 'completed', label: 'Finalizados' },
-									{ value: 'paused', label: 'Pausados' },
-									{ value: 'cancelled', label: 'Cancelados' },
-								]}
-								placeholder='Filtrar por status'
-							/>
-						</div>
-
-						{/* Filtro de Prioridade */}
-						<div className='flex-1 sm:flex-initial sm:min-w-48'>
-							<Select
-								name='priorityFilter'
-								selected={priorityFilter}
-								onChange={(value) => setPriorityFilter(value as ProjectPriorityFilter)}
-								options={[
-									{ value: 'all', label: 'Todas prioridades' },
-									{ value: 'urgent', label: 'Urgente' },
-									{ value: 'high', label: 'Alta' },
-									{ value: 'medium', label: 'Média' },
-									{ value: 'low', label: 'Baixa' },
-								]}
-								placeholder='Filtrar por prioridade'
-							/>
-						</div>
-					</div>
+					<Button onClick={openCreateForm} className='flex items-center gap-2'>
+						<span className='icon-[lucide--plus] size-4' />
+						Novo projeto
+					</Button>
 				</div>
+			</div>
 
-				{/* Cards de Estatísticas */}
-				<ProjectStatsCards projects={projects} />
+			{/* Conteúdo da Página */}
+			<div className='p-6'>
+				<div className='max-w-7xl mx-auto space-y-6'>
+					<ProjectStatsCards projects={projects} />
 
-				{/* Lista Expansível de Projetos */}
-				<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden'>
-					{loading ? (
-						<div className='flex items-center justify-center py-12'>
-							<span className='icon-[lucide--loader-circle] size-6 animate-spin text-zinc-400' />
-							<span className='ml-3 text-zinc-600 dark:text-zinc-400'>Carregando projetos...</span>
-						</div>
-					) : filteredProjects.length === 0 ? (
-						<div className='text-center py-12'>
-							<span className='icon-[lucide--folder-x] size-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-4 block' />
-							<h3 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>{search || statusFilter !== 'all' || priorityFilter !== 'all' ? 'Nenhum projeto encontrado' : 'Nenhum projeto criado ainda'}</h3>
-							<p className='text-zinc-600 dark:text-zinc-400 mb-4'>{search || statusFilter !== 'all' || priorityFilter !== 'all' ? 'Tente ajustar os filtros para encontrar projetos.' : 'Comece criando seu primeiro projeto para organizar as atividades.'}</p>
-							{!search && statusFilter === 'all' && priorityFilter === 'all' && (
+					{/* Lista Simples de Projetos */}
+					<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden'>
+						{loading ? (
+							<div className='flex items-center justify-center py-12'>
+								<span className='icon-[lucide--loader-circle] size-6 animate-spin text-zinc-400' />
+								<span className='ml-3 text-zinc-600 dark:text-zinc-400'>Carregando projetos...</span>
+							</div>
+						) : projects.length === 0 ? (
+							<div className='text-center py-12'>
+								<span className='icon-[lucide--folder-x] size-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-4 block' />
+								<h3 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>Nenhum projeto criado ainda</h3>
+								<p className='text-zinc-600 dark:text-zinc-400 mb-4'>Comece criando seu primeiro projeto para organizar as atividades.</p>
 								<Button onClick={openCreateForm} className='flex items-center gap-2 mx-auto'>
 									<span className='icon-[lucide--plus] size-4' />
 									Criar primeiro projeto
 								</Button>
-							)}
-						</div>
-					) : (
-						<div className='overflow-x-auto'>
-							<table className='w-full min-w-[800px]'>
-								<thead className='bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700'>
-									<tr>
-										<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Projeto</th>
-										<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Status</th>
-										<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider hidden sm:table-cell'>Prioridade</th>
-										<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Progresso</th>
-										<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider hidden md:table-cell'>Datas</th>
-										<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider hidden lg:table-cell'>Membros</th>
-										<th className='px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Ações</th>
-									</tr>
-								</thead>
-								<tbody className='divide-y divide-zinc-200 dark:divide-zinc-700'>
-									{filteredProjects.map((project) => (
-										<React.Fragment key={project.id}>
-											{/* Linha Principal do Projeto */}
-											<ProjectMainRow project={project} isExpanded={expandedProjects.has(project.id)} onToggleExpansion={() => toggleProjectExpansion(project.id)} onEdit={openEditForm} onDelete={openDeleteDialog} onViewDetails={handleViewDetails} />
+							</div>
+						) : (
+							<div className='divide-y divide-zinc-200 dark:divide-zinc-700'>
+								{projects.map((project) => (
+									<div key={project.id} className='p-6 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer group' onClick={() => handleProjectClick(project.id)}>
+										<div className='flex items-center justify-between'>
+											{/* Informações do Projeto */}
+											<div className='flex items-center gap-4 min-w-0 flex-1'>
+												{/* Ícone do Projeto */}
+												<div className='size-12 rounded-lg flex items-center justify-center flex-shrink-0' style={{ backgroundColor: `${project.color}20` }}>
+													<span className={`icon-[lucide--${project.icon}] size-6`} style={{ color: project.color }} />
+												</div>
 
-											{/* Seção de Atividades Expandida */}
-											<ProjectActivitiesSection project={project} isExpanded={expandedProjects.has(project.id)} />
-										</React.Fragment>
-									))}
-								</tbody>
-							</table>
-						</div>
-					)}
+												{/* Detalhes */}
+												<div className='min-w-0 flex-1'>
+													<div className='flex items-center gap-3 mb-2'>
+														<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100 truncate'>{project.name}</h3>
+														{getStatusBadge(project.status)}
+													</div>
+													{project.description && <p className='text-zinc-600 dark:text-zinc-400 truncate'>{project.description}</p>}
+
+													{/* Métricas simples */}
+													<div className='flex items-center gap-6 mt-3 text-sm text-zinc-500 dark:text-zinc-400'>
+														{/* Progresso */}
+														<div className='flex items-center gap-2'>
+															<span>Progresso:</span>
+															<div className='flex items-center gap-2'>
+																<div className='w-20 bg-zinc-200 dark:bg-zinc-700 rounded-full h-2'>
+																	<div className='bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500' style={{ width: `${project.progress}%` }} />
+																</div>
+																<span className='font-medium text-zinc-900 dark:text-zinc-100'>{project.progress}%</span>
+															</div>
+														</div>
+
+														{/* Membros */}
+														<div className='flex items-center gap-2'>
+															<span className='icon-[lucide--users] size-4' />
+															<span>{project.members.length} membros</span>
+														</div>
+
+														{/* Atividades */}
+														<div className='flex items-center gap-2'>
+															<span className='icon-[lucide--check-square] size-4' />
+															<span>{project.activities.length} atividades</span>
+														</div>
+													</div>
+												</div>
+											</div>
+
+											{/* Botão Editar */}
+											<div className='flex-shrink-0'>
+												<Button onClick={(e) => openEditForm(project, e)} className='size-10 p-0 rounded-lg bg-transparent hover:bg-yellow-50 dark:hover:bg-yellow-900/20 opacity-0 group-hover:opacity-100 transition-opacity' title='Editar projeto'>
+													<span className='icon-[lucide--edit] size-5 text-yellow-600 dark:text-yellow-400' />
+												</Button>
+											</div>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
 
 			{/* Formulário de Projeto (Criar/Editar) */}
-			<ProjectFormOffcanvas isOpen={formOpen} onClose={closeForm} project={editingProject} onSubmit={handleProjectSubmit} />
+			<ProjectFormOffcanvas isOpen={formOpen} onClose={closeForm} project={editingProject} onSubmit={handleProjectSubmit} onDelete={openDeleteDialog} />
 
 			{/* Dialog de Exclusão */}
 			<ProjectDeleteDialog isOpen={deleteDialogOpen} onClose={closeDeleteDialog} project={projectToDelete} onConfirm={handleProjectDelete} />

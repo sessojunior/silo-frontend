@@ -154,7 +154,7 @@ export default function HelpPage() {
 	// Se carregando
 	if (loading) {
 		return (
-			<div className='min-h-screen w-full'>
+			<div className='w-full'>
 				<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
 					<h1 className='text-2xl font-bold text-zinc-900 dark:text-white'>Documentação do Sistema</h1>
 					<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Central de ajuda e documentação do Silo</p>

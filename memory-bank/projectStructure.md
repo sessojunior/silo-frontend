@@ -786,7 +786,7 @@ npm run dev          # Servidor desenvolvimento
 
 2. **Padrão de Design Admin Estabelecido**
 
-   - Template `min-h-screen w-full` obrigatório
+   - Template `w-full` obrigatório
    - Páginas `/admin/contacts` e `/admin/settings/products` padronizadas
    - Duplo scroll eliminado, UX modernizada
 

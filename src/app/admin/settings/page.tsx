@@ -591,7 +591,7 @@ export default function SettingsPage() {
 	}
 
 	return (
-		<div className='min-h-screen w-full'>
+		<div className='w-full'>
 			{/* Header */}
 			<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
 				<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Configurações</h1>

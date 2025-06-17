@@ -15,6 +15,7 @@ interface ProjectFormOffcanvasProps {
 	onClose: () => void
 	project?: Project | null
 	onSubmit: (projectData: ProjectFormData) => void
+	onDelete?: (project: Project) => void
 }
 
 interface ProjectFormData {
@@ -28,7 +29,7 @@ interface ProjectFormData {
 	endDate: string
 }
 
-export default function ProjectFormOffcanvas({ isOpen, onClose, project, onSubmit }: ProjectFormOffcanvasProps) {
+export default function ProjectFormOffcanvas({ isOpen, onClose, project, onSubmit, onDelete }: ProjectFormOffcanvasProps) {
 	const [formData, setFormData] = useState<ProjectFormData>({
 		name: '',
 		description: '',
@@ -250,22 +251,41 @@ export default function ProjectFormOffcanvas({ isOpen, onClose, project, onSubmi
 
 				{/* Botões */}
 				<div className='flex gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-700'>
-					<Button type='button' onClick={onClose} style='bordered' className='flex-1' disabled={saving}>
-						Cancelar
-					</Button>
-					<Button type='submit' className='flex-1' disabled={saving}>
-						{saving ? (
-							<>
-								<span className='icon-[lucide--loader-circle] size-4 animate-spin mr-2' />
-								{project ? 'Atualizando...' : 'Criando...'}
-							</>
-						) : (
-							<>
-								<span className={`icon-[lucide--${project ? 'edit' : 'plus'}] size-4 mr-2`} />
-								{project ? 'Atualizar' : 'Criar'} Projeto
-							</>
-						)}
-					</Button>
+					{/* Botão de Exclusão (apenas para edição) */}
+					{project && onDelete && (
+						<Button
+							type='button'
+							onClick={() => {
+								onDelete(project)
+								onClose()
+							}}
+							className='bg-red-600 hover:bg-red-700 text-white'
+							disabled={saving}
+						>
+							<span className='icon-[lucide--trash-2] size-4 mr-2' />
+							Excluir
+						</Button>
+					)}
+
+					{/* Botões Principais */}
+					<div className='flex gap-3 flex-1'>
+						<Button type='button' onClick={onClose} style='bordered' className='flex-1' disabled={saving}>
+							Cancelar
+						</Button>
+						<Button type='submit' className='flex-1' disabled={saving}>
+							{saving ? (
+								<>
+									<span className='icon-[lucide--loader-circle] size-4 animate-spin mr-2' />
+									{project ? 'Atualizando...' : 'Criando...'}
+								</>
+							) : (
+								<>
+									<span className={`icon-[lucide--${project ? 'edit' : 'plus'}] size-4 mr-2`} />
+									{project ? 'Atualizar' : 'Criar'} Projeto
+								</>
+							)}
+						</Button>
+					</div>
 				</div>
 			</form>
 		</Offcanvas>

@@ -23,9 +23,10 @@ interface KanbanColumnProps {
 	isOverLimit: boolean
 	onEditActivity: (activity: Activity) => void
 	onStatusChange: (activityId: string, newStatus: Activity['status']) => void
+	onCreateActivity?: (status: Activity['status']) => void
 }
 
-export default function KanbanColumn({ column, activities, isOverLimit, onEditActivity, onStatusChange }: KanbanColumnProps) {
+export default function KanbanColumn({ column, activities, isOverLimit, onEditActivity, onStatusChange, onCreateActivity }: KanbanColumnProps) {
 	const { setNodeRef, isOver } = useDroppable({
 		id: `column-${column.id}`,
 	})
@@ -33,7 +34,7 @@ export default function KanbanColumn({ column, activities, isOverLimit, onEditAc
 	const sortableIds = activities.map((activity) => activity.id)
 
 	return (
-		<div className={`flex flex-col w-80 bg-zinc-50 dark:bg-zinc-800 rounded-lg border-2 transition-all duration-200 ${isOver ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'border-zinc-200 dark:border-zinc-700'} ${isOverLimit ? 'border-red-300 bg-red-50 dark:bg-red-900/10' : ''}`}>
+		<div className={`flex flex-col w-48 bg-zinc-50 dark:bg-zinc-800 rounded-lg border-2 transition-all duration-200 ${isOver ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'border-zinc-200 dark:border-zinc-700'} ${isOverLimit ? 'border-red-300 bg-red-50 dark:bg-red-900/10' : ''}`}>
 			{/* Header da Coluna */}
 			<div className='p-4 border-b border-zinc-200 dark:border-zinc-700' style={{ backgroundColor: `${column.color}10` }}>
 				<div className='flex items-center justify-between'>
@@ -102,7 +103,7 @@ export default function KanbanColumn({ column, activities, isOverLimit, onEditAc
 
 			{/* Footer com Ações */}
 			<div className='p-3 border-t border-zinc-200 dark:border-zinc-700'>
-				<Button className='w-full flex items-center justify-center gap-2 text-sm py-2' style='bordered'>
+				<Button onClick={() => onCreateActivity?.(column.id)} className='w-full flex items-center justify-center gap-2 text-sm py-2' style='bordered'>
 					<span className='icon-[lucide--plus] size-4' />
 					Nova atividade
 				</Button>

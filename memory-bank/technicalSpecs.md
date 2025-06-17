@@ -366,7 +366,7 @@ import { AccountProps } from '@/components/admin/topbar/Topbar'
 **REGRA CRÍTICA**: Todas as páginas admin DEVEM seguir este padrão exato:
 
 ```typescript
-<div className='min-h-screen w-full'>
+<div className='w-full'>
   {/* Cabeçalho fixo */}
   <div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
     <h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>
@@ -411,7 +411,7 @@ import { AccountProps } from '@/components/admin/topbar/Topbar'
 
 **🚨 REGRAS CRÍTICAS**:
 
-- ✅ **SEMPRE usar**: `min-h-screen w-full` para container principal
+- ✅ **SEMPRE usar**: `w-full` para container principal
 - ❌ **NUNCA usar**: `h-screen overflow-hidden` com `flex-1 overflow-auto`
 - ✅ **Scroll natural**: Deixar o browser gerenciar o scroll
 - ✅ **Responsividade**: Mobile-first com breakpoints consistentes

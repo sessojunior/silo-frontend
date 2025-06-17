@@ -78,7 +78,7 @@ export default function Sidebar() {
 					},
 					{
 						id: '1.3',
-						title: 'Projetos',
+						title: 'Projetos importantes',
 						icon: 'icon-[lucide--square-chart-gantt]',
 						url: '/admin/projects',
 						items: null,

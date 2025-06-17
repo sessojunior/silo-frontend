@@ -32,8 +32,14 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 	const getStatusCircle = (status: Activity['status']) => {
 		const statusStyles = {
 			todo: 'bg-zinc-200 dark:bg-zinc-700',
+			todo_doing: 'bg-orange-400',
+			todo_done: 'bg-green-400',
 			in_progress: 'bg-blue-500',
+			in_progress_doing: 'bg-blue-400',
+			in_progress_done: 'bg-blue-600',
 			review: 'bg-yellow-500',
+			review_doing: 'bg-yellow-400',
+			review_done: 'bg-yellow-600',
 			done: 'bg-green-500',
 			blocked: 'bg-red-500',
 		}

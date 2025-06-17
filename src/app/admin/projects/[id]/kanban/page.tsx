@@ -4,8 +4,10 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from '@/lib/toast'
 import { notFound, useParams } from 'next/navigation'
 
-import ProjectDetailsHeader from '@/components/admin/projects/ProjectDetailsHeader'
 import KanbanBoard from '@/components/admin/projects/KanbanBoard'
+import ActivityFormOffcanvas from '@/components/admin/projects/ActivityFormOffcanvas'
+import KanbanConfigOffcanvas, { KanbanConfig } from '@/components/admin/projects/KanbanConfigOffcanvas'
+import Button from '@/components/ui/Button'
 
 import { Project, Activity } from '@/types/projects'
 import { mockProjects } from '@/lib/data/projects-mock'
@@ -16,6 +18,12 @@ export default function ProjectKanbanPage() {
 	const [project, setProject] = useState<Project | null>(null)
 	const [activities, setActivities] = useState<Activity[]>([])
 	const [loading, setLoading] = useState(true)
+	const [kanbanConfig, setKanbanConfig] = useState<KanbanConfig | null>(null)
+
+	// Estados dos offcanvas
+	const [activityFormOpen, setActivityFormOpen] = useState(false)
+	const [kanbanConfigOpen, setKanbanConfigOpen] = useState(false)
+	const [editingActivity, setEditingActivity] = useState<Activity | null>(null)
 
 	// Carregar projeto
 	useEffect(() => {
@@ -100,12 +108,99 @@ export default function ProjectKanbanPage() {
 		}, 300)
 	}
 
-	function handleEditProject(project: Project) {
-		console.log('🔵 Editando projeto:', project.name)
+	function handleCreateActivity() {
+		console.log('🔵 Abrindo formulário de nova atividade no Kanban')
+		setEditingActivity(null)
+		setActivityFormOpen(true)
+	}
+
+	function handleEditActivity(activity: Activity) {
+		console.log('🔵 Abrindo formulário de edição da atividade no Kanban:', activity.name)
+		setEditingActivity(activity)
+		setActivityFormOpen(true)
+	}
+
+	function handleConfigureKanban() {
+		console.log('🔵 Abrindo configurações do Kanban')
+		setKanbanConfigOpen(true)
+	}
+
+	// Funções para os offcanvas
+
+	async function handleActivitySubmit(activityData: { name: string; description: string; status: Activity['status']; priority: Activity['priority']; category: string; startDate: string; endDate: string; estimatedHours: string }) {
+		if (!project) return
+
+		try {
+			if (editingActivity) {
+				// Editar atividade existente
+				console.log('🔵 Atualizando atividade no Kanban:', editingActivity.id, activityData)
+
+				const updatedActivity: Activity = {
+					...editingActivity,
+					...activityData,
+					estimatedHours: activityData.estimatedHours ? Number(activityData.estimatedHours) : null,
+					updatedAt: new Date().toISOString(),
+				}
+
+				const updatedActivities = activities.map((a) => (a.id === editingActivity.id ? updatedActivity : a))
+				setActivities(updatedActivities)
+
+				const updatedProject = {
+					...project,
+					activities: updatedActivities,
+				}
+				setProject(updatedProject)
+				console.log('✅ Atividade atualizada com sucesso no Kanban')
+			} else {
+				// Criar nova atividade
+				console.log('🔵 Criando nova atividade no Kanban:', activityData)
+
+				const newActivity: Activity = {
+					id: `activity-${Date.now()}`,
+					projectId: project.id,
+					...activityData,
+					progress: 0,
+					assignees: [],
+					labels: [],
+					estimatedHours: activityData.estimatedHours ? Number(activityData.estimatedHours) : null,
+					actualHours: null,
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				}
+
+				const updatedActivities = [newActivity, ...activities]
+				setActivities(updatedActivities)
+
+				const updatedProject = {
+					...project,
+					activities: updatedActivities,
+				}
+				setProject(updatedProject)
+				console.log('✅ Atividade criada com sucesso no Kanban')
+			}
+		} catch (error) {
+			console.error('❌ Erro ao salvar atividade no Kanban:', error)
+			throw error
+		}
+	}
+
+	function closeActivityForm() {
+		setActivityFormOpen(false)
+		setEditingActivity(null)
+	}
+
+	function closeKanbanConfig() {
+		setKanbanConfigOpen(false)
+	}
+
+	function handleKanbanConfigSave(config: KanbanConfig) {
+		console.log('🔵 Salvando configurações do Kanban:', config)
+		setKanbanConfig(config)
+
 		toast({
-			type: 'info',
-			title: 'Em desenvolvimento',
-			description: 'Edição será implementada na próxima etapa',
+			type: 'success',
+			title: 'Configurações aplicadas',
+			description: 'As configurações do Kanban foram atualizadas com sucesso',
 		})
 	}
 
@@ -123,17 +218,45 @@ export default function ProjectKanbanPage() {
 	if (!project) return null
 
 	return (
-		<div className='w-full'>
-			{/* Header do Projeto */}
-			<ProjectDetailsHeader project={project} onEdit={handleEditProject} />
+		<div className='w-full h-full flex flex-col'>
+			{/* Header do Projeto Customizado para Kanban */}
+			<div className='w-full p-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 flex-shrink-0'>
+				<div className='flex flex-col lg:flex-row lg:items-center justify-between gap-4'>
+					{/* Informações do Projeto */}
+					<div className='flex items-center gap-4 min-w-0 flex-1'>
+						{/* Detalhes */}
+						<div className='min-w-0 flex-1'>
+							<div className='flex items-center gap-3 mb-2'>
+								<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Kanban de {project.name}</h1>
+								<span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${project.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : project.status === 'paused' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' : project.status === 'completed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200'}`}>{project.status === 'active' ? '🟢 Ativo' : project.status === 'paused' ? '⏸️ Pausado' : project.status === 'completed' ? '✅ Concluído' : '⭕ Planejamento'}</span>
+							</div>
+							<p className='text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed'>{project.description}</p>
+						</div>
+					</div>
 
-			{/* Conteúdo Principal */}
-			<div className='p-6'>
-				<div className='max-w-7xl mx-auto space-y-6'>
-					{/* Board Kanban */}
-					<KanbanBoard activities={filteredActivities} onActivityMove={handleActivityMove} />
+					{/* Ações */}
+					<div className='flex items-center gap-2 flex-shrink-0'>
+						<Button onClick={handleConfigureKanban} className='flex items-center gap-2' style='bordered'>
+							<span className='icon-[lucide--settings] size-4' />
+							<span className='hidden sm:inline'>Configurar Kanban</span>
+						</Button>
+					</div>
 				</div>
 			</div>
+
+			{/* Conteúdo Principal com Scroll Horizontal DIRETO - SEM padding que cause scroll vertical */}
+			<div className='flex-1 overflow-x-auto overflow-y-hidden bg-zinc-50 dark:bg-zinc-900'>
+				<div className='min-w-max h-full p-6'>
+					{/* Board Kanban */}
+					<KanbanBoard activities={filteredActivities} project={project} onActivityMove={handleActivityMove} onCreateActivity={handleCreateActivity} onEditActivity={handleEditActivity} onConfigureKanban={handleConfigureKanban} />
+				</div>
+			</div>
+
+			{/* Offcanvas para criar/editar atividade */}
+			{project && <ActivityFormOffcanvas isOpen={activityFormOpen} onClose={closeActivityForm} activity={editingActivity} project={project} onSubmit={handleActivitySubmit} />}
+
+			{/* Offcanvas para configurar Kanban */}
+			<KanbanConfigOffcanvas isOpen={kanbanConfigOpen} onClose={closeKanbanConfig} initialConfig={kanbanConfig} onSave={handleKanbanConfigSave} />
 		</div>
 	)
 }

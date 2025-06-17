@@ -43,7 +43,7 @@ Este projeto usa o diretório `/memory-bank` como única fonte de verdade de doc
 - **Performance Otimizada**: 95%+ redução em chamadas de API com queries SQL otimizadas
 - **Refatoração Histórica**: Página de problemas reduzida de 1.506 → 629 linhas (58,2%)
 - **Duplo Scroll Eliminado**: UX melhorada com scroll natural único
-- **Padrão de Design Estabelecido**: Template `min-h-screen w-full` obrigatório
+- **Padrão de Design Estabelecido**: Template `w-full` obrigatório
 
 ## 📁 Estrutura do Projeto
 
@@ -290,7 +290,7 @@ server {
 
 ### Regras Críticas Estabelecidas
 
-- **Layout Admin**: SEMPRE usar `min-h-screen w-full` (NUNCA `h-screen overflow-hidden`)
+- **Layout Admin**: SEMPRE usar `w-full` (NUNCA `h-screen overflow-hidden`)
 - **Imports**: SEMPRE usar alias `@/` para módulos internos
 - **Error Handling**: Padrão `{ success: boolean, error?: string }`
 - **Logs**: Apenas ✅❌⚠️ℹ️ (4 emojis padronizados)

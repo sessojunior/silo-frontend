@@ -212,7 +212,7 @@ Conteúdo abrangente sobre:
 **PADRÃO DE DESIGN ESTABELECIDO**:
 
 ```typescript
-<div className='min-h-screen w-full'>
+<div className='w-full'>
   {/* Cabeçalho fixo */}
   <div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
     <h1>Título da Página</h1>
