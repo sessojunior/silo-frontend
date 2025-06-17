@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from '@/lib/toast'
 
 import Button from '@/components/ui/Button'
@@ -16,6 +17,7 @@ import { Project, ProjectStatusFilter, ProjectPriorityFilter } from '@/types/pro
 import { mockProjects } from '@/lib/data/projects-mock'
 
 export default function ProjectsPage() {
+	const router = useRouter()
 	const [projects, setProjects] = useState<Project[]>([])
 	const [filteredProjects, setFilteredProjects] = useState<Project[]>([])
 	const [loading, setLoading] = useState(true)
@@ -111,12 +113,8 @@ export default function ProjectsPage() {
 
 	function handleViewDetails(projectId: string) {
 		console.log('🔵 Redirecionando para detalhes do projeto:', projectId)
-		// TODO: Implementar navegação para /admin/projects/[id]
-		toast({
-			type: 'info',
-			title: 'Em desenvolvimento',
-			description: 'Página de detalhes será implementada na próxima etapa',
-		})
+		// Navegar para a página de detalhes do projeto usando Next.js router
+		router.push(`/admin/projects/${projectId}`)
 	}
 
 	function toggleProjectExpansion(projectId: string) {

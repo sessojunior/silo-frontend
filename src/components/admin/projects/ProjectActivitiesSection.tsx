@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Project, Activity } from '@/types/projects'
 import Button from '@/components/ui/Button'
 
@@ -10,6 +11,7 @@ interface ProjectActivitiesSectionProps {
 }
 
 export default function ProjectActivitiesSection({ project, isExpanded }: ProjectActivitiesSectionProps) {
+	const router = useRouter()
 	const [activities, setActivities] = useState<Activity[]>([])
 	const [loading, setLoading] = useState(false)
 
@@ -71,7 +73,8 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 
 	const handleViewDetails = () => {
 		console.log('🔵 Redirecionando para detalhes do projeto:', project.id)
-		// TODO: Implementar navegação para página de detalhes
+		// Navegar para a página de detalhes do projeto usando Next.js router
+		router.push(`/admin/projects/${project.id}`)
 	}
 
 	const handleCreateActivity = () => {
