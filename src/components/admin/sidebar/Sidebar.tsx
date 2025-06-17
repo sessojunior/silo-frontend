@@ -78,10 +78,10 @@ export default function Sidebar() {
 					},
 					{
 						id: '1.3',
-						title: 'Projetos importantes',
+						title: 'Projetos',
 						icon: 'icon-[lucide--square-chart-gantt]',
-						url: '#',
-						items: [],
+						url: '/admin/projects',
+						items: null,
 					},
 					{
 						id: '1.4',
