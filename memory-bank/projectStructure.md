@@ -26,6 +26,29 @@ src/
 │   │   │   │       ├── SolutionFormModal.tsx            # ✅ NOVO (193 linhas)
 │   │   │   │       └── DeleteSolutionDialog.tsx         # ✅ NOVO (57 linhas)
 │   │   │   └── create/           # Criação de produtos
+│   │   ├── projects/             # ✅ SISTEMA DE PROJETOS COMPLETO
+│   │   │   ├── layout.tsx        # ✅ Layout com ProductTabs (Projetos/Membros)
+│   │   │   ├── page.tsx          # ✅ Lista projetos com CRUD completo
+│   │   │   ├── members/
+│   │   │   │   └── page.tsx      # ✅ Gestão membros many-to-many
+│   │   │   └── [id]/             # 🚀 NOVA ESTRUTURA - PÁGINA DETALHES (SEMANA 5)
+│   │   │       ├── layout.tsx    # 🔄 PLANEJADO - Layout com ProductTabs (Quadro/Gantt/Kanban)
+│   │   │       ├── page.tsx      # 🔄 PLANEJADO - Quadro Principal (padrão)
+│   │   │       ├── gantt/
+│   │   │       │   └── page.tsx  # 🔄 PLANEJADO - Página Gantt
+│   │   │       ├── kanban/
+│   │   │       │   └── page.tsx  # 🔄 PLANEJADO - Página Kanban
+│   │   │       └── components/   # 🔄 PLANEJADO - Componentes específicos
+│   │   │           ├── ProjectDetailsHeader.tsx   # Header com info projeto
+│   │   │           ├── ActivityCard.tsx          # Card atividade Quadro
+│   │   │           ├── ActivityFilters.tsx       # Filtros avançados
+│   │   │           ├── GanttChart.tsx            # Componente Gantt
+│   │   │           ├── GanttTimeline.tsx         # Timeline Gantt
+│   │   │           ├── KanbanBoard.tsx           # Board principal Kanban
+│   │   │           ├── KanbanColumn.tsx          # Coluna configurável
+│   │   │           ├── KanbanCard.tsx            # Card draggável @dnd-kit
+│   │   │           ├── ColumnConfigDialog.tsx    # Configuração colunas
+│   │   │           └── WipLimitWarning.tsx       # Aviso limite WIP
 │   │   ├── knowledge-base/       # Base de conhecimento
 │   │   ├── help/                 # ✅ NOVO - Sistema de ajuda
 │   │   │   └── page.tsx          # ✅ Sistema de ajuda com interface dual
