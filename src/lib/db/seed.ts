@@ -611,6 +611,137 @@ O WRF (Weather Research and Forecasting) é um modelo atmosférico de mesoescala
 	},
 ]
 
+// Documentação de Ajuda do Sistema
+const helpDocumentation = `# Sistema Silo - Documentação
+
+Bem-vindo ao **Sistema Silo**, a plataforma de gestão de produtos meteorológicos do CPTEC/INPE. Este sistema foi desenvolvido para facilitar o gerenciamento, monitoramento e análise de modelos meteorológicos utilizados na pesquisa e operação do Instituto Nacional de Pesquisas Espaciais.
+
+## Visão Geral
+
+O Sistema Silo oferece uma interface moderna e intuitiva para:
+
+- **Gestão de Produtos Meteorológicos**: Controle completo dos modelos BAM, SMEC, BRAMS e WRF
+- **Sistema de Chat em Tempo Real**: Comunicação instantânea entre equipes
+- **Gerenciamento de Usuários e Grupos**: Controle de acesso baseado em papéis
+- **Base de Conhecimento**: Documentação de problemas e soluções
+- **Monitoramento de Dependências**: Rastreamento de recursos e infraestrutura
+
+## Primeiros Passos
+
+### Acesso ao Sistema
+
+1. **Login**: Acesse o sistema usando suas credenciais institucionais
+2. **Dashboard**: Visualize o painel principal com informações de todos os produtos
+3. **Navegação**: Use o menu lateral para acessar diferentes seções
+
+### Gerenciamento de Produtos
+
+#### Visualização de Produtos
+- Acesse **"Produtos"** no menu principal
+- Visualize cards com informações resumidas de cada modelo
+- Clique em um produto para acessar detalhes completos
+
+#### Gerenciamento de Problemas
+- Dentro de cada produto, acesse a aba **"Problemas"**
+- Registre novos problemas encontrados durante operações
+- Adicione soluções e marque como resolvidas
+- Anexe imagens e arquivos quando necessário
+
+#### Base de Conhecimento
+- Consulte o manual específico de cada produto
+- Visualize dependências hierárquicas (equipamentos, software, recursos humanos)
+- Gerencie contatos responsáveis por cada área
+
+### Sistema de Chat
+
+#### Canais por Grupos
+O sistema de chat é organizado por grupos funcionais:
+
+- **#administradores**: Canal para gestores do sistema
+- **#meteorologistas**: Discussões técnicas sobre modelos
+- **#pesquisadores**: Colaboração em projetos de pesquisa
+- **#operadores**: Comunicação operacional diária
+- **#suporte**: Canal para solicitações de ajuda
+- **#visitantes**: Área para usuários temporários
+
+#### Funcionalidades do Chat
+- **Mensagens em tempo real** com WebSocket
+- **Upload de arquivos** (imagens, documentos, vídeos)
+- **Emoji picker** com categorias e busca
+- **Status de leitura** estilo WhatsApp (✓✓)
+- **Typing indicators** mostrando quando alguém está digitando
+- **Notificações** integradas na barra superior
+
+### Administração
+
+#### Gerenciamento de Usuários
+- Acesse **"Configurações > Grupos"** para gerenciar usuários
+- Visualize informações por grupo ou lista completa
+- Adicione, edite ou desative usuários conforme necessário
+- Controle permissões através dos grupos
+
+#### Configurações de Sistema
+- **Perfil pessoal**: Atualize informações e foto do perfil
+- **Preferências**: Configure notificações e aparência
+- **Segurança**: Altere senha e configurações de acesso
+
+## Funcionalidades Avançadas
+
+### Monitoramento de Status
+- **Indicadores de conectividade** em tempo real
+- **Status de presença** dos usuários (Online, Ausente, Ocupado, Offline)
+- **Notificações push** para eventos importantes
+
+### Relatórios e Análises
+- **Estatísticas de problemas** por produto
+- **Métricas de resolução** de incidentes
+- **Histórico de atividades** do sistema
+
+### Integração com Infraestrutura
+- **Monitoramento de hosts** e servidores
+- **Verificação de dependências** automática
+- **Alertas de indisponibilidade** de recursos críticos
+
+## Solução de Problemas Comuns
+
+### Problemas de Acesso
+- **Esqueci minha senha**: Use a opção de recuperação na tela de login
+- **Erro de permissão**: Verifique se você pertence ao grupo correto
+- **Sistema lento**: Limpe o cache do navegador e tente novamente
+
+### Problemas de Chat
+- **Mensagens não aparecem**: Verifique a conexão de internet
+- **Upload de arquivo falha**: Verifique o tamanho (máximo 10MB)
+- **Notificações não funcionam**: Permita notificações no navegador
+
+### Problemas de Produtos
+- **Dados não carregam**: Verifique se o produto está ativo
+- **Erro ao salvar**: Verifique se todos os campos obrigatórios foram preenchidos
+- **Imagens não aparecem**: Verifique se o arquivo foi carregado corretamente
+
+## Suporte Técnico
+
+### Canais de Suporte
+- **Chat interno**: Use o canal #suporte para dúvidas rápidas
+- **Email**: Envie detalhes para suporte.silo@cptec.inpe.br
+- **Documentação**: Consulte esta seção sempre que necessário
+
+### Informações Importantes
+- **Horário de suporte**: Segunda a sexta, 8h às 18h
+- **Emergências**: Para problemas críticos, contate a equipe de plantão
+- **Atualizações**: O sistema é atualizado semanalmente (domingos, 2h)
+
+### Contatos da Equipe
+- **Coordenação Técnica**: Dr. João Silva (joao.silva@inpe.br)
+- **Desenvolvimento**: Equipe TI CPTEC (ti.cptec@inpe.br)
+- **Suporte Operacional**: Central de Operações (ops@cptec.inpe.br)
+
+---
+
+**Versão do Sistema**: 2.0.0  
+**Última atualização da documentação**: ${new Date().toLocaleDateString('pt-BR')}  
+**Desenvolvido por**: CPTEC/INPE - Centro de Previsão de Tempo e Estudos Climáticos`
+
 function generateProblems() {
 	return problemTitles.map((title, i) => {
 		const paragraphs = problemDescriptions[i % problemDescriptions.length]
@@ -746,7 +877,15 @@ async function seed() {
 
 	console.log('✅ Usuário Mario Junior criado com sucesso!')
 
-	// 2.1. Adicionar usuário como participante de todos os canais
+	// 2.1. Criar documentação de ajuda do sistema
+	console.log('🔵 Criando documentação de ajuda do sistema...')
+	await db.insert(schema.help).values({
+		id: 'system-help',
+		description: helpDocumentation,
+	})
+	console.log('✅ Documentação de ajuda criada com sucesso!')
+
+	// 2.2. Adicionar usuário como participante de todos os canais
 	console.log('🔵 Adicionando usuário Mario Junior como participante dos canais...')
 	const participantRoles = insertedChannels.map((channel) => ({
 		channelId: channel.id,
@@ -758,7 +897,7 @@ async function seed() {
 	await db.insert(schema.chatParticipant).values(participantRoles)
 	console.log(`✅ Usuário adicionado como participante de ${participantRoles.length} canais!`)
 
-	// 2.2. Criar status inicial do usuário no chat
+	// 2.3. Criar status inicial do usuário no chat
 	console.log('🔵 Criando status inicial do usuário no chat...')
 	await db.insert(schema.chatUserStatus).values({
 		userId: userId,
@@ -767,7 +906,7 @@ async function seed() {
 	})
 	console.log('✅ Status inicial do usuário criado!')
 
-	// 2. Produtos
+	// 3. Produtos
 	console.log('🔵 Inserindo produtos...')
 	const productMap = new Map<string, string>()
 
@@ -778,7 +917,7 @@ async function seed() {
 
 	inserted.forEach((p) => productMap.set(p.slug, p.id))
 
-	// 3. Contatos Globais
+	// 4. Contatos Globais
 	console.log('🔵 Inserindo contatos globais...')
 	const insertedContacts = await db
 		.insert(schema.contact)
@@ -800,11 +939,11 @@ async function seed() {
 
 		console.log(`🔵 Inserindo dados para o produto: ${slug.toUpperCase()}`)
 
-		// 2. Dependências hierárquicas
+		// 5.1. Dependências hierárquicas
 		console.log(`🔵 Inserindo dependências para ${slug}...`)
 		await insertDependencies(productId, dependencyStructure)
 
-		// 3. Associações Produto-Contato
+		// 5.2. Associações Produto-Contato
 		console.log(`🔵 Associando contatos ao produto: ${slug}...`)
 		// Associar os 3 primeiros contatos ativos a cada produto (exemplo)
 		const activeContacts = insertedContacts.filter((c) => c.active).slice(0, 3)
@@ -817,7 +956,7 @@ async function seed() {
 		await db.insert(schema.productContact).values(associations)
 		console.log(`✅ ${associations.length} contatos associados ao produto ${slug}!`)
 
-		// 4. Manual do produto (markdown único)
+		// 5.3. Manual do produto (markdown único)
 		console.log(`🔵 Inserindo manual para ${slug}...`)
 		const manual = manualData.find((m) => m.productSlug === slug)
 		if (manual) {
@@ -828,7 +967,7 @@ async function seed() {
 			})
 		}
 
-		// 5. Problemas e Soluções
+		// 5.4. Problemas e Soluções
 		console.log(`🔵 Inserindo problemas para o produto: ${slug.toUpperCase()}`)
 		const problems = generateProblems()
 		const problemRows = problems.map((p) => ({

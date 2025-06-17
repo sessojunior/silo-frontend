@@ -378,3 +378,13 @@ export const chatUserStatus = pgTable('chat_user_status', {
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 export type ChatUserStatus = typeof chatUserStatus.$inferSelect
+
+// === SISTEMA DE AJUDA ===
+
+// Tabela de ajuda do sistema (documentação única em Markdown)
+export const help = pgTable('help', {
+	id: text('id').primaryKey(),
+	description: text('description').default(''),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})

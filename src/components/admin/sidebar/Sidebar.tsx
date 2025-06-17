@@ -143,7 +143,7 @@ export default function Sidebar() {
 						id: '2.4',
 						title: 'Ajuda',
 						icon: 'icon-[lucide--life-buoy]',
-						url: '#',
+						url: '/admin/help',
 						items: null,
 					},
 				],

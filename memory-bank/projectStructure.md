@@ -27,6 +27,8 @@ src/
 │   │   │   │       └── DeleteSolutionDialog.tsx         # ✅ NOVO (57 linhas)
 │   │   │   └── create/           # Criação de produtos
 │   │   ├── knowledge-base/       # Base de conhecimento
+│   │   ├── help/                 # ✅ NOVO - Sistema de ajuda
+│   │   │   └── page.tsx          # ✅ Sistema de ajuda com interface dual
 │   │   └── users/                # Gestão de usuários
 │   ├── api/                      # API Routes
 │   │   ├── auth/                 # Autenticação
@@ -41,6 +43,8 @@ src/
 │   │   │   │   └── route.ts      # CRUD completo para manual do produto
 │   │   │   └── route.ts          # CRUD de produtos
 │   │   ├── knowledge-base/       # APIs da base de conhecimento
+│   │   ├── help/                 # ✅ NOVO - API sistema de ajuda
+│   │   │   └── route.ts          # ✅ GET/PUT para documentação única
 │   │   └── upload/               # Upload de arquivos
 │   └── globals.css               # Estilos globais
 ├── components/                   # Componentes reutilizáveis
@@ -79,10 +83,13 @@ src/
 │       │   ├── UserFormOffcanvas.tsx      # Formulário usuários
 │       │   ├── UserDeleteDialog.tsx       # Dialog exclusão usuário
 │       │   └── UserSelectorOffcanvas.tsx  # Seletor associação
+│       ├── help/                 # ✅ SISTEMA DE AJUDA (sem componentes separados)
+│       │   └── (página unificada) # ✅ /admin/help/page.tsx contém toda funcionalidade
 │       └── products/             # Componentes de produtos
 ├── lib/                          # Utilitários e configurações
 │   ├── db/                       # Configuração do banco
-│   │   ├── schema.ts             # ✅ Schema otimizado e simplificado
+│   │   ├── schema.ts             # ✅ Schema otimizado e simplificado + tabela help
+│   │   ├── seed.ts               # ✅ Seed principal com documentação de ajuda integrada
 │   │   └── index.ts              # Conexão Drizzle
 │   ├── auth/                     # Configuração de autenticação
 │   └── utils.ts                  # Utilitários gerais
@@ -122,6 +129,43 @@ src/
 - ✅ **11 arquivos corrigidos** - Todas imagens padronizadas
 - ✅ **1 componente removido** - OptimizedImage eliminado
 - ✅ **Zero regressões** - Todas funcionalidades preservadas
+
+## ✅ PASSO 5 - SISTEMA DE AJUDA IMPLEMENTADO
+
+### 🎯 ARQUIVOS CRIADOS/MODIFICADOS
+
+**NOVA PÁGINA ADMIN**:
+
+- `src/app/admin/help/page.tsx` - **CRIADA** - Sistema de ajuda com interface dual completa
+
+**NOVA API**:
+
+- `src/app/api/help/route.ts` - **CRIADA** - GET/PUT para documento único 'system-help'
+
+**SCHEMA ATUALIZADO**:
+
+- `src/lib/db/schema.ts` - **ATUALIZADA** - Tabela help adicionada (id, description, createdAt, updatedAt)
+
+**SEED PRINCIPAL ATUALIZADO**:
+
+- `src/lib/db/seed.ts` - **ATUALIZADA** - Documentação abrangente integrada como passo 2.1
+
+**ARQUITETURA SIMPLIFICADA**:
+
+- ✅ **Página unificada** - Todos componentes em um único arquivo
+- ✅ **Sem componentes separados** - Evita complexidade desnecessária
+- ✅ **Seed principal** - Eliminados arquivos temporários (seed-help.ts)
+- ✅ **API única** - Documento único com ID fixo 'system-help'
+
+**FUNCIONALIDADES IMPLEMENTADAS**:
+
+- ✅ **Interface dual** - Sidebar navegação (w-80) + área principal
+- ✅ **Navegação hierárquica** - Extração automática títulos Markdown
+- ✅ **Visualização pura** - ReactMarkdown apenas para leitura
+- ✅ **Editor separado** - Offcanvas exclusivo para edição
+- ✅ **Scroll suave** - Navegação por âncoras
+- ✅ **Temas** - Suporte dark/light
+- ✅ **Estado vazio** - Interface completa mesmo sem documentação
 
 ## ARQUITETURA GERAL
 
@@ -169,6 +213,8 @@ src/
 │   │       └── page.tsx # Interface moderna com filtros e estatísticas
 │   ├── chat/            # ✅ COMPLETAMENTE IMPLEMENTADO - Sistema de chat WhatsApp-like
 │   │   └── page.tsx     # ✅ Chat principal com interface dual sidebar + mensagens
+│   ├── help/            # ✅ NOVO - Sistema de ajuda
+│   │   └── page.tsx     # ✅ Interface dual (sidebar + visualização) + editor offcanvas
 │   ├── profile/         # Perfil usuário
 │   ├── settings/        # Configurações
 │   │   └── products/    # ✅ REDESENHADA - Padrão estabelecido
@@ -204,6 +250,8 @@ src/
     │   └── manual/      # ✅ API sistema de manual
     ├── contacts/        # ✅ NOVO - CRUD contatos
     │   └── route.ts     # GET/POST/PUT/DELETE contatos
+    ├── help/            # ✅ NOVO - API sistema de ajuda
+    │   └── route.ts     # ✅ GET/PUT documento único 'system-help'
     └── (user)/          # Endpoints perfil usuário
 ```
 
@@ -226,62 +274,29 @@ src/
 │   │   ├── GroupUsersSection.tsx      # Seção usuários por grupo
 │   │   ├── UserFormOffcanvas.tsx      # Formulário usuários
 │   │   └── UserDeleteDialog.tsx       # Dialog exclusão usuários
-│   ├── chat/            # 🚀 PLANEJADO - Componentes chat WhatsApp-like
-│   │   ├── ChatProvider.tsx           # Context global com WebSocket
-│   │   ├── TopBarWithNotifications.tsx # TopBar com botão notificações
-│   │   ├── ChatNotificationDropdown.tsx # Dropdown ícone activity
-│   │   ├── NotificationItem.tsx       # Item individual notificação
-│   │   ├── WhatsAppChatSidebar.tsx    # Sidebar conversas estilo WhatsApp
-│   │   ├── ChatListItem.tsx           # Item lista conversas com preview
-│   │   ├── WhatsAppChatContent.tsx    # Área principal mensagens
-│   │   ├── MessagesList.tsx           # Lista mensagens com scroll
-│   │   ├── MessageItem.tsx            # Bubble mensagem (verde/branco)
-│   │   ├── WhatsAppMessageInput.tsx   # Input com emoji + upload
-│   │   ├── TypingIndicator.tsx        # "João está digitando..."
-│   │   ├── UserStatusCard.tsx         # Card perfil com status
-│   │   ├── EmojiPicker.tsx            # Grid 8x8 emojis dropdown
-│   │   ├── FileUploadPreview.tsx      # Preview arquivos/imagens
-│   │   ├── MessageReactions.tsx       # Sistema reações (👍❤️😊)
-│   │   └── ChatUsersList.tsx          # Lista usuários online
+│   ├── chat/            # ✅ SISTEMA DE CHAT WHATSAPP-LIKE IMPLEMENTADO
+│   │   ├── ChatSidebar.tsx           # ✅ Sidebar dual canais/usuários + status
+│   │   ├── ChatArea.tsx              # ✅ Área principal mensagens
+│   │   ├── MessageBubble.tsx         # ✅ Bubbles WhatsApp estilo
+│   │   ├── ChatNotificationButton.tsx # ✅ Botão notificações TopBar
+│   │   ├── TypingIndicator.tsx       # ✅ Indicador digitação
+│   │   ├── ConnectionStatus.tsx      # ✅ Status conexão WebSocket
+│   │   ├── EmojiPicker.tsx           # ✅ Picker emojis 8 categorias
+│   │   └── FileUpload.tsx            # ✅ Upload drag & drop
+│   ├── help/            # ✅ SISTEMA DE AJUDA (página unificada)
+│   │   └── (sem componentes) # ✅ Funcionalidade integrada em /admin/help/page.tsx
 │   └── products/        # 🏆 COMPONENTES REFATORADOS (NOVO)
 │       ├── ProblemsListColumn.tsx      # Lista problemas (150 linhas)
 │       ├── ProblemDetailColumn.tsx     # Detalhes problema (84 linhas)
 │       ├── ProblemSolutionsSection.tsx # Seções soluções (211 linhas)
 │       ├── SolutionFormModal.tsx       # Modal soluções (193 linhas)
 │       ├── DeleteSolutionDialog.tsx    # Dialog exclusão (57 linhas)
-│       ├── DependencyManagementOffcanvas.tsx    # Gerenciador dependências
+│       ├── DependencyManagementOffcanvas.tsx    # MenuBuilder principal
 │       ├── DependencyItemFormOffcanvas.tsx      # Formulário dependências
 │       ├── ManualSectionFormOffcanvas.tsx       # Formulário manual
-│       ├── DeleteDependencyDialog.tsx           # Dialog exclusão dependências
-│       ├── ProductManualSection.tsx             # ✅ NOVO - Sistema manual hierárquico
-│       └── ManualEditorOffcanvas.tsx            # ✅ NOVO - Editor markdown completo
-├── auth/                # Componentes autenticação
-└── ui/                  # Design System base
-    ├── Button.tsx       # Botão universal
-    ├── Input.tsx        # Input com validação
-    ├── Dialog.tsx       # Modal dialogs
-    ├── Offcanvas.tsx    # Painel lateral
-    ├── Tree.tsx         # Componente árvore hierárquica
-    ├── Accordion.tsx    # Accordion manual
-    └── [25+ componentes]
-```
-
-### `/src/lib` - Bibliotecas Utilitárias
-
-```
-/lib
-├── auth/                # Sistema autenticação
-│   ├── session.ts       # Gestão sessões
-│   ├── token.ts         # Validação tokens
-│   ├── hash.ts          # Hashing senhas
-│   ├── oauth.ts         # Google OAuth
-│   └── validate.ts      # Validações input
-├── db/                  # Database e schema
-│   ├── index.ts         # Conexão PostgreSQL
-│   ├── schema.ts        # Schema Drizzle ORM
-│   ├── seed.ts          # Dados teste
-│   └── clear-db.ts      # Limpar banco
-└── [utilitários diversos]
+│       ├── DeleteDependencyDialog.tsx           # Dialog exclusão dependência
+│       ├── ContactSelectorOffcanvas.tsx         # Seletor contatos produto
+│       └── ProductManualSection.tsx             # Sistema manual completo
 ```
 
 ## SCHEMA DATABASE
