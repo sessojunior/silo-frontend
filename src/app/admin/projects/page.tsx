@@ -275,6 +275,16 @@ export default function ProjectsPage() {
 							<p className='text-sm text-zinc-600 dark:text-zinc-400 mt-1'>Lista de todos os projetos cadastrados no sistema</p>
 						</div>
 
+						{/* Cabeçalho da Tabela */}
+						<div className='bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700'>
+							<div className='px-6 py-3'>
+								<div className='flex items-center justify-between'>
+									<div className='text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Projeto</div>
+									<div className='text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right'>Ações</div>
+								</div>
+							</div>
+						</div>
+
 						{loading ? (
 							<div className='flex items-center justify-center py-12'>
 								<span className='icon-[lucide--loader-circle] size-6 animate-spin text-zinc-400' />
@@ -313,14 +323,14 @@ export default function ProjectsPage() {
 											<div className='px-6 flex items-center justify-center gap-2'>
 												{/* Botões de ação - sempre visíveis */}
 												<div className='flex items-center justify-center gap-2'>
-													<button onClick={() => handleProjectClick(project.id)} className='size-10 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors' title='Visualizar projeto'>
+													<button onClick={() => handleProjectClick(project.id)} className='size-10 flex items-center justify-center  rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors' title='Visualizar projeto'>
 														<span className='icon-[lucide--eye] size-4 text-blue-600 dark:text-blue-400' />
 													</button>
-													<button onClick={(e) => openViewDescription(project, e)} className='size-10 rounded-full hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors' title='Ver descrição completa'>
+													<button onClick={(e) => openViewDescription(project, e)} className='size-10 flex items-center justify-center  rounded-full hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors' title='Ver descrição completa'>
 														<span className='icon-[lucide--file-text] size-4 text-purple-600 dark:text-purple-400' />
 													</button>
-													<button onClick={(e) => openEditForm(project, e)} className='size-10 rounded-full hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors' title='Editar projeto'>
-														<span className='icon-[lucide--edit] size-4 text-yellow-600 dark:text-yellow-400' />
+													<button onClick={(e) => openEditForm(project, e)} className='size-10 flex items-center justify-center  rounded-full hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors' title='Editar projeto'>
+														<span className='icon-[lucide--edit] size-4 text-green-600 dark:text-green-400' />
 													</button>
 												</div>
 											</div>
@@ -328,23 +338,66 @@ export default function ProjectsPage() {
 
 										{/* Linha expandida com detalhes (Status, Prioridade, Datas) */}
 										{expandedProjectId === project.id && (
-											<div className='p-6 bg-zinc-100 dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700'>
-												<div className='flex flex-wrap items-center gap-4'>
+											<div className='px-6 py-4 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 transition-opacity duration-700 ease-in-out animate-in fade-in'>
+												<div className='flex flex-wrap items-center gap-6'>
+													{/* Status */}
 													<div className='flex items-center gap-2'>
-														<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Status:</span>
+														<span className='icon-[lucide--check-circle] size-4 text-zinc-400' />
 														<span className='text-sm'>{getStatusIcon(project.status)}</span>
 													</div>
+
+													{/* Prioridade */}
 													<div className='flex items-center gap-2'>
+														<span className='icon-[lucide--triangle-alert] size-4 text-zinc-400' />
 														<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Prioridade:</span>
 														<span className='text-sm'>{getPriorityIcon(project.priority)}</span>
 													</div>
+
+													{/* Usuários/Membros */}
 													<div className='flex items-center gap-2'>
-														<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Início:</span>
-														<span className='text-sm text-zinc-600 dark:text-zinc-400'>{formatDate(project.startDate)}</span>
+														<span className='icon-[lucide--users] size-4 text-zinc-400' />
+														<div className='flex items-center gap-1.5'>
+															{project.members.length > 0 ? (
+																<>
+																	<div className='flex -space-x-1.5'>
+																		{project.members.slice(0, 3).map((member) => (
+																			<div key={member.id} className='size-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center text-white text-xs font-medium' title={member.user.name}>
+																				{member.user.name.charAt(0).toUpperCase()}
+																			</div>
+																		))}
+																		{project.members.length > 3 && <div className='size-8 bg-zinc-400 text-white rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center text-xs font-medium'>+{project.members.length - 3}</div>}
+																	</div>
+																	<span className='text-zinc-600 dark:text-zinc-300 text-sm font-medium ml-1'>
+																		{project.members.length} {project.members.length === 1 ? 'pessoa' : 'pessoas'}
+																	</span>
+																</>
+															) : (
+																<span className='text-zinc-400 text-sm px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md'>Não atribuído</span>
+															)}
+														</div>
 													</div>
+
+													{/* Período */}
 													<div className='flex items-center gap-2'>
-														<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Fim:</span>
-														<span className='text-sm text-zinc-600 dark:text-zinc-400'>{formatDate(project.endDate)}</span>
+														<span className='icon-[lucide--calendar] size-4 text-zinc-400' />
+														<div className='flex items-center gap-2 text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-md'>
+															{project.startDate && <span className='text-zinc-700 dark:text-zinc-300 font-medium'>{formatDate(project.startDate)}</span>}
+															{project.startDate && project.endDate && <span className='text-zinc-400'>→</span>}
+															{project.endDate && <span className='text-zinc-700 dark:text-zinc-300 font-medium'>{formatDate(project.endDate)}</span>}
+															{!project.startDate && !project.endDate && <span className='text-zinc-400'>Não definido</span>}
+														</div>
+													</div>
+
+													{/* Progresso */}
+													<div className='flex items-center gap-2'>
+														<span className='icon-[lucide--trending-up] size-4 text-zinc-400' />
+														<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Progresso:</span>
+														<div className='flex items-center gap-3'>
+															<div className='w-20 bg-zinc-200 dark:bg-zinc-700 rounded-full h-2'>
+																<div className={`h-2 rounded-full transition-all duration-300 ${project.progress >= 100 ? 'bg-green-500' : project.progress >= 50 ? 'bg-blue-500' : 'bg-orange-500'}`} style={{ width: `${project.progress}%` }} />
+															</div>
+															<span className='text-sm font-semibold text-zinc-800 dark:text-zinc-200'>{project.progress}%</span>
+														</div>
 													</div>
 												</div>
 											</div>
