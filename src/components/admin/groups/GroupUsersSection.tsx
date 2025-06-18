@@ -22,7 +22,7 @@ export default function GroupUsersSection({ group, isExpanded, onUserAdded }: Gr
 			setLoading(true)
 			console.log('🔵 Carregando usuários do grupo:', group.name)
 
-			const response = await fetch(`/api/users?groupId=${group.id}`)
+			const response = await fetch(`/api/admin/users?groupId=${group.id}`)
 			const data = await response.json()
 
 			if (data.success) {
@@ -85,7 +85,7 @@ export default function GroupUsersSection({ group, isExpanded, onUserAdded }: Gr
 				return
 			}
 
-			const response = await fetch('/api/users', {
+			const response = await fetch('/api/admin/users', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({

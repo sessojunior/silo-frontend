@@ -46,7 +46,7 @@ export default function ContactSelectorOffcanvas({ isOpen, onClose, productId, o
 			setLoading(true)
 
 			// Buscar todos os contatos ativos
-			const [allContactsRes, associatedContactsRes] = await Promise.all([fetch('/api/contacts?status=active'), fetch(`/api/products/contacts?productId=${productId}`)])
+			const [allContactsRes, associatedContactsRes] = await Promise.all([fetch('/api/admin/contacts?status=active'), fetch(`/api/products/contacts?productId=${productId}`)])
 
 			const allContactsData = await allContactsRes.json()
 			const associatedContactsData = await associatedContactsRes.json()

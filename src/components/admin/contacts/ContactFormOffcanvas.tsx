@@ -187,7 +187,7 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 			}
 
 			const method = contact ? 'PUT' : 'POST'
-			const response = await fetch('/api/contacts', {
+			const response = await fetch('/api/admin/contacts', {
 				method,
 				body: submitFormData,
 			})

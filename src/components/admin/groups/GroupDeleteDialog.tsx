@@ -38,7 +38,7 @@ export default function GroupDeleteDialog({ isOpen, onClose, group, onSuccess }:
 				isDefault: group.isDefault,
 			})
 
-			const response = await fetch('/api/groups', {
+			const response = await fetch('/api/admin/groups', {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ id: group.id }),

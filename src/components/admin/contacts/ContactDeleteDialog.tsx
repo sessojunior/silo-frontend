@@ -22,7 +22,7 @@ export default function ContactDeleteDialog({ isOpen, onClose, contact, onSucces
 
 		try {
 			setLoading(true)
-			const response = await fetch('/api/contacts', {
+			const response = await fetch('/api/admin/contacts', {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ id: contact.id }),

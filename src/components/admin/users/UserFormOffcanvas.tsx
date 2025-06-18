@@ -95,7 +95,7 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 					}
 				: formData
 
-			const response = await fetch('/api/users', {
+			const response = await fetch('/api/admin/users', {
 				method,
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(body),

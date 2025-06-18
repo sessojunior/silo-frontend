@@ -24,7 +24,7 @@ export default function UserDeleteDialog({ isOpen, onClose, user, onSuccess }: U
 			setLoading(true)
 			console.log('🔵 Excluindo usuário:', user.name)
 
-			const response = await fetch('/api/users', {
+			const response = await fetch('/api/admin/users', {
 				method: 'DELETE',
 				headers: {
 					'Content-Type': 'application/json',

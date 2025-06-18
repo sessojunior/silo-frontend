@@ -54,7 +54,7 @@ export default function ContactsPage() {
 	async function fetchContacts() {
 		try {
 			setLoading(true)
-			const response = await fetch('/api/contacts')
+			const response = await fetch('/api/admin/contacts')
 			const data = await response.json()
 
 			if (data.success) {

@@ -34,7 +34,7 @@ export default function HelpPage() {
 	const fetchHelpDoc = async () => {
 		try {
 			setLoading(true)
-			const response = await fetch('/api/help')
+			const response = await fetch('/api/admin/help')
 			const data = await response.json()
 
 			if (data.success) {
@@ -117,7 +117,7 @@ export default function HelpPage() {
 
 		try {
 			setFormLoading(true)
-			const response = await fetch('/api/help', {
+			const response = await fetch('/api/admin/help', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ description: formContent }),

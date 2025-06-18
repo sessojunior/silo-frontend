@@ -77,7 +77,7 @@ export default function UsersPage() {
 			setLoading(true)
 			console.log('🔵 Carregando usuários...')
 
-			const response = await fetch('/api/users')
+			const response = await fetch('/api/admin/users')
 			const data = await response.json()
 
 			if (data.success) {
@@ -106,7 +106,7 @@ export default function UsersPage() {
 	async function fetchGroups() {
 		try {
 			console.log('🔵 Carregando grupos...')
-			const response = await fetch('/api/groups')
+			const response = await fetch('/api/admin/groups')
 			const data = await response.json()
 
 			if (data.success) {

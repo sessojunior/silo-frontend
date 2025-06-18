@@ -152,7 +152,7 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 			}
 
 			const method = group ? 'PUT' : 'POST'
-			const response = await fetch('/api/groups', {
+			const response = await fetch('/api/admin/groups', {
 				method,
 				headers: {
 					'Content-Type': 'application/json',

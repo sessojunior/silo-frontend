@@ -37,7 +37,7 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 			console.log('🔵 Carregando usuários disponíveis para o grupo:', group.name)
 
 			// Buscar todos os usuários que NÃO estão no grupo atual
-			const response = await fetch('/api/users')
+			const response = await fetch('/api/admin/users')
 			const data = await response.json()
 
 			if (data.success) {
@@ -119,7 +119,7 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 					throw new Error(`Usuário ${userId} não encontrado`)
 				}
 
-				return fetch('/api/users', {
+				return fetch('/api/admin/users', {
 					method: 'PUT',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
