@@ -10,7 +10,7 @@ export default function ChatNotificationButton() {
 
 	// Mock notifications até implementar corretamente
 	const notifications: unknown[] = []
-	const unreadCount = 3 // Temporário para testar animação
+	const unreadCount = 0
 
 	// const handleMarkAsRead = (notificationId: string) => {
 	// 	console.log('🔵 Marcar notificação como lida:', notificationId)

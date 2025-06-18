@@ -16,35 +16,68 @@ export default function ActivityCard({ activity, projectId, onEdit }: ActivityCa
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
 	// Mock data para o plano de ação (normalmente viria do kanban)
-	const actionPlan = [
-		{
-			id: '1',
-			action: 'Configurar ambiente de desenvolvimento',
-			responsible: { name: 'João Silva', avatar: null },
-			startDate: '2024-01-15',
-			endDate: '2024-01-20',
-			resources: 'Servidor de desenvolvimento, IDE, Git',
-			status: 85,
-		},
-		{
-			id: '2',
-			action: 'Implementar funcionalidade principal',
-			responsible: { name: 'Maria Santos', avatar: null },
-			startDate: '2024-01-21',
-			endDate: '2024-02-10',
-			resources: 'Framework, bibliotecas, documentação',
-			status: 45,
-		},
-		{
-			id: '3',
-			action: 'Testes e validação',
-			responsible: { name: 'Carlos Oliveira', avatar: null },
-			startDate: '2024-02-11',
-			endDate: '2024-02-20',
-			resources: 'Ferramentas de teste, ambiente de staging',
-			status: 10,
-		},
-	]
+	// Algumas atividades terão tarefas, outras não (para demonstrar ambos os estados)
+	interface ActionPlanItem {
+		id: string
+		action: string
+		responsible: { name: string; avatar: null }
+		startDate: string
+		endDate: string
+		resources: string
+		status: number
+	}
+
+	// Gerar tarefas condicionalmente - algumas atividades terão tarefas, outras não
+	const actionPlan: ActionPlanItem[] =
+		activity.id.includes('1') || activity.id.includes('2')
+			? [
+					{
+						id: '1',
+						action: 'Análise de requisitos e levantamento de necessidades',
+						responsible: { name: 'João Silva', avatar: null },
+						startDate: '2024-01-15',
+						endDate: '2024-01-20',
+						resources: 'Documentação técnica, stakeholders, ferramentas de análise',
+						status: 100,
+					},
+					{
+						id: '2',
+						action: 'Desenvolvimento da arquitetura base do sistema',
+						responsible: { name: 'Maria Santos', avatar: null },
+						startDate: '2024-01-21',
+						endDate: '2024-02-05',
+						resources: 'Framework, bibliotecas, ambiente de desenvolvimento',
+						status: 85,
+					},
+					{
+						id: '3',
+						action: 'Implementação das funcionalidades principais',
+						responsible: { name: 'Carlos Oliveira', avatar: null },
+						startDate: '2024-02-06',
+						endDate: '2024-02-20',
+						resources: 'IDE, repositório Git, APIs externas, documentação',
+						status: 60,
+					},
+					{
+						id: '4',
+						action: 'Testes unitários e integração',
+						responsible: { name: 'Ana Paula', avatar: null },
+						startDate: '2024-02-21',
+						endDate: '2024-03-05',
+						resources: 'Ferramentas de teste, ambiente de staging, dados mock',
+						status: 30,
+					},
+					{
+						id: '5',
+						action: 'Revisão de código e otimizações',
+						responsible: { name: 'Roberto Lima', avatar: null },
+						startDate: '2024-03-06',
+						endDate: '2024-03-12',
+						resources: 'Code review tools, profiling, documentação técnica',
+						status: 10,
+					},
+				]
+			: []
 
 	// Calcular estatísticas das tarefas
 	const totalTasks = actionPlan.length
@@ -196,8 +229,8 @@ export default function ActivityCard({ activity, projectId, onEdit }: ActivityCa
 								</span>
 							</div>
 						</div>
-						<Button onClick={handleGoToKanban} className='px-4 py-2 bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-0'>
-							<span className='icon-[lucide--kanban-square] size-3.5' />
+						<Button onClick={handleGoToKanban} style='bordered' className='px-4 py-2'>
+							<span className='icon-[lucide--kanban-square] size-4' />
 							<span>Kanban</span>
 						</Button>
 						{/* Dropdown toggle */}
@@ -223,47 +256,64 @@ export default function ActivityCard({ activity, projectId, onEdit }: ActivityCa
 							)}
 						</div>
 
-						<div className='overflow-x-auto'>
-							<table className='w-full text-base'>
-								<thead className='bg-zinc-50 dark:bg-zinc-800/50'>
-									<tr>
-										<th className='px-6 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Ação</th>
-										<th className='px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Responsável</th>
-										<th className='px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Início</th>
-										<th className='px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Término</th>
-										<th className='px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Recursos</th>
-										<th className='px-4 py-3 text-center text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Status</th>
-									</tr>
-								</thead>
-								<tbody className='bg-white dark:bg-zinc-900 divide-y divide-zinc-100 dark:divide-zinc-800'>
-									{actionPlan.map((item) => (
-										<tr key={item.id} className='hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors duration-150'>
-											<td className='px-6 py-4'>
-												<div className='text-zinc-900 dark:text-zinc-100 font-medium leading-tight'>{item.action}</div>
-											</td>
-											<td className='px-4 py-4'>
-												<div className='flex items-center gap-2.5'>
-													<div className='size-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-semibold'>{item.responsible.name.charAt(0).toUpperCase()}</div>
-													<span className='text-zinc-800 dark:text-zinc-200 text-base font-medium'>{item.responsible.name}</span>
-												</div>
-											</td>
-											<td className='px-4 py-4 text-zinc-600 dark:text-zinc-400 text-base'>{formatDate(item.startDate)}</td>
-											<td className='px-4 py-4 text-zinc-600 dark:text-zinc-400 text-base'>{formatDate(item.endDate)}</td>
-											<td className='px-4 py-4'>
-												<div className='text-zinc-600 dark:text-zinc-400 text-base max-w-48 truncate' title={item.resources}>
-													{item.resources}
-												</div>
-											</td>
-											<td className='px-4 py-4'>
-												<div className='flex justify-center'>
-													<MiniDonut percentage={item.status} />
-												</div>
-											</td>
+						{actionPlan.length === 0 ? (
+							/* Placeholder quando não há tarefas */
+							<div className='py-12 text-center'>
+								<span className='icon-[lucide--clipboard-x] size-16 text-zinc-300 dark:text-zinc-600 mx-auto mb-4 block' />
+								<h4 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>Nenhuma tarefa criada ainda</h4>
+								<p className='text-zinc-600 dark:text-zinc-400 mb-6'>
+									As tarefas são criadas e gerenciadas no quadro Kanban.
+									<br />
+									Vá para o Kanban para começar a organizar suas atividades.
+								</p>
+								<Button onClick={handleGoToKanban} style='bordered' className='flex items-center gap-2 mx-auto'>
+									<span className='icon-[lucide--kanban-square] size-5' />
+									Ir para o Kanban
+								</Button>
+							</div>
+						) : (
+							<div className='overflow-x-auto'>
+								<table className='w-full text-base'>
+									<thead className='bg-zinc-50 dark:bg-zinc-800/50'>
+										<tr>
+											<th className='px-6 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Ação</th>
+											<th className='px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Responsável</th>
+											<th className='px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Início</th>
+											<th className='px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Término</th>
+											<th className='px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Recursos</th>
+											<th className='px-4 py-3 text-center text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Status</th>
 										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
+									</thead>
+									<tbody className='bg-white dark:bg-zinc-900 divide-y divide-zinc-100 dark:divide-zinc-800'>
+										{actionPlan.map((item) => (
+											<tr key={item.id} className='hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors duration-150'>
+												<td className='px-6 py-4'>
+													<div className='text-zinc-900 dark:text-zinc-100 font-medium leading-tight'>{item.action}</div>
+												</td>
+												<td className='px-4 py-4'>
+													<div className='flex items-center gap-2.5'>
+														<div className='size-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-semibold'>{item.responsible.name.charAt(0).toUpperCase()}</div>
+														<span className='text-zinc-800 dark:text-zinc-200 text-base font-medium'>{item.responsible.name}</span>
+													</div>
+												</td>
+												<td className='px-4 py-4 text-zinc-600 dark:text-zinc-400 text-base'>{formatDate(item.startDate)}</td>
+												<td className='px-4 py-4 text-zinc-600 dark:text-zinc-400 text-base'>{formatDate(item.endDate)}</td>
+												<td className='px-4 py-4'>
+													<div className='text-zinc-600 dark:text-zinc-400 text-base max-w-48 truncate' title={item.resources}>
+														{item.resources}
+													</div>
+												</td>
+												<td className='px-4 py-4'>
+													<div className='flex justify-center'>
+														<MiniDonut percentage={item.status} />
+													</div>
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+						)}
 					</div>
 				)}
 			</div>

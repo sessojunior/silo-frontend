@@ -92,6 +92,13 @@ export default function Sidebar() {
 						icon: 'icon-[lucide--square-chart-gantt]',
 						url: '/admin/projects',
 						items: [
+							{
+								id: 'all-projects',
+								title: 'Todos os projetos',
+								icon: null,
+								url: '/admin/projects',
+								items: null,
+							},
 							...projects
 								.sort((a, b) => a.name.localeCompare(b.name))
 								.map((project) => ({

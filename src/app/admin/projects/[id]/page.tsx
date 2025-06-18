@@ -2,18 +2,20 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from '@/lib/toast'
-import { notFound, useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 import ActivityCard from '@/components/admin/projects/ActivityCard'
 import ProjectFormOffcanvas from '@/components/admin/projects/ProjectFormOffcanvas'
 import ActivityFormOffcanvas from '@/components/admin/projects/ActivityFormOffcanvas'
 import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
 
 import { Project, Activity } from '@/types/projects'
 import { mockProjects } from '@/lib/data/projects-mock'
 
 export default function ProjectDetailsPage() {
 	const params = useParams()
+	const router = useRouter()
 	const projectId = params.id as string
 	const [project, setProject] = useState<Project | null>(null)
 	const [loading, setLoading] = useState(true)
@@ -22,6 +24,11 @@ export default function ProjectDetailsPage() {
 	const [projectFormOpen, setProjectFormOpen] = useState(false)
 	const [activityFormOpen, setActivityFormOpen] = useState(false)
 	const [editingActivity, setEditingActivity] = useState<Activity | null>(null)
+
+	// Estados para filtros de atividades
+	const [search, setSearch] = useState('')
+	const [statusFilter, setStatusFilter] = useState<'all' | 'todo' | 'progress' | 'done' | 'blocked'>('all')
+	const [priorityFilter, setPriorityFilter] = useState<'all' | 'low' | 'medium' | 'high' | 'urgent'>('all')
 
 	// Carregar projeto
 	useEffect(() => {
@@ -41,7 +48,13 @@ export default function ProjectDetailsPage() {
 			setTimeout(() => {
 				const foundProject = mockProjects.find((p) => p.id === projectId)
 				if (!foundProject) {
-					notFound()
+					console.log('❌ Projeto não encontrado:', projectId)
+					toast({
+						type: 'error',
+						title: 'Projeto não encontrado',
+						description: 'O projeto solicitado não existe ou foi removido.',
+					})
+					router.push('/admin/projects')
 					return
 				}
 
@@ -60,16 +73,29 @@ export default function ProjectDetailsPage() {
 		}
 	}
 
-	// Todas as atividades sem filtros
-	const allActivities = useMemo(() => {
+	// Filtrar atividades
+	const filteredActivities = useMemo(() => {
 		if (!project) return []
-		return project.activities
-	}, [project])
 
-	// Não agrupar por categoria - lista simples
-	const sortedActivities = useMemo(() => {
-		return allActivities.sort((a, b) => a.name.localeCompare(b.name))
-	}, [allActivities])
+		let filtered = project.activities
+
+		// Filtro de busca
+		if (search) {
+			filtered = filtered.filter((activity) => activity.name.toLowerCase().includes(search.toLowerCase()) || activity.description.toLowerCase().includes(search.toLowerCase()))
+		}
+
+		// Filtro de status
+		if (statusFilter !== 'all') {
+			filtered = filtered.filter((activity) => activity.status === statusFilter)
+		}
+
+		// Filtro de prioridade
+		if (priorityFilter !== 'all') {
+			filtered = filtered.filter((activity) => activity.priority === priorityFilter)
+		}
+
+		return filtered.sort((a, b) => a.name.localeCompare(b.name))
+	}, [project, search, statusFilter, priorityFilter])
 
 	function handleEditActivity(activity: Activity) {
 		console.log('🔵 Abrindo formulário de edição da atividade:', activity.name)
@@ -182,27 +208,17 @@ export default function ProjectDetailsPage() {
 
 	return (
 		<div className='flex flex-col w-full'>
-			{/* Header do Projeto Customizado para Atividades */}
+			{/* Header do Projeto */}
 			<div className='w-full p-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900'>
 				<div className='flex flex-col lg:flex-row lg:items-center justify-between gap-4'>
 					{/* Informações do Projeto */}
 					<div className='flex items-center gap-4 min-w-0 flex-1'>
-						{/* Detalhes */}
 						<div className='min-w-0 flex-1'>
 							<div className='flex items-center gap-3 mb-2'>
 								<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Atividades de {project.name}</h1>
-								<span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${project.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : project.status === 'paused' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' : project.status === 'completed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200'}`}>{project.status === 'active' ? '🟢 Ativo' : project.status === 'paused' ? '⏸️ Pausado' : project.status === 'completed' ? '✅ Concluído' : '⭕ Planejamento'}</span>
 							</div>
 							<p className='text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed'>{project.description}</p>
 						</div>
-					</div>
-
-					{/* Ações */}
-					<div className='flex items-center gap-2 flex-shrink-0'>
-						<Button onClick={handleCreateActivity} className='flex items-center gap-2'>
-							<span className='icon-[lucide--plus] size-4' />
-							<span className='hidden sm:inline'>Nova atividade</span>
-						</Button>
 					</div>
 				</div>
 			</div>
@@ -210,20 +226,52 @@ export default function ProjectDetailsPage() {
 			{/* Conteúdo Principal */}
 			<div className='p-6'>
 				<div className='max-w-7xl mx-auto space-y-6'>
-					{/* Lista Simples de Atividades */}
-					{sortedActivities.length === 0 ? (
+					{/* Filtros e Nova Atividade */}
+					<div className='flex flex-col lg:flex-row lg:items-center gap-4'>
+						{/* Filtros */}
+						<div className='flex flex-1 gap-4'>
+							<div className='flex-1'>
+								<Input type='text' placeholder='Buscar atividades...' value={search} setValue={setSearch} className='pl-10' />
+							</div>
+							<select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as 'all' | 'todo' | 'progress' | 'done' | 'blocked')} className='w-40 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-3 text-sm text-zinc-700 dark:text-zinc-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'>
+								<option value='all'>Todos os status</option>
+								<option value='todo'>🔵 A fazer</option>
+								<option value='progress'>🟡 Em progresso</option>
+								<option value='done'>🟢 Concluída</option>
+								<option value='blocked'>🔴 Bloqueada</option>
+							</select>
+							<select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value as 'all' | 'low' | 'medium' | 'high' | 'urgent')} className='w-40 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-3 text-sm text-zinc-700 dark:text-zinc-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'>
+								<option value='all'>Todas prioridades</option>
+								<option value='low'>⬇️ Baixa</option>
+								<option value='medium'>➡️ Média</option>
+								<option value='high'>⬆️ Alta</option>
+								<option value='urgent'>🚨 Urgente</option>
+							</select>
+						</div>
+
+						{/* Botão Nova Atividade */}
+						<Button onClick={handleCreateActivity} className='flex items-center gap-2'>
+							<span className='icon-[lucide--plus] size-4' />
+							<span className='hidden sm:inline'>Nova atividade</span>
+						</Button>
+					</div>
+
+					{/* Lista de Atividades */}
+					{filteredActivities.length === 0 ? (
 						<div className='text-center py-12'>
 							<span className='icon-[lucide--clipboard-x] size-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-4 block' />
-							<h3 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>Nenhuma atividade criada ainda</h3>
-							<p className='text-zinc-600 dark:text-zinc-400 mb-4'>Comece criando a primeira atividade do projeto.</p>
-							<Button onClick={handleCreateActivity} className='flex items-center gap-2 mx-auto'>
-								<span className='icon-[lucide--plus] size-4' />
-								Criar primeira atividade
-							</Button>
+							<h3 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>{search || statusFilter !== 'all' || priorityFilter !== 'all' ? 'Nenhuma atividade encontrada' : 'Nenhuma atividade criada ainda'}</h3>
+							<p className='text-zinc-600 dark:text-zinc-400 mb-4'>{search || statusFilter !== 'all' || priorityFilter !== 'all' ? 'Tente ajustar os filtros de busca.' : 'Comece criando a primeira atividade do projeto.'}</p>
+							{!search && statusFilter === 'all' && priorityFilter === 'all' && (
+								<Button onClick={handleCreateActivity} className='flex items-center gap-2 mx-auto'>
+									<span className='icon-[lucide--plus] size-4' />
+									Criar primeira atividade
+								</Button>
+							)}
 						</div>
 					) : (
 						<div className='space-y-4'>
-							{sortedActivities.map((activity) => (
+							{filteredActivities.map((activity) => (
 								<ActivityCard key={activity.id} activity={activity} projectId={project.id} onEdit={handleEditActivity} />
 							))}
 						</div>
