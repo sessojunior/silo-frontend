@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from '@/lib/toast'
-import { notFound, useParams, useRouter } from 'next/navigation'
+import { notFound, useParams } from 'next/navigation'
 
 import ActivityCard from '@/components/admin/projects/ActivityCard'
 import ProjectFormOffcanvas from '@/components/admin/projects/ProjectFormOffcanvas'
@@ -14,7 +14,6 @@ import { mockProjects } from '@/lib/data/projects-mock'
 
 export default function ProjectDetailsPage() {
 	const params = useParams()
-	const router = useRouter()
 	const projectId = params.id as string
 	const [project, setProject] = useState<Project | null>(null)
 	const [loading, setLoading] = useState(true)
@@ -82,11 +81,6 @@ export default function ProjectDetailsPage() {
 		console.log('🔵 Abrindo formulário de nova atividade para projeto:', project?.name)
 		setEditingActivity(null)
 		setActivityFormOpen(true)
-	}
-
-	function handleGoToGantt() {
-		console.log('🔵 Navegando para Gantt do projeto:', project?.name)
-		router.push(`/admin/projects/${projectId}/gantt`)
 	}
 
 	// Funções para os offcanvas
@@ -205,10 +199,6 @@ export default function ProjectDetailsPage() {
 
 					{/* Ações */}
 					<div className='flex items-center gap-2 flex-shrink-0'>
-						<Button onClick={handleGoToGantt} className='flex items-center gap-2 bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-200 dark:hover:bg-zinc-700'>
-							<span className='icon-[lucide--gantt-chart] size-4' />
-							<span className='hidden sm:inline'>Gantt</span>
-						</Button>
 						<Button onClick={handleCreateActivity} className='flex items-center gap-2'>
 							<span className='icon-[lucide--plus] size-4' />
 							<span className='hidden sm:inline'>Nova atividade</span>
