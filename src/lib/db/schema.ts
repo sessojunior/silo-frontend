@@ -1,5 +1,4 @@
-import { pgTable, text, integer, timestamp, boolean, unique, index } from 'drizzle-orm/pg-core'
-import { sql } from 'drizzle-orm'
+import { pgTable, text, integer, timestamp, boolean, unique, index, date, uuid } from 'drizzle-orm/pg-core'
 
 // Grupos de usuários (categorias para futuro chat)
 export const group = pgTable('group', {
@@ -20,9 +19,7 @@ export type Group = typeof group.$inferSelect
 export const userGroup = pgTable(
 	'user_group',
 	{
-		id: text('id')
-			.primaryKey()
-			.default(sql`gen_random_uuid()`),
+		id: uuid('id').primaryKey().defaultRandom(),
 		userId: text('user_id')
 			.notNull()
 			.references(() => authUser.id, { onDelete: 'cascade' }),
@@ -268,9 +265,7 @@ export type SystemFile = typeof systemFile.$inferSelect
 
 // Canais de Chat (grupos ou mensagens diretas)
 export const chatChannel = pgTable('chat_channel', {
-	id: text('id')
-		.primaryKey()
-		.default(sql`gen_random_uuid()`),
+	id: uuid('id').primaryKey().defaultRandom(),
 	name: text('name').notNull(),
 	description: text('description'),
 	type: text('type').notNull(), // 'group' | 'direct'
@@ -285,10 +280,8 @@ export type ChatChannel = typeof chatChannel.$inferSelect
 
 // Mensagens do Chat
 export const chatMessage = pgTable('chat_message', {
-	id: text('id')
-		.primaryKey()
-		.default(sql`gen_random_uuid()`),
-	channelId: text('channel_id')
+	id: uuid('id').primaryKey().defaultRandom(),
+	channelId: uuid('channel_id')
 		.notNull()
 		.references(() => chatChannel.id, { onDelete: 'cascade' }),
 	senderId: text('sender_id')
@@ -300,7 +293,7 @@ export const chatMessage = pgTable('chat_message', {
 	fileName: text('file_name'),
 	fileSize: integer('file_size'),
 	fileMimeType: text('file_mime_type'),
-	replyToId: text('reply_to_id'),
+	replyToId: uuid('reply_to_id'),
 	threadCount: integer('thread_count').notNull().default(0),
 	isEdited: boolean('is_edited').notNull().default(false),
 	editedAt: timestamp('edited_at'),
@@ -312,10 +305,8 @@ export type ChatMessage = typeof chatMessage.$inferSelect
 
 // Participantes dos Canais
 export const chatParticipant = pgTable('chat_participant', {
-	id: text('id')
-		.primaryKey()
-		.default(sql`gen_random_uuid()`),
-	channelId: text('channel_id')
+	id: uuid('id').primaryKey().defaultRandom(),
+	channelId: uuid('channel_id')
 		.notNull()
 		.references(() => chatChannel.id, { onDelete: 'cascade' }),
 	userId: text('user_id')
@@ -331,10 +322,8 @@ export type ChatParticipant = typeof chatParticipant.$inferSelect
 export const chatMessageStatus = pgTable(
 	'chat_message_status',
 	{
-		id: text('id')
-			.primaryKey()
-			.default(sql`gen_random_uuid()`),
-		messageId: text('message_id')
+		id: uuid('id').primaryKey().defaultRandom(),
+		messageId: uuid('message_id')
 			.notNull()
 			.references(() => chatMessage.id, { onDelete: 'cascade' }),
 		userId: text('user_id')
@@ -351,10 +340,8 @@ export const chatMessageStatus = pgTable(
 
 // Reações nas Mensagens
 export const chatReaction = pgTable('chat_reaction', {
-	id: text('id')
-		.primaryKey()
-		.default(sql`gen_random_uuid()`),
-	messageId: text('message_id')
+	id: uuid('id').primaryKey().defaultRandom(),
+	messageId: uuid('message_id')
 		.notNull()
 		.references(() => chatMessage.id, { onDelete: 'cascade' }),
 	userId: text('user_id')
@@ -367,9 +354,7 @@ export type ChatReaction = typeof chatReaction.$inferSelect
 
 // Status dos Usuários no Chat
 export const chatUserStatus = pgTable('chat_user_status', {
-	id: text('id')
-		.primaryKey()
-		.default(sql`gen_random_uuid()`),
+	id: uuid('id').primaryKey().defaultRandom(),
 	userId: text('user_id')
 		.notNull()
 		.references(() => authUser.id, { onDelete: 'cascade' }),
@@ -388,3 +373,21 @@ export const help = pgTable('help', {
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 	updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
+export type Help = typeof help.$inferSelect
+
+// === SISTEMA DE PROJETOS ===
+
+// Tabela de projetos
+export const project = pgTable('project', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	name: text('name').notNull(),
+	shortDescription: text('short_description').notNull(),
+	description: text('description').notNull(),
+	startDate: date('start_date'),
+	endDate: date('end_date'),
+	priority: text('priority').notNull().default('medium'), // 'low' | 'medium' | 'high' | 'urgent'
+	status: text('status').notNull().default('active'), // 'active' | 'completed' | 'paused' | 'cancelled'
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+export type Project = typeof project.$inferSelect

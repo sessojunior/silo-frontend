@@ -15,7 +15,20 @@ import ProjectFormOffcanvas from '@/components/admin/projects/ProjectFormOffcanv
 import ProjectDeleteDialog from '@/components/admin/projects/ProjectDeleteDialog'
 
 import { Project } from '@/types/projects'
-import { mockProjects } from '@/lib/data/projects-mock'
+
+// Tipo para dados do banco de dados
+interface ProjectDB {
+	id: string
+	name: string
+	shortDescription: string
+	description: string
+	startDate: string | null
+	endDate: string | null
+	priority: 'low' | 'medium' | 'high' | 'urgent'
+	status: 'active' | 'completed' | 'paused' | 'cancelled'
+	createdAt: Date
+	updatedAt: Date
+}
 
 export default function ProjectsPage() {
 	const router = useRouter()
@@ -62,19 +75,44 @@ export default function ProjectsPage() {
 			setLoading(true)
 			console.log('🔵 Carregando projetos...')
 
-			// Simular carregamento da API
-			setTimeout(() => {
-				setProjects(mockProjects)
-				console.log('✅ Projetos carregados:', mockProjects.length)
-				setLoading(false)
-			}, 1000)
+			const response = await fetch('/api/admin/projects')
+
+			if (!response.ok) {
+				throw new Error(`Erro HTTP: ${response.status}`)
+			}
+
+			const projectsData: ProjectDB[] = await response.json()
+
+			// Converter dados do banco para formato da interface
+			const formattedProjects: Project[] = projectsData.map((project) => ({
+				id: project.id,
+				name: project.name,
+				shortDescription: project.shortDescription,
+				description: project.description,
+				status: project.status,
+				priority: project.priority,
+				startDate: project.startDate,
+				endDate: project.endDate,
+				// Campos padrão para compatibilidade com interface existente
+				icon: 'folder',
+				color: '#3b82f6',
+				progress: Math.floor(Math.random() * 101), // Progresso aleatório por enquanto
+				members: [], // Sem membros por enquanto
+				activities: [], // Sem atividades por enquanto
+				createdAt: project.createdAt.toString(),
+				updatedAt: project.updatedAt.toString(),
+			}))
+
+			setProjects(formattedProjects)
+			console.log('✅ Projetos carregados:', formattedProjects.length)
 		} catch (error) {
-			console.error('❌ Erro inesperado ao carregar projetos:', error)
+			console.error('❌ Erro ao carregar projetos:', error)
 			toast({
 				type: 'error',
-				title: 'Erro inesperado',
-				description: 'Erro ao carregar projetos',
+				title: 'Erro ao carregar projetos',
+				description: 'Não foi possível carregar os projetos. Tente novamente.',
 			})
+		} finally {
 			setLoading(false)
 		}
 	}
@@ -126,41 +164,95 @@ export default function ProjectsPage() {
 				// Editar projeto existente
 				console.log('🔵 Atualizando projeto:', editingProject.id, projectData)
 
+				const response = await fetch('/api/admin/projects', {
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						id: editingProject.id,
+						...projectData,
+					}),
+				})
+
+				if (!response.ok) {
+					throw new Error(`Erro HTTP: ${response.status}`)
+				}
+
+				const updatedProjectData: ProjectDB = await response.json()
+
 				const updatedProject: Project = {
 					...editingProject,
-					...projectData,
-					updatedAt: new Date().toISOString(),
+					name: updatedProjectData.name,
+					shortDescription: updatedProjectData.shortDescription,
+					description: updatedProjectData.description,
+					status: updatedProjectData.status,
+					priority: updatedProjectData.priority,
+					startDate: updatedProjectData.startDate,
+					endDate: updatedProjectData.endDate,
+					updatedAt: updatedProjectData.updatedAt.toString(),
 				}
 
 				setProjects((prev) => prev.map((p) => (p.id === editingProject.id ? updatedProject : p)))
 				console.log('✅ Projeto atualizado com sucesso')
+
+				toast({
+					type: 'success',
+					title: 'Projeto atualizado',
+					description: 'O projeto foi atualizado com sucesso.',
+				})
 			} else {
 				// Criar novo projeto
 				console.log('🔵 Criando novo projeto:', projectData)
 
+				const response = await fetch('/api/admin/projects', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify(projectData),
+				})
+
+				if (!response.ok) {
+					throw new Error(`Erro HTTP: ${response.status}`)
+				}
+
+				const newProjectData: ProjectDB = await response.json()
+
 				const newProject: Project = {
-					id: `proj-${Date.now()}`,
-					name: projectData.name,
-					shortDescription: projectData.shortDescription,
-					description: projectData.description,
-					status: projectData.status,
-					priority: projectData.priority,
-					startDate: projectData.startDate,
-					endDate: projectData.endDate,
-					icon: 'folder', // Valor padrão já que removemos do formulário
-					color: '#3b82f6', // Valor padrão já que removemos do formulário
+					id: newProjectData.id,
+					name: newProjectData.name,
+					shortDescription: newProjectData.shortDescription,
+					description: newProjectData.description,
+					status: newProjectData.status,
+					priority: newProjectData.priority,
+					startDate: newProjectData.startDate,
+					endDate: newProjectData.endDate,
+					icon: 'folder',
+					color: '#3b82f6',
 					progress: 0,
 					members: [],
 					activities: [],
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString(),
+					createdAt: newProjectData.createdAt.toString(),
+					updatedAt: newProjectData.updatedAt.toString(),
 				}
 
 				setProjects((prev) => [newProject, ...prev])
 				console.log('✅ Projeto criado com sucesso')
+
+				toast({
+					type: 'success',
+					title: 'Projeto criado',
+					description: 'O projeto foi criado com sucesso.',
+				})
 			}
 		} catch (error) {
 			console.error('❌ Erro ao salvar projeto:', error)
+			toast({
+				type: 'error',
+				title: 'Erro ao salvar projeto',
+				description: 'Não foi possível salvar o projeto. Tente novamente.',
+			})
 			throw error
 		}
 	}
@@ -168,10 +260,30 @@ export default function ProjectsPage() {
 	async function handleProjectDelete(projectId: string) {
 		try {
 			console.log('🔵 Excluindo projeto:', projectId)
+
+			const response = await fetch(`/api/admin/projects?id=${projectId}`, {
+				method: 'DELETE',
+			})
+
+			if (!response.ok) {
+				throw new Error(`Erro HTTP: ${response.status}`)
+			}
+
 			setProjects((prev) => prev.filter((p) => p.id !== projectId))
 			console.log('✅ Projeto excluído com sucesso')
+
+			toast({
+				type: 'success',
+				title: 'Projeto excluído',
+				description: 'O projeto foi excluído com sucesso.',
+			})
 		} catch (error) {
 			console.error('❌ Erro ao excluir projeto:', error)
+			toast({
+				type: 'error',
+				title: 'Erro ao excluir projeto',
+				description: 'Não foi possível excluir o projeto. Tente novamente.',
+			})
 			throw error
 		}
 	}
