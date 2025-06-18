@@ -46,6 +46,7 @@ export const mockProjects: Project[] = [
 	{
 		id: 'proj-001',
 		name: 'Sistema de Previsão BAM',
+		shortDescription: 'Novo modelo atmosférico brasileiro para previsões meteorológicas de alta resolução',
 		description: 'Desenvolvimento e implementação do novo modelo atmosférico BAM (Brazilian Global Atmospheric Model)',
 		icon: 'cloud',
 		color: '#3b82f6',
@@ -147,6 +148,7 @@ export const mockProjects: Project[] = [
 	{
 		id: 'proj-002',
 		name: 'Portal de Monitoramento Climático',
+		shortDescription: 'Portal web para visualização e monitoramento de dados climáticos em tempo real',
 		description: 'Desenvolvimento de portal web para visualização e monitoramento de dados climáticos em tempo real',
 		icon: 'monitor',
 		color: '#10b981',
@@ -207,6 +209,7 @@ export const mockProjects: Project[] = [
 	{
 		id: 'proj-003',
 		name: 'Sistema de Alertas Meteorológicos',
+		shortDescription: 'Sistema automatizado para emissão de alertas meteorológicos severos',
 		description: 'Implementação de sistema automatizado para emissão de alertas meteorológicos severos',
 		icon: 'alert-triangle',
 		color: '#f59e0b',
@@ -240,6 +243,7 @@ export const mockProjects: Project[] = [
 	{
 		id: 'proj-004',
 		name: 'Modernização dos Radares Meteorológicos',
+		shortDescription: 'Upgrade tecnológico da rede de radares meteorológicos do CPTEC',
 		description: 'Upgrade tecnológico da rede de radares meteorológicos do CPTEC',
 		icon: 'radar',
 		color: '#8b5cf6',
@@ -265,6 +269,7 @@ export const mockProjects: Project[] = [
 	{
 		id: 'proj-005',
 		name: 'API de Dados Climáticos Históricos',
+		shortDescription: 'API REST para acesso aos dados climáticos históricos do Brasil',
 		description: 'Desenvolvimento de API REST para acesso aos dados climáticos históricos do Brasil',
 		icon: 'database',
 		color: '#ef4444',

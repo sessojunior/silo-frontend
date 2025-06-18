@@ -84,7 +84,7 @@ export default function ProjectDetailsPage() {
 	}
 
 	// Funções para os offcanvas
-	async function handleProjectSubmit(projectData: Omit<Project, 'id' | 'progress' | 'members' | 'activities' | 'createdAt' | 'updatedAt'>) {
+	async function handleProjectSubmit(projectData: { name: string; shortDescription: string; description: string; status: Project['status']; priority: Project['priority']; startDate: string; endDate: string }) {
 		if (!project) return
 
 		try {

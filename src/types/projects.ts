@@ -4,6 +4,7 @@
 export interface Project {
 	id: string
 	name: string
+	shortDescription: string
 	description: string
 	icon: string // Ícone Lucide (ex: 'folder', 'rocket', 'target')
 	color: string // Cor hex (ex: '#3b82f6', '#10b981')
