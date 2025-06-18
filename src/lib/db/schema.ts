@@ -391,3 +391,22 @@ export const project = pgTable('project', {
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 export type Project = typeof project.$inferSelect
+
+// Tabela de atividades dos projetos
+export const projectActivity = pgTable('project_activity', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	projectId: uuid('project_id')
+		.notNull()
+		.references(() => project.id, { onDelete: 'cascade' }),
+	name: text('name').notNull(),
+	description: text('description').notNull(),
+	category: text('category'), // categoria da atividade
+	estimatedDays: integer('estimated_days'), // dias estimados
+	startDate: date('start_date'),
+	endDate: date('end_date'),
+	priority: text('priority').notNull().default('medium'), // 'low' | 'medium' | 'high' | 'urgent'
+	status: text('status').notNull().default('todo'), // 'todo' | 'progress' | 'done' | 'blocked'
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+export type ProjectActivity = typeof projectActivity.$inferSelect

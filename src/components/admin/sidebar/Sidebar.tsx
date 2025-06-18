@@ -8,7 +8,6 @@ import SidebarFooter from '@/components/admin/sidebar/SidebarFooter'
 import SidebarMenu from '@/components/admin/sidebar/SidebarMenu'
 import SidebarBlocks from '@/components/admin/sidebar/SidebarBlocks'
 import type { Product } from '@/lib/db/schema'
-import { mockProjects } from '@/lib/data/projects-mock'
 import type { Project } from '@/types/projects'
 
 export type SidebarMenuProps = {
@@ -48,11 +47,61 @@ export default function Sidebar() {
 		fetchProducts()
 	}, [])
 
-	// Obter dados dos projetos (usando dados mockados)
+	// Obter dados dos projetos reais da API
 	useEffect(() => {
-		// Filtrar apenas projetos ativos e importantes (prioridade alta/urgente)
-		const importantProjects = mockProjects.filter((project) => project.status === 'active' && (project.priority === 'high' || project.priority === 'urgent'))
-		setProjects(importantProjects)
+		const fetchProjects = async () => {
+			try {
+				const response = await fetch('/api/admin/projects')
+				if (!response.ok) {
+					console.error('❌ Erro ao buscar projetos para sidebar')
+					return
+				}
+				const projectsData = await response.json()
+
+				// Definir tipo para os dados do banco
+				interface ProjectDB {
+					id: string
+					name: string
+					shortDescription: string
+					description: string
+					startDate: string | null
+					endDate: string | null
+					priority: 'low' | 'medium' | 'high' | 'urgent'
+					status: 'active' | 'completed' | 'paused' | 'cancelled'
+					createdAt: Date
+					updatedAt: Date
+				}
+
+				// Converter dados do banco para formato da interface e filtrar apenas projetos ativos e importantes
+				const formattedProjects: Project[] = (projectsData as ProjectDB[])
+					.filter((project) => project.status === 'active' && (project.priority === 'high' || project.priority === 'urgent'))
+					.map((project) => ({
+						id: project.id,
+						name: project.name,
+						shortDescription: project.shortDescription,
+						description: project.description,
+						status: project.status,
+						priority: project.priority,
+						startDate: project.startDate,
+						endDate: project.endDate,
+						// Campos padrão para compatibilidade
+						icon: 'folder',
+						color: '#3b82f6',
+						progress: 0,
+						members: [],
+						activities: [],
+						createdAt: new Date(project.createdAt).toISOString(),
+						updatedAt: new Date(project.updatedAt).toISOString(),
+					}))
+
+				setProjects(formattedProjects)
+			} catch (error) {
+				console.error('❌ Erro ao carregar projetos para sidebar:', error)
+				setProjects([])
+			}
+		}
+
+		fetchProjects()
 	}, [])
 
 	// Dados para o menu lateral
@@ -88,7 +137,7 @@ export default function Sidebar() {
 					},
 					{
 						id: '1.3',
-						title: 'Projetos importantes',
+						title: 'Projetos ativos',
 						icon: 'icon-[lucide--square-chart-gantt]',
 						url: '/admin/projects',
 						items: [

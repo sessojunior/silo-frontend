@@ -8,6 +8,8 @@ export type TestUserData = Pick<typeof schema.authUser.$inferInsert, 'name' | 'e
 export type ProjectData = Omit<typeof schema.project.$inferInsert, 'id' | 'createdAt' | 'updatedAt'>
 export type ManualData = { productSlug: string; description: string }
 
+export type ProjectActivityData = Omit<typeof schema.projectActivity.$inferInsert, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>
+
 export interface DependencyItem {
 	name: string
 	icon: string | null
@@ -574,3 +576,235 @@ export function generateSolutions() {
 
 // Mensagens de exemplo para o chat
 export const exampleChatMessages = ['🎉 Olá pessoal! Bem-vindos ao canal!', 'Sistema de chat funcionando perfeitamente! 🚀', 'Que bom ter todos vocês aqui. Vamos começar a colaborar! 💪', 'Este canal vai ser muito útil para nossa equipe! 👥', 'Alguém pode me ajudar com uma dúvida técnica?', 'Acabei de atualizar a documentação do projeto 📝', 'Reunião hoje às 14h, não esqueçam! ⏰', 'Parabéns pelo excelente trabalho na sprint passada! 👏']
+
+// Atividades de exemplo para projetos - organizadas por projeto
+export const projectActivitiesData = {
+	// PROJETO 1: Sistema de Monitoramento Meteorológico - 6 atividades
+	meteorologia: [
+		{
+			name: 'Análise de Requisitos do Sistema',
+			description: 'Levantamento detalhado dos requisitos funcionais e não funcionais para monitoramento meteorológico em tempo real',
+			category: 'Análise',
+			estimatedDays: 5,
+			startDate: '2024-01-15',
+			endDate: '2024-01-20',
+			priority: 'high',
+			status: 'done',
+		},
+		{
+			name: 'Design da Interface de Dashboards',
+			description: 'Criação de mockups e protótipos para dashboards de visualização de dados meteorológicos',
+			category: 'Design',
+			estimatedDays: 8,
+			startDate: '2024-01-21',
+			endDate: '2024-01-29',
+			priority: 'high',
+			status: 'done',
+		},
+		{
+			name: 'Implementação da API de Dados Meteorológicos',
+			description: 'Desenvolvimento das APIs REST para coleta, processamento e disponibilização de dados meteorológicos',
+			category: 'Desenvolvimento',
+			estimatedDays: 15,
+			startDate: '2024-01-30',
+			endDate: '2024-02-14',
+			priority: 'urgent',
+			status: 'progress',
+		},
+		{
+			name: 'Desenvolvimento da Interface de Visualização',
+			description: 'Implementação dos componentes React para visualização de mapas, gráficos e alertas meteorológicos',
+			category: 'Desenvolvimento',
+			estimatedDays: 12,
+			startDate: '2024-02-05',
+			endDate: '2024-02-17',
+			priority: 'urgent',
+			status: 'progress',
+		},
+		{
+			name: 'Sistema de Alertas Automatizados',
+			description: 'Implementação do sistema de alertas automáticos baseado em thresholds meteorológicos',
+			category: 'Desenvolvimento',
+			estimatedDays: 10,
+			startDate: '2024-02-15',
+			endDate: '2024-02-25',
+			priority: 'high',
+			status: 'todo',
+		},
+		{
+			name: 'Testes de Performance e Carga',
+			description: 'Validação da performance do sistema com grandes volumes de dados meteorológicos',
+			category: 'Testes',
+			estimatedDays: 6,
+			startDate: '2024-02-26',
+			endDate: '2024-03-04',
+			priority: 'medium',
+			status: 'todo',
+		},
+	],
+
+	// PROJETO 2: Migração para Nuvem INPE - 5 atividades
+	clima: [
+		{
+			name: 'Análise de Arquitetura de Nuvem',
+			description: 'Estudo da arquitetura atual e definição da estratégia de migração para infraestrutura híbrida em nuvem',
+			category: 'Arquitetura',
+			estimatedDays: 8,
+			startDate: '2024-02-01',
+			endDate: '2024-02-09',
+			priority: 'urgent',
+			status: 'done',
+		},
+		{
+			name: 'Configuração de Ambiente de Nuvem',
+			description: 'Setup inicial da infraestrutura em nuvem com containers, orquestração e políticas de segurança',
+			category: 'Infraestrutura',
+			estimatedDays: 12,
+			startDate: '2024-02-10',
+			endDate: '2024-02-22',
+			priority: 'urgent',
+			status: 'done',
+		},
+		{
+			name: 'Migração de Aplicações Críticas',
+			description: 'Migração dos sistemas críticos do CPTEC para ambiente de nuvem com zero downtime',
+			category: 'Migração',
+			estimatedDays: 25,
+			startDate: '2024-02-15',
+			endDate: '2024-03-12',
+			priority: 'urgent',
+			status: 'progress',
+		},
+		{
+			name: 'Implementação de Monitoramento e Alertas',
+			description: 'Sistema de monitoramento 24/7 com alertas automáticos para infraestrutura de nuvem',
+			category: 'Monitoramento',
+			estimatedDays: 10,
+			startDate: '2024-03-01',
+			endDate: '2024-03-11',
+			priority: 'high',
+			status: 'progress',
+		},
+		{
+			name: 'Otimização de Custos e Performance',
+			description: 'Análise e otimização dos recursos de nuvem para redução de custos e melhoria de performance',
+			category: 'Otimização',
+			estimatedDays: 15,
+			startDate: '2024-03-13',
+			endDate: '2024-03-28',
+			priority: 'medium',
+			status: 'todo',
+		},
+	],
+
+	// PROJETO 3: Modernização da Rede de Observação - 4 atividades
+	previsao: [
+		{
+			name: 'Avaliação de Equipamentos Obsoletos',
+			description: 'Diagnóstico completo da rede atual de observação meteorológica e identificação de equipamentos a serem substituídos',
+			category: 'Diagnóstico',
+			estimatedDays: 10,
+			startDate: '2024-03-01',
+			endDate: '2024-03-11',
+			priority: 'high',
+			status: 'done',
+		},
+		{
+			name: 'Especificação de Novos Sensores',
+			description: 'Definição técnica e especificação de estações automáticas e sensores de última geração',
+			category: 'Especificação',
+			estimatedDays: 12,
+			startDate: '2024-03-12',
+			endDate: '2024-03-24',
+			priority: 'high',
+			status: 'progress',
+		},
+		{
+			name: 'Instalação de Estações Automáticas',
+			description: 'Instalação física e configuração de novas estações meteorológicas automáticas',
+			category: 'Instalação',
+			estimatedDays: 20,
+			startDate: '2024-03-25',
+			endDate: '2024-04-14',
+			priority: 'medium',
+			status: 'todo',
+		},
+		{
+			name: 'Calibração e Testes de Validação',
+			description: 'Calibração dos novos equipamentos e validação dos dados coletados com padrões internacionais',
+			category: 'Validação',
+			estimatedDays: 8,
+			startDate: '2024-04-15',
+			endDate: '2024-04-23',
+			priority: 'high',
+			status: 'todo',
+		},
+	],
+
+	// PROJETO 4: Portal de Dados Abertos - 6 atividades
+	portal: [
+		{
+			name: 'Levantamento de Requisitos Legais',
+			description: 'Análise dos requisitos da Lei de Acesso à Informação e LGPD para portal de dados abertos',
+			category: 'Análise',
+			estimatedDays: 4,
+			startDate: '2024-01-12',
+			endDate: '2024-01-16',
+			priority: 'high',
+			status: 'done',
+		},
+		{
+			name: 'Design UX/UI do Portal',
+			description: 'Criação da experiência do usuário e interface visual focada em acessibilidade e usabilidade',
+			category: 'Design',
+			estimatedDays: 9,
+			startDate: '2024-01-17',
+			endDate: '2024-01-26',
+			priority: 'high',
+			status: 'done',
+		},
+		{
+			name: 'API de Catálogo de Dados',
+			description: 'Desenvolvimento da API RESTful para catalogação e busca de datasets meteorológicos',
+			category: 'Desenvolvimento',
+			estimatedDays: 12,
+			startDate: '2024-01-27',
+			endDate: '2024-02-08',
+			priority: 'urgent',
+			status: 'progress',
+		},
+		{
+			name: 'Sistema de Download e Streaming',
+			description: 'Implementação de sistema otimizado para download de grandes arquivos e streaming de dados',
+			category: 'Desenvolvimento',
+			estimatedDays: 14,
+			startDate: '2024-02-05',
+			endDate: '2024-02-19',
+			priority: 'high',
+			status: 'progress',
+		},
+		{
+			name: 'Documentação Interativa da API',
+			description: 'Criação de documentação interativa com exemplos práticos e playground para desenvolvedores',
+			category: 'Documentação',
+			estimatedDays: 5,
+			startDate: '2024-02-20',
+			endDate: '2024-02-25',
+			priority: 'medium',
+			status: 'todo',
+		},
+		{
+			name: 'Testes de Segurança e Compliance',
+			description: 'Auditoria de segurança e validação de compliance com regulamentações de dados governamentais',
+			category: 'Segurança',
+			estimatedDays: 7,
+			startDate: '2024-02-26',
+			endDate: '2024-03-05',
+			priority: 'high',
+			status: 'todo',
+		},
+	],
+
+	// PROJETO 5: Sistema de Backup Distribuído - ESTE FICARÁ SEM ATIVIDADES (projeto cancelado)
+	infraestrutura: [],
+}

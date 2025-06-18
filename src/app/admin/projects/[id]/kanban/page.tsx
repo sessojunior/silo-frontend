@@ -10,7 +10,6 @@ import KanbanConfigOffcanvas, { KanbanConfig } from '@/components/admin/projects
 import Button from '@/components/ui/Button'
 
 import { Project, Activity } from '@/types/projects'
-import { mockProjects } from '@/lib/data/projects-mock'
 
 interface ActivitySubmissionData {
 	name: string
@@ -51,19 +50,118 @@ export default function ProjectKanbanPage() {
 			setLoading(true)
 			console.log('🔵 Carregando projeto para Kanban:', projectId)
 
-			// Simular API call
-			setTimeout(() => {
-				const foundProject = mockProjects.find((p) => p.id === projectId)
-				if (!foundProject) {
-					notFound()
-					return
-				}
+			// Buscar dados do projeto
+			const projectResponse = await fetch(`/api/admin/projects?id=${projectId}`)
+			if (!projectResponse.ok) {
+				console.error('❌ Projeto não encontrado:', projectId)
+				notFound()
+				return
+			}
 
-				setProject(foundProject)
-				setActivities(foundProject.activities)
-				console.log('✅ Projeto carregado para Kanban:', foundProject.name)
-				setLoading(false)
-			}, 800)
+			// Definir tipo para os dados do banco
+			interface ProjectDB {
+				id: string
+				name: string
+				shortDescription: string
+				description: string
+				startDate: string | null
+				endDate: string | null
+				priority: 'low' | 'medium' | 'high' | 'urgent'
+				status: 'active' | 'completed' | 'paused' | 'cancelled'
+				createdAt: Date
+				updatedAt: Date
+			}
+
+			const projectsData: ProjectDB[] = await projectResponse.json()
+			const projectData = projectsData.find((p) => p.id === projectId)
+
+			if (!projectData) {
+				console.error('❌ Projeto não encontrado nos dados:', projectId)
+				notFound()
+				return
+			}
+
+			// Buscar atividades do projeto
+			const activitiesResponse = await fetch(`/api/projects/${projectId}/activities`)
+			let activitiesData = []
+
+			if (activitiesResponse.ok) {
+				activitiesData = await activitiesResponse.json()
+			} else {
+				console.log('⚠️ Projeto sem atividades ou erro ao carregar atividades')
+			}
+
+			// Converter dados para formato da interface
+			const formattedProject: Project = {
+				id: projectData.id,
+				name: projectData.name,
+				shortDescription: projectData.shortDescription,
+				description: projectData.description,
+				status: projectData.status,
+				priority: projectData.priority,
+				startDate: projectData.startDate,
+				endDate: projectData.endDate,
+				// Campos padrão para compatibilidade
+				icon: 'folder',
+				color: '#3b82f6',
+				progress: Math.floor(Math.random() * 101), // Progresso aleatório por enquanto
+				members: [], // Sem membros por enquanto
+				activities: [], // Será preenchido separadamente
+				createdAt: new Date(projectData.createdAt).toISOString(),
+				updatedAt: new Date(projectData.updatedAt).toISOString(),
+			}
+
+			// Definir tipo para atividades do banco
+			interface ActivityDB {
+				id: string
+				projectId: string
+				name: string
+				description: string
+				category: string | null
+				estimatedDays: number | null
+				startDate: string | null
+				endDate: string | null
+				priority: 'low' | 'medium' | 'high' | 'urgent'
+				status: 'pending' | 'in_progress' | 'on_hold' | 'done' | 'cancelled'
+				createdAt: Date
+				updatedAt: Date
+			}
+
+			// Função para converter status do database para interface
+			function convertActivityStatus(dbStatus: ActivityDB['status']): Activity['status'] {
+				const statusMapping: Record<ActivityDB['status'], Activity['status']> = {
+					pending: 'todo',
+					in_progress: 'in_progress',
+					on_hold: 'blocked',
+					done: 'done',
+					cancelled: 'blocked',
+				}
+				return statusMapping[dbStatus] || 'todo'
+			}
+
+			// Converter atividades para formato da interface
+			const formattedActivities: Activity[] = (activitiesData as ActivityDB[]).map((activity) => ({
+				id: activity.id,
+				projectId: activity.projectId,
+				name: activity.name,
+				description: activity.description,
+				status: convertActivityStatus(activity.status),
+				priority: activity.priority,
+				progress: 0, // Default
+				category: activity.category || '',
+				startDate: activity.startDate || '',
+				endDate: activity.endDate || '',
+				estimatedHours: activity.estimatedDays || 0,
+				actualHours: 0, // Default
+				assignees: [], // Default
+				labels: [], // Default
+				createdAt: new Date(activity.createdAt).toISOString(),
+				updatedAt: new Date(activity.updatedAt).toISOString(),
+			}))
+
+			setProject(formattedProject)
+			setActivities(formattedActivities)
+			console.log('✅ Projeto carregado para Kanban:', formattedProject.name)
 		} catch (error) {
 			console.error('❌ Erro ao carregar projeto:', error)
 			toast({
@@ -71,6 +169,7 @@ export default function ProjectKanbanPage() {
 				title: 'Erro inesperado',
 				description: 'Erro ao carregar projeto',
 			})
+		} finally {
 			setLoading(false)
 		}
 	}
@@ -145,16 +244,44 @@ export default function ProjectKanbanPage() {
 		try {
 			if (editingActivity) {
 				// Editar atividade existente
-				console.log('🔵 Atualizando atividade no Kanban:', editingActivity.id, activityData)
+				console.log('🔵 Atualizando atividade no Kanban:', editingActivity.id)
 
-				// Extrair estimatedHours dos dados (pode vir como 'days' ou 'estimatedHours')
-				const days = activityData.days || activityData.estimatedHours
+				const response = await fetch(`/api/projects/${projectId}/activities`, {
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						id: editingActivity.id,
+						name: activityData.name,
+						description: activityData.description,
+						category: activityData.category || null,
+						estimatedDays: activityData.days ? Number(activityData.days) : null,
+						startDate: activityData.startDate || null,
+						endDate: activityData.endDate || null,
+						priority: activityData.priority,
+						status: activityData.status,
+					}),
+				})
 
+				const data = await response.json()
+
+				if (!response.ok || !data.success) {
+					throw new Error(data.error || 'Erro ao atualizar atividade')
+				}
+
+				// Atualizar atividade na lista
 				const updatedActivity: Activity = {
 					...editingActivity,
-					...activityData,
-					estimatedHours: days ? Number(days) : null,
-					updatedAt: new Date().toISOString(),
+					name: data.activity.name,
+					description: data.activity.description,
+					category: data.activity.category || '',
+					status: data.activity.status,
+					priority: data.activity.priority,
+					estimatedHours: data.activity.estimatedDays,
+					startDate: data.activity.startDate || '',
+					endDate: data.activity.endDate || '',
+					updatedAt: data.activity.updatedAt.toString(),
 				}
 
 				const updatedActivities = activities.map((a) => (a.id === editingActivity.id ? updatedActivity : a))
@@ -168,22 +295,49 @@ export default function ProjectKanbanPage() {
 				console.log('✅ Atividade atualizada com sucesso no Kanban')
 			} else {
 				// Criar nova atividade
-				console.log('🔵 Criando nova atividade no Kanban:', activityData)
+				console.log('🔵 Criando nova atividade no Kanban')
 
-				// Extrair estimatedHours dos dados (pode vir como 'days' ou 'estimatedHours')
-				const days = activityData.days || activityData.estimatedHours
+				const response = await fetch(`/api/projects/${projectId}/activities`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						name: activityData.name,
+						description: activityData.description,
+						category: activityData.category || null,
+						estimatedDays: activityData.days ? Number(activityData.days) : null,
+						startDate: activityData.startDate || null,
+						endDate: activityData.endDate || null,
+						priority: activityData.priority,
+						status: activityData.status,
+					}),
+				})
 
+				const data = await response.json()
+
+				if (!response.ok || !data.success) {
+					throw new Error(data.error || 'Erro ao criar atividade')
+				}
+
+				// Adicionar nova atividade
 				const newActivity: Activity = {
-					id: `activity-${Date.now()}`,
+					id: data.activity.id,
 					projectId: project.id,
-					...activityData,
+					name: data.activity.name,
+					description: data.activity.description,
+					category: data.activity.category || '',
+					status: data.activity.status,
+					priority: data.activity.priority,
 					progress: 0,
 					assignees: [],
 					labels: [],
-					estimatedHours: days ? Number(days) : null,
+					estimatedHours: data.activity.estimatedDays,
 					actualHours: null,
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString(),
+					startDate: data.activity.startDate || '',
+					endDate: data.activity.endDate || '',
+					createdAt: data.activity.createdAt.toString(),
+					updatedAt: data.activity.updatedAt.toString(),
 				}
 
 				const updatedActivities = [newActivity, ...activities]

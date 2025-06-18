@@ -10,18 +10,45 @@ import ActivityFormOffcanvas from '@/components/admin/projects/ActivityFormOffca
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 
-import { Project, Activity } from '@/types/projects'
-import { mockProjects } from '@/lib/data/projects-mock'
+import { Activity } from '@/types/projects'
+
+// Interfaces para tipos de dados
+interface Project {
+	id: string
+	name: string
+	shortDescription: string
+	description: string
+	startDate: string | null
+	endDate: string | null
+	priority: 'low' | 'medium' | 'high' | 'urgent'
+	status: 'active' | 'completed' | 'paused' | 'cancelled'
+	createdAt: Date
+	updatedAt: Date
+}
+
+interface ProjectActivity {
+	id: string
+	projectId: string
+	name: string
+	description: string
+	category: string | null
+	estimatedDays: number | null
+	startDate: string | null
+	endDate: string | null
+	priority: 'low' | 'medium' | 'high' | 'urgent'
+	status: 'todo' | 'progress' | 'done' | 'blocked'
+	createdAt: Date
+	updatedAt: Date
+}
 
 interface ActivitySubmissionData {
 	name: string
 	description: string
-	status: Activity['status']
-	priority: Activity['priority']
+	status: 'todo' | 'todo_doing' | 'todo_done' | 'in_progress' | 'in_progress_doing' | 'in_progress_done' | 'review' | 'review_doing' | 'review_done' | 'done' | 'blocked'
+	priority: ProjectActivity['priority']
 	category: string
 	startDate: string
 	endDate: string
-	estimatedHours?: string
 	days?: string
 }
 
@@ -30,22 +57,25 @@ export default function ProjectDetailsPage() {
 	const router = useRouter()
 	const projectId = params.id as string
 	const [project, setProject] = useState<Project | null>(null)
+	const [activities, setActivities] = useState<ProjectActivity[]>([])
 	const [loading, setLoading] = useState(true)
+	const [activitiesLoading, setActivitiesLoading] = useState(false)
 
 	// Estados dos offcanvas
 	const [projectFormOpen, setProjectFormOpen] = useState(false)
 	const [activityFormOpen, setActivityFormOpen] = useState(false)
-	const [editingActivity, setEditingActivity] = useState<Activity | null>(null)
+	const [editingActivity, setEditingActivity] = useState<ProjectActivity | null>(null)
 
 	// Estados para filtros de atividades
 	const [search, setSearch] = useState('')
 	const [statusFilter, setStatusFilter] = useState<'all' | 'todo' | 'progress' | 'done' | 'blocked'>('all')
 	const [priorityFilter, setPriorityFilter] = useState<'all' | 'low' | 'medium' | 'high' | 'urgent'>('all')
 
-	// Carregar projeto
+	// Carregar projeto e atividades
 	useEffect(() => {
 		if (projectId) {
 			fetchProject()
+			fetchActivities()
 		}
 	}, [projectId])
 
@@ -56,24 +86,37 @@ export default function ProjectDetailsPage() {
 			setLoading(true)
 			console.log('🔵 Carregando detalhes do projeto:', projectId)
 
-			// Simular API call
-			setTimeout(() => {
-				const foundProject = mockProjects.find((p) => p.id === projectId)
-				if (!foundProject) {
-					console.log('❌ Projeto não encontrado:', projectId)
-					toast({
-						type: 'error',
-						title: 'Projeto não encontrado',
-						description: 'O projeto solicitado não existe ou foi removido.',
-					})
-					router.push('/admin/projects')
-					return
-				}
+			const response = await fetch(`/api/admin/projects?id=${projectId}`)
 
-				setProject(foundProject)
-				console.log('✅ Projeto carregado:', foundProject.name)
-				setLoading(false)
-			}, 800)
+			if (!response.ok) {
+				console.log('❌ Erro HTTP ao buscar projeto:', response.status)
+				toast({
+					type: 'error',
+					title: 'Projeto não encontrado',
+					description: 'O projeto solicitado não existe ou foi removido.',
+				})
+				router.push('/admin/projects')
+				return
+			}
+
+			const projects = await response.json()
+
+			// A API retorna um array de projetos filtrados
+			const foundProject = projects.find((p: Project) => p.id === projectId)
+
+			if (!foundProject) {
+				console.log('❌ Projeto não encontrado no array:', projectId)
+				toast({
+					type: 'error',
+					title: 'Projeto não encontrado',
+					description: 'O projeto solicitado não existe ou foi removido.',
+				})
+				router.push('/admin/projects')
+				return
+			}
+
+			setProject(foundProject)
+			console.log('✅ Projeto carregado:', foundProject.name)
 		} catch (error) {
 			console.error('❌ Erro ao carregar projeto:', error)
 			toast({
@@ -81,15 +124,65 @@ export default function ProjectDetailsPage() {
 				title: 'Erro inesperado',
 				description: 'Erro ao carregar detalhes do projeto',
 			})
+			router.push('/admin/projects')
+		} finally {
 			setLoading(false)
+		}
+	}
+
+	async function fetchActivities() {
+		if (!projectId) return
+
+		try {
+			setActivitiesLoading(true)
+			console.log('🔵 Carregando atividades do projeto:', projectId)
+
+			const response = await fetch(`/api/projects/${projectId}/activities`)
+			const data = await response.json()
+
+			if (!response.ok || !data.success) {
+				console.error('❌ Erro ao carregar atividades:', data.error)
+				toast({
+					type: 'error',
+					title: 'Erro ao carregar atividades',
+					description: data.error || 'Erro interno do servidor',
+				})
+				return
+			}
+
+			setActivities(data.activities)
+			console.log('✅ Atividades carregadas:', data.activities.length)
+		} catch (error) {
+			console.error('❌ Erro ao carregar atividades:', error)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado',
+				description: 'Erro ao carregar atividades do projeto',
+			})
+		} finally {
+			setActivitiesLoading(false)
+		}
+	}
+
+	// Função para converter status do banco para o formato do componente
+	function convertActivityStatus(dbStatus: ProjectActivity['status']): 'todo' | 'todo_doing' | 'todo_done' | 'in_progress' | 'in_progress_doing' | 'in_progress_done' | 'review' | 'review_doing' | 'review_done' | 'done' | 'blocked' {
+		switch (dbStatus) {
+			case 'todo':
+				return 'todo'
+			case 'progress':
+				return 'in_progress'
+			case 'done':
+				return 'done'
+			case 'blocked':
+				return 'blocked'
+			default:
+				return 'todo'
 		}
 	}
 
 	// Filtrar atividades
 	const filteredActivities = useMemo(() => {
-		if (!project) return []
-
-		let filtered = project.activities
+		let filtered = activities
 
 		// Filtro de busca
 		if (search) {
@@ -107,11 +200,28 @@ export default function ProjectDetailsPage() {
 		}
 
 		return filtered.sort((a, b) => a.name.localeCompare(b.name))
-	}, [project, search, statusFilter, priorityFilter])
+	}, [activities, search, statusFilter, priorityFilter])
 
 	function handleEditActivity(activity: Activity) {
 		console.log('🔵 Abrindo formulário de edição da atividade:', activity.name)
-		setEditingActivity(activity)
+
+		// Converter de Activity para ProjectActivity
+		const projectActivity: ProjectActivity = {
+			id: activity.id,
+			projectId: activity.projectId,
+			name: activity.name,
+			description: activity.description,
+			category: activity.category,
+			estimatedDays: activity.estimatedHours,
+			startDate: activity.startDate || '',
+			endDate: activity.endDate || '',
+			priority: activity.priority,
+			status: activity.status === 'in_progress' ? 'progress' : activity.status === 'in_progress_doing' ? 'progress' : activity.status === 'in_progress_done' ? 'progress' : activity.status === 'review' ? 'progress' : activity.status === 'review_doing' ? 'progress' : activity.status === 'review_done' ? 'progress' : activity.status === 'todo' ? 'todo' : activity.status === 'todo_doing' ? 'todo' : activity.status === 'todo_done' ? 'todo' : activity.status === 'done' ? 'done' : 'blocked',
+			createdAt: new Date(activity.createdAt),
+			updatedAt: new Date(activity.updatedAt),
+		}
+
+		setEditingActivity(projectActivity)
 		setActivityFormOpen(true)
 	}
 
@@ -121,105 +231,197 @@ export default function ProjectDetailsPage() {
 		setActivityFormOpen(true)
 	}
 
-	// Funções para os offcanvas
+	// Função para atualizar projeto
 	async function handleProjectSubmit(projectData: { name: string; shortDescription: string; description: string; status: Project['status']; priority: Project['priority']; startDate: string; endDate: string }) {
 		if (!project) return
 
 		try {
 			console.log('🔵 Atualizando projeto:', projectData.name)
 
-			// Simular API call
-			const updatedProject: Project = {
-				...project,
-				...projectData,
-				updatedAt: new Date().toISOString(),
+			const response = await fetch(`/api/admin/projects`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					id: project.id,
+					...projectData,
+				}),
+			})
+
+			if (!response.ok) {
+				const errorData = await response.json()
+				throw new Error(errorData.error || 'Erro ao atualizar projeto')
 			}
 
+			const updatedProject = await response.json()
 			setProject(updatedProject)
 			console.log('✅ Projeto atualizado com sucesso')
+
+			toast({
+				type: 'success',
+				title: 'Projeto atualizado',
+				description: 'As informações do projeto foram atualizadas com sucesso.',
+			})
 		} catch (error) {
 			console.error('❌ Erro ao atualizar projeto:', error)
+			toast({
+				type: 'error',
+				title: 'Erro ao atualizar projeto',
+				description: error instanceof Error ? error.message : 'Erro interno do servidor',
+			})
 			throw error
 		}
 	}
 
+	// Função para converter status do componente para o banco
+	function convertStatusToDatabase(componentStatus: ActivitySubmissionData['status']): ProjectActivity['status'] {
+		switch (componentStatus) {
+			case 'todo':
+			case 'todo_doing':
+			case 'todo_done':
+				return 'todo'
+			case 'in_progress':
+			case 'in_progress_doing':
+			case 'in_progress_done':
+			case 'review':
+			case 'review_doing':
+			case 'review_done':
+				return 'progress'
+			case 'done':
+				return 'done'
+			case 'blocked':
+				return 'blocked'
+			default:
+				return 'todo'
+		}
+	}
+
+	// Função para criar/editar atividade
 	async function handleActivitySubmit(activityData: ActivitySubmissionData) {
 		if (!project) return
 
 		try {
+			const dbStatus = convertStatusToDatabase(activityData.status)
+
 			if (editingActivity) {
 				// Editar atividade existente
-				console.log('🔵 Atualizando atividade:', editingActivity.id, activityData)
+				console.log('🔵 Atualizando atividade:', editingActivity.id)
 
-				// Extrair estimatedHours dos dados (pode vir como 'days' ou 'estimatedHours')
-				const days = activityData.days || activityData.estimatedHours
+				const response = await fetch(`/api/projects/${projectId}/activities`, {
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						id: editingActivity.id,
+						name: activityData.name,
+						description: activityData.description,
+						category: activityData.category || null,
+						estimatedDays: activityData.days ? Number(activityData.days) : null,
+						startDate: activityData.startDate || null,
+						endDate: activityData.endDate || null,
+						priority: activityData.priority,
+						status: dbStatus,
+					}),
+				})
 
-				const updatedActivity: Activity = {
-					...editingActivity,
-					...activityData,
-					estimatedHours: days ? Number(days) : null,
-					updatedAt: new Date().toISOString(),
+				const data = await response.json()
+
+				if (!response.ok || !data.success) {
+					throw new Error(data.error || 'Erro ao atualizar atividade')
 				}
 
-				const updatedProject = {
-					...project,
-					activities: project.activities.map((a) => (a.id === editingActivity.id ? updatedActivity : a)),
-				}
+				// Atualizar lista de atividades
+				setActivities((prev) => prev.map((a) => (a.id === editingActivity.id ? data.activity : a)))
 
-				setProject(updatedProject)
 				console.log('✅ Atividade atualizada com sucesso')
+				toast({
+					type: 'success',
+					title: 'Atividade atualizada',
+					description: 'A atividade foi atualizada com sucesso.',
+				})
 			} else {
 				// Criar nova atividade
-				console.log('🔵 Criando nova atividade:', activityData)
+				console.log('🔵 Criando nova atividade')
 
-				// Extrair estimatedHours dos dados (pode vir como 'days' ou 'estimatedHours')
-				const days = activityData.days || activityData.estimatedHours
+				const response = await fetch(`/api/projects/${projectId}/activities`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						name: activityData.name,
+						description: activityData.description,
+						category: activityData.category || null,
+						estimatedDays: activityData.days ? Number(activityData.days) : null,
+						startDate: activityData.startDate || null,
+						endDate: activityData.endDate || null,
+						priority: activityData.priority,
+						status: dbStatus,
+					}),
+				})
 
-				const newActivity: Activity = {
-					id: `activity-${Date.now()}`,
-					projectId: project.id,
-					...activityData,
-					progress: 0,
-					assignees: [],
-					labels: [],
-					estimatedHours: days ? Number(days) : null,
-					actualHours: null,
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString(),
+				const data = await response.json()
+
+				if (!response.ok || !data.success) {
+					throw new Error(data.error || 'Erro ao criar atividade')
 				}
 
-				const updatedProject = {
-					...project,
-					activities: [newActivity, ...project.activities],
-				}
+				// Adicionar à lista de atividades
+				setActivities((prev) => [data.activity, ...prev])
 
-				setProject(updatedProject)
 				console.log('✅ Atividade criada com sucesso')
+				toast({
+					type: 'success',
+					title: 'Atividade criada',
+					description: 'A nova atividade foi criada com sucesso.',
+				})
 			}
 		} catch (error) {
 			console.error('❌ Erro ao salvar atividade:', error)
+			toast({
+				type: 'error',
+				title: 'Erro ao salvar atividade',
+				description: error instanceof Error ? error.message : 'Erro interno do servidor',
+			})
 			throw error
 		}
 	}
 
+	// Função para excluir atividade
 	async function handleActivityDelete(activityId: string) {
 		if (!project) return
 
 		try {
 			console.log('🔵 Excluindo atividade:', activityId)
 
-			// Simular API call para exclusão
-			await new Promise((resolve) => setTimeout(resolve, 500))
+			const response = await fetch(`/api/projects/${projectId}/activities?activityId=${activityId}`, {
+				method: 'DELETE',
+			})
 
-			const updatedProject = {
-				...project,
-				activities: project.activities.filter((a) => a.id !== activityId),
+			const data = await response.json()
+
+			if (!response.ok || !data.success) {
+				throw new Error(data.error || 'Erro ao excluir atividade')
 			}
 
-			setProject(updatedProject)
+			// Remover da lista de atividades
+			setActivities((prev) => prev.filter((a) => a.id !== activityId))
+
 			console.log('✅ Atividade excluída com sucesso')
+			toast({
+				type: 'success',
+				title: 'Atividade excluída',
+				description: 'A atividade foi excluída com sucesso.',
+			})
 		} catch (error) {
 			console.error('❌ Erro ao excluir atividade:', error)
+			toast({
+				type: 'error',
+				title: 'Erro ao excluir atividade',
+				description: error instanceof Error ? error.message : 'Erro interno do servidor',
+			})
 			throw error
 		}
 	}
@@ -297,7 +499,14 @@ export default function ProjectDetailsPage() {
 					</div>
 
 					{/* Lista de Atividades */}
-					{filteredActivities.length === 0 ? (
+					{activitiesLoading ? (
+						<div className='flex items-center justify-center py-12'>
+							<div className='flex items-center gap-3'>
+								<span className='icon-[lucide--loader-circle] size-6 animate-spin text-zinc-400' />
+								<span className='text-zinc-600 dark:text-zinc-400'>Carregando atividades...</span>
+							</div>
+						</div>
+					) : filteredActivities.length === 0 ? (
 						<div className='text-center py-12'>
 							<span className='icon-[lucide--clipboard-x] size-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-4 block' />
 							<h3 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>{search || statusFilter !== 'all' || priorityFilter !== 'all' ? 'Nenhuma atividade encontrada' : 'Nenhuma atividade criada ainda'}</h3>
@@ -312,7 +521,29 @@ export default function ProjectDetailsPage() {
 					) : (
 						<div className='space-y-4'>
 							{filteredActivities.map((activity) => (
-								<ActivityCard key={activity.id} activity={activity} projectId={project.id} onEdit={handleEditActivity} />
+								<ActivityCard
+									key={activity.id}
+									activity={{
+										id: activity.id,
+										projectId: activity.projectId,
+										name: activity.name,
+										description: activity.description,
+										category: activity.category || '',
+										status: convertActivityStatus(activity.status),
+										priority: activity.priority,
+										estimatedHours: activity.estimatedDays,
+										actualHours: null,
+										progress: activity.status === 'done' ? 100 : activity.status === 'progress' ? 50 : 0,
+										startDate: activity.startDate || '',
+										endDate: activity.endDate || '',
+										assignees: [],
+										labels: [],
+										createdAt: activity.createdAt.toString(),
+										updatedAt: activity.updatedAt.toString(),
+									}}
+									projectId={project.id}
+									onEdit={handleEditActivity}
+								/>
 							))}
 						</div>
 					)}
@@ -320,10 +551,79 @@ export default function ProjectDetailsPage() {
 			</div>
 
 			{/* Offcanvas para editar projeto */}
-			{project && <ProjectFormOffcanvas isOpen={projectFormOpen} onClose={closeProjectForm} project={project} onSubmit={handleProjectSubmit} />}
+			{project && (
+				<ProjectFormOffcanvas
+					isOpen={projectFormOpen}
+					onClose={closeProjectForm}
+					project={{
+						id: project.id,
+						name: project.name,
+						shortDescription: project.shortDescription,
+						description: project.description,
+						icon: 'folder',
+						color: '#3b82f6',
+						status: project.status,
+						priority: project.priority,
+						startDate: project.startDate || '',
+						endDate: project.endDate || '',
+						members: [],
+						progress: 0,
+						activities: [],
+						createdAt: project.createdAt.toString(),
+						updatedAt: project.updatedAt.toString(),
+					}}
+					onSubmit={handleProjectSubmit}
+				/>
+			)}
 
 			{/* Offcanvas para criar/editar atividade */}
-			{project && <ActivityFormOffcanvas isOpen={activityFormOpen} onClose={closeActivityForm} activity={editingActivity} project={project} onSubmit={handleActivitySubmit} onDelete={handleActivityDelete} />}
+			{project && (
+				<ActivityFormOffcanvas
+					isOpen={activityFormOpen}
+					onClose={closeActivityForm}
+					activity={
+						editingActivity
+							? {
+									id: editingActivity.id,
+									projectId: editingActivity.projectId,
+									name: editingActivity.name,
+									description: editingActivity.description,
+									category: editingActivity.category || '',
+									status: convertActivityStatus(editingActivity.status),
+									priority: editingActivity.priority,
+									estimatedHours: editingActivity.estimatedDays,
+									actualHours: null,
+									progress: 0,
+									startDate: editingActivity.startDate || '',
+									endDate: editingActivity.endDate || '',
+									assignees: [],
+									labels: [],
+									createdAt: editingActivity.createdAt.toString(),
+									updatedAt: editingActivity.updatedAt.toString(),
+								}
+							: null
+					}
+					project={{
+						id: project.id,
+						name: project.name,
+						shortDescription: project.shortDescription,
+						description: project.description,
+						icon: 'folder',
+						color: '#3b82f6',
+						status: project.status,
+						priority: project.priority,
+						startDate: project.startDate || '',
+						endDate: project.endDate || '',
+						members: [],
+						progress: 0,
+						activities: [],
+						createdAt: project.createdAt.toString(),
+						updatedAt: project.updatedAt.toString(),
+					}}
+					onSubmit={handleActivitySubmit}
+					onDelete={handleActivityDelete}
+				/>
+			)}
 		</div>
 	)
 }

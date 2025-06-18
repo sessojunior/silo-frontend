@@ -244,7 +244,7 @@ export default function ActivityCard({ activity, projectId, onEdit }: ActivityCa
 				{isDropdownOpen && (
 					<div className='mt-4 -mx-6 border-t border-zinc-200 dark:border-zinc-700'>
 						<div className='flex flex-col items-start justify-between px-6 py-3 bg-zinc-100 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700'>
-							<h4 className='text-lg font-semibold text-zinc-600 dark:text-zinc-100'>Plano de Ação</h4>
+							<h4 className='text-lg font-semibold text-zinc-600 dark:text-zinc-100'>Plano de Ação (Tarefas do Kanban)</h4>
 
 							{/* Objetivo */}
 							{activity.description && (
@@ -276,7 +276,7 @@ export default function ActivityCard({ activity, projectId, onEdit }: ActivityCa
 								<table className='w-full text-base'>
 									<thead className='bg-zinc-50 dark:bg-zinc-800/50'>
 										<tr>
-											<th className='px-6 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Ação</th>
+											<th className='px-6 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Ação (Tarefa)</th>
 											<th className='px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Responsável</th>
 											<th className='px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Início</th>
 											<th className='px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider'>Término</th>
@@ -292,7 +292,7 @@ export default function ActivityCard({ activity, projectId, onEdit }: ActivityCa
 												</td>
 												<td className='px-4 py-4'>
 													<div className='flex items-center gap-2.5'>
-														<div className='size-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-semibold'>{item.responsible.name.charAt(0).toUpperCase()}</div>
+														<div className='size-8 shrink-0 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 rounded-full text-white text-xs font-semibold'>{item.responsible.name.charAt(0).toUpperCase()}</div>
 														<span className='text-zinc-800 dark:text-zinc-200 text-base font-medium'>{item.responsible.name}</span>
 													</div>
 												</td>

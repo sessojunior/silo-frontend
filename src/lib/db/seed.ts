@@ -7,7 +7,7 @@ import * as schema from '@/lib/db/schema'
 import { hashPassword } from '@/lib/auth/hash'
 
 // Importar dados do arquivo separado
-import { products, groups, contacts, testUsers, dependencyStructure, projectsData, helpDocumentation, manualData, generateProblems, generateSolutions, exampleChatMessages } from './seed-data'
+import { products, groups, contacts, testUsers, dependencyStructure, projectsData, helpDocumentation, manualData, generateProblems, generateSolutions, exampleChatMessages, projectActivitiesData } from './seed-data'
 
 // === TIPAGENS DO SCHEMA ===
 type ProductDependency = typeof schema.productDependency.$inferInsert
@@ -64,9 +64,9 @@ async function seed() {
 	console.log('🔵 Verificando tabelas existentes...')
 
 	// === VERIFICAÇÕES INDIVIDUAIS DE TABELAS ===
-	const tableChecks = await Promise.all([checkTableData('groups', () => db.select().from(schema.group).limit(1)), checkTableData('users', () => db.select().from(schema.authUser).limit(1)), checkTableData('products', () => db.select().from(schema.product).limit(1)), checkTableData('contacts', () => db.select().from(schema.contact).limit(1)), checkTableData('projects', () => db.select().from(schema.project).limit(1)), checkTableData('help', () => db.select().from(schema.help).limit(1)), checkTableData('chat_channels', () => db.select().from(schema.chatChannel).limit(1)), checkTableData('chat_messages', () => db.select().from(schema.chatMessage).limit(1))])
+	const tableChecks = await Promise.all([checkTableData('groups', () => db.select().from(schema.group).limit(1)), checkTableData('users', () => db.select().from(schema.authUser).limit(1)), checkTableData('products', () => db.select().from(schema.product).limit(1)), checkTableData('contacts', () => db.select().from(schema.contact).limit(1)), checkTableData('projects', () => db.select().from(schema.project).limit(1)), checkTableData('project_activities', () => db.select().from(schema.projectActivity).limit(1)), checkTableData('help', () => db.select().from(schema.help).limit(1)), checkTableData('chat_channels', () => db.select().from(schema.chatChannel).limit(1)), checkTableData('chat_messages', () => db.select().from(schema.chatMessage).limit(1))])
 
-	const [groupsCheck, usersCheck, productsCheck, contactsCheck, projectsCheck, helpCheck, channelsCheck, messagesCheck] = tableChecks
+	const [groupsCheck, usersCheck, productsCheck, contactsCheck, projectsCheck, activitiesCheck, helpCheck, channelsCheck, messagesCheck] = tableChecks
 
 	console.log(`📊 Status das tabelas:`)
 	console.log(`   - Grupos: ${groupsCheck.hasData ? `✅ COM DADOS (${groupsCheck.count})` : '🔄 VAZIA'}`)
@@ -74,6 +74,7 @@ async function seed() {
 	console.log(`   - Produtos: ${productsCheck.hasData ? `✅ COM DADOS (${productsCheck.count})` : '🔄 VAZIA'}`)
 	console.log(`   - Contatos: ${contactsCheck.hasData ? `✅ COM DADOS (${contactsCheck.count})` : '🔄 VAZIA'}`)
 	console.log(`   - Projetos: ${projectsCheck.hasData ? `✅ COM DADOS (${projectsCheck.count})` : '🔄 VAZIA'}`)
+	console.log(`   - Atividades: ${activitiesCheck.hasData ? `✅ COM DADOS (${activitiesCheck.count})` : '🔄 VAZIA'}`)
 	console.log(`   - Ajuda: ${helpCheck.hasData ? `✅ COM DADOS (${helpCheck.count})` : '🔄 VAZIA'}`)
 	console.log(`   - Canais Chat: ${channelsCheck.hasData ? `✅ COM DADOS (${channelsCheck.count})` : '🔄 VAZIA'}`)
 	console.log(`   - Mensagens Chat: ${messagesCheck.hasData ? `✅ COM DADOS (${messagesCheck.count})` : '🔄 VAZIA'}`)
@@ -332,26 +333,78 @@ async function seed() {
 		}
 
 		// === 7. CRIAR PROJETOS ===
+		let insertedProjects: (typeof schema.project.$inferSelect)[] = []
 		if (!projectsCheck.hasData) {
 			console.log('🔵 Criando projetos...')
-			await db.insert(schema.project).values(
-				projectsData.map((project) => ({
-					id: randomUUID(),
-					name: project.name,
-					shortDescription: project.shortDescription,
-					description: project.description,
-					startDate: project.startDate,
-					endDate: project.endDate,
-					priority: project.priority,
-					status: project.status,
-				})),
-			)
+			insertedProjects = await db
+				.insert(schema.project)
+				.values(
+					projectsData.map((project) => ({
+						id: randomUUID(),
+						name: project.name,
+						shortDescription: project.shortDescription,
+						description: project.description,
+						startDate: project.startDate,
+						endDate: project.endDate,
+						priority: project.priority,
+						status: project.status,
+					})),
+				)
+				.returning()
 			console.log(`✅ ${projectsData.length} projetos criados!`)
 		} else {
 			console.log('⚠️ Projetos já existem, pulando...')
+			insertedProjects = await db.select().from(schema.project)
 		}
 
-		// === 8. CRIAR DOCUMENTAÇÃO DE AJUDA ===
+		// === 8. CRIAR ATIVIDADES DOS PROJETOS ===
+		if (!activitiesCheck.hasData && insertedProjects.length > 0) {
+			console.log('🔵 Criando atividades dos projetos...')
+
+			// Mapeamento de projetos para seus respectivos grupos de atividades
+			const projectActivityMapping = [
+				{ projectIndex: 0, activities: projectActivitiesData.meteorologia }, // Sistema de Monitoramento Meteorológico
+				{ projectIndex: 1, activities: projectActivitiesData.clima }, // Migração para Nuvem INPE
+				{ projectIndex: 2, activities: projectActivitiesData.portal }, // Portal de Dados Abertos
+				{ projectIndex: 3, activities: projectActivitiesData.previsao }, // Modernização da Rede de Observação
+				{ projectIndex: 4, activities: projectActivitiesData.infraestrutura }, // Sistema de Backup Distribuído (SEM ATIVIDADES)
+			]
+
+			let totalActivitiesCreated = 0
+
+			for (const mapping of projectActivityMapping) {
+				if (mapping.projectIndex < insertedProjects.length && mapping.activities.length > 0) {
+					const project = insertedProjects[mapping.projectIndex]
+
+					const activitiesToCreate = mapping.activities.map((activity) => ({
+						id: randomUUID(),
+						projectId: project.id,
+						name: activity.name,
+						description: activity.description,
+						category: activity.category,
+						estimatedDays: activity.estimatedDays,
+						startDate: activity.startDate,
+						endDate: activity.endDate,
+						priority: activity.priority,
+						status: activity.status,
+					}))
+
+					await db.insert(schema.projectActivity).values(activitiesToCreate)
+					totalActivitiesCreated += activitiesToCreate.length
+
+					console.log(`   ✅ ${activitiesToCreate.length} atividades criadas para "${project.name}"`)
+				} else if (mapping.projectIndex < insertedProjects.length && mapping.activities.length === 0) {
+					const project = insertedProjects[mapping.projectIndex]
+					console.log(`   ⚪ Projeto "${project.name}" sem atividades (conforme solicitado)`)
+				}
+			}
+
+			console.log(`✅ Total de ${totalActivitiesCreated} atividades criadas em ${insertedProjects.length} projetos!`)
+		} else {
+			console.log('⚠️ Atividades dos projetos já existem ou projetos não foram criados, pulando...')
+		}
+
+		// === 9. CRIAR DOCUMENTAÇÃO DE AJUDA ===
 		if (!helpCheck.hasData) {
 			console.log('🔵 Criando documentação de ajuda...')
 			await db.insert(schema.help).values({
@@ -363,7 +416,7 @@ async function seed() {
 			console.log('⚠️ Documentação de ajuda já existe, pulando...')
 		}
 
-		// === 9. CRIAR CANAIS DE CHAT ===
+		// === 10. CRIAR CANAIS DE CHAT ===
 		if (!channelsCheck.hasData && insertedGroups.length > 0) {
 			console.log('🔵 Criando canais de chat...')
 			const channelsToCreate = insertedGroups.map((group) => ({
@@ -409,7 +462,7 @@ async function seed() {
 			console.log('⚠️ Canais de chat já existem ou grupos não foram criados, pulando...')
 		}
 
-		// === 10. CRIAR MENSAGENS DE EXEMPLO ===
+		// === 11. CRIAR MENSAGENS DE EXEMPLO ===
 		if (!messagesCheck.hasData) {
 			console.log('🔵 Criando mensagens de exemplo...')
 			const allChannels = await db.select().from(schema.chatChannel)

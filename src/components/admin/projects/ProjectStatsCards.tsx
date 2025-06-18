@@ -1,10 +1,49 @@
 'use client'
 
 import { Project } from '@/types/projects'
-import { calculateProjectStats } from '@/lib/data/projects-mock'
 
 interface ProjectStatsCardsProps {
 	projects: Project[]
+}
+
+// Função para calcular estatísticas dos projetos
+function calculateProjectStats(projects: Project[]) {
+	const total = projects.length
+	const active = projects.filter((p) => p.status === 'active').length
+	const completed = projects.filter((p) => p.status === 'completed').length
+	const paused = projects.filter((p) => p.status === 'paused').length
+	const cancelled = projects.filter((p) => p.status === 'cancelled').length
+
+	// Calcular progresso médio (usando progresso se disponível, senão baseado no status)
+	const totalProgress = projects.reduce((sum, project) => {
+		if (project.progress !== undefined) {
+			return sum + project.progress
+		}
+		// Fallback baseado no status se não houver progresso
+		switch (project.status) {
+			case 'completed':
+				return sum + 100
+			case 'active':
+				return sum + 50
+			case 'paused':
+				return sum + 25
+			case 'cancelled':
+				return sum + 0
+			default:
+				return sum + 0
+		}
+	}, 0)
+
+	const avgProgress = total > 0 ? Math.round(totalProgress / total) : 0
+
+	return {
+		total,
+		active,
+		completed,
+		paused,
+		cancelled,
+		avgProgress,
+	}
 }
 
 export default function ProjectStatsCards({ projects }: ProjectStatsCardsProps) {
