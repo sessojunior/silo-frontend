@@ -16,6 +16,7 @@ interface ActivityFormOffcanvasProps {
 	activity?: Activity | null
 	project: Project
 	onSubmit: (activityData: ActivityFormData) => void
+	onDelete?: (activityId: string) => void
 }
 
 interface ActivityFormData {
@@ -26,10 +27,10 @@ interface ActivityFormData {
 	category: string
 	startDate: string
 	endDate: string
-	estimatedHours: string
+	days: string // Dias estimados (conforme DB)
 }
 
-export default function ActivityFormOffcanvas({ isOpen, onClose, activity, project, onSubmit }: ActivityFormOffcanvasProps) {
+export default function ActivityFormOffcanvas({ isOpen, onClose, activity, project, onSubmit, onDelete }: ActivityFormOffcanvasProps) {
 	const [formData, setFormData] = useState<ActivityFormData>({
 		name: '',
 		description: '',
@@ -38,15 +39,15 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 		category: '',
 		startDate: '',
 		endDate: '',
-		estimatedHours: '',
+		days: '',
 	})
 	const [saving, setSaving] = useState(false)
+	const [deleting, setDeleting] = useState(false)
 
-	// Opções de status
+	// Opções de status - seguindo padrão do banco
 	const statusOptions = [
 		{ value: 'todo', label: '📋 A fazer' },
-		{ value: 'in_progress', label: '🔄 Em progresso' },
-		{ value: 'review', label: '👀 Em revisão' },
+		{ value: 'progress', label: '🔄 Em progresso' },
 		{ value: 'done', label: '✅ Concluída' },
 		{ value: 'blocked', label: '🚫 Bloqueada' },
 	]
@@ -59,18 +60,18 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 		{ value: 'urgent', label: '🚨 Urgente' },
 	]
 
-	// Categorias comuns para atividades
+	// Categorias organizadas para atividades
 	const categoryOptions = [
-		{ value: 'Sprint 1', label: '🏃 Sprint 1' },
-		{ value: 'Sprint 2', label: '🏃 Sprint 2' },
-		{ value: 'Sprint 3', label: '🏃 Sprint 3' },
-		{ value: 'Backlog', label: '📋 Backlog' },
-		{ value: 'Bug Fix', label: '🐛 Correção de Bug' },
-		{ value: 'Feature', label: '⭐ Nova Funcionalidade' },
-		{ value: 'Research', label: '🔍 Pesquisa' },
-		{ value: 'Documentation', label: '📝 Documentação' },
-		{ value: 'Testing', label: '🧪 Teste' },
-		{ value: 'Deployment', label: '🚀 Deploy' },
+		{ value: 'Desenvolvimento', label: '💻 Desenvolvimento' },
+		{ value: 'Design', label: '🎨 Design' },
+		{ value: 'Testes', label: '🧪 Testes' },
+		{ value: 'Documentação', label: '📝 Documentação' },
+		{ value: 'Pesquisa', label: '🔍 Pesquisa' },
+		{ value: 'Reunião', label: '🤝 Reunião' },
+		{ value: 'Planejamento', label: '📋 Planejamento' },
+		{ value: 'Deploy', label: '🚀 Deploy' },
+		{ value: 'Análise', label: '📊 Análise' },
+		{ value: 'Correção', label: '🔧 Correção' },
 	]
 
 	// Carregar dados da atividade para edição
@@ -84,7 +85,7 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 				category: activity.category,
 				startDate: activity.startDate || '',
 				endDate: activity.endDate || '',
-				estimatedHours: activity.estimatedHours ? activity.estimatedHours.toString() : '',
+				days: activity.estimatedHours ? activity.estimatedHours.toString() : '',
 			})
 		} else {
 			// Reset para nova atividade
@@ -96,7 +97,7 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 				category: '',
 				startDate: '',
 				endDate: '',
-				estimatedHours: '',
+				days: '',
 			})
 		}
 	}, [activity, isOpen])
@@ -132,11 +133,11 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 			return
 		}
 
-		if (formData.estimatedHours && isNaN(Number(formData.estimatedHours))) {
+		if (formData.days && (isNaN(Number(formData.days)) || Number(formData.days) < 0)) {
 			toast({
 				type: 'error',
 				title: 'Erro na validação',
-				description: 'Horas estimadas deve ser um número válido',
+				description: 'Dias estimados deve ser um número válido e positivo',
 			})
 			return
 		}
@@ -145,7 +146,13 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 			setSaving(true)
 			console.log('🔵 Salvando atividade:', formData.name)
 
-			await onSubmit(formData)
+			// Converter days de string para number para o backend
+			const submissionData = {
+				...formData,
+				estimatedHours: formData.days, // Manter compatibilidade com interface atual
+			}
+
+			await onSubmit(submissionData)
 
 			toast({
 				type: 'success',
@@ -163,6 +170,39 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 			})
 		} finally {
 			setSaving(false)
+		}
+	}
+
+	const handleDelete = async () => {
+		if (!activity || !onDelete) return
+
+		// Confirmação dupla para exclusão
+		if (!confirm(`Tem certeza que deseja excluir a atividade "${activity.name}"? Esta ação não pode ser desfeita.`)) {
+			return
+		}
+
+		try {
+			setDeleting(true)
+			console.log('🔵 Excluindo atividade:', activity.id)
+
+			await onDelete(activity.id)
+
+			toast({
+				type: 'success',
+				title: 'Atividade excluída',
+				description: `${activity.name} foi excluída com sucesso`,
+			})
+
+			onClose()
+		} catch (error) {
+			console.error('❌ Erro ao excluir atividade:', error)
+			toast({
+				type: 'error',
+				title: 'Erro ao excluir',
+				description: 'Não foi possível excluir a atividade. Tente novamente.',
+			})
+		} finally {
+			setDeleting(false)
 		}
 	}
 
@@ -192,13 +232,13 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 				{/* Nome da Atividade */}
 				<div>
 					<Label htmlFor='name'>Nome da Atividade *</Label>
-					<Input id='name' type='text' placeholder='Ex: Implementar autenticação de usuários' value={formData.name} setValue={(value) => handleFieldChange('name', value)} disabled={saving} required />
+					<Input id='name' type='text' placeholder='Ex: Implementar autenticação de usuários' value={formData.name} setValue={(value) => handleFieldChange('name', value)} disabled={saving || deleting} required />
 				</div>
 
 				{/* Descrição */}
 				<div>
 					<Label htmlFor='description'>Descrição *</Label>
-					<Textarea id='description' placeholder='Descreva o que deve ser feito nesta atividade...' value={formData.description} onChange={(e) => handleFieldChange('description', e.target.value)} disabled={saving} rows={3} required />
+					<Textarea id='description' placeholder='Descreva o que deve ser feito nesta atividade...' value={formData.description} onChange={(e) => handleFieldChange('description', e.target.value)} disabled={saving || deleting} rows={3} required />
 				</div>
 
 				{/* Linha: Categoria e Status */}
@@ -216,7 +256,7 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 					</div>
 				</div>
 
-				{/* Linha: Prioridade e Horas Estimadas */}
+				{/* Linha: Prioridade e Dias Estimados */}
 				<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
 					{/* Prioridade */}
 					<div>
@@ -224,10 +264,10 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 						<Select name='priority' selected={formData.priority} onChange={(value) => handleFieldChange('priority', value)} options={priorityOptions} placeholder='Selecionar prioridade' />
 					</div>
 
-					{/* Horas Estimadas */}
+					{/* Dias Estimados - usando componente Input */}
 					<div>
-						<Label htmlFor='estimatedHours'>Horas Estimadas</Label>
-						<input id='estimatedHours' type='number' placeholder='Ex: 8' value={formData.estimatedHours} onChange={(e) => handleFieldChange('estimatedHours', e.target.value)} disabled={saving} min='0' step='0.5' className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
+						<Label htmlFor='days'>Dias Estimados</Label>
+						<Input id='days' type='text' placeholder='Ex: 3 ou 1.5' value={formData.days} setValue={(value) => handleFieldChange('days', value)} disabled={saving || deleting} />
 					</div>
 				</div>
 
@@ -236,47 +276,56 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 					{/* Data de Início */}
 					<div>
 						<Label htmlFor='startDate'>Data de Início</Label>
-						<input id='startDate' type='date' value={formData.startDate} onChange={(e) => handleFieldChange('startDate', e.target.value)} disabled={saving} className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
+						<input id='startDate' type='date' value={formData.startDate} onChange={(e) => handleFieldChange('startDate', e.target.value)} disabled={saving || deleting} className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
 					</div>
 
 					{/* Data de Fim */}
 					<div>
 						<Label htmlFor='endDate'>Data de Fim</Label>
-						<input id='endDate' type='date' value={formData.endDate} onChange={(e) => handleFieldChange('endDate', e.target.value)} disabled={saving} className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
+						<input id='endDate' type='date' value={formData.endDate} onChange={(e) => handleFieldChange('endDate', e.target.value)} disabled={saving || deleting} className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
 					</div>
 				</div>
 
-				{/* Preview da Atividade */}
-				<div className='bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 border border-zinc-200 dark:border-zinc-700'>
-					<Label>Preview</Label>
-					<div className='mt-2 space-y-2'>
-						<div className='flex items-center gap-2'>
-							<div className={`size-2 rounded-full ${formData.status === 'todo' ? 'bg-zinc-400' : formData.status === 'in_progress' ? 'bg-blue-500' : formData.status === 'review' ? 'bg-yellow-500' : formData.status === 'done' ? 'bg-green-500' : 'bg-red-500'}`} />
-							<span className='font-medium text-zinc-900 dark:text-zinc-100'>{formData.name || 'Nome da atividade'}</span>
-						</div>
-						<p className='text-sm text-zinc-500 dark:text-zinc-400'>{formData.description || 'Descrição da atividade'}</p>
-						{formData.category && <span className='inline-block text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'>{formData.category}</span>}
-					</div>
-				</div>
-
-				{/* Botões */}
-				<div className='flex gap-3 pt-6 border-t border-zinc-200 dark:border-zinc-700'>
-					<Button type='button' onClick={onClose} style='bordered' className='flex-1' disabled={saving}>
-						Cancelar
-					</Button>
-					<Button type='submit' className='flex-1' disabled={saving}>
-						{saving ? (
-							<>
-								<span className='icon-[lucide--loader-circle] size-4 animate-spin mr-2' />
-								{activity ? 'Atualizando...' : 'Criando...'}
-							</>
-						) : (
-							<>
-								<span className={`icon-[lucide--${activity ? 'edit' : 'plus'}] size-4 mr-2`} />
-								{activity ? 'Atualizar' : 'Criar'} Atividade
-							</>
+				{/* Botões - Layout: Excluir à esquerda, Cancelar e Salvar à direita */}
+				<div className='flex justify-between items-center pt-6 border-t border-zinc-200 dark:border-zinc-700'>
+					{/* Botão Excluir - Lado esquerdo */}
+					<div>
+						{activity && onDelete && (
+							<Button type='button' onClick={handleDelete} style='bordered' className='text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20' disabled={saving || deleting}>
+								{deleting ? (
+									<>
+										<span className='icon-[lucide--loader-circle] size-4 animate-spin mr-2' />
+										Excluindo...
+									</>
+								) : (
+									<>
+										<span className='icon-[lucide--trash-2] size-4 mr-2' />
+										Excluir
+									</>
+								)}
+							</Button>
 						)}
-					</Button>
+					</div>
+
+					{/* Botões principais - Lado direito */}
+					<div className='flex gap-3'>
+						<Button type='button' onClick={onClose} style='bordered' disabled={saving || deleting}>
+							Cancelar
+						</Button>
+						<Button type='submit' disabled={saving || deleting}>
+							{saving ? (
+								<>
+									<span className='icon-[lucide--loader-circle] size-4 animate-spin mr-2' />
+									Salvando...
+								</>
+							) : (
+								<>
+									<span className={`icon-[lucide--${activity ? 'edit' : 'plus'}] size-4 mr-2`} />
+									Salvar atividade
+								</>
+							)}
+						</Button>
+					</div>
 				</div>
 			</form>
 		</Offcanvas>

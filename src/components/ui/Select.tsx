@@ -31,7 +31,7 @@ export default function Select({ placeholder = 'Selecione...', id, name, selecte
 	const dropdownRef = useRef<HTMLDivElement>(null)
 
 	const filtered = options.filter((opt) => opt.label.toLowerCase().includes(search.toLowerCase()))
-	const selectedLabel = options.find((opt) => opt.value === selected)?.label || ''
+	const selectedLabel = options.find((opt) => opt.value === selected)?.label || 'Selecione...'
 
 	useEffect(() => {
 		function onClickOutside(e: MouseEvent) {
@@ -105,7 +105,7 @@ export default function Select({ placeholder = 'Selecione...', id, name, selecte
 					}),
 				)}
 			>
-				<span className='block w-full truncate'>{selected ? selectedLabel : <span className='text-zinc-400'>{placeholder}</span>}</span>
+				<span className='block w-full truncate'>{selected ? selectedLabel : <span className='text-zinc-400'>{placeholder ?? 'Selecione...'}</span>}</span>
 
 				{/* Ícone */}
 				<span className='pointer-events-none absolute inset-y-0 right-3 flex items-center text-zinc-400 dark:text-zinc-500'>

@@ -13,6 +13,18 @@ import Input from '@/components/ui/Input'
 import { Project, Activity } from '@/types/projects'
 import { mockProjects } from '@/lib/data/projects-mock'
 
+interface ActivitySubmissionData {
+	name: string
+	description: string
+	status: Activity['status']
+	priority: Activity['priority']
+	category: string
+	startDate: string
+	endDate: string
+	estimatedHours?: string
+	days?: string
+}
+
 export default function ProjectDetailsPage() {
 	const params = useParams()
 	const router = useRouter()
@@ -131,7 +143,7 @@ export default function ProjectDetailsPage() {
 		}
 	}
 
-	async function handleActivitySubmit(activityData: { name: string; description: string; status: Activity['status']; priority: Activity['priority']; category: string; startDate: string; endDate: string; estimatedHours: string }) {
+	async function handleActivitySubmit(activityData: ActivitySubmissionData) {
 		if (!project) return
 
 		try {
@@ -139,10 +151,13 @@ export default function ProjectDetailsPage() {
 				// Editar atividade existente
 				console.log('🔵 Atualizando atividade:', editingActivity.id, activityData)
 
+				// Extrair estimatedHours dos dados (pode vir como 'days' ou 'estimatedHours')
+				const days = activityData.days || activityData.estimatedHours
+
 				const updatedActivity: Activity = {
 					...editingActivity,
 					...activityData,
-					estimatedHours: activityData.estimatedHours ? Number(activityData.estimatedHours) : null,
+					estimatedHours: days ? Number(days) : null,
 					updatedAt: new Date().toISOString(),
 				}
 
@@ -157,6 +172,9 @@ export default function ProjectDetailsPage() {
 				// Criar nova atividade
 				console.log('🔵 Criando nova atividade:', activityData)
 
+				// Extrair estimatedHours dos dados (pode vir como 'days' ou 'estimatedHours')
+				const days = activityData.days || activityData.estimatedHours
+
 				const newActivity: Activity = {
 					id: `activity-${Date.now()}`,
 					projectId: project.id,
@@ -164,7 +182,7 @@ export default function ProjectDetailsPage() {
 					progress: 0,
 					assignees: [],
 					labels: [],
-					estimatedHours: activityData.estimatedHours ? Number(activityData.estimatedHours) : null,
+					estimatedHours: days ? Number(days) : null,
 					actualHours: null,
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString(),
@@ -180,6 +198,28 @@ export default function ProjectDetailsPage() {
 			}
 		} catch (error) {
 			console.error('❌ Erro ao salvar atividade:', error)
+			throw error
+		}
+	}
+
+	async function handleActivityDelete(activityId: string) {
+		if (!project) return
+
+		try {
+			console.log('🔵 Excluindo atividade:', activityId)
+
+			// Simular API call para exclusão
+			await new Promise((resolve) => setTimeout(resolve, 500))
+
+			const updatedProject = {
+				...project,
+				activities: project.activities.filter((a) => a.id !== activityId),
+			}
+
+			setProject(updatedProject)
+			console.log('✅ Atividade excluída com sucesso')
+		} catch (error) {
+			console.error('❌ Erro ao excluir atividade:', error)
 			throw error
 		}
 	}
@@ -283,7 +323,7 @@ export default function ProjectDetailsPage() {
 			{project && <ProjectFormOffcanvas isOpen={projectFormOpen} onClose={closeProjectForm} project={project} onSubmit={handleProjectSubmit} />}
 
 			{/* Offcanvas para criar/editar atividade */}
-			{project && <ActivityFormOffcanvas isOpen={activityFormOpen} onClose={closeActivityForm} activity={editingActivity} project={project} onSubmit={handleActivitySubmit} />}
+			{project && <ActivityFormOffcanvas isOpen={activityFormOpen} onClose={closeActivityForm} activity={editingActivity} project={project} onSubmit={handleActivitySubmit} onDelete={handleActivityDelete} />}
 		</div>
 	)
 }

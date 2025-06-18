@@ -223,7 +223,7 @@ export default function ProjectFormOffcanvas({ isOpen, onClose, project, onSubmi
 							) : (
 								<>
 									<span className='icon-[lucide--save] size-4 mr-2' />
-									{project ? 'Alterar projeto' : 'Criar projeto'}
+									{project ? 'Salvar projeto' : 'Criar projeto'}
 								</>
 							)}
 						</Button>

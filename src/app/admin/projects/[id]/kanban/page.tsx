@@ -12,6 +12,18 @@ import Button from '@/components/ui/Button'
 import { Project, Activity } from '@/types/projects'
 import { mockProjects } from '@/lib/data/projects-mock'
 
+interface ActivitySubmissionData {
+	name: string
+	description: string
+	status: Activity['status']
+	priority: Activity['priority']
+	category: string
+	startDate: string
+	endDate: string
+	estimatedHours?: string
+	days?: string
+}
+
 export default function ProjectKanbanPage() {
 	const params = useParams()
 	const projectId = params.id as string
@@ -127,7 +139,7 @@ export default function ProjectKanbanPage() {
 
 	// Funções para os offcanvas
 
-	async function handleActivitySubmit(activityData: { name: string; description: string; status: Activity['status']; priority: Activity['priority']; category: string; startDate: string; endDate: string; estimatedHours: string }) {
+	async function handleActivitySubmit(activityData: ActivitySubmissionData) {
 		if (!project) return
 
 		try {
@@ -135,10 +147,13 @@ export default function ProjectKanbanPage() {
 				// Editar atividade existente
 				console.log('🔵 Atualizando atividade no Kanban:', editingActivity.id, activityData)
 
+				// Extrair estimatedHours dos dados (pode vir como 'days' ou 'estimatedHours')
+				const days = activityData.days || activityData.estimatedHours
+
 				const updatedActivity: Activity = {
 					...editingActivity,
 					...activityData,
-					estimatedHours: activityData.estimatedHours ? Number(activityData.estimatedHours) : null,
+					estimatedHours: days ? Number(days) : null,
 					updatedAt: new Date().toISOString(),
 				}
 
@@ -155,6 +170,9 @@ export default function ProjectKanbanPage() {
 				// Criar nova atividade
 				console.log('🔵 Criando nova atividade no Kanban:', activityData)
 
+				// Extrair estimatedHours dos dados (pode vir como 'days' ou 'estimatedHours')
+				const days = activityData.days || activityData.estimatedHours
+
 				const newActivity: Activity = {
 					id: `activity-${Date.now()}`,
 					projectId: project.id,
@@ -162,7 +180,7 @@ export default function ProjectKanbanPage() {
 					progress: 0,
 					assignees: [],
 					labels: [],
-					estimatedHours: activityData.estimatedHours ? Number(activityData.estimatedHours) : null,
+					estimatedHours: days ? Number(days) : null,
 					actualHours: null,
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString(),
