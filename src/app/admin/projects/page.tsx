@@ -99,8 +99,8 @@ export default function ProjectsPage() {
 				progress: Math.floor(Math.random() * 101), // Progresso aleatório por enquanto
 				members: [], // Sem membros por enquanto
 				activities: [], // Sem atividades por enquanto
-				createdAt: project.createdAt.toString(),
-				updatedAt: project.updatedAt.toString(),
+				createdAt: new Date(project.createdAt).toISOString(),
+				updatedAt: new Date(project.updatedAt).toISOString(),
 			}))
 
 			setProjects(formattedProjects)
@@ -190,7 +190,7 @@ export default function ProjectsPage() {
 					priority: updatedProjectData.priority,
 					startDate: updatedProjectData.startDate,
 					endDate: updatedProjectData.endDate,
-					updatedAt: updatedProjectData.updatedAt.toString(),
+					updatedAt: new Date(updatedProjectData.updatedAt).toISOString(),
 				}
 
 				setProjects((prev) => prev.map((p) => (p.id === editingProject.id ? updatedProject : p)))
@@ -233,8 +233,8 @@ export default function ProjectsPage() {
 					progress: 0,
 					members: [],
 					activities: [],
-					createdAt: newProjectData.createdAt.toString(),
-					updatedAt: newProjectData.updatedAt.toString(),
+					createdAt: new Date(newProjectData.createdAt).toISOString(),
+					updatedAt: new Date(newProjectData.updatedAt).toISOString(),
 				}
 
 				setProjects((prev) => [newProject, ...prev])

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useChat } from '@/context/ChatContext'
+import TopbarButton from './TopbarButton'
 
 export default function ChatNotificationButton() {
 	const [isOpen, setIsOpen] = useState(false)
@@ -9,7 +10,7 @@ export default function ChatNotificationButton() {
 
 	// Mock notifications até implementar corretamente
 	const notifications: unknown[] = []
-	const unreadCount = 0
+	const unreadCount = 3 // Temporário para testar animação
 
 	// const handleMarkAsRead = (notificationId: string) => {
 	// 	console.log('🔵 Marcar notificação como lida:', notificationId)
@@ -25,13 +26,25 @@ export default function ChatNotificationButton() {
 		loadNotifications()
 	}
 
+	const handleButtonClick = () => {
+		setIsOpen(!isOpen)
+	}
+
 	return (
 		<div className='relative'>
-			{/* Trigger Button */}
-			<button onClick={() => setIsOpen(!isOpen)} className='relative p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors'>
-				<span className='icon-[lucide--inbox] w-5 h-5 text-zinc-600 dark:text-zinc-300' />
-				{unreadCount > 0 && <div className='absolute -top-1 -right-1 w-5 h-5 bg-blue-500 text-white text-xs font-medium rounded-full flex items-center justify-center'>{unreadCount > 9 ? '9+' : unreadCount}</div>}
-			</button>
+			{/* Trigger Button usando TopbarButton */}
+			{unreadCount > 0 ? (
+				<div onClick={handleButtonClick} className='cursor-pointer'>
+					<TopbarButton style='alert' icon='icon-[lucide--inbox]'>
+						Notificações do Chat
+					</TopbarButton>
+				</div>
+			) : (
+				<button onClick={handleButtonClick} className='relative inline-flex size-[38px] items-center justify-center gap-x-2 rounded-full border border-transparent text-sm font-semibold text-zinc-800 transition-all duration-500 hover:bg-zinc-100 focus:bg-zinc-100 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:text-white dark:hover:bg-zinc-700 dark:focus:bg-zinc-700'>
+					<span className='icon-[lucide--inbox] size-4 shrink-0' aria-hidden='true'></span>
+					<span className='sr-only'>Notificações do Chat</span>
+				</button>
+			)}
 
 			{/* Dropdown */}
 			{isOpen && (
