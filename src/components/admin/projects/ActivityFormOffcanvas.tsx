@@ -16,7 +16,6 @@ interface ActivityFormOffcanvasProps {
 	activity?: Activity | null
 	project: Project
 	onSubmit: (activityData: ActivityFormData) => void
-	onDelete?: (activityId: string) => void
 }
 
 interface ActivityFormData {
@@ -30,7 +29,7 @@ interface ActivityFormData {
 	days: string // Dias estimados (conforme DB)
 }
 
-export default function ActivityFormOffcanvas({ isOpen, onClose, activity, project, onSubmit, onDelete }: ActivityFormOffcanvasProps) {
+export default function ActivityFormOffcanvas({ isOpen, onClose, activity, project, onSubmit }: ActivityFormOffcanvasProps) {
 	const [formData, setFormData] = useState<ActivityFormData>({
 		name: '',
 		description: '',
@@ -42,7 +41,6 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 		days: '',
 	})
 	const [saving, setSaving] = useState(false)
-	const [deleting, setDeleting] = useState(false)
 
 	// Opções de status - seguindo padrão do banco
 	const statusOptions = [
@@ -142,6 +140,32 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 			return
 		}
 
+		// Validação crítica: verificar se o período (data fim - data início) é suficiente para os dias estimados
+		if (formData.startDate && formData.endDate && formData.days) {
+			const startDate = new Date(formData.startDate)
+			const endDate = new Date(formData.endDate)
+			const estimatedDays = Number(formData.days)
+
+			// Calcular diferença em dias (incluindo o dia inicial)
+			const diffInTime = endDate.getTime() - startDate.getTime()
+			const diffInDays = Math.ceil(diffInTime / (1000 * 3600 * 24)) + 1 // +1 para incluir o dia inicial
+
+			console.log('🔵 Validação de datas:')
+			console.log('🔵 Data início:', formData.startDate, '→', startDate)
+			console.log('🔵 Data fim:', formData.endDate, '→', endDate)
+			console.log('🔵 Dias estimados:', estimatedDays)
+			console.log('🔵 Período disponível:', diffInDays, 'dias')
+
+			if (diffInDays < estimatedDays) {
+				toast({
+					type: 'error',
+					title: 'Erro na validação',
+					description: `O período entre as datas (${diffInDays} dias) é menor que os dias estimados (${estimatedDays} dias). Ajuste as datas ou reduza a estimativa.`,
+				})
+				return
+			}
+		}
+
 		try {
 			setSaving(true)
 			console.log('🔵 Salvando atividade:', formData.name)
@@ -154,12 +178,7 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 
 			await onSubmit(submissionData)
 
-			toast({
-				type: 'success',
-				title: activity ? 'Atividade atualizada' : 'Atividade criada',
-				description: `${formData.name} ${activity ? 'foi atualizada' : 'foi criada'} com sucesso`,
-			})
-
+			// Toast é exibido na página principal - removendo daqui para evitar duplicação
 			onClose()
 		} catch (error) {
 			console.error('❌ Erro ao salvar atividade:', error)
@@ -170,39 +189,6 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 			})
 		} finally {
 			setSaving(false)
-		}
-	}
-
-	const handleDelete = async () => {
-		if (!activity || !onDelete) return
-
-		// Confirmação dupla para exclusão
-		if (!confirm(`Tem certeza que deseja excluir a atividade "${activity.name}"? Esta ação não pode ser desfeita.`)) {
-			return
-		}
-
-		try {
-			setDeleting(true)
-			console.log('🔵 Excluindo atividade:', activity.id)
-
-			await onDelete(activity.id)
-
-			toast({
-				type: 'success',
-				title: 'Atividade excluída',
-				description: `${activity.name} foi excluída com sucesso`,
-			})
-
-			onClose()
-		} catch (error) {
-			console.error('❌ Erro ao excluir atividade:', error)
-			toast({
-				type: 'error',
-				title: 'Erro ao excluir',
-				description: 'Não foi possível excluir a atividade. Tente novamente.',
-			})
-		} finally {
-			setDeleting(false)
 		}
 	}
 
@@ -232,13 +218,13 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 				{/* Nome da Atividade */}
 				<div>
 					<Label htmlFor='name'>Nome da Atividade *</Label>
-					<Input id='name' type='text' placeholder='Ex: Implementar autenticação de usuários' value={formData.name} setValue={(value) => handleFieldChange('name', value)} disabled={saving || deleting} required />
+					<Input id='name' type='text' placeholder='Ex: Implementar autenticação de usuários' value={formData.name} setValue={(value) => handleFieldChange('name', value)} disabled={saving} required />
 				</div>
 
 				{/* Descrição */}
 				<div>
 					<Label htmlFor='description'>Descrição *</Label>
-					<Textarea id='description' placeholder='Descreva o que deve ser feito nesta atividade...' value={formData.description} onChange={(e) => handleFieldChange('description', e.target.value)} disabled={saving || deleting} rows={3} required />
+					<Textarea id='description' placeholder='Descreva o que deve ser feito nesta atividade...' value={formData.description} onChange={(e) => handleFieldChange('description', e.target.value)} disabled={saving} rows={3} required />
 				</div>
 
 				{/* Linha: Categoria e Status */}
@@ -267,7 +253,7 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 					{/* Dias Estimados - usando componente Input */}
 					<div>
 						<Label htmlFor='days'>Dias Estimados</Label>
-						<Input id='days' type='text' placeholder='Ex: 3 ou 1.5' value={formData.days} setValue={(value) => handleFieldChange('days', value)} disabled={saving || deleting} />
+						<Input id='days' type='text' placeholder='Ex: 3 ou 1.5' value={formData.days} setValue={(value) => handleFieldChange('days', value)} disabled={saving} />
 					</div>
 				</div>
 
@@ -276,56 +262,34 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 					{/* Data de Início */}
 					<div>
 						<Label htmlFor='startDate'>Data de Início</Label>
-						<input id='startDate' type='date' value={formData.startDate} onChange={(e) => handleFieldChange('startDate', e.target.value)} disabled={saving || deleting} className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
+						<input id='startDate' type='date' value={formData.startDate} onChange={(e) => handleFieldChange('startDate', e.target.value)} disabled={saving} className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
 					</div>
 
 					{/* Data de Fim */}
 					<div>
 						<Label htmlFor='endDate'>Data de Fim</Label>
-						<input id='endDate' type='date' value={formData.endDate} onChange={(e) => handleFieldChange('endDate', e.target.value)} disabled={saving || deleting} className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
+						<input id='endDate' type='date' value={formData.endDate} onChange={(e) => handleFieldChange('endDate', e.target.value)} disabled={saving} className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
 					</div>
 				</div>
 
-				{/* Botões - Layout: Excluir à esquerda, Cancelar e Salvar à direita */}
-				<div className='flex justify-between items-center pt-6 border-t border-zinc-200 dark:border-zinc-700'>
-					{/* Botão Excluir - Lado esquerdo */}
-					<div>
-						{activity && onDelete && (
-							<Button type='button' onClick={handleDelete} style='bordered' className='text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20' disabled={saving || deleting}>
-								{deleting ? (
-									<>
-										<span className='icon-[lucide--loader-circle] size-4 animate-spin mr-2' />
-										Excluindo...
-									</>
-								) : (
-									<>
-										<span className='icon-[lucide--trash-2] size-4 mr-2' />
-										Excluir
-									</>
-								)}
-							</Button>
+				{/* Botões - Layout: Cancelar e Salvar centralizados */}
+				<div className='flex justify-end gap-3 pt-6 border-t border-zinc-200 dark:border-zinc-700'>
+					<Button type='button' onClick={onClose} style='bordered' disabled={saving}>
+						Cancelar
+					</Button>
+					<Button type='submit' disabled={saving}>
+						{saving ? (
+							<>
+								<span className='icon-[lucide--loader-circle] size-4 animate-spin mr-2' />
+								Salvando...
+							</>
+						) : (
+							<>
+								<span className={`icon-[lucide--${activity ? 'edit' : 'plus'}] size-4 mr-2`} />
+								Salvar atividade
+							</>
 						)}
-					</div>
-
-					{/* Botões principais - Lado direito */}
-					<div className='flex gap-3'>
-						<Button type='button' onClick={onClose} style='bordered' disabled={saving || deleting}>
-							Cancelar
-						</Button>
-						<Button type='submit' disabled={saving || deleting}>
-							{saving ? (
-								<>
-									<span className='icon-[lucide--loader-circle] size-4 animate-spin mr-2' />
-									Salvando...
-								</>
-							) : (
-								<>
-									<span className={`icon-[lucide--${activity ? 'edit' : 'plus'}] size-4 mr-2`} />
-									Salvar atividade
-								</>
-							)}
-						</Button>
-					</div>
+					</Button>
 				</div>
 			</form>
 		</Offcanvas>

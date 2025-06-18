@@ -49,7 +49,8 @@ interface ActivitySubmissionData {
 	category: string
 	startDate: string
 	endDate: string
-	days?: string
+	days: string
+	estimatedHours?: string // Manter compatibilidade com ActivityFormOffcanvas
 }
 
 export default function ProjectDetailsPage() {
@@ -302,7 +303,26 @@ export default function ProjectDetailsPage() {
 		if (!project) return
 
 		try {
+			console.log('🔵 Dados recebidos do formulário:', activityData)
+
 			const dbStatus = convertStatusToDatabase(activityData.status)
+
+			// Usar 'estimatedHours' se disponível, senão 'days'
+			const estimatedDays = activityData.estimatedHours || activityData.days
+
+			const requestData = {
+				id: editingActivity?.id,
+				name: activityData.name,
+				description: activityData.description,
+				category: activityData.category || null,
+				estimatedDays: estimatedDays ? Number(estimatedDays) : null,
+				startDate: activityData.startDate || null,
+				endDate: activityData.endDate || null,
+				priority: activityData.priority,
+				status: dbStatus,
+			}
+
+			console.log('🔵 Dados que serão enviados para API:', requestData)
 
 			if (editingActivity) {
 				// Editar atividade existente
@@ -313,22 +333,25 @@ export default function ProjectDetailsPage() {
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({
-						id: editingActivity.id,
-						name: activityData.name,
-						description: activityData.description,
-						category: activityData.category || null,
-						estimatedDays: activityData.days ? Number(activityData.days) : null,
-						startDate: activityData.startDate || null,
-						endDate: activityData.endDate || null,
-						priority: activityData.priority,
-						status: dbStatus,
-					}),
+					body: JSON.stringify(requestData),
 				})
 
-				const data = await response.json()
+				console.log('🔵 Status da resposta:', response.status)
+				console.log('🔵 Headers da resposta:', Object.fromEntries(response.headers.entries()))
+
+				let data
+				try {
+					const responseText = await response.text()
+					console.log('🔵 Texto bruto da resposta:', responseText)
+					data = JSON.parse(responseText)
+				} catch (parseError) {
+					console.error('❌ Erro ao fazer parse da resposta:', parseError)
+					console.error('❌ Resposta não é JSON válido')
+					throw new Error('Resposta da API não é JSON válido - possível erro 500 interno')
+				}
 
 				if (!response.ok || !data.success) {
+					console.error('❌ Erro na resposta da API ao atualizar:', data)
 					throw new Error(data.error || 'Erro ao atualizar atividade')
 				}
 
@@ -350,21 +373,25 @@ export default function ProjectDetailsPage() {
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({
-						name: activityData.name,
-						description: activityData.description,
-						category: activityData.category || null,
-						estimatedDays: activityData.days ? Number(activityData.days) : null,
-						startDate: activityData.startDate || null,
-						endDate: activityData.endDate || null,
-						priority: activityData.priority,
-						status: dbStatus,
-					}),
+					body: JSON.stringify(requestData),
 				})
 
-				const data = await response.json()
+				console.log('🔵 Status da resposta:', response.status)
+				console.log('🔵 Headers da resposta:', Object.fromEntries(response.headers.entries()))
+
+				let data
+				try {
+					const responseText = await response.text()
+					console.log('🔵 Texto bruto da resposta:', responseText)
+					data = JSON.parse(responseText)
+				} catch (parseError) {
+					console.error('❌ Erro ao fazer parse da resposta:', parseError)
+					console.error('❌ Resposta não é JSON válido')
+					throw new Error('Resposta da API não é JSON válido - possível erro 500 interno')
+				}
 
 				if (!response.ok || !data.success) {
+					console.error('❌ Erro na resposta da API ao criar:', data)
 					throw new Error(data.error || 'Erro ao criar atividade')
 				}
 
@@ -378,6 +405,9 @@ export default function ProjectDetailsPage() {
 					description: 'A nova atividade foi criada com sucesso.',
 				})
 			}
+
+			// Fechar o formulário
+			closeActivityForm()
 		} catch (error) {
 			console.error('❌ Erro ao salvar atividade:', error)
 			toast({
@@ -543,6 +573,7 @@ export default function ProjectDetailsPage() {
 									}}
 									projectId={project.id}
 									onEdit={handleEditActivity}
+									onDelete={handleActivityDelete}
 								/>
 							))}
 						</div>
@@ -621,7 +652,6 @@ export default function ProjectDetailsPage() {
 						updatedAt: project.updatedAt.toString(),
 					}}
 					onSubmit={handleActivitySubmit}
-					onDelete={handleActivityDelete}
 				/>
 			)}
 		</div>

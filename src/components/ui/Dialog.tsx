@@ -35,7 +35,7 @@ export default function Dialog({ open, onClose, title, description, children }: 
 
 	return (
 		<div ref={dialogRef} className='fixed inset-0 z-[200] flex items-center justify-center bg-black/40' onClick={handleOverlayClick} aria-modal='true' role='dialog' tabIndex={-1}>
-			<div ref={contentRef} className='bg-white dark:bg-zinc-800 rounded-lg shadow-lg max-w-full w-[90vw] sm:w-[800px] lg:w-[1000px] max-h-[90vh] h-[80vh] p-6 animate-fade-in relative flex flex-col'>
+			<div ref={contentRef} className='bg-white dark:bg-zinc-800 rounded-lg shadow-lg max-w-full w-[90vw] sm:w-[400px] p-6 animate-fade-in relative flex flex-col'>
 				{/* Botão de fechar */}
 				<button onClick={onClose} className='absolute top-4 right-4 p-1 text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors' aria-label='Fechar'>
 					<span className='icon-[lucide--x] size-4' />

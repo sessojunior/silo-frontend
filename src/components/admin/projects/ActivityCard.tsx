@@ -4,80 +4,22 @@ import { useState } from 'react'
 import { Activity } from '@/types/projects'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
+import ActivityDeleteDialog from '@/components/admin/projects/ActivityDeleteDialog'
 
 interface ActivityCardProps {
 	activity: Activity
 	projectId: string
 	onEdit?: (activity: Activity) => void
+	onDelete?: (activityId: string) => Promise<void>
 }
 
-export default function ActivityCard({ activity, projectId, onEdit }: ActivityCardProps) {
+export default function ActivityCard({ activity, projectId, onEdit, onDelete }: ActivityCardProps) {
 	const router = useRouter()
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
-	// Mock data para o plano de ação (normalmente viria do kanban)
-	// Algumas atividades terão tarefas, outras não (para demonstrar ambos os estados)
-	interface ActionPlanItem {
-		id: string
-		action: string
-		responsible: { name: string; avatar: null }
-		startDate: string
-		endDate: string
-		resources: string
-		status: number
-	}
-
-	// Gerar tarefas condicionalmente - algumas atividades terão tarefas, outras não
-	const actionPlan: ActionPlanItem[] =
-		activity.id.includes('1') || activity.id.includes('2')
-			? [
-					{
-						id: '1',
-						action: 'Análise de requisitos e levantamento de necessidades',
-						responsible: { name: 'João Silva', avatar: null },
-						startDate: '2024-01-15',
-						endDate: '2024-01-20',
-						resources: 'Documentação técnica, stakeholders, ferramentas de análise',
-						status: 100,
-					},
-					{
-						id: '2',
-						action: 'Desenvolvimento da arquitetura base do sistema',
-						responsible: { name: 'Maria Santos', avatar: null },
-						startDate: '2024-01-21',
-						endDate: '2024-02-05',
-						resources: 'Framework, bibliotecas, ambiente de desenvolvimento',
-						status: 85,
-					},
-					{
-						id: '3',
-						action: 'Implementação das funcionalidades principais',
-						responsible: { name: 'Carlos Oliveira', avatar: null },
-						startDate: '2024-02-06',
-						endDate: '2024-02-20',
-						resources: 'IDE, repositório Git, APIs externas, documentação',
-						status: 60,
-					},
-					{
-						id: '4',
-						action: 'Testes unitários e integração',
-						responsible: { name: 'Ana Paula', avatar: null },
-						startDate: '2024-02-21',
-						endDate: '2024-03-05',
-						resources: 'Ferramentas de teste, ambiente de staging, dados mock',
-						status: 30,
-					},
-					{
-						id: '5',
-						action: 'Revisão de código e otimizações',
-						responsible: { name: 'Roberto Lima', avatar: null },
-						startDate: '2024-03-06',
-						endDate: '2024-03-12',
-						resources: 'Code review tools, profiling, documentação técnica',
-						status: 10,
-					},
-				]
-			: []
+	// As tarefas virão do Kanban - aqui apenas mostramos placeholder
+	const actionPlan: any[] = []
 
 	// Calcular estatísticas das tarefas
 	const totalTasks = actionPlan.length
@@ -124,6 +66,19 @@ export default function ActivityCard({ activity, projectId, onEdit }: ActivityCa
 		}
 	}
 
+	// Função para abrir dialog de exclusão
+	const handleDelete = (e: React.MouseEvent) => {
+		e.stopPropagation()
+		setDeleteDialogOpen(true)
+	}
+
+	// Função para confirmar exclusão
+	const handleConfirmDelete = async (activityId: string) => {
+		if (onDelete) {
+			await onDelete(activityId)
+		}
+	}
+
 	// Função para toggle dropdown
 	const toggleDropdown = (e: React.MouseEvent) => {
 		e.stopPropagation()
@@ -163,6 +118,11 @@ export default function ActivityCard({ activity, projectId, onEdit }: ActivityCa
 						{onEdit && (
 							<button onClick={handleEdit} className='size-10 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200' title='Editar atividade'>
 								<span className='icon-[lucide--edit] size-5 text-zinc-500' />
+							</button>
+						)}
+						{onDelete && (
+							<button onClick={handleDelete} className='size-10 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200' title='Excluir atividade'>
+								<span className='icon-[lucide--trash-2] size-5 text-red-500' />
 							</button>
 						)}
 					</div>
@@ -244,13 +204,13 @@ export default function ActivityCard({ activity, projectId, onEdit }: ActivityCa
 				{isDropdownOpen && (
 					<div className='mt-4 -mx-6 border-t border-zinc-200 dark:border-zinc-700'>
 						<div className='flex flex-col items-start justify-between px-6 py-3 bg-zinc-100 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700'>
-							<h4 className='text-lg font-semibold text-zinc-600 dark:text-zinc-100'>Plano de Ação (Tarefas do Kanban)</h4>
+							<h4 className='text-lg font-semibold text-zinc-600 dark:text-zinc-100'>Tarefas do Kanban</h4>
 
 							{/* Objetivo */}
 							{activity.description && (
 								<div>
 									<p className='text-base text-zinc-600 dark:text-zinc-300 leading-relaxed'>
-										<span className='font-semibold text-zinc-600 dark:text-zinc-200'>Objetivo detalhado:</span> {activity.description}
+										<span className='font-semibold text-zinc-600 dark:text-zinc-200'>Plano de ação:</span> {activity.description}
 									</p>
 								</div>
 							)}
@@ -317,6 +277,22 @@ export default function ActivityCard({ activity, projectId, onEdit }: ActivityCa
 					</div>
 				)}
 			</div>
+
+			{/* Dialog de Exclusão */}
+			<ActivityDeleteDialog
+				open={deleteDialogOpen}
+				onClose={() => setDeleteDialogOpen(false)}
+				activity={
+					activity
+						? {
+								id: activity.id,
+								name: activity.name,
+								description: activity.description,
+							}
+						: null
+				}
+				onConfirm={handleConfirmDelete}
+			/>
 		</div>
 	)
 }
