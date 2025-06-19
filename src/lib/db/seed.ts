@@ -496,10 +496,181 @@ async function seed() {
 			console.log('⚠️ Mensagens de chat já existem, pulando...')
 		}
 
+		// === 12. CRIAR DADOS KANBAN DOS PROJETOS ===
+		const tasksCheck = await checkTableData('project_task', () => db.select().from(schema.projectTask))
+		const kanbanCheck = await checkTableData('project_kanban', () => db.select().from(schema.projectKanban))
+		const kanbanConfigCheck = await checkTableData('project_kanban_config', () => db.select().from(schema.projectKanbanConfig))
+
+		if ((!tasksCheck.hasData || !kanbanCheck.hasData || !kanbanConfigCheck.hasData) && insertedProjects.length > 0) {
+			console.log('🔵 Criando dados do sistema Kanban...')
+
+			// Buscar atividades existentes
+			const allActivities = await db.select().from(schema.projectActivity)
+
+			if (allActivities.length > 0) {
+				let totalTasksCreated = 0
+
+				for (const project of insertedProjects.slice(0, 3)) {
+					// Apenas primeiros 3 projetos
+					const projectActivities = allActivities.filter((a) => a.projectId === project.id)
+
+					if (projectActivities.length > 0) {
+						console.log(`   🔵 Criando tasks para projeto "${project.name}"...`)
+
+						// Criar tarefas baseadas nas atividades
+						const tasksToCreate = []
+
+						interface KanbanCard {
+							projectTaskId: string
+							status: string
+							order: number
+						}
+
+						const kanbanCards = {
+							todo: [] as KanbanCard[],
+							in_progress: [] as KanbanCard[],
+							blocked: [] as KanbanCard[],
+							review: [] as KanbanCard[],
+							done: [] as KanbanCard[],
+						}
+
+						for (let i = 0; i < Math.min(projectActivities.length, 8); i++) {
+							const activity = projectActivities[i]
+							const taskId = randomUUID()
+
+							// Distribuir tasks entre as colunas
+							const statuses = ['todo', 'in_progress', 'blocked', 'review', 'done']
+							const status = statuses[i % statuses.length]
+
+							tasksToCreate.push({
+								id: taskId,
+								projectId: project.id,
+								projectActivityId: activity.id,
+								name: `Task: ${activity.name}`,
+								description: `Tarefa derivada da atividade: ${activity.description}`,
+								category: activity.category,
+								estimatedDays: activity.estimatedDays,
+								status: status,
+								startDate: activity.startDate,
+								endDate: activity.endDate,
+								priority: activity.priority,
+							})
+
+							// Adicionar card na coluna correspondente
+							kanbanCards[status as keyof typeof kanbanCards].push({
+								projectTaskId: taskId,
+								status: 'default',
+								order: kanbanCards[status as keyof typeof kanbanCards].length,
+							})
+						}
+
+						// Inserir tasks
+						if (tasksToCreate.length > 0) {
+							await db.insert(schema.projectTask).values(tasksToCreate)
+							totalTasksCreated += tasksToCreate.length
+						}
+
+						// Criar configuração do kanban para o projeto
+						const kanbanConfig = [
+							{
+								isVisible: true,
+								order: 0,
+								type: 'todo',
+								statusAvailable: ['default'],
+								name: 'A Fazer',
+								color: 'blue',
+								icon: 'icon-[lucide--circle]',
+								limitWip: 20,
+								blockWipReached: false,
+							},
+							{
+								isVisible: true,
+								order: 1,
+								type: 'in_progress',
+								statusAvailable: ['default'],
+								name: 'Em Progresso',
+								color: 'yellow',
+								icon: 'icon-[lucide--play-circle]',
+								limitWip: 5,
+								blockWipReached: true,
+							},
+							{
+								isVisible: true,
+								order: 2,
+								type: 'blocked',
+								statusAvailable: ['default'],
+								name: 'Bloqueado',
+								color: 'red',
+								icon: 'icon-[lucide--alert-circle]',
+								limitWip: 10,
+								blockWipReached: false,
+							},
+							{
+								isVisible: true,
+								order: 3,
+								type: 'review',
+								statusAvailable: ['default'],
+								name: 'Em Revisão',
+								color: 'orange',
+								icon: 'icon-[lucide--eye]',
+								limitWip: 3,
+								blockWipReached: true,
+							},
+							{
+								isVisible: true,
+								order: 4,
+								type: 'done',
+								statusAvailable: ['default', 'done'],
+								name: 'Concluído',
+								color: 'green',
+								icon: 'icon-[lucide--check-circle]',
+								limitWip: 100,
+								blockWipReached: false,
+							},
+						]
+
+						// Inserir configuração do kanban
+						await db.insert(schema.projectKanbanConfig).values({
+							id: randomUUID(),
+							projectId: project.id,
+							refreshAfterSeconds: 30,
+							blockWipReached: false,
+							columns: JSON.stringify(kanbanConfig),
+						})
+
+						// Criar colunas do kanban
+						const kanbanColumns = [
+							{ type: 'todo', order: 0, cards: kanbanCards.todo },
+							{ type: 'in_progress', order: 1, cards: kanbanCards.in_progress },
+							{ type: 'blocked', order: 2, cards: kanbanCards.blocked },
+							{ type: 'review', order: 3, cards: kanbanCards.review },
+							{ type: 'done', order: 4, cards: kanbanCards.done },
+						]
+
+						// Inserir dados do kanban
+						await db.insert(schema.projectKanban).values({
+							id: randomUUID(),
+							projectId: project.id,
+							columns: JSON.stringify(kanbanColumns),
+						})
+
+						console.log(`   ✅ Kanban criado para "${project.name}" com ${tasksToCreate.length} tasks`)
+					}
+				}
+
+				console.log(`✅ Sistema Kanban criado com ${totalTasksCreated} tasks!`)
+			} else {
+				console.log('⚠️ Nenhuma atividade encontrada para criar tasks')
+			}
+		} else {
+			console.log('⚠️ Dados do sistema Kanban já existem, pulando...')
+		}
+
 		console.log('✅ Seed finalizado com sucesso!')
 		console.log('📊 Resumo do seed:')
 		console.log(`   - Sistema completamente configurado`)
 		console.log(`   - Dados de teste inseridos onde necessário`)
+		console.log(`   - Sistema Kanban com sincronização dupla implementado`)
 		console.log(`   - Nenhuma duplicação de dados`)
 	} catch (error) {
 		console.error('❌ Erro durante o seed:', error)

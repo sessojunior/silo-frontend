@@ -30,11 +30,12 @@ interface KanbanColumnGroupProps {
 	totalActivities: number
 	isOverLimit: boolean
 	onEditActivity: (activity: Activity) => void
+	onDeleteActivity?: (activityId: string) => Promise<void>
 	onStatusChange: (activityId: string, newStatus: Activity['status']) => void
 	onCreateActivity?: (status: Activity['status']) => void
 }
 
-export default function KanbanColumnGroup({ group, subColumns, totalActivities, isOverLimit, onEditActivity, onStatusChange, onCreateActivity }: KanbanColumnGroupProps) {
+export default function KanbanColumnGroup({ group, subColumns, totalActivities, isOverLimit, onEditActivity, onDeleteActivity, onStatusChange, onCreateActivity }: KanbanColumnGroupProps) {
 	// Determinar largura baseada se tem subcolunas ou não
 	const hasSubColumns = subColumns.length > 1
 	// Para subcolunas: min-w-120 (2 × 60), sem subcolunas: min-w-80
@@ -99,7 +100,7 @@ export default function KanbanColumnGroup({ group, subColumns, totalActivities, 
 			{/* Sub-colunas Fazendo/Feito - larguras iguais */}
 			<div className='flex-1 flex min-h-0'>
 				{subColumns.map((subColumn, index) => (
-					<SubColumnComponent key={subColumn.id} subColumn={subColumn} isFirst={index === 0} onEditActivity={onEditActivity} onStatusChange={onStatusChange} onCreateActivity={onCreateActivity} />
+					<SubColumnComponent key={subColumn.id} subColumn={subColumn} isFirst={index === 0} onEditActivity={onEditActivity} onDeleteActivity={onDeleteActivity} onStatusChange={onStatusChange} onCreateActivity={onCreateActivity} />
 				))}
 			</div>
 		</div>
@@ -110,11 +111,12 @@ interface SubColumnComponentProps {
 	subColumn: SubColumn
 	isFirst: boolean
 	onEditActivity: (activity: Activity) => void
+	onDeleteActivity?: (activityId: string) => Promise<void>
 	onStatusChange: (activityId: string, newStatus: Activity['status']) => void
 	onCreateActivity?: (status: Activity['status']) => void
 }
 
-function SubColumnComponent({ subColumn, isFirst, onEditActivity, onStatusChange, onCreateActivity }: SubColumnComponentProps) {
+function SubColumnComponent({ subColumn, isFirst, onEditActivity, onDeleteActivity, onStatusChange, onCreateActivity }: SubColumnComponentProps) {
 	const { setNodeRef, isOver } = useDroppable({
 		id: `column-${subColumn.id}`,
 	})
@@ -155,7 +157,7 @@ function SubColumnComponent({ subColumn, isFirst, onEditActivity, onStatusChange
 			<div ref={setNodeRef} className={`p-3 min-h-[300px] space-y-2 transition-colors ${isOver ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
 				<SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
 					{subColumn.activities.map((activity) => (
-						<KanbanCard key={activity.id} activity={activity} onEdit={onEditActivity} onStatusChange={onStatusChange} />
+						<KanbanCard key={activity.id} activity={activity} onEdit={onEditActivity} onDelete={onDeleteActivity} onStatusChange={onStatusChange} />
 					))}
 				</SortableContext>
 

@@ -18,6 +18,7 @@ interface KanbanBoardProps {
 	onActivityMove: (activityId: string, fromStatus: Activity['status'], toStatus: Activity['status']) => void
 	onCreateActivity?: () => void
 	onEditActivity?: (activity: Activity) => void
+	onDeleteActivity?: (activityId: string) => Promise<void>
 	onConfigureKanban?: () => void
 }
 
@@ -53,17 +54,6 @@ const COLUMN_GROUPS = [
 		},
 	},
 	{
-		id: 'blocked',
-		title: 'Bloqueado',
-		color: '#ef4444',
-		icon: 'x-circle',
-		subColumns: [{ id: 'blocked', title: 'Impedidas', type: 'blocked' as const }],
-		rules: {
-			maxCards: 10,
-			allowPriorities: ['medium', 'high', 'urgent'] as Activity['priority'][],
-		},
-	},
-	{
 		id: 'review',
 		title: 'Em Revisão',
 		color: '#f59e0b',
@@ -91,7 +81,7 @@ const COLUMN_GROUPS = [
 	},
 ]
 
-export default function KanbanBoard({ activities, selectedActivity, onActivityMove, onCreateActivity, onEditActivity }: KanbanBoardProps) {
+export default function KanbanBoard({ activities, selectedActivity, onActivityMove, onCreateActivity, onEditActivity, onDeleteActivity }: KanbanBoardProps) {
 	const [columnGroups] = useState(COLUMN_GROUPS)
 	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
 	const [draggedActivity, setDraggedActivity] = useState<Activity | null>(null)
@@ -500,6 +490,7 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 								totalActivities={totalActivities}
 								isOverLimit={isOverLimit || false}
 								onEditActivity={handleEditActivityInternal}
+								onDeleteActivity={onDeleteActivity}
 								onStatusChange={handleStatusChange}
 								onCreateActivity={(status) => {
 									console.log('🔵 Criando nova atividade com status:', status)

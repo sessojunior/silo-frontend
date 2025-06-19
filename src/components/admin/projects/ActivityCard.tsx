@@ -19,7 +19,16 @@ export default function ActivityCard({ activity, projectId, onEdit, onDelete }: 
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
 	// As tarefas virão do Kanban - aqui apenas mostramos placeholder
-	const actionPlan: any[] = []
+	interface ActionPlanItem {
+		id: string
+		action: string
+		responsible: { name: string }
+		startDate: string
+		endDate: string
+		resources: string
+		status: number
+	}
+	const actionPlan: ActionPlanItem[] = []
 
 	// Calcular estatísticas das tarefas
 	const totalTasks = actionPlan.length

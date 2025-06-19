@@ -410,3 +410,51 @@ export const projectActivity = pgTable('project_activity', {
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 export type ProjectActivity = typeof projectActivity.$inferSelect
+
+// Tabela de tarefas dos projetos (utilizada no kanban)
+export const projectTask = pgTable('project_task', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	projectId: uuid('project_id')
+		.notNull()
+		.references(() => project.id, { onDelete: 'cascade' }),
+	projectActivityId: uuid('project_activity_id')
+		.notNull()
+		.references(() => projectActivity.id, { onDelete: 'cascade' }),
+	name: text('name').notNull(),
+	description: text('description').notNull(),
+	category: text('category'), // categoria da tarefa
+	estimatedDays: integer('estimated_days'), // dias estimados
+	startDate: date('start_date'),
+	endDate: date('end_date'),
+	priority: text('priority').notNull().default('medium'), // 'low' | 'medium' | 'high' | 'urgent'
+	status: text('status').notNull().default('todo'), // 'todo' | 'progress' | 'done' | 'blocked'
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+export type ProjectTask = typeof projectTask.$inferSelect
+
+// Tabela do kanban (configuração de cards por projeto)
+export const projectKanban = pgTable('project_kanban', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	projectId: uuid('project_id')
+		.notNull()
+		.references(() => project.id, { onDelete: 'cascade' }),
+	columns: text('columns').notNull(), // JSON array das colunas e seus cards
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+export type ProjectKanban = typeof projectKanban.$inferSelect
+
+// Tabela de configuração do kanban por projeto
+export const projectKanbanConfig = pgTable('project_kanban_config', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	projectId: uuid('project_id')
+		.notNull()
+		.references(() => project.id, { onDelete: 'cascade' }),
+	refreshAfterSeconds: integer('refresh_after_seconds').notNull().default(30), // atualizar depois de quantos segundos
+	blockWipReached: boolean('block_wip_reached').notNull().default(false), // bloquear globalmente quando atingir limite WIP
+	columns: text('columns').notNull(), // JSON array das configurações das colunas
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+export type ProjectKanbanConfig = typeof projectKanbanConfig.$inferSelect

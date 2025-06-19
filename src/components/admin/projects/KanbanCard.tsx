@@ -9,10 +9,11 @@ import { Activity } from '@/types/projects'
 interface KanbanCardProps {
 	activity: Activity
 	onEdit: (activity: Activity) => void
+	onDelete?: (activityId: string) => Promise<void>
 	onStatusChange: (activityId: string, newStatus: Activity['status']) => void
 }
 
-export default function KanbanCard({ activity, onEdit, onStatusChange }: KanbanCardProps) {
+export default function KanbanCard({ activity, onEdit, onDelete, onStatusChange }: KanbanCardProps) {
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
 		id: activity.id,
 	})
@@ -156,6 +157,20 @@ export default function KanbanCard({ activity, onEdit, onStatusChange }: KanbanC
 								<span className='icon-[lucide--x] size-3' />
 							</Button>
 						)}
+
+						{onDelete && (
+							<Button
+								onClick={(e) => {
+									e.stopPropagation()
+									onDelete(activity.id)
+								}}
+								className='size-6 flex items-center justify-center'
+								style='bordered'
+								title='Excluir atividade'
+							>
+								<span className='icon-[lucide--trash-2] size-3' />
+							</Button>
+						)}
 					</div>
 				</div>
 			)}
@@ -191,6 +206,20 @@ export default function KanbanCard({ activity, onEdit, onStatusChange }: KanbanC
 								title='Bloquear atividade'
 							>
 								<span className='icon-[lucide--x] size-3' />
+							</Button>
+						)}
+
+						{onDelete && (
+							<Button
+								onClick={(e) => {
+									e.stopPropagation()
+									onDelete(activity.id)
+								}}
+								className='size-6 flex items-center justify-center'
+								style='bordered'
+								title='Excluir atividade'
+							>
+								<span className='icon-[lucide--trash-2] size-3' />
 							</Button>
 						)}
 					</div>
