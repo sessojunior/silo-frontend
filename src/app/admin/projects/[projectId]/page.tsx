@@ -56,7 +56,7 @@ interface ActivitySubmissionData {
 export default function ProjectDetailsPage() {
 	const params = useParams()
 	const router = useRouter()
-	const projectId = params.id as string
+	const projectId = params.projectId as string
 	const [project, setProject] = useState<Project | null>(null)
 	const [activities, setActivities] = useState<ProjectActivity[]>([])
 	const [loading, setLoading] = useState(true)
