@@ -13,7 +13,8 @@ export default function ActivityKanbanPage() {
 	// Estados principais
 	const [project, setProject] = useState<{ id: string; name: string } | null>(null)
 	const [activity, setActivity] = useState<{ id: string; name: string } | null>(null)
-	const [tasks, setTasks] = useState<{ id: string; name: string }[]>([])
+	const [tasks, setTasks] = useState<any[]>([])
+	const [kanbanColumns, setKanbanColumns] = useState<any[]>([])
 	const [loading, setLoading] = useState(true)
 
 	// Carregar dados iniciais
@@ -76,6 +77,7 @@ export default function ActivityKanbanPage() {
 					})
 
 					setTasks(kanbanData.tasks || [])
+					setKanbanColumns(kanbanData.columns || [])
 				} else {
 					console.error('❌ Erro na resposta do Kanban:', kanbanData.error)
 				}
@@ -119,11 +121,11 @@ export default function ActivityKanbanPage() {
 						<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Projeto: {project.name} • Gerencie as tarefas desta atividade</p>
 					</div>
 					<div className='flex items-center gap-3'>
-						<Button onClick={() => alert('Implementar TaskFormOffcanvas')} className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white'>
+						<Button onClick={() => toast({ type: 'info', title: 'Em desenvolvimento', description: 'Formulário de nova tarefa em breve' })} className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white'>
 							<span className='icon-[lucide--plus] size-4' />
 							<span>Nova Tarefa</span>
 						</Button>
-						<Button onClick={() => alert('Implementar KanbanConfigOffcanvas')} className='flex items-center gap-2 border border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'>
+						<Button onClick={() => toast({ type: 'info', title: 'Em desenvolvimento', description: 'Configurações do Kanban em breve' })} className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white'>
 							<span className='icon-[lucide--settings] size-4' />
 							<span>Configurar</span>
 						</Button>
@@ -133,26 +135,57 @@ export default function ActivityKanbanPage() {
 
 			{/* Conteúdo do Kanban */}
 			<div className='p-6'>
-				<div className='bg-zinc-50 dark:bg-zinc-800 rounded-lg p-8 text-center'>
-					<span className='icon-[lucide--kanban-square] size-16 text-zinc-400 mb-4 block mx-auto' />
-					<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2'>Kanban da Atividade</h3>
-					<p className='text-zinc-600 dark:text-zinc-400 mb-4'>Navegação corrigida! Agora o Kanban é específico para cada atividade.</p>
-					<div className='space-y-2 text-sm text-zinc-500'>
-						<p>
-							<strong>Projeto ID:</strong> {projectId}
-						</p>
-						<p>
-							<strong>Atividade ID:</strong> {activityId}
-						</p>
-						<p>
-							<strong>Tarefas carregadas:</strong> {tasks.length}
-						</p>
+				{tasks.length === 0 ? (
+					// Estado vazio - sem tarefas
+					<div className='bg-zinc-50 dark:bg-zinc-800 rounded-lg p-12 text-center'>
+						<span className='icon-[lucide--kanban-square] size-16 text-zinc-400 mb-4 block mx-auto' />
+						<h3 className='text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2'>Kanban da Atividade</h3>
+						<p className='text-zinc-600 dark:text-zinc-400 mb-6'>Esta atividade ainda não possui tarefas. Crie a primeira tarefa para começar a usar o Kanban.</p>
+						<div className='space-y-3 text-sm text-zinc-500 mb-6'>
+							<p>
+								<strong>Atividade:</strong> {activity.name}
+							</p>
+							<p>
+								<strong>Projeto:</strong> {project.name}
+							</p>
+						</div>
+						<Button onClick={() => toast({ type: 'info', title: 'Em desenvolvimento', description: 'Formulário de nova tarefa em breve' })} className='bg-blue-600 hover:bg-blue-700 text-white'>
+							<span className='icon-[lucide--plus] size-4 mr-2' />
+							Criar Primeira Tarefa
+						</Button>
+						<div className='mt-8 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg'>
+							<p className='text-green-800 dark:text-green-200 font-semibold'>✅ NAVEGAÇÃO FUNCIONANDO!</p>
+							<p className='text-green-600 dark:text-green-300 text-sm mt-1'>
+								URL correta: /admin/projects/{projectId}/activities/{activityId}
+							</p>
+						</div>
 					</div>
-					<div className='mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg'>
-						<p className='text-green-800 dark:text-green-200 font-semibold'>✅ NAVEGAÇÃO CORRIGIDA COM SUCESSO!</p>
-						<p className='text-green-600 dark:text-green-300 text-sm mt-1'>A URL agora é específica para cada atividade: /admin/projects/[projectId]/activities/[activityId]</p>
+				) : (
+					// Estado com tarefas - Kanban simples
+					<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700'>
+						<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
+							<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4'>Tarefas da Atividade ({tasks.length})</h3>
+						</div>
+						<div className='p-6'>
+							<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+								{tasks.map((task) => (
+									<div key={task.id} className='bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 border border-zinc-200 dark:border-zinc-700'>
+										<h4 className='font-semibold text-zinc-900 dark:text-zinc-100 mb-2'>{task.name}</h4>
+										{task.description && <p className='text-sm text-zinc-600 dark:text-zinc-400 mb-3'>{task.description}</p>}
+										<div className='flex items-center justify-between text-xs text-zinc-500'>
+											<span className={`px-2 py-1 rounded ${task.status === 'done' ? 'bg-green-100 text-green-800' : task.status === 'in_progress' ? 'bg-blue-100 text-blue-800' : task.status === 'blocked' ? 'bg-red-100 text-red-800' : 'bg-zinc-100 text-zinc-800'}`}>{task.status}</span>
+											<span className={`px-2 py-1 rounded ${task.priority === 'urgent' ? 'bg-red-100 text-red-800' : task.priority === 'high' ? 'bg-orange-100 text-orange-800' : task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-zinc-100 text-zinc-800'}`}>{task.priority}</span>
+										</div>
+									</div>
+								))}
+							</div>
+							<div className='mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg'>
+								<p className='text-blue-800 dark:text-blue-200 font-semibold'>🚧 Kanban em Desenvolvimento</p>
+								<p className='text-blue-600 dark:text-blue-300 text-sm mt-1'>As funcionalidades de drag & drop e colunas interativas serão implementadas na próxima fase.</p>
+							</div>
+						</div>
 					</div>
-				</div>
+				)}
 			</div>
 		</div>
 	)
