@@ -526,7 +526,7 @@ async function seed() {
 
 							interface KanbanTask {
 								project_task_id: string
-								status: 'in_progress' | 'done'
+								subcolumn: 'in_progress' | 'done'
 								order: number
 							}
 
@@ -615,10 +615,10 @@ async function seed() {
 								// Adicionar task na coluna correspondente
 								const columnIndex = columns.findIndex((col) => col.type === template.status)
 								if (columnIndex !== -1) {
-									const taskStatus = columns[columnIndex].limit_wip !== null ? 'in_progress' : 'in_progress'
+									const taskSubcolumn = columns[columnIndex].limit_wip !== null ? 'in_progress' : 'in_progress'
 									columns[columnIndex].tasks.push({
 										project_task_id: taskId,
-										status: taskStatus,
+										subcolumn: taskSubcolumn,
 										order: columns[columnIndex].tasks.length,
 									})
 								}

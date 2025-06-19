@@ -48,9 +48,9 @@ export default function KanbanColumnGroup({ group, subColumns, totalActivities, 
 				<div className='flex items-center justify-between'>
 					{/* Título + Ícone */}
 					<div className='flex items-center gap-3'>
-						<div className='flex items-center gap-2'>
-							<span className={`icon-[lucide--${group.icon}] size-5`} style={{ color: group.color }} />
-							<h3 className='font-semibold text-zinc-900 dark:text-zinc-100'>{group.title}</h3>
+						<div className='flex items-center justify-center gap-2'>
+							<span className={`icon-[lucide--${group.icon}] size-6`} style={{ color: group.color }} />
+							<h3 className='font-semibold text-zinc-600 dark:text-zinc-100 text-lg'>{group.title}</h3>
 						</div>
 					</div>
 
@@ -59,18 +59,22 @@ export default function KanbanColumnGroup({ group, subColumns, totalActivities, 
 						{group.rules?.maxCards ? (
 							<div className='flex items-center gap-2'>
 								{/* Contador com barra de progresso */}
-								<div className='flex flex-col items-end gap-1'>
-									<span className={`text-sm font-medium px-2 py-1 rounded-full ${isOverLimit ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : totalActivities / group.rules.maxCards >= 0.8 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300'}`}>
-										{totalActivities}/{group.rules.maxCards}
-									</span>
+								<div className='flex items-center gap-2'>
 									{/* Barra de progresso WIP */}
-									<div className='w-16 bg-zinc-200 dark:bg-zinc-600 rounded-full h-1'>
-										<div className={`h-1 rounded-full transition-all duration-300 ${isOverLimit ? 'bg-red-500' : totalActivities / group.rules.maxCards >= 0.8 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${Math.min(100, (totalActivities / group.rules.maxCards) * 100)}%` }} />
+									<div className='w-16 bg-zinc-200 dark:bg-zinc-600 rounded-full h-2'>
+										<div className={`h-2 rounded-full transition-all duration-300 ${isOverLimit ? 'bg-red-500' : totalActivities / group.rules.maxCards >= 0.8 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${Math.min(100, (totalActivities / group.rules.maxCards) * 100)}%` }} />
 									</div>
-								</div>
 
-								{/* Indicadores WIP */}
-								{isOverLimit ? <span className='icon-[lucide--alert-triangle] size-4 text-red-500' title='Limite WIP atingido - movimentos bloqueados' /> : totalActivities / group.rules.maxCards >= 0.8 ? <span className='icon-[lucide--alert-circle] size-4 text-yellow-500' title='Próximo ao limite WIP' /> : <span className='icon-[lucide--check-circle] size-4 text-green-500' title='Capacidade OK' />}
+									{/* Indicadores WIP */}
+									{isOverLimit ? <span className='icon-[lucide--alert-triangle] size-5 text-red-500' title='Limite WIP atingido - movimentos bloqueados' /> : totalActivities / group.rules.maxCards >= 0.8 ? <span className='icon-[lucide--alert-circle] size-5 text-yellow-500' title='Próximo ao limite WIP' /> : <span className='icon-[lucide--check-circle] size-5 text-green-500' title='Capacidade OK' />}
+
+									{/* Contador de atividades */}
+									<span className={`text-sm font-medium pt-1 pb-2 rounded-lg ${isOverLimit ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : totalActivities / group.rules.maxCards >= 0.8 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-transparent text-zinc-600 dark:text-zinc-300'}`}>
+										<div className='flex items-end justify-center'>
+											<span className='text-base'>{totalActivities}</span>/<span className='text-xs'>{group.rules.maxCards}</span>
+										</div>
+									</span>
+								</div>
 							</div>
 						) : (
 							<span className='text-sm font-medium px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300'>{totalActivities}</span>
@@ -141,7 +145,7 @@ function SubColumnComponent({ subColumn, isFirst, onEditActivity, onDeleteActivi
 	}
 
 	return (
-		<div className={`flex-1 min-w-52 ${!isFirst ? 'border-l border-zinc-200 dark:border-zinc-700' : ''}`}>
+		<div className={`flex-1 w-24 ${!isFirst ? 'border-l border-zinc-200 dark:border-zinc-700' : ''}`}>
 			{/* Header da Sub-coluna */}
 			<div className={`p-3 border-b border-zinc-200 dark:border-zinc-700 ${getSubColumnBg()}`}>
 				<div className='flex items-center justify-between'>

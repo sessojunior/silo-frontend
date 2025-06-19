@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams, usePathname } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { Project } from '@/types/projects'
 import Button from '@/components/ui/Button'
 import ProductTabs from '@/components/admin/nav/ProductTabs'
@@ -12,11 +12,10 @@ interface ProjectDetailsHeaderProps {
 
 export default function ProjectDetailsHeader({ project, onEdit }: ProjectDetailsHeaderProps) {
 	const params = useParams()
-	const pathname = usePathname()
 	const projectId = params.id as string
 
-	// Abas de navegação - Kanban só aparece na própria página Kanban
-	const allTabs = [
+	// Abas de navegação do projeto
+	const tabs = [
 		{
 			label: 'Atividades',
 			url: `/admin/projects/${projectId}`,
@@ -25,16 +24,7 @@ export default function ProjectDetailsHeader({ project, onEdit }: ProjectDetails
 			label: 'Gantt',
 			url: `/admin/projects/${projectId}/gantt`,
 		},
-		{
-			label: 'Kanban',
-			url: `/admin/projects/${projectId}/kanban`,
-		},
 	]
-
-	// Filtrar abas baseado na página atual
-	const tabs = pathname?.includes('/kanban')
-		? allTabs // Kanban page - mostrar todas as abas
-		: allTabs.filter((tab) => !tab.url.includes('/kanban')) // Outras páginas - esconder Kanban
 
 	return (
 		<div className='w-full'>

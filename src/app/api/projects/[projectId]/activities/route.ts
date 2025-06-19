@@ -4,10 +4,10 @@ import { projectActivity, project } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { getAuthUser } from '@/lib/auth/token'
 
-// GET /api/projects/[id]/activities - Buscar todas as atividades de um projeto
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+// GET /api/projects/[projectId]/activities - Buscar todas as atividades de um projeto
+export async function GET(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
 	try {
-		console.log('🔵 GET /api/projects/[id]/activities')
+		console.log('🔵 GET /api/projects/[projectId]/activities')
 
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			return NextResponse.json({ success: false, error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		const { id: projectId } = await params
+		const { projectId } = await params
 
 		// Verificar se o projeto existe
 		const existingProject = await db.select().from(project).where(eq(project.id, projectId)).limit(1)
@@ -40,10 +40,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 	}
 }
 
-// POST /api/projects/[id]/activities - Criar nova atividade
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+// POST /api/projects/[projectId]/activities - Criar nova atividade
+export async function POST(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
 	try {
-		console.log('🔵 POST /api/projects/[id]/activities')
+		console.log('🔵 POST /api/projects/[projectId]/activities')
 
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 			return NextResponse.json({ success: false, error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		const { id: projectId } = await params
+		const { projectId } = await params
 		const body = await request.json()
 
 		// Validação dos dados obrigatórios
@@ -105,10 +105,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 	}
 }
 
-// PUT /api/projects/[id]/activities - Atualizar atividade
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+// PUT /api/projects/[projectId]/activities - Atualizar atividade
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
 	try {
-		console.log('🔵 PUT /api/projects/[id]/activities')
+		console.log('🔵 PUT /api/projects/[projectId]/activities')
 
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -116,7 +116,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 			return NextResponse.json({ success: false, error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		const { id: projectId } = await params
+		const { projectId } = await params
 		const body = await request.json()
 
 		// Validação do ID da atividade
@@ -180,10 +180,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 	}
 }
 
-// DELETE /api/projects/[id]/activities - Excluir atividade
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+// DELETE /api/projects/[projectId]/activities - Excluir atividade
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
 	try {
-		console.log('🔵 DELETE /api/projects/[id]/activities')
+		console.log('🔵 DELETE /api/projects/[projectId]/activities')
 
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -191,7 +191,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 			return NextResponse.json({ success: false, error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		const { id: projectId } = await params
+		const { projectId } = await params
 		const { searchParams } = new URL(request.url)
 		const activityId = searchParams.get('activityId')
 

@@ -62,8 +62,7 @@ export default function Topbar() {
 
 							{/* Título fixo do sistema */}
 							<div className='flex items-center gap-2'>
-								<span className='icon-[lucide--layers] size-5 text-blue-600 dark:text-blue-400' />
-								<h1 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100'>Sistema de gestão de serviços e pequenos projetos</h1>
+								<h1 className='text-xl font-semibold text-zinc-900 dark:text-zinc-100'>Sistema de gestão de serviços e pequenos projetos</h1>
 							</div>
 						</div>
 

@@ -54,6 +54,17 @@ const COLUMN_GROUPS = [
 		},
 	},
 	{
+		id: 'blocked',
+		title: 'Bloqueado',
+		color: '#ef4444',
+		icon: 'alert-circle',
+		subColumns: [{ id: 'blocked', title: 'Bloqueado', type: 'blocked' as const }],
+		rules: {
+			maxCards: 10,
+			allowPriorities: ['low', 'medium', 'high', 'urgent'] as Activity['priority'][],
+		},
+	},
+	{
 		id: 'review',
 		title: 'Em Revisão',
 		color: '#f59e0b',
@@ -100,7 +111,12 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 
 	// Agrupar atividades por status
 	const activitiesByStatus = useMemo(() => {
-		return activities.reduce(
+		console.log('🔍 [KanbanBoard] Agrupando activities por status:', {
+			totalActivities: activities.length,
+			activities: activities.map((a) => ({ id: a.id, name: a.name, status: a.status })),
+		})
+
+		const grouped = activities.reduce(
 			(acc, activity) => {
 				if (!acc[activity.status]) {
 					acc[activity.status] = []
@@ -110,16 +126,51 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 			},
 			{} as Record<Activity['status'], Activity[]>,
 		)
-	}, [activities])
+
+		console.log('🔍 [KanbanBoard] Resultado do agrupamento:', grouped)
+		console.log('🔍 [KanbanBoard] Status encontrados:', Object.keys(grouped))
+		console.log(
+			'🔍 [KanbanBoard] Colunas esperadas:',
+			columnGroups.flatMap((g) => g.subColumns.map((s) => s.id)),
+		)
+
+		return grouped
+	}, [activities, columnGroups])
 
 	// Validar se uma atividade pode ser movida para uma coluna com regras WIP avançadas
-	const canMoveToColumn = (activity: Activity, targetColumnId: Activity['status']): { allowed: boolean; reason?: string; warningType?: 'limit' | 'priority' | 'blocked' } => {
+	const canMoveToColumn = (activity: Activity, targetColumnId: Activity['status'], fromColumnId?: Activity['status']): { allowed: boolean; reason?: string; warningType?: 'limit' | 'priority' | 'blocked' } => {
 		// Encontrar o grupo que contém a coluna de destino
 		const targetGroup = columnGroups.find((group) => group.subColumns.some((subCol) => subCol.id === targetColumnId))
 
 		if (!targetGroup) return { allowed: false, reason: 'Grupo não encontrado' }
 
-		// Calcular atividades no grupo inteiro
+		// 🎯 CORREÇÃO CRÍTICA: Se está movendo dentro do mesmo grupo, não aplicar limite WIP
+		if (fromColumnId) {
+			const sourceGroup = columnGroups.find((group) => group.subColumns.some((subCol) => subCol.id === fromColumnId))
+
+			if (sourceGroup && sourceGroup.id === targetGroup.id) {
+				console.log('🔵 Movimento dentro do mesmo grupo - ignorando limite WIP:', {
+					group: targetGroup.title,
+					from: fromColumnId,
+					to: targetColumnId,
+				})
+
+				// Ainda verificar prioridades (regra de negócio)
+				const rules = targetGroup.rules
+				if (rules?.allowPriorities && !rules.allowPriorities.includes(activity.priority)) {
+					const allowedPriorities = rules.allowPriorities.map((p) => ({ low: 'baixa', medium: 'média', high: 'alta', urgent: 'urgente' })[p]).join(', ')
+					return {
+						allowed: false,
+						reason: `Grupo "${targetGroup.title}" só aceita prioridades: ${allowedPriorities}`,
+						warningType: 'priority',
+					}
+				}
+
+				return { allowed: true } // ✅ Permitir movimento dentro do mesmo grupo
+			}
+		}
+
+		// Calcular atividades no grupo inteiro (apenas para movimentos ENTRE grupos)
 		const groupActivities = targetGroup.subColumns.reduce((sum, subCol) => {
 			return sum + (activitiesByStatus[subCol.id as Activity['status']] || []).length
 		}, 0)
@@ -128,7 +179,7 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 
 		if (!rules) return { allowed: true }
 
-		// Verificar limite de cards do grupo
+		// Verificar limite de cards do grupo (apenas para movimentos ENTRE grupos)
 		if (rules.maxCards && groupActivities >= rules.maxCards) {
 			if (rules.blockIfFull) {
 				return {
@@ -192,7 +243,7 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 		}
 
 		// Verificar se pode mover com validações WIP avançadas
-		const validation = canMoveToColumn(activeActivity, targetColumnId)
+		const validation = canMoveToColumn(activeActivity, targetColumnId, activeActivity.status)
 		if (!validation.allowed && validation.warningType === 'blocked') {
 			console.log('⚠️ Movimento WIP bloqueado:', validation.reason)
 			// TODO: Mostrar feedback visual vermelho
@@ -231,7 +282,7 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 		}
 
 		// Verificar se pode mover com validações WIP avançadas
-		const validation = canMoveToColumn(activeActivity, targetColumnId)
+		const validation = canMoveToColumn(activeActivity, targetColumnId, activeActivity.status)
 		if (!validation.allowed) {
 			// Toast diferenciado por tipo de erro
 			const toastType = validation.warningType === 'blocked' ? 'error' : 'warning'
@@ -257,25 +308,10 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 
 		try {
 			onActivityMove(activeActivity.id, activeActivity.status, targetColumnId)
-
-			// Toast de sucesso diferenciado por situação WIP
-			const targetGroupName = columnGroups.find((group) => group.subColumns.some((subCol) => subCol.id === targetColumnId))?.title || 'Grupo'
-
-			if (validation.warningType === 'limit') {
-				toast({
-					type: 'warning',
-					title: '⚠️ Atividade movida com aviso',
-					description: `"${activeActivity.name}" foi movida para "${targetGroupName}". ${validation.reason}`,
-				})
-			} else {
-				toast({
-					type: 'success',
-					title: '✅ Atividade movida',
-					description: `"${activeActivity.name}" foi movida para "${targetGroupName}"`,
-				})
-			}
+			// Toast é exibido na página principal - removendo daqui para evitar duplicação
 		} catch (error) {
 			console.error('❌ Erro ao mover atividade:', error)
+			// Toast de erro mantido para casos excepcionais do componente
 			toast({
 				type: 'error',
 				title: '❌ Erro ao mover atividade',
@@ -301,7 +337,7 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 		const activity = activities.find((a) => a.id === activityId)
 		if (!activity) return
 
-		const validation = canMoveToColumn(activity, newStatus)
+		const validation = canMoveToColumn(activity, newStatus, activity.status)
 		if (!validation.allowed) {
 			// Toast diferenciado por tipo de erro
 			const toastType = validation.warningType === 'blocked' ? 'error' : 'warning'
@@ -317,24 +353,8 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 
 		console.log('🔵 Alterando status via quick action:', activityId, 'para:', newStatus)
 
-		// Toast de sucesso com aviso se necessário
-		const targetGroupName = columnGroups.find((group) => group.subColumns.some((subCol) => subCol.id === newStatus))?.title || 'Grupo'
-
 		onActivityMove(activityId, activity.status, newStatus)
-
-		if (validation.warningType === 'limit') {
-			toast({
-				type: 'warning',
-				title: '⚠️ Status alterado com aviso',
-				description: `"${activity.name}" movida para "${targetGroupName}". ${validation.reason}`,
-			})
-		} else {
-			toast({
-				type: 'success',
-				title: '✅ Status alterado',
-				description: `"${activity.name}" movida para "${targetGroupName}"`,
-			})
-		}
+		// Toast é exibido na página principal - removendo daqui para evitar duplicação
 	}
 
 	// Função para formatar data
