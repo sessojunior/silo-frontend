@@ -26,14 +26,12 @@ export interface KanbanColumnConfig {
 // Interface para configuração completa do Kanban
 export interface KanbanConfig {
 	columns: KanbanColumnConfig[]
-	refreshAfterSeconds: number
 }
 
 interface KanbanConfigOffcanvasProps {
 	isOpen: boolean
 	onClose: () => void
 	currentConfig: KanbanColumnConfig[]
-	refreshAfterSeconds: number
 	onSave: (config: KanbanConfig) => void
 }
 
@@ -124,9 +122,8 @@ const ICON_OPTIONS = [
 	{ value: 'zap', label: 'Raio' },
 ]
 
-export default function KanbanConfigOffcanvas({ isOpen, onClose, currentConfig, refreshAfterSeconds, onSave }: KanbanConfigOffcanvasProps) {
+export default function KanbanConfigOffcanvas({ isOpen, onClose, currentConfig, onSave }: KanbanConfigOffcanvasProps) {
 	const [columns, setColumns] = useState<KanbanColumnConfig[]>(DEFAULT_COLUMNS)
-	const [refreshSeconds, setRefreshSeconds] = useState(30)
 	const [saving, setSaving] = useState(false)
 	const [hasChanges, setHasChanges] = useState(false)
 
@@ -138,20 +135,18 @@ export default function KanbanConfigOffcanvas({ isOpen, onClose, currentConfig, 
 			} else {
 				setColumns(DEFAULT_COLUMNS)
 			}
-			setRefreshSeconds(refreshAfterSeconds)
 			setHasChanges(false)
 			console.log('🔵 Iniciando configurações do Kanban')
 		}
-	}, [isOpen, currentConfig, refreshAfterSeconds])
+	}, [isOpen, currentConfig])
 
 	// Detectar mudanças
 	useEffect(() => {
 		if (isOpen) {
 			const configChanged = JSON.stringify(columns) !== JSON.stringify(currentConfig)
-			const refreshChanged = refreshSeconds !== refreshAfterSeconds
-			setHasChanges(configChanged || refreshChanged)
+			setHasChanges(configChanged)
 		}
-	}, [columns, refreshSeconds, currentConfig, refreshAfterSeconds, isOpen])
+	}, [columns, currentConfig, isOpen])
 
 	// Atualizar configuração de uma coluna específica
 	const updateColumn = (type: string, field: keyof KanbanColumnConfig, value: string | number | boolean) => {
@@ -161,7 +156,6 @@ export default function KanbanConfigOffcanvas({ isOpen, onClose, currentConfig, 
 	// Resetar para configuração padrão
 	const handleReset = () => {
 		setColumns(DEFAULT_COLUMNS)
-		setRefreshSeconds(30)
 		toast({
 			type: 'info',
 			title: 'Configurações resetadas',
@@ -177,7 +171,6 @@ export default function KanbanConfigOffcanvas({ isOpen, onClose, currentConfig, 
 
 			const config: KanbanConfig = {
 				columns,
-				refreshAfterSeconds: refreshSeconds,
 			}
 
 			await onSave(config)
@@ -216,20 +209,6 @@ export default function KanbanConfigOffcanvas({ isOpen, onClose, currentConfig, 
 	return (
 		<Offcanvas open={isOpen} onClose={handleClose} title='Configurações do Kanban' width='lg'>
 			<div className='space-y-6'>
-				{/* Configurações Gerais */}
-				<div className='bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4'>
-					<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4'>Configurações Gerais</h3>
-
-					<div className='space-y-4'>
-						{/* Intervalo de Atualização */}
-						<div>
-							<Label htmlFor='refreshSeconds'>Intervalo de Atualização (segundos)</Label>
-							<Input type='text' value={refreshSeconds.toString()} setValue={(value) => setRefreshSeconds(Number(value) || 30)} placeholder='30' />
-							<p className='text-sm text-zinc-500 mt-1'>Frequência de sincronização automática (10-300 segundos)</p>
-						</div>
-					</div>
-				</div>
-
 				{/* Configuração das Colunas */}
 				<div>
 					<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4'>Configuração das Colunas</h3>

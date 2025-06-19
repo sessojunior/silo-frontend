@@ -60,11 +60,11 @@ export default function ActivityCard({ activity, projectId, onEdit, onDelete }: 
 		return new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 	}
 
-	// Função para navegar ao Kanban
+	// Função para navegar ao Kanban da atividade específica
 	const handleGoToKanban = (e: React.MouseEvent) => {
 		e.stopPropagation()
-		console.log('🔵 Navegando para o Kanban do projeto:', projectId)
-		router.push(`/admin/projects/${projectId}/kanban`)
+		console.log('🔵 Navegando para o Kanban da atividade:', activity.id, 'do projeto:', projectId)
+		router.push(`/admin/projects/${projectId}/activities/${activity.id}`)
 	}
 
 	// Função para editar (impede propagação)

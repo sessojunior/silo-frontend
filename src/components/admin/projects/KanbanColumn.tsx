@@ -171,7 +171,7 @@ export default function KanbanColumn({ column, activities, isOverLimit, onEditAc
 			<div className='p-4 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 rounded-b-xl'>
 				<Button onClick={() => onCreateActivity?.(column.id)} className='w-full flex items-center justify-center gap-2 text-sm py-2.5 hover:shadow-sm transition-all duration-200' style='bordered'>
 					<span className='icon-[lucide--plus] size-4' />
-					Nova atividade
+					Nova tarefa
 				</Button>
 			</div>
 		</div>

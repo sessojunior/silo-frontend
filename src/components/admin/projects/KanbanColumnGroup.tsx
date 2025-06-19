@@ -182,7 +182,7 @@ function SubColumnComponent({ subColumn, isFirst, onEditActivity, onDeleteActivi
 				<div className='p-2 border-t border-zinc-200 dark:border-zinc-700'>
 					<Button onClick={() => onCreateActivity?.(subColumn.id as Activity['status'])} className='w-full flex items-center justify-center gap-2 text-xs py-1.5' style='bordered'>
 						<span className='icon-[lucide--plus] size-3' />
-						Nova atividade
+						Nova tarefa
 					</Button>
 				</div>
 			)}

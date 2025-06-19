@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { project, projectKanban, projectKanbanConfig } from '@/lib/db/schema'
+import { project, projectKanban } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { getAuthUser } from '@/lib/auth/token'
 

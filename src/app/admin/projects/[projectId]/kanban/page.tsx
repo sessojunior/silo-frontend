@@ -67,7 +67,6 @@ interface TaskFormData {
 // Interface para configuração do Kanban
 interface KanbanConfig {
 	columns: KanbanConfigColumn[]
-	refreshAfterSeconds: number
 }
 
 export default function ProjectKanbanPage() {
@@ -80,7 +79,7 @@ export default function ProjectKanbanPage() {
 	const [activities, setActivities] = useState<Activity[]>([])
 	const [kanbanColumns, setKanbanColumns] = useState<KanbanColumn[]>([])
 	const [kanbanConfig, setKanbanConfig] = useState<KanbanConfigColumn[]>([])
-	const [refreshAfterSeconds, setRefreshAfterSeconds] = useState(30)
+
 	const [loading, setLoading] = useState(true)
 
 	// Estados dos offcanvas
@@ -190,7 +189,6 @@ export default function ProjectKanbanPage() {
 					setTasks(kanbanData.tasks || [])
 					setKanbanColumns(kanbanData.columns || [])
 					setKanbanConfig(kanbanData.config || [])
-					setRefreshAfterSeconds(kanbanData.refreshAfterSeconds || 30)
 				} else {
 					console.error('❌ Erro na resposta do Kanban:', kanbanData.error)
 				}
@@ -481,7 +479,6 @@ export default function ProjectKanbanPage() {
 				body: JSON.stringify({
 					type: 'config',
 					config: configColumns,
-					refreshAfterSeconds: config.refreshAfterSeconds,
 				}),
 			})
 
@@ -491,7 +488,6 @@ export default function ProjectKanbanPage() {
 
 			// Atualizar estado local
 			setKanbanConfig(configColumns)
-			setRefreshAfterSeconds(config.refreshAfterSeconds)
 
 			console.log('✅ Configuração do Kanban salva com sucesso')
 			toast({
@@ -795,7 +791,7 @@ export default function ProjectKanbanPage() {
 			/>
 
 			{/* Offcanvas para configuração do Kanban */}
-			<KanbanConfigOffcanvas isOpen={kanbanConfigOpen} onClose={closeKanbanConfig} currentConfig={kanbanConfig} refreshAfterSeconds={refreshAfterSeconds} onSave={handleKanbanConfigSave} />
+			<KanbanConfigOffcanvas isOpen={kanbanConfigOpen} onClose={closeKanbanConfig} currentConfig={kanbanConfig} onSave={handleKanbanConfigSave} />
 		</div>
 	)
 }

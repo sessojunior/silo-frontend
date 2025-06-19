@@ -493,7 +493,7 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 								onDeleteActivity={onDeleteActivity}
 								onStatusChange={handleStatusChange}
 								onCreateActivity={(status) => {
-									console.log('🔵 Criando nova atividade com status:', status)
+									console.log('🔵 Criando nova tarefa com status:', status)
 									onCreateActivity?.()
 								}}
 							/>
