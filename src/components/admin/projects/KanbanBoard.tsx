@@ -416,7 +416,7 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 	}
 
 	return (
-		<div className='space-y-6'>
+		<>
 			{/* Header com Informações da Atividade (se selecionada) */}
 			{selectedActivity && (
 				<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-6'>
@@ -490,7 +490,7 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 
 			{/* Board do Kanban com larguras fixas */}
 			<DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-				<div className='flex gap-4'>
+				<div className='flex gap-x-4'>
 					{columnGroups.map((group) => {
 						// Preparar sub-colunas com atividades
 						const subColumnsWithActivities = group.subColumns.map((subCol) => ({
@@ -530,6 +530,6 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 					) : null}
 				</DragOverlay>
 			</DndContext>
-		</div>
+		</>
 	)
 }

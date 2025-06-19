@@ -50,16 +50,11 @@ export default function ActivityKanbanPage() {
 	async function loadAllData() {
 		try {
 			setLoading(true)
-			console.log('🔵 [FRONTEND] Carregando dados do Kanban para:', {
-				projectId,
-				activityId,
-				url: `/api/projects/${projectId}/activities/${activityId}/kanban`,
-			})
 
 			// Carregar projeto
 			const projectResponse = await fetch(`/api/admin/projects?projectId=${projectId}`)
 			if (!projectResponse.ok) {
-				console.error('❌ [FRONTEND] Projeto não encontrado:', projectId)
+				console.error('❌ Projeto não encontrado:', projectId)
 				notFound()
 				return
 			}
@@ -68,13 +63,12 @@ export default function ActivityKanbanPage() {
 			const projectData = projectsData.find((p: { id: string }) => p.id === projectId)
 
 			if (!projectData) {
-				console.error('❌ [FRONTEND] Projeto não encontrado nos dados:', projectId)
+				console.error('❌ Projeto não encontrado nos dados:', projectId)
 				notFound()
 				return
 			}
 
 			setProject(projectData)
-			console.log('✅ [FRONTEND] Projeto carregado:', projectData.name)
 
 			// Carregar atividade específica
 			const activitiesResponse = await fetch(`/api/projects/${projectId}/activities`)
@@ -83,69 +77,30 @@ export default function ActivityKanbanPage() {
 				if (activitiesResult.success) {
 					const foundActivity = activitiesResult.activities.find((a: { id: string }) => a.id === activityId)
 					if (!foundActivity) {
-						console.error('❌ [FRONTEND] Atividade não encontrada:', activityId)
+						console.error('❌ Atividade não encontrada:', activityId)
 						notFound()
 						return
 					}
 
 					setActivity(foundActivity)
-					console.log('✅ [FRONTEND] Atividade carregada:', foundActivity.name)
 				}
 			}
 
 			// Carregar dados do Kanban desta atividade específica
-			console.log('🔵 [FRONTEND] Fazendo requisição para:', `/api/projects/${projectId}/activities/${activityId}/kanban`)
 			const kanbanResponse = await fetch(`/api/projects/${projectId}/activities/${activityId}/kanban`)
 			if (kanbanResponse.ok) {
 				const kanbanData = await kanbanResponse.json()
-				console.log('🔵 [FRONTEND] Resposta completa da API:', kanbanData)
 
 				if (kanbanData.success) {
-					console.log('🔵 [FRONTEND] Dados do Kanban da atividade recebidos:', {
-						columns: kanbanData.columns?.length || 0,
-					})
-					console.log('🔵 [FRONTEND] Columns recebidas detalhadas:', kanbanData.columns)
-
-					// VERIFICAR AS TAREFAS DENTRO DAS COLUNAS
-					if (kanbanData.columns && kanbanData.columns.length > 0) {
-						const totalTasks = kanbanData.columns.reduce((total: number, column: { tasks?: unknown[] }) => total + (column.tasks?.length || 0), 0)
-						console.log('🔍 [FRONTEND] Total de tarefas encontradas nas colunas:', totalTasks)
-
-						// Verificar primeira tarefa encontrada
-						for (const column of kanbanData.columns) {
-							if (column.tasks && column.tasks.length > 0) {
-								const firstTask = column.tasks[0]
-								console.log('🔍 [FRONTEND] Verificando primeira task da coluna', column.name, ':', {
-									project_task_id: firstTask.project_task_id,
-									taskData: firstTask.task,
-									hasTaskData: !!firstTask.task,
-								})
-								break
-							}
-						}
-					}
-
-					// 🎯 NOVA ABORDAGEM: Extrair tarefas COM informação da subcoluna
-					console.log('🔍 [FRONTEND] Estrutura das colunas recebidas:', kanbanData.columns)
+					// Extrair tarefas COM informação da subcoluna
 
 					const allTasksWithSubcolumn: Array<ProjectTask & { kanbanSubcolumn: string }> = []
 
 					if (kanbanData.columns && Array.isArray(kanbanData.columns)) {
-						kanbanData.columns.forEach((column: { name: string; type: string; tasks?: unknown[] }, columnIndex: number) => {
-							console.log(`🔍 [FRONTEND] Coluna ${columnIndex + 1}: ${column.name} tem ${column.tasks?.length || 0} tarefas`)
-
+						kanbanData.columns.forEach((column: { name: string; type: string; tasks?: unknown[] }) => {
 							if (column.tasks && Array.isArray(column.tasks)) {
-								;(column.tasks as Array<{ task?: ProjectTask; project_task_id: string; subcolumn: string }>).forEach((kanbanTask, taskIndex: number) => {
-									console.log(`🔍 [FRONTEND] Task ${taskIndex + 1} na coluna ${column.name}:`, {
-										hasTask: !!kanbanTask.task,
-										taskData: kanbanTask.task,
-										project_task_id: kanbanTask.project_task_id,
-										subcolumn: kanbanTask.subcolumn,
-										columnType: column.type,
-									})
-
+								;(column.tasks as Array<{ task?: ProjectTask; project_task_id: string; subcolumn: string }>).forEach((kanbanTask) => {
 									if (kanbanTask.task) {
-										// Adicionar informação da subcoluna para conversão correta
 										// Mapear subcolumn "in_progress" para "_doing" para compatibilidade com KanbanBoard
 										let kanbanSubcolumnSuffix = kanbanTask.subcolumn
 										if (kanbanTask.subcolumn === 'in_progress') {
@@ -154,7 +109,7 @@ export default function ActivityKanbanPage() {
 
 										const taskWithSubcolumn = {
 											...kanbanTask.task,
-											kanbanSubcolumn: `${column.type}_${kanbanSubcolumnSuffix}`, // Ex: "in_progress_doing", "in_progress_done"
+											kanbanSubcolumn: `${column.type}_${kanbanSubcolumnSuffix}`,
 										}
 										allTasksWithSubcolumn.push(taskWithSubcolumn)
 									}
@@ -163,16 +118,14 @@ export default function ActivityKanbanPage() {
 						})
 					}
 
-					console.log('🔵 [FRONTEND] Total de tarefas extraídas com subcoluna:', allTasksWithSubcolumn.length)
-					console.log('🔍 [FRONTEND] Primeira tarefa com subcoluna:', allTasksWithSubcolumn[0])
 					setTasks(allTasksWithSubcolumn)
 				} else {
-					console.error('❌ [FRONTEND] Erro na resposta do Kanban:', kanbanData.error)
+					console.error('❌ Erro na resposta do Kanban:', kanbanData.error)
 				}
 			} else {
-				console.error('❌ [FRONTEND] Erro na requisição do Kanban:', kanbanResponse.status)
+				console.error('❌ Erro na requisição do Kanban:', kanbanResponse.status)
 				const errorText = await kanbanResponse.text()
-				console.error('❌ [FRONTEND] Detalhes do erro:', errorText)
+				console.error('❌ Detalhes do erro:', errorText)
 			}
 		} catch (error) {
 			console.error('❌ Erro ao carregar dados:', error)
@@ -188,52 +141,34 @@ export default function ActivityKanbanPage() {
 
 	// Converter tasks para formato de activities para o KanbanBoard
 	const activitiesFromTasks = useMemo((): Activity[] => {
-		console.log('🔵 Convertendo tasks para activities:', {
-			tasksCount: tasks.length,
-			tasks: tasks.map((t) => ({ id: t.id, name: t.name, status: t.status, kanbanSubcolumn: t.kanbanSubcolumn })),
-		})
-
 		return tasks.map((task): Activity => {
-			// 🎯 NOVA LÓGICA: Usar kanbanSubcolumn se disponível, senão fallback
+			// Usar kanbanSubcolumn se disponível, senão fallback
 			let activityStatus: Activity['status'] = 'todo'
 
 			if (task.kanbanSubcolumn) {
 				// Usar informação precisa da subcoluna do JSON Kanban
 				activityStatus = task.kanbanSubcolumn as Activity['status']
-				console.log('🔵 Usando kanbanSubcolumn:', {
-					taskId: task.id,
-					taskName: task.name,
-					kanbanSubcolumn: task.kanbanSubcolumn,
-					activityStatus,
-				})
 			} else {
 				// Fallback: Mapear status simples para subcolunas (_doing por padrão, exceto done e blocked)
 				switch (task.status) {
 					case 'todo':
-						activityStatus = 'todo_doing' // KanbanBoard espera subcoluna
+						activityStatus = 'todo_doing'
 						break
 					case 'in_progress':
-						activityStatus = 'in_progress_doing' // KanbanBoard espera subcoluna
+						activityStatus = 'in_progress_doing'
 						break
 					case 'blocked':
-						activityStatus = 'blocked' // Já coincide
+						activityStatus = 'blocked'
 						break
 					case 'review':
-						activityStatus = 'review_doing' // KanbanBoard espera subcoluna
+						activityStatus = 'review_doing'
 						break
 					case 'done':
-						activityStatus = 'done' // Já coincide
+						activityStatus = 'done'
 						break
 					default:
 						activityStatus = 'todo_doing'
 				}
-
-				console.log('🔵 Usando fallback para status:', {
-					taskId: task.id,
-					taskName: task.name,
-					taskStatus: task.status,
-					activityStatus,
-				})
 			}
 
 			const activity: Activity = {
@@ -269,22 +204,13 @@ export default function ActivityKanbanPage() {
 				})(),
 			}
 
-			console.log('🔵 Task convertida:', {
-				taskId: task.id,
-				taskName: task.name,
-				taskStatus: task.status,
-				activityStatus: activity.status,
-			})
-
 			return activity
 		})
 	}, [tasks])
 
 	// Função para mover tarefa entre colunas (drag & drop OTIMISTA)
 	const handleTaskMove = async (taskId: string, fromStatus: Activity['status'], toStatus: Activity['status']) => {
-		console.log('🔵 Iniciando movimento otimista:', { taskId, fromStatus, toStatus })
-
-		// 🎯 MOVIMENTO OTIMISTA: Atualizar UI PRIMEIRO
+		// MOVIMENTO OTIMISTA: Atualizar UI PRIMEIRO
 		const getTaskStatusFromActivityStatus = (activityStatus: Activity['status']): ProjectTask['status'] => {
 			if (activityStatus.startsWith('todo')) return 'todo'
 			if (activityStatus.startsWith('in_progress')) return 'in_progress'
@@ -299,28 +225,20 @@ export default function ActivityKanbanPage() {
 		// Backup do estado anterior para rollback se necessário
 		const previousTasks = tasks.slice()
 
-		// 🚀 ATUALIZAR UI IMEDIATAMENTE (otimista)
+		// ATUALIZAR UI IMEDIATAMENTE (otimista)
 		setTasks((prevTasks) =>
 			prevTasks.map((task) =>
 				task.id === taskId
 					? {
 							...task,
 							status: newTaskStatus,
-							kanbanSubcolumn: toStatus, // Preservar subcoluna exata
+							kanbanSubcolumn: toStatus,
 						}
 					: task,
 			),
 		)
 
-		console.log('✅ UI atualizada otimisticamente:', {
-			taskId,
-			fromActivityStatus: fromStatus,
-			toActivityStatus: toStatus,
-			newTaskStatus,
-			newKanbanSubcolumn: toStatus,
-		})
-
-		// 🌐 PERSISTIR NO BACKEND (assíncrono)
+		// PERSISTIR NO BACKEND (assíncrono)
 		try {
 			// Mapear status de activity para tipo de coluna e subcoluna
 			const parseActivityStatus = (status: Activity['status']) => {
@@ -335,11 +253,6 @@ export default function ActivityKanbanPage() {
 			const fromParsed = parseActivityStatus(fromStatus)
 			const toParsed = parseActivityStatus(toStatus)
 
-			console.log('🔍 Persistindo movimento:', {
-				from: { status: fromStatus, ...fromParsed },
-				to: { status: toStatus, ...toParsed },
-			})
-
 			const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/kanban`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
@@ -348,7 +261,7 @@ export default function ActivityKanbanPage() {
 					fromColumnType: fromParsed.columnType,
 					toColumnType: toParsed.columnType,
 					newOrder: 0,
-					cardSubcolumn: toParsed.subcolumn, // Usar subcolumn correta
+					cardSubcolumn: toParsed.subcolumn,
 				}),
 			})
 
@@ -358,8 +271,6 @@ export default function ActivityKanbanPage() {
 
 			const result = await response.json()
 			if (result.success) {
-				console.log('✅ Movimento persistido com sucesso')
-				// UI já foi atualizada otimisticamente - apenas toast de confirmação
 				toast({
 					type: 'success',
 					title: '✅ Tarefa movida',
@@ -371,7 +282,7 @@ export default function ActivityKanbanPage() {
 		} catch (error) {
 			console.error('❌ Erro ao persistir movimento:', error)
 
-			// 🔄 ROLLBACK: Restaurar estado anterior
+			// ROLLBACK: Restaurar estado anterior
 			setTasks(previousTasks)
 
 			toast({
@@ -404,8 +315,6 @@ export default function ActivityKanbanPage() {
 	// Função para excluir tarefa
 	async function handleDeleteTask(taskId: string) {
 		try {
-			console.log('🔵 Excluindo tarefa:', taskId)
-
 			const response = await fetch(`/api/projects/${projectId}/tasks`, {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
@@ -453,24 +362,10 @@ export default function ActivityKanbanPage() {
 		return notFound()
 	}
 
-	// Debug final antes do render
-	console.log('🔍 [FRONTEND] Dados finais antes do render:', {
-		tasksCount: tasks.length,
-		activitiesCount: activitiesFromTasks.length,
-		activitiesData: activitiesFromTasks.map((a) => ({ id: a.id, name: a.name, status: a.status })),
-		statusDistribution: activitiesFromTasks.reduce(
-			(acc, a) => {
-				acc[a.status] = (acc[a.status] || 0) + 1
-				return acc
-			},
-			{} as Record<string, number>,
-		),
-	})
-
 	return (
-		<div className='min-h-screen w-full'>
+		<div className='w-full h-full flex flex-col'>
 			{/* Header fixo */}
-			<div className='p-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900'>
+			<div className='w-full p-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 flex-shrink-0'>
 				<div className='flex items-center justify-between'>
 					<div>
 						<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Kanban - {activity.name}</h1>
@@ -490,78 +385,33 @@ export default function ActivityKanbanPage() {
 			</div>
 
 			{/* Conteúdo do Kanban */}
-			<div className='p-6'>
-				{tasks.length === 0 ? (
-					// Estado vazio - sem tarefas
-					<div className='bg-zinc-50 dark:bg-zinc-800 rounded-lg p-12 text-center'>
-						<span className='icon-[lucide--kanban-square] size-16 text-zinc-400 mb-4 block mx-auto' />
-						<h3 className='text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2'>Kanban da Atividade</h3>
-						<p className='text-zinc-600 dark:text-zinc-400 mb-6'>Esta atividade ainda não possui tarefas. Crie a primeira tarefa para começar a usar o Kanban.</p>
-						<div className='space-y-3 text-sm text-zinc-500 mb-6'>
-							<p>
-								<strong>Atividade:</strong> {activity.name}
-							</p>
-							<p>
-								<strong>Projeto:</strong> {project.name}
-							</p>
-						</div>
-						<Button onClick={handleCreateTask} className='bg-blue-600 hover:bg-blue-700 text-white'>
-							<span className='icon-[lucide--plus] size-4 mr-2' />
-							Criar Primeira Tarefa
-						</Button>
-						<div className='mt-8 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg'>
-							<p className='text-green-800 dark:text-green-200 font-semibold'>✅ NAVEGAÇÃO FUNCIONANDO!</p>
-							<p className='text-green-600 dark:text-green-300 text-sm mt-1'>
-								URL correta: /admin/projects/{projectId}/activities/{activityId}
-							</p>
-						</div>
-					</div>
-				) : (
-					// Estado com tarefas - Kanban Board real com drag & drop
-					<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-6 overflow-x-auto'>
-						<div className='mb-6'>
-							<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2'>
-								Kanban Board - {tasks.length} {tasks.length === 1 ? 'Tarefa' : 'Tarefas'}
-							</h3>
-							<p className='text-sm text-zinc-600 dark:text-zinc-400'>Arraste e solte as tarefas entre as colunas para alterar seu status</p>
-						</div>
-
-						{/* DEBUG: Exibir dados das tarefas */}
-						<div className='mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg'>
-							<h4 className='font-semibold text-yellow-800 dark:text-yellow-200 mb-2'>🐛 DEBUG - Dados das Tarefas</h4>
-							<div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
-								<div>
-									<p className='text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-2'>Tasks Originais ({tasks.length}):</p>
-									<pre className='text-xs bg-yellow-100 dark:bg-yellow-900/40 p-2 rounded overflow-auto max-h-40'>
-										{JSON.stringify(
-											tasks.map((t) => ({ id: t.id, name: t.name, status: t.status })),
-											null,
-											2,
-										)}
-									</pre>
-								</div>
-								<div>
-									<p className='text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-2'>Activities Convertidas ({activitiesFromTasks.length}):</p>
-									<pre className='text-xs bg-yellow-100 dark:bg-yellow-900/40 p-2 rounded overflow-auto max-h-40'>
-										{JSON.stringify(
-											activitiesFromTasks.map((a) => ({ id: a.id, name: a.name, status: a.status })),
-											null,
-											2,
-										)}
-									</pre>
-								</div>
+			<div className='flex-1 overflow-x-auto overflow-y-hidden bg-zinc-50 dark:bg-zinc-900'>
+				<div className='min-w-max h-full p-6'>
+					{tasks.length === 0 ? (
+						// Estado vazio - sem tarefas
+						<div className='bg-zinc-50 dark:bg-zinc-800 rounded-lg p-12 text-center'>
+							<span className='icon-[lucide--kanban-square] size-16 text-zinc-400 mb-4 block mx-auto' />
+							<h3 className='text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2'>Kanban da Atividade</h3>
+							<p className='text-zinc-600 dark:text-zinc-400 mb-6'>Esta atividade ainda não possui tarefas. Crie a primeira tarefa para começar a usar o Kanban.</p>
+							<div className='space-y-3 text-sm text-zinc-500 mb-6'>
+								<p>
+									<strong>Atividade:</strong> {activity.name}
+								</p>
+								<p>
+									<strong>Projeto:</strong> {project.name}
+								</p>
 							</div>
+							<Button onClick={handleCreateTask} className='bg-blue-600 hover:bg-blue-700 text-white'>
+								<span className='icon-[lucide--plus] size-4 mr-2' />
+								Criar Primeira Tarefa
+							</Button>
 						</div>
+					) : (
+						// Estado com tarefas - Kanban Board real com drag & drop
 
-						<div className='min-w-max'>
-							<KanbanBoard activities={activitiesFromTasks} selectedActivity={undefined} onActivityMove={handleTaskMove} onCreateActivity={handleCreateTask} onEditActivity={handleEditTask} onDeleteActivity={handleDeleteTask} />
-						</div>
-						<div className='mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg'>
-							<p className='text-green-800 dark:text-green-200 font-semibold'>🎉 KANBAN BOARD ATIVO!</p>
-							<p className='text-green-600 dark:text-green-300 text-sm mt-1'>Drag & drop funcionando • Sincronização automática com o banco de dados</p>
-						</div>
-					</div>
-				)}
+						<KanbanBoard activities={activitiesFromTasks} selectedActivity={undefined} onActivityMove={handleTaskMove} onCreateActivity={handleCreateTask} onEditActivity={handleEditTask} onDeleteActivity={handleDeleteTask} />
+					)}
+				</div>
 			</div>
 		</div>
 	)
