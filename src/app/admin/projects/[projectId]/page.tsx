@@ -205,26 +205,11 @@ export default function ProjectDetailsPage() {
 		return filtered.sort((a, b) => a.name.localeCompare(b.name))
 	}, [activities, search, statusFilter])
 
-	function handleEditActivity(activity: any) {
+	function handleEditActivity(activity: ProjectActivity) {
 		console.log('🔵 Abrindo formulário de edição da atividade:', activity.name)
 
-		// Converter de Activity para ProjectActivity
-		const projectActivity: ProjectActivity = {
-			id: activity.id,
-			projectId: activity.projectId,
-			name: activity.name,
-			description: activity.description,
-			category: activity.category,
-			estimatedDays: activity.estimatedHours,
-			startDate: activity.startDate || '',
-			endDate: activity.endDate || '',
-			priority: activity.priority,
-			status: activity.status === 'in_progress' ? 'progress' : activity.status === 'in_progress_doing' ? 'progress' : activity.status === 'in_progress_done' ? 'progress' : activity.status === 'review' ? 'progress' : activity.status === 'review_doing' ? 'progress' : activity.status === 'review_done' ? 'progress' : activity.status === 'todo' ? 'todo' : activity.status === 'todo_doing' ? 'todo' : activity.status === 'todo_done' ? 'todo' : activity.status === 'done' ? 'done' : 'blocked',
-			createdAt: new Date(activity.createdAt),
-			updatedAt: new Date(activity.updatedAt),
-		}
-
-		setEditingActivity(projectActivity)
+		// A atividade já está no formato correto ProjectActivity
+		setEditingActivity(activity)
 		setActivityFormOpen(true)
 	}
 
@@ -428,6 +413,7 @@ export default function ProjectDetailsPage() {
 	}
 
 	// Função para excluir atividade
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async function handleActivityDelete(activityId: string) {
 		if (!project) return
 
@@ -510,11 +496,12 @@ export default function ProjectDetailsPage() {
 
 						if (column.tasks && Array.isArray(column.tasks)) {
 							// Filtrar apenas tarefas que pertencem à atividade específica
-							const tasksForThisActivity = column.tasks.filter((task: any) => {
-								const taskActivityId = task.task?.projectActivityId || task.projectActivityId
+							const tasksForThisActivity = column.tasks.filter((task) => {
+								const taskData = task as { task?: { id: string; name: string; projectActivityId: string }; id?: string; name?: string; projectActivityId?: string }
+								const taskActivityId = taskData.task?.projectActivityId || taskData.projectActivityId
 								console.log('🔍 [loadKanbanTaskCount] Verificando tarefa:', {
-									taskId: task.task?.id || task.id,
-									taskName: task.task?.name || task.name,
+									taskId: taskData.task?.id || taskData.id,
+									taskName: taskData.task?.name || taskData.name,
 									taskActivityId,
 									targetActivityId: activityId,
 									matches: taskActivityId === activityId,
@@ -706,7 +693,7 @@ export default function ProjectDetailsPage() {
 													<button onClick={() => handleGoToKanban(activity.id)} className='size-10 flex items-center justify-center rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors' title='Abrir Kanban'>
 														<span className='icon-[lucide--kanban-square] size-4 text-blue-600 dark:text-blue-400' />
 													</button>
-													<button onClick={() => handleEditActivity({ ...activity, status: convertActivityStatus(activity.status) } as any)} className='size-10 flex items-center justify-center rounded-full hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors' title='Editar atividade'>
+													<button onClick={() => handleEditActivity(activity)} className='size-10 flex items-center justify-center rounded-full hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors' title='Editar atividade'>
 														<span className='icon-[lucide--edit] size-4 text-green-600 dark:text-green-400' />
 													</button>
 												</div>

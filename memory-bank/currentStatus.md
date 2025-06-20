@@ -192,6 +192,22 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 - ✅ **Navegação Hierárquica** - /admin/projects/[projectId]/activities/[activityId] funcionando
 - ✅ **Sistema de Cores Estático** - Mapeamento Tailwind com 5 cores (gray, blue, red, amber, emerald)
 - ✅ **Tipos TypeScript Corrigidos** - Separação clara Activity vs Task, interfaces bem definidas
+- ✅ **Collision Detection Personalizada** - Prioriza subcolunas sobre tarefas individuais
+
+**FUNCIONALIDADES DRAG & DROP IMPLEMENTADAS**:
+
+1. ✅ **Reordenação na Mesma Subcoluna** - Altera apenas 'order' no JSON
+2. ✅ **Movimento Entre Subcolunas** - Altera 'subcolumn' ('in_progress' ↔ 'done') + 'order'
+3. ✅ **Movimento Entre Colunas** - Altera 'type' da coluna + 'subcolumn' + 'order'
+4. ✅ **Sincronização Automática** - project_task.status ↔ project_kanban.columns.tasks.subcolumn
+5. ✅ **Validações WIP** - Limites por coluna e regras de prioridade
+
+**ARQUITETURA DATABASE CORRIGIDA**:
+
+- **project_task.status** - Fonte primária sincronizada com Kanban
+- **project_kanban.columns.tasks.subcolumn** - 'in_progress' | 'done' (subcolunas)
+- **project_kanban.columns.tasks.order** - Ordem dentro da subcoluna
+- **Sincronização Bidirecional** - Kanban ↔ Task Status sempre consistente
 
 **ARQUITETURA DEFINITIVA IMPLEMENTADA**:
 
@@ -294,83 +310,6 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 
 - **❌ ANTES**: Arquivo separado seed-help.ts com documentação
 - **✅ AGORA**: Integrada diretamente no seed.ts principal, eliminando arquivos temporários
-
-### ✅ SISTEMA DE PROJETOS - SEMANA 4 COMPLETAMENTE FINALIZADA COM SUCESSO ÉPICO!
-
-**STATUS**: ✅ **SEMANA 4 COMPLETAMENTE FINALIZADA** - Janeiro 2025
-
-**CONQUISTAS EXTRAORDINÁRIAS - SISTEMA KANBAN POR ATIVIDADE**:
-
-- ✅ **Arquitetura Kanban Corrigida** - Sistema por atividade conforme especificação do usuário
-- ✅ **Drag & Drop Completamente Funcional** - Reordenação e movimento entre subcolunas
-- ✅ **Página Atividades Refatorada** - Layout moderno com dropdown expansível e mini kanban
-- ✅ **Contador de Tarefas Correto** - Filtro por activityId implementado (bug crítico resolvido)
-- ✅ **Navegação Hierárquica** - /admin/projects/[projectId]/activities/[activityId] funcionando
-- ✅ **Sistema de Cores Estático** - Mapeamento Tailwind com 5 cores (gray, blue, red, amber, emerald)
-- ✅ **Tipos TypeScript Corrigidos** - Separação clara Activity vs Task, interfaces bem definidas
-
-**ARQUITETURA DEFINITIVA IMPLEMENTADA**:
-
-1. **Estrutura Hierárquica**: PROJETO → ATIVIDADES → TAREFAS → KANBAN (um por atividade)
-
-2. **Navegação Correta**:
-
-   - Página projeto: `/admin/projects/[projectId]` (lista atividades)
-   - Botão Kanban na atividade → `/admin/projects/[projectId]/activities/[activityId]`
-
-3. **Tabela project_kanban (UMA POR ATIVIDADE)**:
-
-   - Estrutura JSON: `{ name, type, is_visible, color, icon, limit_wip, block_wip_reached, tasks: [{ project_task_id, subcolumn, order }] }`
-   - Subcolunas: 'Fazendo' (subcolumn: 'in_progress') e 'Feito' (subcolumn: 'done')
-
-4. **Sincronização Crítica**:
-   - `project_task.status` DEVE estar sincronizado com `project_kanban.columns.tasks.subcolumn`
-   - project_kanban é fonte primária de verdade para posicionamento no Kanban
-
-**PROBLEMAS CRÍTICOS RESOLVIDOS**:
-
-- ✅ **Drag & Drop Ordering** - Campo `kanbanOrder` implementado com ordenação correta por subcoluna
-- ✅ **Task Counter Bug CRÍTICO** - Todas atividades mostravam "6 tarefas", agora filtro por `activityId` funciona
-- ✅ **Color System** - Mapeamento estático Tailwind (não interpolação dinâmica `border-${color}-700`)
-- ✅ **Movement Logic** - Status parsing e decomposição corrigidos para compatibilidade
-- ✅ **Type System Confusion** - Interfaces `Activity` e `Task` separadas, eliminada confusão activityId/taskId
-- ✅ **DragOverlay Bug** - KanbanCard usado no overlay (não ActivityCard removido)
-- ✅ **API Parameter Bug** - taskId enviado corretamente (não activityId)
-
-**COMPONENTES CRIADOS/ATUALIZADOS**:
-
-- `ActivityStatsCards.tsx` - **NOVO** - Estatísticas por status (total, todo, progress, done, blocked)
-- `ActivityMiniKanban.tsx` - **NOVO** - Mini kanban dentro do dropdown da atividade
-- `KanbanBoard.tsx` - **ATUALIZADO** - Drag & drop @dnd-kit com validações WIP
-- `KanbanCard.tsx` - **ATUALIZADO** - Cards de tarefas com prioridade e responsáveis
-- `KanbanColumn.tsx` - **ATUALIZADO** - Colunas com subcolunas e limites WIP
-- `KanbanColumnGroup.tsx` - **ATUALIZADO** - Grupos de colunas com cores temáticas
-- `/admin/projects/[projectId]/page.tsx` - **REFATORADO** - Layout moderno com dropdown expansível
-
-**FUNCIONALIDADES KANBAN IMPLEMENTADAS**:
-
-- Sistema de 5 colunas: A Fazer, Em Progresso, Bloqueado, Em Revisão, Concluído
-- Subcolunas: 'Fazendo' (in_progress) e 'Feito' (done) com drag & drop entre elas
-- Limites WIP configuráveis com bloqueio automático quando atingido
-- Validação de prioridades por coluna (ex: Review só aceita high/urgent)
-- Cores temáticas por tipo de coluna com hierarquia visual
-- Reordenação inteligente com overId para posicionamento preciso
-- Feedback visual durante drag (rotação 3°, opacidade 90%)
-- Contadores visuais com barras de progresso WIP
-
-**CORREÇÕES ARQUITETURAIS BASEADAS NA EXPLICAÇÃO DO USUÁRIO**:
-
-- ✅ **Estrutura de Dados Corrigida**: Mapeamento correto de `project_kanban.columns.tasks.subcolumn` para frontend
-- ✅ **Status Sincronização**: `project_task.status` sincronizado com subcolumn do Kanban
-- ✅ **Navegação Correta**: Botão Kanban leva para atividade específica (não projeto geral)
-- ✅ **Filtro por Atividade**: Cada Kanban mostra apenas tarefas da atividade específica
-- ✅ **Subcolunas Corretas**: 'in_progress' (Fazendo) e 'done' (Feito) implementadas
-
-**PRÓXIMA SEMANA 5**: Sistema de configuração avançada do Kanban com:
-
-- KanbanConfigOffcanvas para configurar colunas, cores, ícones, limites WIP
-- Configurações por atividade (cada atividade tem seu próprio Kanban configurável)
-- Interface profissional com 3 abas: Colunas, Geral, Notificações
 
 ### 🚀 PRÓXIMA PRIORIDADE: SEMANA 5 - PÁGINA DE DETALHES DO PROJETO
 

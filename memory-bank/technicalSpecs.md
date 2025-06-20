@@ -94,16 +94,60 @@ interface ProjectKanban {
 		is_visible: boolean
 		color: 'gray' | 'blue' | 'red' | 'amber' | 'emerald'
 		icon: string // 'icon-[lucide--...]'
-		limit_wip: number | null // Limite WIP
+		limit_wip: number | null // Limite WIP (null = sem limite)
 		block_wip_reached: boolean // Bloquear quando atingir limite
 		tasks: Array<{
 			project_task_id: string
 			subcolumn: 'in_progress' | 'done' // Subcoluna dentro da coluna
-			order: number // Ordem dentro da subcoluna
+			order: number // Ordem dentro da subcoluna (0, 1, 2...)
 		}>
 	}>
 }
 ```
+
+### 🔄 Sincronização Crítica
+
+**REGRA FUNDAMENTAL**: project_task.status DEVE estar sempre sincronizado com project_kanban.columns.tasks.subcolumn
+
+**Mapeamento Status**:
+
+- `project_task.status = 'todo'` ↔ `subcolumn: 'in_progress'` na coluna type='todo'
+- `project_task.status = 'in_progress'` ↔ `subcolumn: 'in_progress'` na coluna type='in_progress'
+- `project_task.status = 'review'` ↔ `subcolumn: 'in_progress'` na coluna type='review'
+- `project_task.status = 'done'` ↔ `subcolumn: 'done'` na coluna type='done'
+
+### 🎯 Funcionalidades Drag & Drop
+
+**1. Reordenação na Mesma Subcoluna**:
+
+- Altera apenas: `project_kanban.columns.tasks.order`
+- Mantém: `subcolumn` e `project_task.status` inalterados
+
+**2. Movimento Entre Subcolunas (mesma coluna)**:
+
+- Altera: `project_kanban.columns.tasks.subcolumn` ('in_progress' ↔ 'done')
+- Altera: `project_kanban.columns.tasks.order` (nova posição)
+- Mantém: `project_task.status` inalterado (mesma coluna)
+
+**3. Movimento Entre Colunas Diferentes**:
+
+- Altera: coluna de destino (`type` diferente)
+- Altera: `project_kanban.columns.tasks.subcolumn` (baseado na subcoluna de destino)
+- Altera: `project_kanban.columns.tasks.order` (nova posição)
+- Altera: `project_task.status` (sincronização obrigatória)
+
+### 📊 Regras de Subcolunas
+
+**Subcolunas Padrão**:
+
+- **'Fazendo'** → `subcolumn: 'in_progress'`
+- **'Feito'** → `subcolumn: 'done'`
+
+**Regra limit_wip**:
+
+- Se `limit_wip = null`: todas tasks ficam com `subcolumn: 'in_progress'`
+- Se `limit_wip != null`: tasks podem ter `subcolumn: 'in_progress' | 'done'`
+- **RESTRIÇÃO**: Não é possível definir `limit_wip = null` se existir task com `subcolumn != 'in_progress'`
 
 ### 🔄 Sincronização de Status
 

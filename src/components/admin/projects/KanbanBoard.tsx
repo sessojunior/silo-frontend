@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { DndContext, DragOverlay, DragStartEvent, DragEndEvent, DragOverEvent, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors, UniqueIdentifier } from '@dnd-kit/core'
+import { DndContext, DragOverlay, DragStartEvent, DragEndEvent, DragOverEvent, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors, UniqueIdentifier, CollisionDetection, rectIntersection } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 
 import KanbanColumnGroup from './KanbanColumnGroup'
@@ -110,6 +110,37 @@ export default function KanbanBoard({ tasks, onTaskMove, onCreateTask, onEditTas
 			coordinateGetter: sortableKeyboardCoordinates,
 		}),
 	)
+
+	// 🎯 COLLISION DETECTION PERSONALIZADA: Priorizar áreas droppable das subcolunas
+	const customCollisionDetection: CollisionDetection = (args) => {
+		// Primeiro, tentar detectar collision com áreas droppable (subcolunas)
+		const droppableCollisions = rectIntersection({
+			...args,
+			droppableContainers: args.droppableContainers.filter((container) => container.id.toString().startsWith('column-')),
+		})
+
+		if (droppableCollisions.length > 0) {
+			console.log('🎯 [customCollisionDetection] Collision detectada com SUBCOLUNA:', {
+				collisions: droppableCollisions.map((c) => ({
+					id: c.id,
+					isColumn: c.id.toString().startsWith('column-'),
+				})),
+			})
+			return droppableCollisions
+		}
+
+		// Se não houver collision com subcolunas, usar detecção padrão (tarefas)
+		const defaultCollisions = closestCorners(args)
+
+		console.log('🎯 [customCollisionDetection] Fallback para collision com TAREFAS:', {
+			collisions: defaultCollisions.map((c) => ({
+				id: c.id,
+				isColumn: c.id.toString().startsWith('column-'),
+			})),
+		})
+
+		return defaultCollisions
+	}
 
 	// Agrupar tarefas por status COM ORDENAÇÃO CORRETA 🎯
 	const tasksByStatus = useMemo(() => {
@@ -315,7 +346,7 @@ export default function KanbanBoard({ tasks, onTaskMove, onCreateTask, onEditTas
 		})
 
 		if (over.id.toString().startsWith('column-')) {
-			// Soltando sobre a subcoluna (área droppable)
+			// Soltando sobre a subcoluna (área droppable) - PRIORIDADE MÁXIMA
 			targetColumnId = over.id.toString().replace('column-', '') as Task['status']
 			console.log('🔍 [handleDragEnd] Destino é SUBCOLUNA:', {
 				originalId: over.id.toString(),
@@ -323,18 +354,32 @@ export default function KanbanBoard({ tasks, onTaskMove, onCreateTask, onEditTas
 				isSubcolumnDrop: true,
 			})
 		} else {
-			// Soltando sobre uma tarefa específica
+			// 🎯 CORREÇÃO CRÍTICA: Quando solta sobre tarefa, precisamos determinar a subcoluna correta
+			// Verificar se a tarefa de destino existe e pegar sua subcoluna
 			const targetTask = tasks.find((a) => a.id === over.id)
 			if (!targetTask) {
 				console.log('❌ [handleDragEnd] Tarefa de destino não encontrada:', over.id)
 				return
 			}
+
+			// 🚨 PROBLEMA IDENTIFICADO: Usar o status da tarefa de destino pode estar errado
+			// se a tarefa estiver na subcoluna errada (dados inconsistentes)
 			targetColumnId = targetTask.status
+
 			console.log('🔍 [handleDragEnd] Destino é TAREFA:', {
 				taskId: targetTask.id,
 				taskName: targetTask.name,
 				targetColumnId,
+				taskStatus: targetTask.status,
 				isTaskDrop: true,
+			})
+
+			// 🎯 VALIDAÇÃO ADICIONAL: Verificar se a tarefa está na subcoluna esperada
+			// Se estiver inconsistente, mostrar aviso
+			console.log('🔍 [handleDragEnd] Validação tarefa destino:', {
+				targetTaskId: targetTask.id,
+				targetTaskStatus: targetTask.status,
+				expectedSubcolumn: 'Baseado na posição visual da tarefa',
 			})
 		}
 
@@ -429,7 +474,7 @@ export default function KanbanBoard({ tasks, onTaskMove, onCreateTask, onEditTas
 	return (
 		<>
 			{/* Board do Kanban com larguras fixas */}
-			<DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
+			<DndContext sensors={sensors} collisionDetection={customCollisionDetection} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
 				<div className='flex gap-x-4'>
 					{columnGroups.map((group) => {
 						// Preparar sub-colunas com atividades

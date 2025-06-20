@@ -168,7 +168,7 @@ export default function TaskKanbanPage() {
 			let taskStatus: Task['status'] = 'todo_doing' // default
 
 			if (task.kanbanStatus) {
-				// Mapear kanbanStatus para os tipos válidos do KanbanBoard
+				// 🎯 CORREÇÃO CRÍTICA: Mapear kanbanStatus corretamente
 				console.log('🔍 [tasksFromTasks] Mapeando kanbanStatus:', {
 					taskId: task.id,
 					kanbanStatus: task.kanbanStatus,
@@ -176,34 +176,55 @@ export default function TaskKanbanPage() {
 					subcolumn: task.kanbanSubcolumn,
 				})
 
-				// Mapear de acordo com a estrutura atual do KanbanBoard
-				switch (task.kanbanStatus) {
-					case 'todo_in_progress':
-						taskStatus = 'todo_doing'
-						break
-					case 'todo_done':
-						taskStatus = 'todo_done'
-						break
-					case 'in_progress_in_progress':
-						taskStatus = 'in_progress_doing'
-						break
-					case 'in_progress_done':
-						taskStatus = 'in_progress_done'
-						break
-					case 'review_in_progress':
-						taskStatus = 'review_doing'
-						break
-					case 'review_done':
-						taskStatus = 'review_done'
-						break
-					case 'blocked':
+				// 🎯 USAR INFORMAÇÕES CORRETAS DO KANBAN
+				if (task.kanbanColumnType && task.kanbanSubcolumn) {
+					// Construir status baseado nas informações corretas do Kanban
+					if (task.kanbanColumnType === 'blocked') {
 						taskStatus = 'blocked'
-						break
-					case 'done':
+					} else if (task.kanbanColumnType === 'done') {
 						taskStatus = 'done'
-						break
-					default:
-						taskStatus = 'todo_doing'
+					} else {
+						// Para colunas normais: columnType + "_" + subcolumn convertida
+						const frontendSubcolumn = task.kanbanSubcolumn === 'in_progress' ? 'doing' : 'done'
+						taskStatus = `${task.kanbanColumnType}_${frontendSubcolumn}` as Task['status']
+					}
+
+					console.log('🔍 [tasksFromTasks] Status construído:', {
+						kanbanColumnType: task.kanbanColumnType,
+						kanbanSubcolumn: task.kanbanSubcolumn,
+						frontendSubcolumn: task.kanbanSubcolumn === 'in_progress' ? 'doing' : 'done',
+						finalStatus: taskStatus,
+					})
+				} else {
+					// Fallback para kanbanStatus (formato antigo)
+					switch (task.kanbanStatus) {
+						case 'todo_in_progress':
+							taskStatus = 'todo_doing'
+							break
+						case 'todo_done':
+							taskStatus = 'todo_done'
+							break
+						case 'in_progress_in_progress':
+							taskStatus = 'in_progress_doing'
+							break
+						case 'in_progress_done':
+							taskStatus = 'in_progress_done'
+							break
+						case 'review_in_progress':
+							taskStatus = 'review_doing'
+							break
+						case 'review_done':
+							taskStatus = 'review_done'
+							break
+						case 'blocked':
+							taskStatus = 'blocked'
+							break
+						case 'done':
+							taskStatus = 'done'
+							break
+						default:
+							taskStatus = 'todo_doing'
+					}
 				}
 			} else {
 				// Fallback baseado no status da tabela project_task
@@ -273,8 +294,54 @@ export default function TaskKanbanPage() {
 		console.log('🔍 [handleTaskMove] ======= INÍCIO MOVIMENTO =======')
 		console.log('🔍 [handleTaskMove] Parâmetros:', { taskId, fromStatus, toStatus, overId })
 
-		// 🎯 VERIFICAÇÃO CRÍTICA: Se é o mesmo status, verificar se realmente precisa reordenar
-		if (fromStatus === toStatus) {
+		// 🎯 VERIFICAÇÃO CRÍTICA: Determinar se é movimento entre subcolunas ou reordenação
+		const isSameSubcolumn = fromStatus === toStatus
+		const isSameColumn = (() => {
+			// 🎯 CORREÇÃO CRÍTICA: Extrair tipo de coluna corretamente
+			// Precisa lidar com 'in_progress' que tem underscore no nome
+			const extractColumnType = (status: string) => {
+				if (status.startsWith('in_progress_')) return 'in_progress'
+				if (status === 'blocked') return 'blocked'
+				if (status === 'done') return 'done'
+				// Para outros casos: 'todo_doing' → 'todo', 'review_done' → 'review'
+				return status.split('_')[0]
+			}
+
+			const fromColumn = extractColumnType(fromStatus)
+			const toColumn = extractColumnType(toStatus)
+			return fromColumn === toColumn
+		})()
+
+		// 🎯 EXTRAIR INFORMAÇÕES CORRETAMENTE
+		const extractColumnType = (status: string) => {
+			if (status.startsWith('in_progress_')) return 'in_progress'
+			if (status === 'blocked') return 'blocked'
+			if (status === 'done') return 'done'
+			return status.split('_')[0]
+		}
+
+		const extractSubcolumnType = (status: string) => {
+			if (status === 'blocked' || status === 'done') return status
+			const parts = status.split('_')
+			return parts.slice(-1)[0] // Último elemento (doing/done)
+		}
+
+		const fromColumn = extractColumnType(fromStatus)
+		const toColumn = extractColumnType(toStatus)
+		const fromSubcolumn = extractSubcolumnType(fromStatus)
+		const toSubcolumn = extractSubcolumnType(toStatus)
+
+		console.log('🔍 [handleTaskMove] Análise do movimento:', {
+			isSameSubcolumn,
+			isSameColumn,
+			fromColumn,
+			toColumn,
+			fromSubcolumn,
+			toSubcolumn,
+		})
+
+		// 🎯 CASO 1: Movimento na mesma subcoluna (reordenação)
+		if (isSameSubcolumn) {
 			console.log('🔵 [handleTaskMove] Movimento na mesma subcoluna - verificando necessidade de reordenação')
 			console.log('🔍 [handleTaskMove] OverId para reordenação:', overId)
 
@@ -296,11 +363,39 @@ export default function TaskKanbanPage() {
 				return
 			}
 
+			// 🎯 CORREÇÃO CRÍTICA: Converter kanbanStatus para o formato Task['status'] para comparação
+			const targetTaskStatus = (() => {
+				if (!targetTask.kanbanStatus) return 'todo_doing'
+
+				// Mapear kanbanStatus (formato banco) para Task['status'] (formato frontend)
+				switch (targetTask.kanbanStatus) {
+					case 'todo_in_progress':
+						return 'todo_doing'
+					case 'todo_done':
+						return 'todo_done'
+					case 'in_progress_in_progress':
+						return 'in_progress_doing'
+					case 'in_progress_done':
+						return 'in_progress_done'
+					case 'review_in_progress':
+						return 'review_doing'
+					case 'review_done':
+						return 'review_done'
+					case 'blocked':
+						return 'blocked'
+					case 'done':
+						return 'done'
+					default:
+						return 'todo_doing'
+				}
+			})()
+
 			// Verificar se a tarefa de destino está na mesma subcoluna
-			if (targetTask.kanbanStatus !== toStatus) {
+			if (targetTaskStatus !== toStatus) {
 				console.log('🔵 [handleTaskMove] Tarefa de destino não está na mesma subcoluna - sem reordenação')
 				console.log('🔍 [handleTaskMove] Comparação:', {
-					targetTaskStatus: targetTask.kanbanStatus,
+					targetTaskKanbanStatus: targetTask.kanbanStatus,
+					targetTaskConvertedStatus: targetTaskStatus,
 					toStatus: toStatus,
 				})
 				return
@@ -352,6 +447,110 @@ export default function TaskKanbanPage() {
 			})
 			return
 		}
+
+		// 🎯 CASO 2: Movimento entre subcolunas da mesma coluna (ex: todo_doing → todo_done)
+		if (isSameColumn && !isSameSubcolumn) {
+			console.log('🔵 [handleTaskMove] Movimento entre subcolunas da mesma coluna')
+			console.log('🔍 [handleTaskMove] Detalhes:', {
+				from: `${fromStatus.split('_')[0]}_${fromStatus.split('_')[1]}`,
+				to: `${toStatus.split('_')[0]}_${toStatus.split('_')[1]}`,
+				columnType: fromStatus.split('_')[0], // Mesmo tipo de coluna
+				fromSubcolumn: fromStatus.split('_')[1],
+				toSubcolumn: toStatus.split('_')[1],
+			})
+
+			// 🎯 MOVIMENTO ENTRE SUBCOLUNAS: Mantém project_task.status, altera apenas subcolumn
+			// Conforme especificação: "Ao mudar de subcoluna, 'subcolumn' de project_kanban.columns.tasks também é alterada"
+			// Mas project_task.status permanece o mesmo (mesma coluna)
+
+			// Backup do estado anterior
+			const previousTasks = tasks.slice()
+
+			// 🎯 ATUALIZAR UI IMEDIATAMENTE (otimista) - APENAS subcoluna muda
+			setTasks((prevTasks) =>
+				prevTasks.map((task) =>
+					task.id === taskId
+						? {
+								...task,
+								// ✅ MANTER project_task.status inalterado (mesma coluna)
+								// ✅ ALTERAR informações do Kanban para refletir nova subcoluna
+								kanbanStatus: toStatus, // Compatibilidade
+								kanbanSubcolumn: toSubcolumn === 'doing' ? 'in_progress' : 'done',
+							}
+						: task,
+				),
+			)
+
+			// PERSISTIR NO BACKEND (assíncrono)
+			try {
+				const parseTaskStatus = (status: Task['status']) => {
+					// 🎯 USAR MESMAS FUNÇÕES DE EXTRAÇÃO
+					const columnType = extractColumnType(status)
+					const subcolumnType = extractSubcolumnType(status)
+
+					let backendSubcolumn = 'in_progress'
+					if (subcolumnType === 'done') {
+						backendSubcolumn = 'done'
+					} else if (subcolumnType === 'doing') {
+						backendSubcolumn = 'in_progress'
+					}
+
+					if (status === 'blocked') return { columnType: 'blocked', subcolumn: 'in_progress' }
+					if (status === 'done') return { columnType: 'done', subcolumn: 'done' }
+
+					return { columnType, subcolumn: backendSubcolumn }
+				}
+
+				const fromParsed = parseTaskStatus(fromStatus)
+				const toParsed = parseTaskStatus(toStatus)
+
+				const requestBody = {
+					taskId: taskId,
+					fromColumnType: fromParsed.columnType,
+					toColumnType: toParsed.columnType, // ✅ Mesmo tipo de coluna
+					newOrder: 0, // TODO: Implementar ordem correta baseada no overId
+					cardSubcolumn: toParsed.subcolumn, // ✅ Nova subcoluna
+				}
+
+				console.log('🔍 [handleTaskMove] Request body (movimento subcoluna):', requestBody)
+
+				const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/kanban`, {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(requestBody),
+				})
+
+				if (!response.ok) {
+					throw new Error(`Erro HTTP ${response.status}`)
+				}
+
+				const result = await response.json()
+
+				if (result.success) {
+					console.log('✅ [handleTaskMove] Movimento entre subcolunas bem-sucedido!')
+					toast({
+						type: 'success',
+						title: '✅ Tarefa movida',
+						description: `Tarefa movida para ${toStatus.split('_')[1] === 'done' ? 'Feito' : 'Fazendo'}`,
+					})
+				} else {
+					throw new Error(result.error)
+				}
+			} catch (error) {
+				console.error('❌ Erro ao mover entre subcolunas:', error)
+				setTasks(previousTasks)
+				toast({
+					type: 'error',
+					title: '❌ Erro ao mover tarefa',
+					description: 'A tarefa foi restaurada à posição original',
+				})
+			}
+			return
+		}
+
+		// 🎯 CASO 3: Movimento entre colunas diferentes (ex: todo_doing → in_progress_doing)
+		console.log('🔵 [handleTaskMove] Movimento entre colunas diferentes')
+
 		// MOVIMENTO OTIMISTA: Atualizar UI PRIMEIRO
 		const getTaskStatusFromTaskStatus = (taskStatus: Task['status']): ProjectTask['status'] => {
 			if (taskStatus.startsWith('todo')) return 'todo'
@@ -367,14 +566,17 @@ export default function TaskKanbanPage() {
 		// Backup do estado anterior para rollback se necessário
 		const previousTasks = tasks.slice()
 
-		// ATUALIZAR UI IMEDIATAMENTE (otimista)
+		// 🎯 ATUALIZAR UI IMEDIATAMENTE (otimista) COM INFORMAÇÕES CORRETAS
 		setTasks((prevTasks) =>
 			prevTasks.map((task) =>
 				task.id === taskId
 					? {
 							...task,
 							status: newTaskStatus,
-							kanbanStatus: toStatus,
+							kanbanStatus: toStatus, // Compatibilidade
+							// 🎯 ATUALIZAR INFORMAÇÕES CORRETAS DO KANBAN
+							kanbanColumnType: toColumn,
+							kanbanSubcolumn: toSubcolumn === 'doing' ? 'in_progress' : 'done',
 						}
 					: task,
 			),
@@ -385,10 +587,9 @@ export default function TaskKanbanPage() {
 			// 🎯 CORREÇÃO CRÍTICA: Mapear status de task para tipo de coluna e subcoluna
 			// Compatível com o mapeamento do carregamento inicial
 			const parseTaskStatus = (status: Task['status']) => {
-				// Decompose status: "column_type" + "_" + "subcolumn_type"
-				const parts = status.split('_')
-				const columnType = parts[0] // ex: "todo", "in_progress", "review"
-				const subcolumnType = parts.slice(1).join('_') // ex: "doing", "done"
+				// 🎯 CORREÇÃO CRÍTICA: Parsing correto considerando 'in_progress'
+				const columnType = extractColumnType(status)
+				const subcolumnType = extractSubcolumnType(status)
 
 				// Mapear subcoluna para o formato esperado pelo backend
 				let backendSubcolumn = 'in_progress' // default
