@@ -23,6 +23,7 @@ interface ProjectTask {
 	createdAt: string | Date
 	updatedAt: string | Date
 	kanbanSubcolumn?: string // Ex: "in_progress_done", "todo_in_progress"
+	kanbanOrder?: number // 🎯 ORDENAÇÃO CRÍTICA DO KANBAN
 }
 
 // Interface removida - não mais necessária
@@ -92,14 +93,14 @@ export default function ActivityKanbanPage() {
 				const kanbanData = await kanbanResponse.json()
 
 				if (kanbanData.success) {
-					// Extrair tarefas COM informação da subcoluna
+					// Extrair tarefas COM informação da subcoluna E ordenação
 
-					const allTasksWithSubcolumn: Array<ProjectTask & { kanbanSubcolumn: string }> = []
+					const allTasksWithSubcolumn: Array<ProjectTask & { kanbanSubcolumn: string; kanbanOrder: number }> = []
 
 					if (kanbanData.columns && Array.isArray(kanbanData.columns)) {
 						kanbanData.columns.forEach((column: { name: string; type: string; tasks?: unknown[] }) => {
 							if (column.tasks && Array.isArray(column.tasks)) {
-								;(column.tasks as Array<{ task?: ProjectTask; project_task_id: string; subcolumn: string }>).forEach((kanbanTask) => {
+								;(column.tasks as Array<{ task?: ProjectTask; project_task_id: string; subcolumn: string; order: number }>).forEach((kanbanTask) => {
 									if (kanbanTask.task) {
 										// Mapear subcolumn "in_progress" para "_doing" para compatibilidade com KanbanBoard
 										let kanbanSubcolumnSuffix = kanbanTask.subcolumn
@@ -110,6 +111,7 @@ export default function ActivityKanbanPage() {
 										const taskWithSubcolumn = {
 											...kanbanTask.task,
 											kanbanSubcolumn: `${column.type}_${kanbanSubcolumnSuffix}`,
+											kanbanOrder: kanbanTask.order || 0, // 🎯 ORDENAÇÃO CRÍTICA DO KANBAN
 										}
 										allTasksWithSubcolumn.push(taskWithSubcolumn)
 									}
@@ -171,7 +173,7 @@ export default function ActivityKanbanPage() {
 				}
 			}
 
-			const activity: Activity = {
+			const activity: Activity & { kanbanOrder?: number } = {
 				id: task.id,
 				projectId: task.projectId,
 				name: task.name,
@@ -186,6 +188,7 @@ export default function ActivityKanbanPage() {
 				actualHours: 0,
 				assignees: [],
 				labels: [],
+				kanbanOrder: task.kanbanOrder || 0, // 🎯 ORDENAÇÃO CRÍTICA DO KANBAN
 				createdAt: (() => {
 					try {
 						const date = task.createdAt ? new Date(task.createdAt) : new Date()
@@ -312,41 +315,6 @@ export default function ActivityKanbanPage() {
 		})
 	}
 
-	// Função para excluir tarefa
-	async function handleDeleteTask(taskId: string) {
-		try {
-			const response = await fetch(`/api/projects/${projectId}/tasks`, {
-				method: 'DELETE',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ taskId }),
-			})
-
-			if (!response.ok) {
-				throw new Error('Erro ao excluir tarefa')
-			}
-
-			const result = await response.json()
-			if (result.success) {
-				await loadAllData()
-
-				toast({
-					type: 'success',
-					title: 'Tarefa excluída',
-					description: 'A tarefa foi excluída com sucesso',
-				})
-			} else {
-				throw new Error(result.error)
-			}
-		} catch (error) {
-			console.error('❌ Erro ao excluir tarefa:', error)
-			toast({
-				type: 'error',
-				title: 'Erro ao excluir',
-				description: 'Não foi possível excluir a tarefa',
-			})
-		}
-	}
-
 	if (loading) {
 		return (
 			<div className='min-h-screen w-full flex items-center justify-center'>
@@ -363,9 +331,9 @@ export default function ActivityKanbanPage() {
 	}
 
 	return (
-		<div className='w-full h-full flex flex-col'>
-			{/* Header fixo */}
-			<div className='w-full p-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 flex-shrink-0'>
+		<div className='relative w-full h-[calc(100vh-64px)] flex flex-col overflow-x-auto overflow-y-auto'>
+			{/* Header fixo - fazer com que fique fixo no topo, ao rolar página horizontalmente, o header fique fixo no topo */}
+			<div className='w-full p-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 sticky top-0 left-0 z-10'>
 				<div className='flex items-center justify-between'>
 					<div>
 						<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Kanban - {activity.name}</h1>
@@ -385,7 +353,7 @@ export default function ActivityKanbanPage() {
 			</div>
 
 			{/* Conteúdo do Kanban */}
-			<div className='flex-1 overflow-x-auto overflow-y-hidden bg-zinc-50 dark:bg-zinc-900'>
+			<div className='flex-1 bg-zinc-50 dark:bg-zinc-900'>
 				<div className='min-w-max h-full p-6'>
 					{tasks.length === 0 ? (
 						// Estado vazio - sem tarefas
@@ -409,7 +377,7 @@ export default function ActivityKanbanPage() {
 					) : (
 						// Estado com tarefas - Kanban Board real com drag & drop
 
-						<KanbanBoard activities={activitiesFromTasks} selectedActivity={undefined} onActivityMove={handleTaskMove} onCreateActivity={handleCreateTask} onEditActivity={handleEditTask} onDeleteActivity={handleDeleteTask} />
+						<KanbanBoard activities={activitiesFromTasks} selectedActivity={undefined} onActivityMove={handleTaskMove} onCreateActivity={handleCreateTask} onEditActivity={handleEditTask} />
 					)}
 				</div>
 			</div>

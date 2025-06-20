@@ -6,7 +6,6 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 
 import KanbanColumnGroup from './KanbanColumnGroup'
 import ActivityCard from './ActivityCard'
-import Button from '@/components/ui/Button'
 import { toast } from '@/lib/toast'
 
 import { Activity, Project } from '@/types/projects'
@@ -18,7 +17,6 @@ interface KanbanBoardProps {
 	onActivityMove: (activityId: string, fromStatus: Activity['status'], toStatus: Activity['status']) => void
 	onCreateActivity?: () => void
 	onEditActivity?: (activity: Activity) => void
-	onDeleteActivity?: (activityId: string) => Promise<void>
 	onConfigureKanban?: () => void
 }
 
@@ -28,7 +26,7 @@ const COLUMN_GROUPS = [
 		id: 'todo',
 		title: 'A Fazer',
 		color: '#6b7280',
-		icon: 'circle',
+		icon: 'icon-[lucide--list-todo]',
 		subColumns: [
 			{ id: 'todo_doing', title: 'Fazendo', type: 'doing' as const },
 			{ id: 'todo_done', title: 'Feito', type: 'done' as const },
@@ -42,7 +40,7 @@ const COLUMN_GROUPS = [
 		id: 'in_progress',
 		title: 'Em Progresso',
 		color: '#3b82f6',
-		icon: 'play-circle',
+		icon: 'icon-[lucide--refresh-cw]',
 		subColumns: [
 			{ id: 'in_progress_doing', title: 'Fazendo', type: 'doing' as const },
 			{ id: 'in_progress_done', title: 'Feito', type: 'done' as const },
@@ -57,7 +55,7 @@ const COLUMN_GROUPS = [
 		id: 'blocked',
 		title: 'Bloqueado',
 		color: '#ef4444',
-		icon: 'alert-circle',
+		icon: 'icon-[lucide--ban]',
 		subColumns: [{ id: 'blocked', title: 'Bloqueado', type: 'blocked' as const }],
 		rules: {
 			maxCards: 10,
@@ -68,7 +66,7 @@ const COLUMN_GROUPS = [
 		id: 'review',
 		title: 'Em Revisão',
 		color: '#f59e0b',
-		icon: 'eye',
+		icon: 'icon-[lucide--eye]',
 		subColumns: [
 			{ id: 'review_doing', title: 'Fazendo', type: 'doing' as const },
 			{ id: 'review_done', title: 'Feito', type: 'done' as const },
@@ -83,7 +81,7 @@ const COLUMN_GROUPS = [
 		id: 'done',
 		title: 'Concluído',
 		color: '#10b981',
-		icon: 'check-circle',
+		icon: 'icon-[lucide--trophy]',
 		subColumns: [{ id: 'done', title: 'Finalizadas', type: 'final' as const }],
 		rules: {
 			maxCards: 100,
@@ -92,7 +90,7 @@ const COLUMN_GROUPS = [
 	},
 ]
 
-export default function KanbanBoard({ activities, selectedActivity, onActivityMove, onCreateActivity, onEditActivity, onDeleteActivity }: KanbanBoardProps) {
+export default function KanbanBoard({ activities, selectedActivity, onActivityMove, onCreateActivity, onEditActivity }: KanbanBoardProps) {
 	const [columnGroups] = useState(COLUMN_GROUPS)
 	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
 	const [draggedActivity, setDraggedActivity] = useState<Activity | null>(null)
@@ -109,11 +107,11 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 		}),
 	)
 
-	// Agrupar atividades por status
+	// Agrupar tarefas por status COM ORDENAÇÃO CORRETA 🎯
 	const activitiesByStatus = useMemo(() => {
-		console.log('🔍 [KanbanBoard] Agrupando activities por status:', {
+		console.log('🔍 [KanbanBoard] Agrupando tarefas por status:', {
 			totalActivities: activities.length,
-			activities: activities.map((a) => ({ id: a.id, name: a.name, status: a.status })),
+			activities: activities.map((a) => ({ id: a.id, name: a.name, status: a.status, kanbanOrder: (a as Activity & { kanbanOrder?: number }).kanbanOrder })),
 		})
 
 		const grouped = activities.reduce(
@@ -127,11 +125,23 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 			{} as Record<Activity['status'], Activity[]>,
 		)
 
-		console.log('🔍 [KanbanBoard] Resultado do agrupamento:', grouped)
+		// 🎯 ORDENAÇÃO CRÍTICA: Ordenar tarefas dentro de cada coluna/subcoluna pelo campo kanbanOrder
+		Object.keys(grouped).forEach((status) => {
+			grouped[status as Activity['status']].sort((a, b) => {
+				const orderA = (a as Activity & { kanbanOrder?: number }).kanbanOrder || 0
+				const orderB = (b as Activity & { kanbanOrder?: number }).kanbanOrder || 0
+				return orderA - orderB // Ordem crescente
+			})
+		})
+
+		console.log('🔍 [KanbanBoard] Resultado do agrupamento ORDENADO:', grouped)
 		console.log('🔍 [KanbanBoard] Status encontrados:', Object.keys(grouped))
 		console.log(
-			'🔍 [KanbanBoard] Colunas esperadas:',
-			columnGroups.flatMap((g) => g.subColumns.map((s) => s.id)),
+			'🔍 [KanbanBoard] Verificação ordenação:',
+			Object.keys(grouped).map((status) => ({
+				status,
+				tasks: grouped[status as Activity['status']].map((a) => ({ name: a.name, order: (a as Activity & { kanbanOrder?: number }).kanbanOrder })),
+			})),
 		)
 
 		return grouped
@@ -333,30 +343,6 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 		}
 	}
 
-	const handleStatusChange = (activityId: string, newStatus: Activity['status']) => {
-		const activity = activities.find((a) => a.id === activityId)
-		if (!activity) return
-
-		const validation = canMoveToColumn(activity, newStatus, activity.status)
-		if (!validation.allowed) {
-			// Toast diferenciado por tipo de erro
-			const toastType = validation.warningType === 'blocked' ? 'error' : 'warning'
-			const title = validation.warningType === 'blocked' ? '🚫 Status Bloqueado' : validation.warningType === 'priority' ? '⚠️ Prioridade Inválida' : '⚠️ Status não permitido'
-
-			toast({
-				type: toastType,
-				title: title,
-				description: validation.reason || 'Verifique as regras do grupo',
-			})
-			return
-		}
-
-		console.log('🔵 Alterando status via quick action:', activityId, 'para:', newStatus)
-
-		onActivityMove(activityId, activity.status, newStatus)
-		// Toast é exibido na página principal - removendo daqui para evitar duplicação
-	}
-
 	// Função para formatar data
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return 'Não definida'
@@ -417,77 +403,6 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 
 	return (
 		<>
-			{/* Header com Informações da Atividade (se selecionada) */}
-			{selectedActivity && (
-				<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-6'>
-					<div className='flex flex-col lg:flex-row lg:items-center justify-between gap-4'>
-						{/* Informações da Atividade */}
-						<div className='flex items-center gap-4 min-w-0 flex-1'>
-							{/* Ícone da Atividade */}
-							<div className='size-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0'>
-								<span className='icon-[lucide--activity] size-6 text-blue-600 dark:text-blue-400' />
-							</div>
-
-							{/* Detalhes */}
-							<div className='min-w-0 flex-1'>
-								<div className='flex items-center gap-3 mb-2'>
-									<h3 className='text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate'>{selectedActivity.name}</h3>
-									{getStatusBadge(selectedActivity.status)}
-									{getPriorityBadge(selectedActivity.priority)}
-								</div>
-								{selectedActivity.description && <p className='text-zinc-600 dark:text-zinc-400 text-sm mb-3 line-clamp-2'>{selectedActivity.description}</p>}
-
-								{/* Métricas da Atividade */}
-								<div className='flex flex-wrap items-center gap-4 text-sm'>
-									{/* Progresso */}
-									<div className='flex items-center gap-2'>
-										<span className='text-zinc-500 dark:text-zinc-400'>Progresso:</span>
-										<div className='flex items-center gap-2'>
-											<div className='w-16 bg-zinc-200 dark:bg-zinc-700 rounded-full h-1.5'>
-												<div className='bg-blue-500 h-1.5 rounded-full transition-all duration-500' style={{ width: `${selectedActivity.progress}%` }} />
-											</div>
-											<span className='font-medium text-zinc-900 dark:text-zinc-100'>{selectedActivity.progress}%</span>
-										</div>
-									</div>
-
-									{/* Categoria */}
-									{selectedActivity.category && (
-										<div className='flex items-center gap-2'>
-											<span className='text-zinc-500 dark:text-zinc-400'>Categoria:</span>
-											<span className='font-medium text-zinc-900 dark:text-zinc-100'>{selectedActivity.category}</span>
-										</div>
-									)}
-
-									{/* Datas */}
-									<div className='flex items-center gap-2'>
-										<span className='text-zinc-500 dark:text-zinc-400'>Período:</span>
-										<span className='font-medium text-zinc-900 dark:text-zinc-100'>
-											{formatDate(selectedActivity.startDate)} → {formatDate(selectedActivity.endDate)}
-										</span>
-									</div>
-
-									{/* Horas Estimadas */}
-									{selectedActivity.estimatedHours && (
-										<div className='flex items-center gap-2'>
-											<span className='text-zinc-500 dark:text-zinc-400'>Estimativa:</span>
-											<span className='font-medium text-zinc-900 dark:text-zinc-100'>{selectedActivity.estimatedHours}h</span>
-										</div>
-									)}
-								</div>
-							</div>
-						</div>
-
-						{/* Ações da Atividade */}
-						<div className='flex items-center gap-2 flex-shrink-0'>
-							<Button onClick={() => onEditActivity?.(selectedActivity)} className='flex items-center gap-2' style='bordered'>
-								<span className='icon-[lucide--edit] size-4' />
-								<span className='hidden sm:inline'>Editar atividade</span>
-							</Button>
-						</div>
-					</div>
-				</div>
-			)}
-
 			{/* Board do Kanban com larguras fixas */}
 			<DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
 				<div className='flex gap-x-4'>
@@ -510,8 +425,6 @@ export default function KanbanBoard({ activities, selectedActivity, onActivityMo
 								totalActivities={totalActivities}
 								isOverLimit={isOverLimit || false}
 								onEditActivity={handleEditActivityInternal}
-								onDeleteActivity={onDeleteActivity}
-								onStatusChange={handleStatusChange}
 								onCreateActivity={(status) => {
 									console.log('🔵 Criando nova tarefa com status:', status)
 									onCreateActivity?.()

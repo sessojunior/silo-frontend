@@ -47,7 +47,7 @@ export default function KanbanColumn({ column, activities, isOverLimit, onEditAc
 				<div className='flex items-center justify-between mb-3'>
 					<div className='flex items-center gap-3'>
 						<div className='p-2 rounded-lg' style={{ backgroundColor: `${column.color}20` }}>
-							<span className={`icon-[lucide--${column.icon}] size-5`} style={{ color: column.color }} />
+							<span className={`${column.icon} size-5`} style={{ color: column.color }} />
 						</div>
 						<div>
 							<h3 className='font-bold text-zinc-900 dark:text-zinc-100 text-sm'>{column.title}</h3>
@@ -136,7 +136,7 @@ export default function KanbanColumn({ column, activities, isOverLimit, onEditAc
 			<div ref={setNodeRef} className='flex-1 p-4 min-h-[400px] space-y-3'>
 				<SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
 					{activities.map((activity) => (
-						<KanbanCard key={activity.id} activity={activity} onEdit={onEditActivity} onStatusChange={onStatusChange} />
+						<KanbanCard key={activity.id} activity={activity} onEdit={onEditActivity} />
 					))}
 				</SortableContext>
 
@@ -145,7 +145,7 @@ export default function KanbanColumn({ column, activities, isOverLimit, onEditAc
 					<div className={`flex flex-col items-center justify-center h-40 border-2 border-dashed rounded-xl transition-all duration-200 ${isOver ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20' : 'border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500'}`}>
 						<div className={`p-3 rounded-full mb-3 transition-all duration-200 ${isOver ? 'bg-blue-100 dark:bg-blue-800/30' : 'bg-zinc-100 dark:bg-zinc-800'}`}>
 							<span
-								className={`icon-[lucide--${column.icon}] size-6`}
+								className={`${column.icon} size-6`}
 								style={{
 									color: isOver ? '#3b82f6' : column.color,
 								}}
