@@ -26,29 +26,17 @@ src/
 │   │   │   │       ├── SolutionFormModal.tsx            # ✅ NOVO (193 linhas)
 │   │   │   │       └── DeleteSolutionDialog.tsx         # ✅ NOVO (57 linhas)
 │   │   │   └── create/           # Criação de produtos
-│   │   ├── projects/             # ✅ SISTEMA DE PROJETOS COMPLETO
+│   │   ├── projects/             # ✅ SISTEMA DE PROJETOS COMPLETO - SEMANA 4 FINALIZADA
 │   │   │   ├── layout.tsx        # ✅ Layout com ProductTabs (Projetos/Membros)
 │   │   │   ├── page.tsx          # ✅ Lista projetos com CRUD completo
 │   │   │   ├── members/
 │   │   │   │   └── page.tsx      # ✅ Gestão membros many-to-many
-│   │   │   └── [id]/             # 🚀 NOVA ESTRUTURA - PÁGINA DETALHES (SEMANA 5)
-│   │   │       ├── layout.tsx    # 🔄 PLANEJADO - Layout com ProductTabs (Quadro/Gantt/Kanban)
-│   │   │       ├── page.tsx      # 🔄 PLANEJADO - Quadro Principal (padrão)
-│   │   │       ├── gantt/
-│   │   │       │   └── page.tsx  # 🔄 PLANEJADO - Página Gantt
-│   │   │       ├── kanban/
-│   │   │       │   └── page.tsx  # 🔄 PLANEJADO - Página Kanban
-│   │   │       └── components/   # 🔄 PLANEJADO - Componentes específicos
-│   │   │           ├── ProjectDetailsHeader.tsx   # Header com info projeto
-│   │   │           ├── ActivityCard.tsx          # Card atividade Quadro
-│   │   │           ├── ActivityFilters.tsx       # Filtros avançados
-│   │   │           ├── GanttChart.tsx            # Componente Gantt
-│   │   │           ├── GanttTimeline.tsx         # Timeline Gantt
-│   │   │           ├── KanbanBoard.tsx           # Board principal Kanban
-│   │   │           ├── KanbanColumn.tsx          # Coluna configurável
-│   │   │           ├── KanbanCard.tsx            # Card draggável @dnd-kit
-│   │   │           ├── ColumnConfigDialog.tsx    # Configuração colunas
-│   │   │           └── WipLimitWarning.tsx       # Aviso limite WIP
+│   │   │   └── [projectId]/      # ✅ ESTRUTURA PROJETO INDIVIDUAL
+│   │   │       ├── layout.tsx    # ✅ Layout projeto individual
+│   │   │       ├── page.tsx      # ✅ REFATORADO - Lista atividades com dropdown expansível
+│   │   │       └── activities/   # ✅ SISTEMA KANBAN POR ATIVIDADE
+│   │   │           └── [activityId]/
+│   │   │               └── page.tsx  # ✅ KANBAN FUNCIONAL - Drag & drop completo
 │   │   ├── knowledge-base/       # Base de conhecimento
 │   │   ├── help/                 # ✅ NOVO - Sistema de ajuda
 │   │   │   └── page.tsx          # ✅ Sistema de ajuda com interface dual
@@ -108,6 +96,25 @@ src/
 │       │   └── UserSelectorOffcanvas.tsx  # Seletor associação
 │       ├── help/                 # ✅ SISTEMA DE AJUDA (sem componentes separados)
 │       │   └── (página unificada) # ✅ /admin/help/page.tsx contém toda funcionalidade
+│       ├── projects/             # ✅ SISTEMA DE PROJETOS - SEMANA 4 FINALIZADA
+│       │   ├── ActivityStatsCards.tsx        # ✅ NOVO - Estatísticas por status atividade
+│       │   ├── ActivityMiniKanban.tsx        # ✅ NOVO - Mini kanban dropdown atividade
+│       │   ├── KanbanBoard.tsx               # ✅ ATUALIZADO - Board principal @dnd-kit
+│       │   ├── KanbanCard.tsx                # ✅ ATUALIZADO - Cards tarefas draggáveis
+│       │   ├── KanbanColumn.tsx              # ✅ ATUALIZADO - Colunas com subcolunas
+│       │   ├── KanbanColumnGroup.tsx         # ✅ ATUALIZADO - Grupos colunas temáticas
+│       │   ├── KanbanConfigOffcanvas.tsx     # ✅ IMPLEMENTADO - Configuração avançada
+│       │   ├── ProjectFormOffcanvas.tsx      # ✅ Formulário CRUD projetos
+│       │   ├── ProjectDeleteDialog.tsx       # ✅ Dialog exclusão projetos
+│       │   ├── ProjectDetailsHeader.tsx      # ✅ Header detalhes projeto
+│       │   ├── ProjectMainRow.tsx            # ✅ Row principal lista projetos
+│       │   ├── ProjectStatsCards.tsx         # ✅ Estatísticas projetos
+│       │   ├── ProjectActivitiesSection.tsx  # ✅ Seção atividades projeto
+│       │   ├── ActivityFormOffcanvas.tsx     # ✅ Formulário CRUD atividades
+│       │   ├── ActivityDeleteDialog.tsx      # ✅ Dialog exclusão atividades
+│       │   ├── ActivityFilters.tsx           # ✅ Filtros avançados atividades
+│       │   ├── ProjectMemberAssignOffcanvas.tsx # ✅ Atribuição membros
+│       │   └── ProjectSelectorDialog.tsx     # ✅ Seletor projetos
 │       └── products/             # Componentes de produtos
 ├── lib/                          # Utilitários e configurações
 │   ├── db/                       # Configuração do banco
@@ -152,6 +159,51 @@ src/
 - ✅ **11 arquivos corrigidos** - Todas imagens padronizadas
 - ✅ **1 componente removido** - OptimizedImage eliminado
 - ✅ **Zero regressões** - Todas funcionalidades preservadas
+
+## ✅ SISTEMA DE PROJETOS - SEMANA 4 KANBAN POR ATIVIDADE IMPLEMENTADO
+
+### 🎯 ARQUIVOS CRIADOS/MODIFICADOS - KANBAN SYSTEM
+
+**PÁGINAS ATUALIZADAS**:
+
+- `src/app/admin/projects/[projectId]/page.tsx` - **REFATORADA** - Layout moderno com dropdown expansível
+- `src/app/admin/projects/[projectId]/activities/[activityId]/page.tsx` - **CRIADA** - Kanban funcional por atividade
+
+**COMPONENTES NOVOS**:
+
+- `src/components/admin/projects/ActivityStatsCards.tsx` - **NOVO** - Estatísticas por status (total, todo, progress, done, blocked)
+- `src/components/admin/projects/ActivityMiniKanban.tsx` - **NOVO** - Mini kanban dentro dropdown atividade
+
+**COMPONENTES ATUALIZADOS**:
+
+- `src/components/admin/projects/KanbanBoard.tsx` - **ATUALIZADO** - Drag & drop @dnd-kit com validações WIP
+- `src/components/admin/projects/KanbanCard.tsx` - **ATUALIZADO** - Cards tarefas com prioridade e responsáveis
+- `src/components/admin/projects/KanbanColumn.tsx` - **ATUALIZADO** - Colunas com subcolunas e limites WIP
+- `src/components/admin/projects/KanbanColumnGroup.tsx` - **ATUALIZADO** - Grupos colunas com cores temáticas
+
+**TIPOS ATUALIZADOS**:
+
+- `src/types/projects.ts` - **ATUALIZADO** - Interfaces Activity e Task separadas, kanbanOrder adicionado
+
+**ARQUITETURA KANBAN IMPLEMENTADA**:
+
+- ✅ **Sistema por atividade** - Cada atividade tem seu próprio Kanban independente
+- ✅ **Navegação hierárquica** - /admin/projects/[projectId]/activities/[activityId]
+- ✅ **Drag & drop funcional** - Reordenação e movimento entre subcolunas
+- ✅ **5 colunas padrão** - A Fazer, Em Progresso, Bloqueado, Em Revisão, Concluído
+- ✅ **Subcolunas** - 'Fazendo' (in_progress) e 'Feito' (done) em cada coluna
+- ✅ **Sistema de cores estático** - Mapeamento Tailwind com 5 cores temáticas
+- ✅ **Limites WIP** - Configuráveis com bloqueio automático
+- ✅ **Validação prioridades** - Por coluna (ex: Review só aceita high/urgent)
+- ✅ **Contadores corretos** - Filtro por activityId implementado
+
+**PROBLEMAS CRÍTICOS RESOLVIDOS**:
+
+- ✅ **Task Counter Bug** - Cada atividade agora mostra contagem correta de suas tarefas
+- ✅ **Drag & Drop Ordering** - Campo kanbanOrder implementado com ordenação funcional
+- ✅ **Color System** - Mapeamento estático Tailwind (não interpolação dinâmica)
+- ✅ **Type System** - Separação clara Activity vs Task, eliminada confusão
+- ✅ **Movement Logic** - Status parsing e reordenação entre subcolunas corrigidos
 
 ## ✅ PASSO 5 - SISTEMA DE AJUDA IMPLEMENTADO
 

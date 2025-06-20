@@ -5,7 +5,7 @@ import { toast } from '@/lib/toast'
 import { notFound, useParams } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import KanbanBoard from '@/components/admin/projects/KanbanBoard'
-import { Activity } from '@/types/projects'
+import { Task } from '@/types/projects'
 
 // Interfaces para o sistema Kanban
 interface ProjectTask {
@@ -19,16 +19,19 @@ interface ProjectTask {
 	startDate: string | null
 	endDate: string | null
 	priority: 'low' | 'medium' | 'high' | 'urgent'
-	status: 'todo' | 'in_progress' | 'blocked' | 'review' | 'done'
+	status: 'todo' | 'in_progress' | 'blocked' | 'review' | 'done' // Status da tabela project_task (sincronizado)
 	createdAt: string | Date
 	updatedAt: string | Date
-	kanbanSubcolumn?: string // Ex: "in_progress_done", "todo_in_progress"
-	kanbanOrder?: number // 🎯 ORDENAÇÃO CRÍTICA DO KANBAN
+	// 🎯 INFORMAÇÕES DO KANBAN (project_kanban.columns.tasks)
+	kanbanColumnType?: string // 'todo' | 'in_progress' | 'blocked' | 'review' | 'done'
+	kanbanSubcolumn?: string // 'in_progress' | 'done' (subcoluna dentro da coluna)
+	kanbanOrder?: number // order dentro da subcoluna
+	kanbanStatus?: string // Status composto para compatibilidade: 'todo_in_progress', 'todo_done', etc.
 }
 
 // Interface removida - não mais necessária
 
-export default function ActivityKanbanPage() {
+export default function TaskKanbanPage() {
 	const params = useParams()
 	const projectId = params.projectId as string
 	const activityId = params.activityId as string
@@ -102,18 +105,35 @@ export default function ActivityKanbanPage() {
 							if (column.tasks && Array.isArray(column.tasks)) {
 								;(column.tasks as Array<{ task?: ProjectTask; project_task_id: string; subcolumn: string; order: number }>).forEach((kanbanTask) => {
 									if (kanbanTask.task) {
-										// Mapear subcolumn "in_progress" para "_doing" para compatibilidade com KanbanBoard
-										let kanbanSubcolumnSuffix = kanbanTask.subcolumn
-										if (kanbanTask.subcolumn === 'in_progress') {
-											kanbanSubcolumnSuffix = 'doing'
+										console.log('🔍 [loadAllData] Processando tarefa do Kanban:', {
+											taskId: kanbanTask.task.id,
+											taskName: kanbanTask.task.name,
+											columnType: column.type,
+											subcolumn: kanbanTask.subcolumn,
+											order: kanbanTask.order,
+										})
+
+										// 🎯 CORREÇÃO ARQUITETURAL: Usar estrutura correta baseada na explicação do usuário
+										// column.type: 'todo' | 'in_progress' | 'blocked' | 'review' | 'done'
+										// subcolumn: 'in_progress' | 'done' (dentro da coluna)
+
+										const taskWithKanbanInfo = {
+											...kanbanTask.task,
+											// Manter informações originais do Kanban
+											kanbanColumnType: column.type, // 'todo', 'in_progress', etc.
+											kanbanSubcolumn: kanbanTask.subcolumn, // 'in_progress' | 'done'
+											kanbanOrder: kanbanTask.order || 0,
+											// Status composto para compatibilidade com KanbanBoard atual
+											kanbanStatus: `${column.type}_${kanbanTask.subcolumn}`, // ex: 'todo_in_progress', 'todo_done'
 										}
 
-										const taskWithSubcolumn = {
-											...kanbanTask.task,
-											kanbanSubcolumn: `${column.type}_${kanbanSubcolumnSuffix}`,
-											kanbanOrder: kanbanTask.order || 0, // 🎯 ORDENAÇÃO CRÍTICA DO KANBAN
-										}
-										allTasksWithSubcolumn.push(taskWithSubcolumn)
+										console.log('🔍 [loadAllData] Tarefa processada:', {
+											kanbanColumnType: taskWithKanbanInfo.kanbanColumnType,
+											kanbanSubcolumn: taskWithKanbanInfo.kanbanSubcolumn,
+											kanbanStatus: taskWithKanbanInfo.kanbanStatus,
+										})
+
+										allTasksWithSubcolumn.push(taskWithKanbanInfo)
 									}
 								})
 							}
@@ -141,44 +161,81 @@ export default function ActivityKanbanPage() {
 		}
 	}
 
-	// Converter tasks para formato de activities para o KanbanBoard
-	const activitiesFromTasks = useMemo((): Activity[] => {
-		return tasks.map((task): Activity => {
-			// Usar kanbanSubcolumn se disponível, senão fallback
-			let activityStatus: Activity['status'] = 'todo'
+	// Converter tasks para formato de tasks para o KanbanBoard
+	const tasksFromTasks = useMemo((): Task[] => {
+		return tasks.map((task): Task => {
+			// 🎯 USAR ESTRUTURA CORRETA DO KANBAN
+			let taskStatus: Task['status'] = 'todo_doing' // default
 
-			if (task.kanbanSubcolumn) {
-				// Usar informação precisa da subcoluna do JSON Kanban
-				activityStatus = task.kanbanSubcolumn as Activity['status']
-			} else {
-				// Fallback: Mapear status simples para subcolunas (_doing por padrão, exceto done e blocked)
-				switch (task.status) {
-					case 'todo':
-						activityStatus = 'todo_doing'
+			if (task.kanbanStatus) {
+				// Mapear kanbanStatus para os tipos válidos do KanbanBoard
+				console.log('🔍 [tasksFromTasks] Mapeando kanbanStatus:', {
+					taskId: task.id,
+					kanbanStatus: task.kanbanStatus,
+					columnType: task.kanbanColumnType,
+					subcolumn: task.kanbanSubcolumn,
+				})
+
+				// Mapear de acordo com a estrutura atual do KanbanBoard
+				switch (task.kanbanStatus) {
+					case 'todo_in_progress':
+						taskStatus = 'todo_doing'
 						break
-					case 'in_progress':
-						activityStatus = 'in_progress_doing'
+					case 'todo_done':
+						taskStatus = 'todo_done'
+						break
+					case 'in_progress_in_progress':
+						taskStatus = 'in_progress_doing'
+						break
+					case 'in_progress_done':
+						taskStatus = 'in_progress_done'
+						break
+					case 'review_in_progress':
+						taskStatus = 'review_doing'
+						break
+					case 'review_done':
+						taskStatus = 'review_done'
 						break
 					case 'blocked':
-						activityStatus = 'blocked'
-						break
-					case 'review':
-						activityStatus = 'review_doing'
+						taskStatus = 'blocked'
 						break
 					case 'done':
-						activityStatus = 'done'
+						taskStatus = 'done'
 						break
 					default:
-						activityStatus = 'todo_doing'
+						taskStatus = 'todo_doing'
+				}
+			} else {
+				// Fallback baseado no status da tabela project_task
+				console.log('🔍 [tasksFromTasks] Fallback para task.status:', task.status)
+				switch (task.status) {
+					case 'todo':
+						taskStatus = 'todo_doing'
+						break
+					case 'in_progress':
+						taskStatus = 'in_progress_doing'
+						break
+					case 'blocked':
+						taskStatus = 'blocked'
+						break
+					case 'review':
+						taskStatus = 'review_doing'
+						break
+					case 'done':
+						taskStatus = 'done'
+						break
+					default:
+						taskStatus = 'todo_doing'
 				}
 			}
 
-			const activity: Activity & { kanbanOrder?: number } = {
+			const taskDetails: Task & { kanbanOrder?: number } = {
 				id: task.id,
 				projectId: task.projectId,
+				activityId: task.projectActivityId, // 🎯 CORREÇÃO: Mapear projectActivityId para activityId
 				name: task.name,
 				description: task.description,
-				status: activityStatus,
+				status: taskStatus,
 				priority: task.priority,
 				progress: task.status === 'done' ? 100 : task.status === 'in_progress' ? 50 : 0,
 				category: task.category || '',
@@ -207,23 +264,105 @@ export default function ActivityKanbanPage() {
 				})(),
 			}
 
-			return activity
+			return taskDetails
 		})
 	}, [tasks])
 
 	// Função para mover tarefa entre colunas (drag & drop OTIMISTA)
-	const handleTaskMove = async (taskId: string, fromStatus: Activity['status'], toStatus: Activity['status']) => {
+	const handleTaskMove = async (taskId: string, fromStatus: Task['status'], toStatus: Task['status'], overId?: string) => {
+		console.log('🔍 [handleTaskMove] ======= INÍCIO MOVIMENTO =======')
+		console.log('🔍 [handleTaskMove] Parâmetros:', { taskId, fromStatus, toStatus, overId })
+
+		// 🎯 VERIFICAÇÃO CRÍTICA: Se é o mesmo status, verificar se realmente precisa reordenar
+		if (fromStatus === toStatus) {
+			console.log('🔵 [handleTaskMove] Movimento na mesma subcoluna - verificando necessidade de reordenação')
+			console.log('🔍 [handleTaskMove] OverId para reordenação:', overId)
+
+			// Se não há overId, significa que foi solto em área vazia - não precisa reordenar
+			if (!overId) {
+				console.log('🔵 [handleTaskMove] Sem overId - sem necessidade de reordenação')
+				toast({
+					type: 'info',
+					title: 'ℹ️ Sem mudança',
+					description: 'A tarefa permanece na mesma posição',
+				})
+				return
+			}
+
+			// Verificar se a tarefa de destino é diferente e existe
+			const targetTask = tasks.find((t) => t.id === overId)
+			if (!targetTask) {
+				console.log('🔵 [handleTaskMove] Tarefa de destino não encontrada - sem reordenação')
+				return
+			}
+
+			// Verificar se a tarefa de destino está na mesma subcoluna
+			if (targetTask.kanbanStatus !== toStatus) {
+				console.log('🔵 [handleTaskMove] Tarefa de destino não está na mesma subcoluna - sem reordenação')
+				console.log('🔍 [handleTaskMove] Comparação:', {
+					targetTaskStatus: targetTask.kanbanStatus,
+					toStatus: toStatus,
+				})
+				return
+			}
+
+			console.log('🔵 [handleTaskMove] Reordenação necessária - atualizando ordem local')
+
+			// Reordenar tarefas na mesma subcoluna baseado no overId
+			setTasks((prevTasks) => {
+				const updatedTasks = [...prevTasks]
+				const draggedTaskIndex = updatedTasks.findIndex((t) => t.id === taskId)
+
+				if (draggedTaskIndex === -1) {
+					console.log('❌ [handleTaskMove] Tarefa arrastada não encontrada:', taskId)
+					return prevTasks
+				}
+
+				// Remover a tarefa arrastada da lista
+				const [draggedTask] = updatedTasks.splice(draggedTaskIndex, 1)
+
+				// Encontrar nova posição baseada na tarefa de destino
+				const targetTaskIndex = updatedTasks.findIndex((t) => t.id === overId)
+				if (targetTaskIndex !== -1) {
+					// Inserir antes da tarefa de destino
+					updatedTasks.splice(targetTaskIndex, 0, draggedTask)
+					console.log('🔵 [handleTaskMove] Tarefa reordenada antes de:', overId)
+				} else {
+					// Fallback: adicionar no final da subcoluna
+					const lastSameStatusIndex = updatedTasks.findLastIndex((t) => t.kanbanStatus === toStatus)
+					if (lastSameStatusIndex === -1) {
+						updatedTasks.push(draggedTask)
+					} else {
+						updatedTasks.splice(lastSameStatusIndex + 1, 0, draggedTask)
+					}
+					console.log('🔵 [handleTaskMove] Fallback: tarefa adicionada no final')
+				}
+
+				const newSequence = updatedTasks.filter((t) => t.kanbanStatus === toStatus).map((t) => ({ id: t.id, name: t.name.substring(0, 30) + '...' }))
+
+				console.log('🔵 [handleTaskMove] Nova sequência:', newSequence)
+
+				return updatedTasks
+			})
+
+			toast({
+				type: 'success',
+				title: '✅ Tarefa reordenada',
+				description: 'A ordem foi atualizada na mesma coluna',
+			})
+			return
+		}
 		// MOVIMENTO OTIMISTA: Atualizar UI PRIMEIRO
-		const getTaskStatusFromActivityStatus = (activityStatus: Activity['status']): ProjectTask['status'] => {
-			if (activityStatus.startsWith('todo')) return 'todo'
-			if (activityStatus.startsWith('in_progress')) return 'in_progress'
-			if (activityStatus.startsWith('review')) return 'review'
-			if (activityStatus === 'blocked') return 'blocked'
-			if (activityStatus === 'done') return 'done'
+		const getTaskStatusFromTaskStatus = (taskStatus: Task['status']): ProjectTask['status'] => {
+			if (taskStatus.startsWith('todo')) return 'todo'
+			if (taskStatus.startsWith('in_progress')) return 'in_progress'
+			if (taskStatus.startsWith('review')) return 'review'
+			if (taskStatus === 'blocked') return 'blocked'
+			if (taskStatus === 'done') return 'done'
 			return 'todo'
 		}
 
-		const newTaskStatus = getTaskStatusFromActivityStatus(toStatus)
+		const newTaskStatus = getTaskStatusFromTaskStatus(toStatus)
 
 		// Backup do estado anterior para rollback se necessário
 		const previousTasks = tasks.slice()
@@ -235,7 +374,7 @@ export default function ActivityKanbanPage() {
 					? {
 							...task,
 							status: newTaskStatus,
-							kanbanSubcolumn: toStatus,
+							kanbanStatus: toStatus,
 						}
 					: task,
 			),
@@ -243,43 +382,77 @@ export default function ActivityKanbanPage() {
 
 		// PERSISTIR NO BACKEND (assíncrono)
 		try {
-			// Mapear status de activity para tipo de coluna e subcoluna
-			const parseActivityStatus = (status: Activity['status']) => {
-				if (status.startsWith('todo')) return { columnType: 'todo', subcolumn: status.endsWith('_done') ? 'done' : 'in_progress' }
-				if (status.startsWith('in_progress')) return { columnType: 'in_progress', subcolumn: status.endsWith('_done') ? 'done' : 'in_progress' }
-				if (status.startsWith('review')) return { columnType: 'review', subcolumn: status.endsWith('_done') ? 'done' : 'in_progress' }
+			// 🎯 CORREÇÃO CRÍTICA: Mapear status de task para tipo de coluna e subcoluna
+			// Compatível com o mapeamento do carregamento inicial
+			const parseTaskStatus = (status: Task['status']) => {
+				// Decompose status: "column_type" + "_" + "subcolumn_type"
+				const parts = status.split('_')
+				const columnType = parts[0] // ex: "todo", "in_progress", "review"
+				const subcolumnType = parts.slice(1).join('_') // ex: "doing", "done"
+
+				// Mapear subcoluna para o formato esperado pelo backend
+				let backendSubcolumn = 'in_progress' // default
+				if (subcolumnType === 'done') {
+					backendSubcolumn = 'done'
+				} else if (subcolumnType === 'doing') {
+					backendSubcolumn = 'in_progress' // "doing" no frontend = "in_progress" no backend
+				}
+
+				// Casos especiais
 				if (status === 'blocked') return { columnType: 'blocked', subcolumn: 'in_progress' }
 				if (status === 'done') return { columnType: 'done', subcolumn: 'done' }
-				return { columnType: 'todo', subcolumn: 'in_progress' }
+
+				return { columnType, subcolumn: backendSubcolumn }
 			}
 
-			const fromParsed = parseActivityStatus(fromStatus)
-			const toParsed = parseActivityStatus(toStatus)
+			const fromParsed = parseTaskStatus(fromStatus)
+			const toParsed = parseTaskStatus(toStatus)
+
+			console.log('🔍 [handleTaskMove] Mapeamento:', {
+				fromStatus,
+				fromParsed,
+				toStatus,
+				toParsed,
+			})
+
+			const requestBody = {
+				taskId: taskId, // 🎯 CORREÇÃO CRÍTICA: API espera taskId (ID da tarefa)
+				fromColumnType: fromParsed.columnType,
+				toColumnType: toParsed.columnType,
+				newOrder: 0,
+				cardSubcolumn: toParsed.subcolumn,
+			}
+
+			console.log('🔍 [handleTaskMove] Request body:', requestBody)
+			console.log('🔍 [handleTaskMove] URL:', `/api/projects/${projectId}/activities/${activityId}/kanban`)
 
 			const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/kanban`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					taskId,
-					fromColumnType: fromParsed.columnType,
-					toColumnType: toParsed.columnType,
-					newOrder: 0,
-					cardSubcolumn: toParsed.subcolumn,
-				}),
+				body: JSON.stringify(requestBody),
 			})
 
+			console.log('🔍 [handleTaskMove] Response status:', response.status)
+			console.log('🔍 [handleTaskMove] Response ok:', response.ok)
+
 			if (!response.ok) {
-				throw new Error('Erro ao mover tarefa')
+				const errorText = await response.text()
+				console.error('❌ [handleTaskMove] Response error text:', errorText)
+				throw new Error(`Erro HTTP ${response.status}: ${errorText}`)
 			}
 
 			const result = await response.json()
+			console.log('🔍 [handleTaskMove] Response result:', result)
+
 			if (result.success) {
+				console.log('✅ [handleTaskMove] Movimento bem-sucedido!')
 				toast({
 					type: 'success',
 					title: '✅ Tarefa movida',
 					description: 'A tarefa foi movida com sucesso',
 				})
 			} else {
+				console.error('❌ [handleTaskMove] Movimento falhou:', result.error)
 				throw new Error(result.error)
 			}
 		} catch (error) {
@@ -307,7 +480,7 @@ export default function ActivityKanbanPage() {
 
 	// Função para editar tarefa
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	function handleEditTask(activity: Activity) {
+	function handleEditTask(task: Task) {
 		toast({
 			type: 'info',
 			title: 'Funcionalidade em desenvolvimento',
@@ -377,7 +550,7 @@ export default function ActivityKanbanPage() {
 					) : (
 						// Estado com tarefas - Kanban Board real com drag & drop
 
-						<KanbanBoard activities={activitiesFromTasks} selectedActivity={undefined} onActivityMove={handleTaskMove} onCreateActivity={handleCreateTask} onEditActivity={handleEditTask} />
+						<KanbanBoard tasks={tasksFromTasks} onTaskMove={handleTaskMove} onCreateTask={handleCreateTask} onEditTask={handleEditTask} />
 					)}
 				</div>
 			</div>

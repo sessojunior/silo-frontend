@@ -36,6 +36,67 @@ Senha: #Admin123
 
 ## 🚀 CONQUISTAS MAIS RECENTES - JANEIRO 2025
 
+### ✅ SISTEMA DE PROJETOS - SEMANA 4 COMPLETAMENTE FINALIZADA COM SUCESSO ÉPICO!
+
+**STATUS**: ✅ **SEMANA 4 COMPLETAMENTE FINALIZADA** - Janeiro 2025
+
+**CONQUISTAS EXTRAORDINÁRIAS - SISTEMA KANBAN POR ATIVIDADE**:
+
+- ✅ **Arquitetura Kanban Corrigida** - Sistema por atividade (não por projeto)
+- ✅ **Drag & Drop Funcional** - Reordenação e movimento entre subcolunas
+- ✅ **Página Atividades Refatorada** - Layout moderno com dropdown expansível
+- ✅ **Contador de Tarefas Correto** - Cada atividade mostra suas próprias tarefas
+- ✅ **Navegação Correta** - /admin/projects/[projectId]/activities/[activityId]
+- ✅ **Sistema de Cores Estático** - Mapeamento Tailwind com 5 cores (gray, blue, red, amber, emerald)
+- ✅ **Tipos TypeScript Corrigidos** - Separação clara Activity vs Task
+
+**ARQUITETURA DEFINITIVA IMPLEMENTADA**:
+
+1. **PROJETO** (tabela project) → **ATIVIDADES** (tabela project_activity) → **TAREFAS** (tabela project_task) → **KANBAN POR ATIVIDADE** (tabela project_kanban)
+
+2. **Navegação Hierárquica**:
+
+   - Página projeto: `/admin/projects/[projectId]` (lista atividades)
+   - Botão Kanban → `/admin/projects/[projectId]/activities/[activityId]`
+
+3. **Tabela project_kanban (UMA POR ATIVIDADE)**:
+
+   - Estrutura JSON: `{ name, type, is_visible, color, icon, limit_wip, block_wip_reached, tasks: [{ project_task_id, subcolumn, order }] }`
+   - Subcolunas: 'Fazendo' (subcolumn: 'in_progress') e 'Feito' (subcolumn: 'done')
+
+4. **Sincronização Crítica**:
+   - `project_task.status` DEVE estar sincronizado com `project_kanban.columns.tasks.subcolumn`
+   - project_kanban é fonte primária de verdade para posicionamento
+
+**PROBLEMAS CRÍTICOS RESOLVIDOS**:
+
+- ✅ **Drag & Drop Ordering** - Campo `kanbanOrder` implementado com ordenação correta
+- ✅ **Task Counter Bug** - Filtro por `activityId` corrigido (antes mostrava "6 tarefas" para todas)
+- ✅ **Color System** - Mapeamento estático Tailwind (não interpolação dinâmica)
+- ✅ **Movement Logic** - Status parsing e reordenação entre subcolunas funcional
+- ✅ **Type System** - Interfaces `Activity` e `Task` separadas corretamente
+
+**COMPONENTES FINALIZADOS**:
+
+- `ActivityStatsCards.tsx` - Estatísticas por status (todo, progress, done, blocked)
+- `ActivityMiniKanban.tsx` - Mini kanban dentro do dropdown da atividade
+- `KanbanBoard.tsx` - Board principal com drag & drop @dnd-kit
+- `KanbanCard.tsx` - Cards de tarefas com prioridade e responsáveis
+- `KanbanColumn.tsx` - Colunas com subcolunas e limites WIP
+- `KanbanColumnGroup.tsx` - Grupos de colunas com cores temáticas
+
+**FUNCIONALIDADES KANBAN IMPLEMENTADAS**:
+
+- Sistema de 5 colunas: A Fazer, Em Progresso, Bloqueado, Em Revisão, Concluído
+- Subcolunas: Fazendo/Feito com drag & drop entre elas
+- Limites WIP configuráveis com bloqueio automático
+- Validação de prioridades por coluna
+- Cores temáticas por tipo de coluna
+- Reordenação inteligente com overId
+- Feedback visual durante drag (rotação 3°, opacidade 90%)
+
+**PRÓXIMA SEMANA 5**: Sistema de configuração avançada do Kanban com offcanvas de configurações por atividade.
+
 ### ✅ PASSO 5 - SISTEMA DE AJUDA - **COMPLETAMENTE IMPLEMENTADO COM SUCESSO EXTRAORDINÁRIO!**
 
 **STATUS**: ✅ **COMPLETAMENTE FINALIZADO** - Janeiro 2025

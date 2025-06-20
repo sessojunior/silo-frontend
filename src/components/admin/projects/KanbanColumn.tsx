@@ -5,62 +5,56 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import KanbanCard from './KanbanCard'
 import Button from '@/components/ui/Button'
-import { Activity } from '@/types/projects'
+import { Task } from '@/types/projects'
 
 interface KanbanColumnProps {
 	column: {
-		id: Activity['status']
+		id: Task['status']
 		title: string
-		color: string
+		color: string // Nome da cor Tailwind (ex: 'blue', 'red')
+		colorShade: string // Shade principal (ex: '500')
 		icon: string
 		rules?: {
 			maxCards?: number
-			allowPriorities?: Activity['priority'][]
+			allowPriorities?: Task['priority'][]
 			blockIfFull?: boolean
 		}
 	}
-	activities: Activity[]
+	tasks: Task[]
 	isOverLimit: boolean
-	onEditActivity: (activity: Activity) => void
-	onStatusChange: (activityId: string, newStatus: Activity['status']) => void
-	onCreateActivity?: (status: Activity['status']) => void
+	onEditTask: (task: Task) => void
+	onCreateTask?: (status: Task['status']) => void
 }
 
-export default function KanbanColumn({ column, activities, isOverLimit, onEditActivity, onStatusChange, onCreateActivity }: KanbanColumnProps) {
+export default function KanbanColumn({ column, tasks, isOverLimit, onEditTask, onCreateTask }: KanbanColumnProps) {
 	const { setNodeRef, isOver } = useDroppable({
 		id: `column-${column.id}`,
 	})
 
-	const sortableIds = activities.map((activity) => activity.id)
+	const sortableIds = tasks.map((task) => task.id)
 
 	return (
-		<div className={`flex flex-col w-52 bg-white dark:bg-zinc-900 rounded-xl border-2 transition-all duration-200 shadow-sm hover:shadow-md ${isOver ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20 shadow-blue-100' : 'border-zinc-200 dark:border-zinc-700'} ${isOverLimit ? 'border-red-300 bg-red-50 dark:bg-red-900/10' : ''}`}>
+		<div className={`flex flex-col w-52 bg-white dark:bg-zinc-900 rounded-xl border-2 transition-all duration-200 shadow-sm hover:shadow-md ${isOver ? `border-${column.color}-400 bg-${column.color}-50 dark:bg-${column.color}-900/20 shadow-${column.color}-100` : 'border-zinc-200 dark:border-zinc-700'} ${isOverLimit ? 'border-red-300 bg-red-50 dark:bg-red-900/10' : ''}`}>
 			{/* Header da Coluna - Redesignado */}
-			<div
-				className='relative p-4 rounded-t-xl'
-				style={{
-					background: `linear-gradient(135deg, ${column.color}20, ${column.color}10)`,
-					borderBottom: `2px solid ${column.color}30`,
-				}}
-			>
+			<div className={`relative p-4 rounded-t-xl bg-${column.color}-100 dark:bg-${column.color}-900/20 border-b-2 border-${column.color}-200 dark:border-${column.color}-800`}>
 				{/* Título Principal */}
 				<div className='flex items-center justify-between mb-3'>
 					<div className='flex items-center gap-3'>
-						<div className='p-2 rounded-lg' style={{ backgroundColor: `${column.color}20` }}>
-							<span className={`${column.icon} size-5`} style={{ color: column.color }} />
+						<div className={`p-2 rounded-lg bg-${column.color}-200 dark:bg-${column.color}-800/30`}>
+							<span className={`${column.icon} size-5 text-${column.color}-${column.colorShade}`} />
 						</div>
 						<div>
 							<h3 className='font-bold text-zinc-900 dark:text-zinc-100 text-sm'>{column.title}</h3>
 							<p className='text-xs text-zinc-500 dark:text-zinc-400 mt-0.5'>
-								{activities.length} {activities.length === 1 ? 'atividade' : 'atividades'}
+								{tasks.length} {tasks.length === 1 ? 'atividade' : 'atividades'}
 							</p>
 						</div>
 					</div>
 
 					{/* Badge de Status Melhorado */}
 					<div className='flex items-center gap-2'>
-						<div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${isOverLimit ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-2 ring-red-200' : activities.length === 0 ? 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400' : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 shadow-sm'}`}>
-							<span className='font-semibold'>{activities.length}</span>
+						<div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${isOverLimit ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 ring-2 ring-red-200' : tasks.length === 0 ? 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400' : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 shadow-sm'}`}>
+							<span className='font-semibold'>{tasks.length}</span>
 							{column.rules?.maxCards && (
 								<>
 									<span>/</span>
@@ -82,9 +76,9 @@ export default function KanbanColumn({ column, activities, isOverLimit, onEditAc
 				{column.rules?.maxCards && (
 					<div className='w-full h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden mb-3'>
 						<div
-							className={`h-full transition-all duration-500 ease-out rounded-full ${isOverLimit ? 'bg-red-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'}`}
+							className={`h-full transition-all duration-500 ease-out rounded-full ${isOverLimit ? 'bg-red-500' : `bg-gradient-to-r from-${column.color}-500 to-${column.color}-600`}`}
 							style={{
-								width: `${Math.min((activities.length / column.rules.maxCards) * 100, 100)}%`,
+								width: `${Math.min((tasks.length / column.rules.maxCards) * 100, 100)}%`,
 							}}
 						/>
 					</div>
@@ -135,21 +129,16 @@ export default function KanbanColumn({ column, activities, isOverLimit, onEditAc
 			{/* Área de Drop + Lista de Atividades */}
 			<div ref={setNodeRef} className='flex-1 p-4 min-h-[400px] space-y-3'>
 				<SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-					{activities.map((activity) => (
-						<KanbanCard key={activity.id} activity={activity} onEdit={onEditActivity} />
+					{tasks.map((task) => (
+						<KanbanCard key={task.id} task={task} onEdit={onEditTask} />
 					))}
 				</SortableContext>
 
 				{/* Zona de Drop Vazia Melhorada */}
-				{activities.length === 0 && (
-					<div className={`flex flex-col items-center justify-center h-40 border-2 border-dashed rounded-xl transition-all duration-200 ${isOver ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20' : 'border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500'}`}>
-						<div className={`p-3 rounded-full mb-3 transition-all duration-200 ${isOver ? 'bg-blue-100 dark:bg-blue-800/30' : 'bg-zinc-100 dark:bg-zinc-800'}`}>
-							<span
-								className={`${column.icon} size-6`}
-								style={{
-									color: isOver ? '#3b82f6' : column.color,
-								}}
-							/>
+				{tasks.length === 0 && (
+					<div className={`flex flex-col items-center justify-center h-40 border-2 border-dashed rounded-xl transition-all duration-200 ${isOver ? `border-${column.color}-400 bg-gradient-to-br from-${column.color}-50 to-${column.color}-100 dark:from-${column.color}-900/20 dark:to-${column.color}-800/20` : 'border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500'}`}>
+						<div className={`p-3 rounded-full mb-3 transition-all duration-200 ${isOver ? `bg-${column.color}-100 dark:bg-${column.color}-800/30` : 'bg-zinc-100 dark:bg-zinc-800'}`}>
+							<span className={`${column.icon} size-6 ${isOver ? `text-${column.color}-600` : `text-${column.color}-${column.colorShade}`}`} />
 						</div>
 						<p className='text-sm font-medium text-zinc-600 dark:text-zinc-400 text-center mb-1'>{isOver ? 'Solte a atividade aqui' : 'Nenhuma atividade'}</p>
 						<p className='text-xs text-zinc-500 dark:text-zinc-500 text-center'>{isOver ? 'Será movida para esta coluna' : 'Arraste atividades para cá'}</p>
@@ -157,11 +146,11 @@ export default function KanbanColumn({ column, activities, isOverLimit, onEditAc
 				)}
 
 				{/* Zona de Drop com Itens Melhorada */}
-				{activities.length > 0 && isOver && (
-					<div className='h-10 border-2 border-dashed border-blue-400 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl flex items-center justify-center shadow-sm'>
+				{tasks.length > 0 && isOver && (
+					<div className={`h-10 border-2 border-dashed border-${column.color}-400 bg-gradient-to-r from-${column.color}-50 to-${column.color}-100 dark:from-${column.color}-900/20 dark:to-${column.color}-800/20 rounded-xl flex items-center justify-center shadow-sm`}>
 						<div className='flex items-center gap-2'>
-							<span className='icon-[lucide--move] size-4 text-blue-600 dark:text-blue-400' />
-							<span className='text-sm font-medium text-blue-700 dark:text-blue-300'>Solte aqui para mover</span>
+							<span className='icon-[lucide--move] size-4 text-${column.color}-600 dark:text-${column.color}-400' />
+							<span className={`text-sm font-medium text-${column.color}-700 dark:text-${column.color}-300`}>Solte aqui para mover</span>
 						</div>
 					</div>
 				)}
@@ -169,7 +158,7 @@ export default function KanbanColumn({ column, activities, isOverLimit, onEditAc
 
 			{/* Footer com Ações Melhorado */}
 			<div className='p-4 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 rounded-b-xl'>
-				<Button onClick={() => onCreateActivity?.(column.id)} className='w-full flex items-center justify-center gap-2 text-sm py-2.5 hover:shadow-sm transition-all duration-200' style='bordered'>
+				<Button onClick={() => onCreateTask?.(column.id)} className='w-full flex items-center justify-center gap-2 text-sm py-2.5 hover:shadow-sm transition-all duration-200' style='bordered'>
 					<span className='icon-[lucide--plus] size-4' />
 					Nova tarefa
 				</Button>

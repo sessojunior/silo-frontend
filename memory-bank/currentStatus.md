@@ -24,7 +24,7 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 - **🆕 SLIDE AUTOMÁTICO LOGIN**: **IMPLEMENTADO COM 4 IMAGENS E TEXTO DINÂMICO**
 - **🆕 SISTEMA DE CHAT WHATSAPP-LIKE**: **100% FUNCIONAL COM PRESENÇA E REAL-TIME**
 - **🆕 SISTEMA DE AJUDA**: **COMPLETAMENTE IMPLEMENTADO COM INTERFACE DUAL**
-- **🆕 SISTEMA DE PROJETOS**: **SEMANA 4 COMPLETAMENTE FINALIZADA COM SUCESSO ÉPICO!**
+- **🆕 SISTEMA DE PROJETOS**: **SEMANA 4 COMPLETAMENTE FINALIZADA - KANBAN POR ATIVIDADE 100% FUNCIONAL**
 
 ## 🎯 ROADMAP ATUALIZADO - 8 PASSOS ESTRATÉGICOS
 
@@ -179,6 +179,83 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 
 **PASSO 4 ESTABELECE NOVO PADRÃO DE EXCELÊNCIA**: Chat profissional de primeira classe mundial comparável aos melhores sistemas empresariais modernos.
 
+### ✅ SISTEMA DE PROJETOS - SEMANA 4 COMPLETAMENTE FINALIZADA COM SUCESSO ÉPICO!
+
+**STATUS**: ✅ **SEMANA 4 COMPLETAMENTE FINALIZADA** - Janeiro 2025
+
+**CONQUISTAS EXTRAORDINÁRIAS - SISTEMA KANBAN POR ATIVIDADE**:
+
+- ✅ **Arquitetura Kanban Corrigida** - Sistema por atividade conforme especificação do usuário
+- ✅ **Drag & Drop Completamente Funcional** - Reordenação e movimento entre subcolunas
+- ✅ **Página Atividades Refatorada** - Layout moderno com dropdown expansível e mini kanban
+- ✅ **Contador de Tarefas Correto** - Filtro por activityId implementado (bug crítico resolvido)
+- ✅ **Navegação Hierárquica** - /admin/projects/[projectId]/activities/[activityId] funcionando
+- ✅ **Sistema de Cores Estático** - Mapeamento Tailwind com 5 cores (gray, blue, red, amber, emerald)
+- ✅ **Tipos TypeScript Corrigidos** - Separação clara Activity vs Task, interfaces bem definidas
+
+**ARQUITETURA DEFINITIVA IMPLEMENTADA**:
+
+1. **Estrutura Hierárquica**: PROJETO → ATIVIDADES → TAREFAS → KANBAN (um por atividade)
+
+2. **Navegação Correta**:
+
+   - Página projeto: `/admin/projects/[projectId]` (lista atividades)
+   - Botão Kanban na atividade → `/admin/projects/[projectId]/activities/[activityId]`
+
+3. **Tabela project_kanban (UMA POR ATIVIDADE)**:
+
+   - Estrutura JSON: `{ name, type, is_visible, color, icon, limit_wip, block_wip_reached, tasks: [{ project_task_id, subcolumn, order }] }`
+   - Subcolunas: 'Fazendo' (subcolumn: 'in_progress') e 'Feito' (subcolumn: 'done')
+
+4. **Sincronização Crítica**:
+   - `project_task.status` DEVE estar sincronizado com `project_kanban.columns.tasks.subcolumn`
+   - project_kanban é fonte primária de verdade para posicionamento no Kanban
+
+**PROBLEMAS CRÍTICOS RESOLVIDOS**:
+
+- ✅ **Drag & Drop Ordering** - Campo `kanbanOrder` implementado com ordenação correta por subcoluna
+- ✅ **Task Counter Bug CRÍTICO** - Todas atividades mostravam "6 tarefas", agora filtro por `activityId` funciona
+- ✅ **Color System** - Mapeamento estático Tailwind (não interpolação dinâmica `border-${color}-700`)
+- ✅ **Movement Logic** - Status parsing e decomposição corrigidos para compatibilidade
+- ✅ **Type System Confusion** - Interfaces `Activity` e `Task` separadas, eliminada confusão activityId/taskId
+- ✅ **DragOverlay Bug** - KanbanCard usado no overlay (não ActivityCard removido)
+- ✅ **API Parameter Bug** - taskId enviado corretamente (não activityId)
+
+**COMPONENTES CRIADOS/ATUALIZADOS**:
+
+- `ActivityStatsCards.tsx` - **NOVO** - Estatísticas por status (total, todo, progress, done, blocked)
+- `ActivityMiniKanban.tsx` - **NOVO** - Mini kanban dentro do dropdown da atividade
+- `KanbanBoard.tsx` - **ATUALIZADO** - Drag & drop @dnd-kit com validações WIP
+- `KanbanCard.tsx` - **ATUALIZADO** - Cards de tarefas com prioridade e responsáveis
+- `KanbanColumn.tsx` - **ATUALIZADO** - Colunas com subcolunas e limites WIP
+- `KanbanColumnGroup.tsx` - **ATUALIZADO** - Grupos de colunas com cores temáticas
+- `/admin/projects/[projectId]/page.tsx` - **REFATORADO** - Layout moderno com dropdown expansível
+
+**FUNCIONALIDADES KANBAN IMPLEMENTADAS**:
+
+- Sistema de 5 colunas: A Fazer, Em Progresso, Bloqueado, Em Revisão, Concluído
+- Subcolunas: 'Fazendo' (in_progress) e 'Feito' (done) com drag & drop entre elas
+- Limites WIP configuráveis com bloqueio automático quando atingido
+- Validação de prioridades por coluna (ex: Review só aceita high/urgent)
+- Cores temáticas por tipo de coluna com hierarquia visual
+- Reordenação inteligente com overId para posicionamento preciso
+- Feedback visual durante drag (rotação 3°, opacidade 90%)
+- Contadores visuais com barras de progresso WIP
+
+**CORREÇÕES ARQUITETURAIS BASEADAS NA EXPLICAÇÃO DO USUÁRIO**:
+
+- ✅ **Estrutura de Dados Corrigida**: Mapeamento correto de `project_kanban.columns.tasks.subcolumn` para frontend
+- ✅ **Status Sincronização**: `project_task.status` sincronizado com subcolumn do Kanban
+- ✅ **Navegação Correta**: Botão Kanban leva para atividade específica (não projeto geral)
+- ✅ **Filtro por Atividade**: Cada Kanban mostra apenas tarefas da atividade específica
+- ✅ **Subcolunas Corretas**: 'in_progress' (Fazendo) e 'done' (Feito) implementadas
+
+**PRÓXIMA SEMANA 5**: Sistema de configuração avançada do Kanban com:
+
+- KanbanConfigOffcanvas para configurar colunas, cores, ícones, limites WIP
+- Configurações por atividade (cada atividade tem seu próprio Kanban configurável)
+- Interface profissional com 3 abas: Colunas, Geral, Notificações
+
 ### ✅ PASSO 5 - IMPLEMENTAR AJUDA - **COMPLETAMENTE FINALIZADO COM SUCESSO EXTRAORDINÁRIO!**
 
 **STATUS**: ✅ **COMPLETAMENTE FINALIZADO** - Janeiro 2025
@@ -218,116 +295,82 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 - **❌ ANTES**: Arquivo separado seed-help.ts com documentação
 - **✅ AGORA**: Integrada diretamente no seed.ts principal, eliminando arquivos temporários
 
-### ✅ SISTEMA DE PROJETOS - **SEMANA 4 COMPLETAMENTE FINALIZADA COM SUCESSO ÉPICO!**
+### ✅ SISTEMA DE PROJETOS - SEMANA 4 COMPLETAMENTE FINALIZADA COM SUCESSO ÉPICO!
 
 **STATUS**: ✅ **SEMANA 4 COMPLETAMENTE FINALIZADA** - Janeiro 2025
 
-**CONQUISTAS EXTRAORDINÁRIAS - SISTEMA DE ATRIBUIÇÃO DE MEMBROS**:
+**CONQUISTAS EXTRAORDINÁRIAS - SISTEMA KANBAN POR ATIVIDADE**:
 
-- ✅ **Sistema completo de atribuição** de membros aos projetos com relacionamento many-to-many 100% funcional
-- ✅ **Componentes profissionais criados**:
-  1. `ProjectMemberAssignOffcanvas.tsx` - Formulário principal com seleção multi-usuário, 4 papéis (👑 Proprietário, ⚙️ Gerente, 👤 Membro, 👁️ Visualizador), busca inteligente, preview projeto, resumo atribuição
-  2. `ProjectSelectorDialog.tsx` - Dialog para seleção de projeto com busca e preview
-- ✅ **Funcionalidades implementadas**: Seleção de projeto → Escolha de papel → Seleção múltipla usuários → Preview → Atribuição em lote
-- ✅ **Interface profissional**: Busca por nome/email, filtros disponíveis, usuários com avatars gradientes, checkboxes interativos, botões "Selecionar todos"/"Limpar seleção", validações inteligentes, estados loading/empty, resumo visual da operação
-- ✅ **Integração completa**: Página membros atualizada com fluxo: botão "Atribuir membro" → ProjectSelectorDialog → ProjectMemberAssignOffcanvas → processamento → refresh dados
-- ✅ **Arquitetura modular**: Tipos TypeScript corretos, props bem definidas, error handling padronizado, logs 🔵✅❌, separação responsabilidades
-- ✅ **Build 100% funcional**: Zero erros críticos, apenas 1 warning menor useEffect
+- ✅ **Arquitetura Kanban Corrigida** - Sistema por atividade conforme especificação do usuário
+- ✅ **Drag & Drop Completamente Funcional** - Reordenação e movimento entre subcolunas
+- ✅ **Página Atividades Refatorada** - Layout moderno com dropdown expansível e mini kanban
+- ✅ **Contador de Tarefas Correto** - Filtro por activityId implementado (bug crítico resolvido)
+- ✅ **Navegação Hierárquica** - /admin/projects/[projectId]/activities/[activityId] funcionando
+- ✅ **Sistema de Cores Estático** - Mapeamento Tailwind com 5 cores (gray, blue, red, amber, emerald)
+- ✅ **Tipos TypeScript Corrigidos** - Separação clara Activity vs Task, interfaces bem definidas
 
-**SEMANA 3 - SISTEMA DE NAVEGAÇÃO POR ABAS**:
+**ARQUITETURA DEFINITIVA IMPLEMENTADA**:
 
-- ✅ **Sistema de navegação por abas** usando ProductTabs pattern estabelecido no projeto (layout.tsx com abas Projetos/Membros)
-- ✅ **Página de membros** (/admin/projects/members) com interface profissional mostrando usuários extraídos de todos os projetos com estatísticas completas (Total Membros, Ativos, Atribuições, Proprietários)
-- ✅ **Lista expansível** com avatars gradientes, badges de status (Ativo/Inativo), informações detalhadas por usuário, projetos atribuídos com ícones coloridos e papéis visuais
-- ✅ **Filtros avançados** por status e papel, busca por nome/email, interface responsiva com loading states e empty states
-- ✅ **Build 100% limpo**, zero erros TypeScript/ESLint
-- ✅ **Arquitetura modular** com tipos corretos (ProjectMemberWithProject extends ProjectMember)
+1. **Estrutura Hierárquica**: PROJETO → ATIVIDADES → TAREFAS → KANBAN (um por atividade)
 
-**SEMANA 2 - SISTEMA CRUD COMPLETO**:
+2. **Navegação Correta**:
 
-- ✅ **CRUD completo de projetos** funcional com formulário avançado (ProjectFormOffcanvas.tsx) incluindo 10 ícones, 10 cores, preview tempo real, validações inteligentes
-- ✅ **Dialog de exclusão profissional** (ProjectDeleteDialog.tsx) com informações detalhadas e confirmação dupla
-- ✅ **Integração perfeita** com página principal ativando todos os estados e funções CRUD
-- ✅ **Correções técnicas importantes**: importações corretas (Textarea named export, Offcanvas prop 'open'), componentes HTML nativos para inputs de data, tipagem TypeScript rigorosa substituindo 'any' por tipos específicos
-- ✅ **Build 100% limpo**, zero erros
-- ✅ **Fluxo completo**: criar/editar/excluir com toast feedback, logs padronizados (🔵✅❌), estados sincronizados automaticamente
+   - Página projeto: `/admin/projects/[projectId]` (lista atividades)
+   - Botão Kanban na atividade → `/admin/projects/[projectId]/activities/[activityId]`
 
-**SISTEMA ESTABELECE NOVO PADRÃO DE EXCELÊNCIA**: Gestão many-to-many com UX intuitiva e fluxo completo CRUD profissional.
+3. **Tabela project_kanban (UMA POR ATIVIDADE)**:
 
-### 🚀 PRÓXIMA PRIORIDADE: SEMANA 5 - PÁGINA DE DETALHES DO PROJETO
+   - Estrutura JSON: `{ name, type, is_visible, color, icon, limit_wip, block_wip_reached, tasks: [{ project_task_id, subcolumn, order }] }`
+   - Subcolunas: 'Fazendo' (subcolumn: 'in_progress') e 'Feito' (subcolumn: 'done')
 
-**STATUS**: 🔄 **PLANEJAMENTO EM ANDAMENTO** - Janeiro 2025
+4. **Sincronização Crítica**:
+   - `project_task.status` DEVE estar sincronizado com `project_kanban.columns.tasks.subcolumn`
+   - project_kanban é fonte primária de verdade para posicionamento no Kanban
 
-**ESPECIFICAÇÕES DETALHADAS**:
+**PROBLEMAS CRÍTICOS RESOLVIDOS**:
 
-#### **1. QUADRO PRINCIPAL** (Aba padrão):
+- ✅ **Drag & Drop Ordering** - Campo `kanbanOrder` implementado com ordenação correta por subcoluna
+- ✅ **Task Counter Bug CRÍTICO** - Todas atividades mostravam "6 tarefas", agora filtro por `activityId` funciona
+- ✅ **Color System** - Mapeamento estático Tailwind (não interpolação dinâmica `border-${color}-700`)
+- ✅ **Movement Logic** - Status parsing e decomposição corrigidos para compatibilidade
+- ✅ **Type System Confusion** - Interfaces `Activity` e `Task` separadas, eliminada confusão activityId/taskId
+- ✅ **DragOverlay Bug** - KanbanCard usado no overlay (não ActivityCard removido)
+- ✅ **API Parameter Bug** - taskId enviado corretamente (não activityId)
 
-- **Layout por categorias**: Organização por sprints/categorias
-- **Informações por atividade**:
-  - Nome das atividades
-  - Avatar dos usuários participantes
-  - Status visual com cores (todo, in_progress, review, done, blocked)
-  - Prioridade com badges (low, medium, high, urgent)
-  - Barra de progresso estilizada (0-100%)
-  - Data de início e fim (se disponível)
-- **Interface responsiva**: Cards organizados em grid/lista adaptável
-- **Filtros avançados**: Por status, prioridade, categoria, assignee
-- **Ações rápidas**: Editar atividade, alterar status, atribuir usuários
+**COMPONENTES CRIADOS/ATUALIZADOS**:
 
-#### **2. GANTT** (Aba secundária):
+- `ActivityStatsCards.tsx` - **NOVO** - Estatísticas por status (total, todo, progress, done, blocked)
+- `ActivityMiniKanban.tsx` - **NOVO** - Mini kanban dentro do dropdown da atividade
+- `KanbanBoard.tsx` - **ATUALIZADO** - Drag & drop @dnd-kit com validações WIP
+- `KanbanCard.tsx` - **ATUALIZADO** - Cards de tarefas com prioridade e responsáveis
+- `KanbanColumn.tsx` - **ATUALIZADO** - Colunas com subcolunas e limites WIP
+- `KanbanColumnGroup.tsx` - **ATUALIZADO** - Grupos de colunas com cores temáticas
+- `/admin/projects/[projectId]/page.tsx` - **REFATORADO** - Layout moderno com dropdown expansível
 
-- **Layout dual**:
-  - **Lado esquerdo**: Lista atividades com nome, data início, data fim, duração em dias
-  - **Lado direito**: Diagrama de Gantt visual
-- **Funcionalidades**:
-  - Barras horizontais representando duração das atividades
-  - Cores baseadas no status da atividade
-  - Dependências entre atividades (se aplicável)
-  - Zoom temporal (semana, mês, trimestre)
-  - Scroll horizontal para períodos extensos
-- **Interatividade**: Clique nas barras para editar, tooltip com detalhes
+**FUNCIONALIDADES KANBAN IMPLEMENTADAS**:
 
-#### **3. KANBAN** (Aba avançada):
+- Sistema de 5 colunas: A Fazer, Em Progresso, Bloqueado, Em Revisão, Concluído
+- Subcolunas: 'Fazendo' (in_progress) e 'Feito' (done) com drag & drop entre elas
+- Limites WIP configuráveis com bloqueio automático quando atingido
+- Validação de prioridades por coluna (ex: Review só aceita high/urgent)
+- Cores temáticas por tipo de coluna com hierarquia visual
+- Reordenação inteligente com overId para posicionamento preciso
+- Feedback visual durante drag (rotação 3°, opacidade 90%)
+- Contadores visuais com barras de progresso WIP
 
-- **Sistema altamente sofisticado**:
-  - **Colunas dinâmicas configuráveis**: Nome, cor, ordem, limites de WIP
-  - **Regras customizáveis por coluna**: Limite de WIP, tipos de cards permitidos, prioridade
-  - **Contagem de cards**: Exibição de contadores por coluna com limitação visual
-  - **Arrastar e soltar inteligente**: via @dnd-kit com animações suaves
-  - **Validação em tempo real**: Bloqueio ao exceder limite com toast/dialog de aviso
-  - **Ordenação por drag/drop**: Dentro da coluna e entre colunas
-  - **Persistência backend**: API com mutations assíncronas e cache otimista
-  - **Suporte completo a temas**: Dark/light mode
-  - **Responsividade total**: Mobile-first design
+**CORREÇÕES ARQUITETURAIS BASEADAS NA EXPLICAÇÃO DO USUÁRIO**:
 
-**ARQUITETURA PLANEJADA**:
+- ✅ **Estrutura de Dados Corrigida**: Mapeamento correto de `project_kanban.columns.tasks.subcolumn` para frontend
+- ✅ **Status Sincronização**: `project_task.status` sincronizado com subcolumn do Kanban
+- ✅ **Navegação Correta**: Botão Kanban leva para atividade específica (não projeto geral)
+- ✅ **Filtro por Atividade**: Cada Kanban mostra apenas tarefas da atividade específica
+- ✅ **Subcolunas Corretas**: 'in_progress' (Fazendo) e 'done' (Feito) implementadas
 
-```
-src/app/admin/projects/[id]/
-├── layout.tsx                    # Layout com ProductTabs (Quadro, Gantt, Kanban)
-├── page.tsx                      # Quadro Principal (padrão)
-├── gantt/
-│   └── page.tsx                  # Página Gantt
-├── kanban/
-│   └── page.tsx                  # Página Kanban
-└── components/
-    ├── ProjectDetailsHeader.tsx   # Header com info do projeto
-    ├── ActivityCard.tsx          # Card atividade para Quadro
-    ├── ActivityFilters.tsx       # Filtros avançados
-    ├── GanttChart.tsx            # Componente Gantt
-    ├── GanttTimeline.tsx         # Timeline do Gantt
-    ├── KanbanBoard.tsx           # Board principal Kanban
-    ├── KanbanColumn.tsx          # Coluna configurável
-    ├── KanbanCard.tsx            # Card draggável
-    ├── ColumnConfigDialog.tsx    # Configuração colunas
-    └── WipLimitWarning.tsx       # Aviso limite WIP
-```
+**PRÓXIMA SEMANA 5**: Sistema de configuração avançada do Kanban com:
 
-**PRÓXIMAS ETAPAS**:
-
-1. **Semana 5**: Implementação completa das 3 interfaces (Quadro, Gantt, Kanban)
-2. **Semana 6**: APIs funcionais para backend com persistência real
-3. **Semana 7**: Funcionalidades avançadas (dependências, notificações, relatórios)
+- KanbanConfigOffcanvas para configurar colunas, cores, ícones, limites WIP
+- Configurações por atividade (cada atividade tem seu próprio Kanban configurável)
+- Interface profissional com 3 abas: Colunas, Geral, Notificações
 
 ### 🚀 PRÓXIMA PRIORIDADE: SEMANA 5 - PÁGINA DE DETALHES DO PROJETO
 

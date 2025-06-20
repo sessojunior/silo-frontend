@@ -1,5 +1,16 @@
 # Tech Context - Silo
 
+## 🎯 STACK TECNOLÓGICO PRINCIPAL
+
+- **Framework**: Next.js 15 (App Router) + React 19
+- **Linguagem**: TypeScript (strict mode)
+- **Database**: PostgreSQL + Drizzle ORM
+- **Styling**: Tailwind CSS + Design System customizado
+- **Drag & Drop**: @dnd-kit/core (Sistema Kanban)
+- **Autenticação**: JWT + OAuth Google
+- **Upload**: nginx externo para performance
+- **Charts**: ApexCharts para dashboard
+
 ## Stack Tecnológico Principal
 
 ### Frontend Framework
@@ -48,6 +59,108 @@
 
 - **ApexCharts 4.7.0**: Biblioteca de gráficos
 - **React-ApexCharts 1.7.0**: Wrapper React
+
+## 🏗️ ARQUITETURA SISTEMA DE PROJETOS - KANBAN
+
+### 📊 Estrutura Hierárquica de Dados
+
+```
+PROJETO (project)
+├── ATIVIDADES (project_activity)
+│   ├── TAREFAS (project_task)
+│   └── KANBAN (project_kanban) - UM POR ATIVIDADE
+│       └── columns: JSON Array
+│           ├── name, type, is_visible, color, icon
+│           ├── limit_wip, block_wip_reached
+│           └── tasks: [{ project_task_id, subcolumn, order }]
+```
+
+### 🎯 Navegação e Rotas
+
+- **Lista Projetos**: `/admin/projects`
+- **Projeto Individual**: `/admin/projects/[projectId]` (lista atividades)
+- **Kanban por Atividade**: `/admin/projects/[projectId]/activities/[activityId]`
+
+### 📋 Tabela project_kanban (Estrutura JSON)
+
+```typescript
+interface ProjectKanban {
+	id: string
+	project_id: string
+	project_activity_id: string
+	columns: Array<{
+		name: string // 'A Fazer', 'Em Progresso', etc.
+		type: 'todo' | 'in_progress' | 'blocked' | 'review' | 'done'
+		is_visible: boolean
+		color: 'gray' | 'blue' | 'red' | 'amber' | 'emerald'
+		icon: string // 'icon-[lucide--...]'
+		limit_wip: number | null // Limite WIP
+		block_wip_reached: boolean // Bloquear quando atingir limite
+		tasks: Array<{
+			project_task_id: string
+			subcolumn: 'in_progress' | 'done' // Subcoluna dentro da coluna
+			order: number // Ordem dentro da subcoluna
+		}>
+	}>
+}
+```
+
+### 🔄 Sincronização de Status
+
+**REGRA CRÍTICA**: `project_task.status` DEVE estar sincronizado com `project_kanban.columns.tasks.subcolumn`
+
+- **project_kanban**: Fonte primária de verdade para posicionamento
+- **project_task.status**: Fonte secundária sincronizada
+- **Subcolunas**: 'Fazendo' (in_progress) e 'Feito' (done)
+
+### 🎨 Sistema de Cores Kanban
+
+```typescript
+// Mapeamento estático Tailwind (não interpolação dinâmica)
+const colorClasses = {
+  gray: { border: 'border-stone-200', headerBg: 'bg-stone-200', ... },
+  blue: { border: 'border-blue-200', headerBg: 'bg-blue-200', ... },
+  red: { border: 'border-red-200', headerBg: 'bg-red-200', ... },
+  amber: { border: 'border-amber-200', headerBg: 'bg-amber-200', ... },
+  emerald: { border: 'border-emerald-200', headerBg: 'bg-emerald-200', ... }
+}
+```
+
+### 🔧 Drag & Drop (@dnd-kit)
+
+```typescript
+// Configuração sensores
+const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 3 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }))
+
+// Ordenação por kanbanOrder
+tasks.sort((a, b) => {
+	const orderA = a.kanbanOrder || 0
+	const orderB = b.kanbanOrder || 0
+	return orderA - orderB
+})
+```
+
+### 📝 Interfaces TypeScript
+
+```typescript
+interface Activity {
+  id: string
+  projectId: string
+  name: string
+  description: string
+  // ... outros campos específicos de atividade
+}
+
+interface Task {
+  id: string
+  projectId: string
+  activityId: string  // Referência para atividade
+  name: string
+  status: 'todo_doing' | 'todo_done' | 'in_progress_doing' | ...
+  kanbanOrder?: number  // Ordem no Kanban
+  // ... outros campos específicos de tarefa
+}
+```
 
 ### 🚀 CHAT SYSTEM - ESPECIFICAÇÕES TÉCNICAS PLANEJADAS
 

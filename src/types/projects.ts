@@ -60,9 +60,49 @@ export interface Activity {
 	updatedAt: string
 }
 
+// Interface para tarefas dentro das atividades (Kanban)
+export interface Task {
+	id: string
+	projectId: string
+	activityId: string // Relacionamento com atividade
+	name: string
+	description: string
+	status: 'todo' | 'todo_doing' | 'todo_done' | 'in_progress' | 'in_progress_doing' | 'in_progress_done' | 'review' | 'review_doing' | 'review_done' | 'done' | 'blocked'
+	priority: 'low' | 'medium' | 'high' | 'urgent'
+	progress: number // 0-100
+	category: string // Sprint, Backlog, etc.
+	startDate: string | null
+	endDate: string | null
+	estimatedHours: number | null
+	actualHours: number | null
+
+	// Relacionamentos
+	assignees: TaskAssignee[] // Usuários atribuídos à tarefa
+	labels: string[] // Tags/categorias
+
+	createdAt: string
+	updatedAt: string
+}
+
 export interface ActivityAssignee {
 	id: string
 	activityId: string
+	userId: string
+	assignedAt: string
+
+	// Dados do usuário (populated)
+	user: {
+		id: string
+		name: string
+		email: string
+		avatar: string | null
+		isActive: boolean
+	}
+}
+
+export interface TaskAssignee {
+	id: string
+	taskId: string
 	userId: string
 	assignedAt: string
 

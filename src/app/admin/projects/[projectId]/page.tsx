@@ -4,13 +4,13 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from '@/lib/toast'
 import { useParams, useRouter } from 'next/navigation'
 
-import ActivityCard from '@/components/admin/projects/ActivityCard'
+import ActivityStatsCards from '@/components/admin/projects/ActivityStatsCards'
+import ActivityMiniKanban from '@/components/admin/projects/ActivityMiniKanban'
 import ProjectFormOffcanvas from '@/components/admin/projects/ProjectFormOffcanvas'
 import ActivityFormOffcanvas from '@/components/admin/projects/ActivityFormOffcanvas'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-
-import { Activity } from '@/types/projects'
+import Select from '@/components/ui/Select'
 
 // Interfaces para tipos de dados
 interface Project {
@@ -70,7 +70,12 @@ export default function ProjectDetailsPage() {
 	// Estados para filtros de atividades
 	const [search, setSearch] = useState('')
 	const [statusFilter, setStatusFilter] = useState<'all' | 'todo' | 'progress' | 'done' | 'blocked'>('all')
-	const [priorityFilter, setPriorityFilter] = useState<'all' | 'low' | 'medium' | 'high' | 'urgent'>('all')
+
+	// Estado para controlar dropdown expandido
+	const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null)
+
+	// Estado para contar tarefas do kanban por atividade
+	const [kanbanTaskCounts, setKanbanTaskCounts] = useState<Record<string, number>>({})
 
 	// Carregar projeto e atividades
 	useEffect(() => {
@@ -195,15 +200,12 @@ export default function ProjectDetailsPage() {
 			filtered = filtered.filter((activity) => activity.status === statusFilter)
 		}
 
-		// Filtro de prioridade
-		if (priorityFilter !== 'all') {
-			filtered = filtered.filter((activity) => activity.priority === priorityFilter)
-		}
+		// Filtro de prioridade (removido)
 
 		return filtered.sort((a, b) => a.name.localeCompare(b.name))
-	}, [activities, search, statusFilter, priorityFilter])
+	}, [activities, search, statusFilter])
 
-	function handleEditActivity(activity: Activity) {
+	function handleEditActivity(activity: any) {
 		console.log('🔵 Abrindo formulário de edição da atividade:', activity.name)
 
 		// Converter de Activity para ProjectActivity
@@ -224,6 +226,12 @@ export default function ProjectDetailsPage() {
 
 		setEditingActivity(projectActivity)
 		setActivityFormOpen(true)
+	}
+
+	// Formatar data
+	const formatDate = (dateString: string | null) => {
+		if (!dateString) return 'Não definida'
+		return new Date(dateString).toLocaleDateString('pt-BR')
 	}
 
 	function handleCreateActivity() {
@@ -478,106 +486,293 @@ export default function ProjectDetailsPage() {
 
 	if (!project) return null
 
+	// Função para carregar contagem de tarefas do kanban
+	const loadKanbanTaskCount = async (activityId: string) => {
+		if (kanbanTaskCounts[activityId] !== undefined) return // Já carregado
+
+		try {
+			console.log('🔍 [loadKanbanTaskCount] Carregando contagem para atividade:', activityId)
+			console.log('🔍 [loadKanbanTaskCount] URL:', `/api/projects/${projectId}/activities/${activityId}/kanban`)
+
+			const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/kanban`)
+			console.log('🔍 [loadKanbanTaskCount] Response status:', response.status)
+
+			if (response.ok) {
+				const data = await response.json()
+				console.log('🔍 [loadKanbanTaskCount] Response data para atividade', activityId, ':', data)
+
+				if (data.success && data.columns) {
+					let totalTasks = 0
+					console.log('🔍 [loadKanbanTaskCount] Colunas encontradas:', data.columns.length)
+
+					data.columns.forEach((column: { tasks?: unknown[]; name?: string; type?: string }, index: number) => {
+						console.log(`🔍 [loadKanbanTaskCount] Coluna ${index + 1} (${column.name || column.type || 'sem nome'}):`, column.tasks?.length || 0, 'tarefas totais')
+
+						if (column.tasks && Array.isArray(column.tasks)) {
+							// Filtrar apenas tarefas que pertencem à atividade específica
+							const tasksForThisActivity = column.tasks.filter((task: any) => {
+								const taskActivityId = task.task?.projectActivityId || task.projectActivityId
+								console.log('🔍 [loadKanbanTaskCount] Verificando tarefa:', {
+									taskId: task.task?.id || task.id,
+									taskName: task.task?.name || task.name,
+									taskActivityId,
+									targetActivityId: activityId,
+									matches: taskActivityId === activityId,
+								})
+								return taskActivityId === activityId
+							})
+
+							console.log(`🔍 [loadKanbanTaskCount] Coluna ${column.name || column.type}: ${tasksForThisActivity.length} tarefas para atividade ${activityId}`)
+							totalTasks += tasksForThisActivity.length
+						}
+					})
+
+					console.log('🔍 [loadKanbanTaskCount] ===== RESULTADO FINAL =====')
+					console.log('🔍 [loadKanbanTaskCount] Total de tarefas calculado para atividade', activityId, ':', totalTasks)
+					console.log('🔍 [loadKanbanTaskCount] ============================')
+					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: totalTasks }))
+				} else {
+					console.log('🔍 [loadKanbanTaskCount] API retornou falha ou sem colunas para atividade:', activityId)
+					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
+				}
+			} else {
+				console.error('🔍 [loadKanbanTaskCount] Response não OK para atividade:', activityId, 'Status:', response.status)
+				setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
+			}
+		} catch (error) {
+			console.error('❌ [loadKanbanTaskCount] Erro ao carregar contagem de tarefas para atividade:', activityId, error)
+			setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
+		}
+	}
+
+	// Função para controlar dropdown
+	const toggleDropdown = (activityId: string) => {
+		const isExpanding = expandedActivityId !== activityId
+		setExpandedActivityId(isExpanding ? activityId : null)
+
+		// Carregar contagem de tarefas quando expandir
+		if (isExpanding) {
+			loadKanbanTaskCount(activityId)
+		}
+	}
+
+	// Funções para ícones e badges
+	const getStatusIcon = (status: ProjectActivity['status']) => {
+		const statusIcons = {
+			todo: '⏳',
+			progress: '🔵',
+			done: '✅',
+			blocked: '🔴',
+		}
+		const statusLabels = {
+			todo: 'A fazer',
+			progress: 'Em progresso',
+			done: 'Concluído',
+			blocked: 'Bloqueado',
+		}
+		return `${statusIcons[status]} ${statusLabels[status]}`
+	}
+
+	const getPriorityIcon = (priority: ProjectActivity['priority']) => {
+		const priorityIcons = {
+			low: '⬇️',
+			medium: '➡️',
+			high: '⬆️',
+			urgent: '🚨',
+		}
+		const priorityLabels = {
+			low: 'Baixa',
+			medium: 'Média',
+			high: 'Alta',
+			urgent: 'Urgente',
+		}
+		return `${priorityIcons[priority]} ${priorityLabels[priority]}`
+	}
+
+	// Função para navegar ao Kanban
+	const handleGoToKanban = (activityId: string) => {
+		const kanbanUrl = `/admin/projects/${projectId}/activities/${activityId}`
+		console.log('🔍 [handleGoToKanban] Navegando para:', {
+			activityId,
+			projectId,
+			kanbanUrl,
+		})
+		router.push(kanbanUrl)
+	}
+
 	return (
-		<div className='flex flex-col w-full'>
-			{/* Header do Projeto */}
-			<div className='w-full p-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900'>
-				<div className='flex flex-col lg:flex-row lg:items-center justify-between gap-4'>
-					{/* Informações do Projeto */}
-					<div className='flex items-center gap-4 min-w-0 flex-1'>
-						<div className='min-w-0 flex-1'>
-							<div className='flex items-center gap-3 mb-2'>
-								<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Atividades de {project.name}</h1>
-							</div>
-							<p className='text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed'>{project.description}</p>
-						</div>
-					</div>
+		<>
+			{/* Cabeçalho da Página */}
+			<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
+				<div>
+					<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Atividades ({filteredActivities.length})</h1>
+					<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Lista de todas as atividades do projeto {project.name}</p>
 				</div>
 			</div>
 
-			{/* Conteúdo Principal */}
+			{/* Conteúdo da Página */}
 			<div className='p-6'>
 				<div className='max-w-7xl mx-auto space-y-6'>
-					{/* Filtros e Nova Atividade */}
-					<div className='flex flex-col lg:flex-row lg:items-center gap-4'>
-						{/* Filtros */}
-						<div className='flex flex-1 gap-4'>
-							<div className='flex-1'>
+					{/* Ações e Filtros */}
+					<div className='flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center'>
+						<div className='flex flex-col sm:flex-row gap-3 flex-1'>
+							{/* Busca */}
+							<div className='relative flex-1 min-w-80 max-w-md'>
 								<Input type='text' placeholder='Buscar atividades...' value={search} setValue={setSearch} className='pl-10' />
+								<span className='icon-[lucide--search] absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
 							</div>
-							<select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as 'all' | 'todo' | 'progress' | 'done' | 'blocked')} className='w-40 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-3 text-sm text-zinc-700 dark:text-zinc-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'>
-								<option value='all'>Todos os status</option>
-								<option value='todo'>🔵 A fazer</option>
-								<option value='progress'>🟡 Em progresso</option>
-								<option value='done'>🟢 Concluída</option>
-								<option value='blocked'>🔴 Bloqueada</option>
-							</select>
-							<select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value as 'all' | 'low' | 'medium' | 'high' | 'urgent')} className='w-40 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-3 text-sm text-zinc-700 dark:text-zinc-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'>
-								<option value='all'>Todas prioridades</option>
-								<option value='low'>⬇️ Baixa</option>
-								<option value='medium'>➡️ Média</option>
-								<option value='high'>⬆️ Alta</option>
-								<option value='urgent'>🚨 Urgente</option>
-							</select>
+
+							{/* Filtro de Status */}
+							<Select
+								name='statusFilter'
+								selected={statusFilter}
+								onChange={(value) => setStatusFilter(value as 'all' | 'todo' | 'progress' | 'done' | 'blocked')}
+								options={[
+									{ value: 'all', label: 'Todos os status' },
+									{ value: 'todo', label: 'Apenas a fazer' },
+									{ value: 'progress', label: 'Apenas em progresso' },
+									{ value: 'done', label: 'Apenas concluídas' },
+									{ value: 'blocked', label: 'Apenas bloqueadas' },
+								]}
+								placeholder='Filtrar por status'
+							/>
 						</div>
 
-						{/* Botão Nova Atividade */}
+						{/* Botão Criar */}
 						<Button onClick={handleCreateActivity} className='flex items-center gap-2'>
 							<span className='icon-[lucide--plus] size-4' />
-							<span className='hidden sm:inline'>Nova atividade</span>
+							Nova atividade
 						</Button>
 					</div>
 
+					{/* Estatísticas */}
+					<ActivityStatsCards activities={activities} />
+
 					{/* Lista de Atividades */}
-					{activitiesLoading ? (
-						<div className='flex items-center justify-center py-12'>
-							<div className='flex items-center gap-3'>
-								<span className='icon-[lucide--loader-circle] size-6 animate-spin text-zinc-400' />
-								<span className='text-zinc-600 dark:text-zinc-400'>Carregando atividades...</span>
+					<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700'>
+						<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
+							<h2 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100'>Atividades ({filteredActivities.length})</h2>
+							<p className='text-sm text-zinc-600 dark:text-zinc-400 mt-1'>Lista de todas as atividades do projeto {project.name}</p>
+						</div>
+
+						{/* Cabeçalho da Tabela */}
+						<div className='bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700'>
+							<div className='px-6 py-3'>
+								<div className='flex items-center justify-between'>
+									<div className='text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Atividade</div>
+									<div className='text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right'>Ações</div>
+								</div>
 							</div>
 						</div>
-					) : filteredActivities.length === 0 ? (
-						<div className='text-center py-12'>
-							<span className='icon-[lucide--clipboard-x] size-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-4 block' />
-							<h3 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>{search || statusFilter !== 'all' || priorityFilter !== 'all' ? 'Nenhuma atividade encontrada' : 'Nenhuma atividade criada ainda'}</h3>
-							<p className='text-zinc-600 dark:text-zinc-400 mb-4'>{search || statusFilter !== 'all' || priorityFilter !== 'all' ? 'Tente ajustar os filtros de busca.' : 'Comece criando a primeira atividade do projeto.'}</p>
-							{!search && statusFilter === 'all' && priorityFilter === 'all' && (
-								<Button onClick={handleCreateActivity} className='flex items-center gap-2 mx-auto'>
-									<span className='icon-[lucide--plus] size-4' />
-									Criar primeira atividade
-								</Button>
-							)}
-						</div>
-					) : (
-						<div className='space-y-4'>
-							{filteredActivities.map((activity) => (
-								<ActivityCard
-									key={activity.id}
-									activity={{
-										id: activity.id,
-										projectId: activity.projectId,
-										name: activity.name,
-										description: activity.description,
-										category: activity.category || '',
-										status: convertActivityStatus(activity.status),
-										priority: activity.priority,
-										estimatedHours: activity.estimatedDays,
-										actualHours: null,
-										progress: activity.status === 'done' ? 100 : activity.status === 'progress' ? 50 : 0,
-										startDate: activity.startDate || '',
-										endDate: activity.endDate || '',
-										assignees: [],
-										labels: [],
-										createdAt: activity.createdAt.toString(),
-										updatedAt: activity.updatedAt.toString(),
-									}}
-									projectId={project.id}
-									onEdit={handleEditActivity}
-									onDelete={handleActivityDelete}
-								/>
-							))}
-						</div>
-					)}
+
+						{activitiesLoading ? (
+							<div className='flex items-center justify-center py-12'>
+								<span className='icon-[lucide--loader-circle] size-6 animate-spin text-zinc-400' />
+								<span className='ml-3 text-zinc-600 dark:text-zinc-400'>Carregando atividades...</span>
+							</div>
+						) : filteredActivities.length === 0 ? (
+							<div className='text-center py-12'>
+								<span className='icon-[lucide--clipboard-x] size-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-4 block' />
+								<h3 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>{search || statusFilter !== 'all' ? 'Nenhuma atividade encontrada' : 'Nenhuma atividade criada ainda'}</h3>
+								<p className='text-zinc-600 dark:text-zinc-400 mb-4'>{search || statusFilter !== 'all' ? 'Tente ajustar os filtros para encontrar atividades.' : 'Comece criando sua primeira atividade para organizar as tarefas.'}</p>
+								{!search && statusFilter === 'all' && (
+									<Button onClick={handleCreateActivity} className='flex items-center gap-2 mx-auto'>
+										<span className='icon-[lucide--plus] size-4' />
+										Criar primeira atividade
+									</Button>
+								)}
+							</div>
+						) : (
+							<div className='divide-y divide-zinc-200 dark:divide-zinc-700'>
+								{filteredActivities.map((activity) => (
+									<div key={activity.id}>
+										<div className='flex items-center justify-between'>
+											<div className='flex items-center justify-center gap-4 py-6 px-4'>
+												{/* Botão Dropdown */}
+												<button onClick={() => toggleDropdown(activity.id)} className='size-10 rounded-full flex justify-center items-center hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors' title='Ver detalhes'>
+													<span className={`icon-[lucide--chevron-down] size-4 text-zinc-600 dark:text-zinc-400 transition-transform ${expandedActivityId === activity.id ? 'rotate-180' : ''}`} />
+												</button>
+												{/* Conteúdo principal - título e descrição resumida */}
+												<div>
+													<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100 truncate'>{activity.name}</h3>
+													{activity.description && <p className='text-zinc-600 dark:text-zinc-400 truncate text-sm'>{activity.description}</p>}
+												</div>
+											</div>
+
+											{/* Container: Botões de ação */}
+											<div className='px-6 flex items-center justify-center gap-2'>
+												{/* Botões de ação - sempre visíveis */}
+												<div className='flex items-center justify-center gap-2'>
+													<button onClick={() => handleGoToKanban(activity.id)} className='size-10 flex items-center justify-center rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors' title='Abrir Kanban'>
+														<span className='icon-[lucide--kanban-square] size-4 text-blue-600 dark:text-blue-400' />
+													</button>
+													<button onClick={() => handleEditActivity({ ...activity, status: convertActivityStatus(activity.status) } as any)} className='size-10 flex items-center justify-center rounded-full hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors' title='Editar atividade'>
+														<span className='icon-[lucide--edit] size-4 text-green-600 dark:text-green-400' />
+													</button>
+												</div>
+											</div>
+										</div>
+
+										{/* Linha expandida com detalhes */}
+										{expandedActivityId === activity.id && (
+											<>
+												<div className='px-6 py-4 border-t border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 transition-opacity duration-700 ease-in-out animate-in fade-in'>
+													<div className='flex flex-wrap items-center gap-6'>
+														{/* Status */}
+														<div className='flex items-center gap-2'>
+															<span className='icon-[lucide--check-circle] size-4 text-zinc-400' />
+															<span className='text-sm'>{getStatusIcon(activity.status)}</span>
+														</div>
+
+														{/* Prioridade */}
+														<div className='flex items-center gap-2'>
+															<span className='icon-[lucide--triangle-alert] size-4 text-zinc-400' />
+															<span className='text-sm'>{getPriorityIcon(activity.priority)}</span>
+														</div>
+
+														{/* Período */}
+														<div className='flex items-center gap-2'>
+															<span className='icon-[lucide--calendar] size-4 text-zinc-400' />
+															<div className='flex items-center gap-2 text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-md'>
+																{activity.startDate && <span className='text-zinc-700 dark:text-zinc-300 font-medium'>{formatDate(activity.startDate)}</span>}
+																{activity.startDate && activity.endDate && <span className='text-zinc-400'>→</span>}
+																{activity.endDate && <span className='text-zinc-700 dark:text-zinc-300 font-medium'>{formatDate(activity.endDate)}</span>}
+																{!activity.startDate && !activity.endDate && <span className='text-zinc-400'>Não definido</span>}
+															</div>
+														</div>
+
+														{/* Progresso */}
+														<div className='flex items-center gap-2'>
+															<span className='icon-[lucide--trending-up] size-4 text-zinc-400' />
+															<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Progresso:</span>
+															<div className='flex items-center gap-3'>
+																<div className='w-20 bg-zinc-200 dark:bg-zinc-700 rounded-full h-2'>
+																	<div className={`h-2 rounded-full transition-all duration-300 ${activity.status === 'done' ? 'bg-green-500' : activity.status === 'progress' ? 'bg-blue-500' : 'bg-orange-500'}`} style={{ width: `${activity.status === 'done' ? 100 : activity.status === 'progress' ? 50 : 0}%` }} />
+																</div>
+																<span className='text-sm font-semibold text-zinc-800 dark:text-zinc-200'>{activity.status === 'done' ? 100 : activity.status === 'progress' ? 50 : 0}%</span>
+															</div>
+														</div>
+
+														{/* Kanban */}
+														<div className='flex items-center gap-2'>
+															<span className='icon-[lucide--kanban-square] size-4 text-zinc-400' />
+															<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Kanban:</span>
+															<div className='flex items-center gap-2 text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-md'>
+																<span className='text-zinc-700 dark:text-zinc-300 font-medium'>{kanbanTaskCounts[activity.id] !== undefined ? `${kanbanTaskCounts[activity.id]} tarefa${kanbanTaskCounts[activity.id] !== 1 ? 's' : ''}` : 'Carregando...'}</span>
+															</div>
+														</div>
+													</div>
+												</div>
+
+												{/* Mini Kanban */}
+												<ActivityMiniKanban activityId={activity.id} projectId={projectId} />
+											</>
+										)}
+									</div>
+								))}
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
 
@@ -654,6 +849,6 @@ export default function ProjectDetailsPage() {
 					onSubmit={handleActivitySubmit}
 				/>
 			)}
-		</div>
+		</>
 	)
 }
