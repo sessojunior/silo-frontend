@@ -478,48 +478,23 @@ export default function ProjectDetailsPage() {
 
 		try {
 			console.log('🔍 [loadKanbanTaskCount] Carregando contagem para atividade:', activityId)
-			console.log('🔍 [loadKanbanTaskCount] URL:', `/api/projects/${projectId}/activities/${activityId}/kanban`)
+			console.log('🔍 [loadKanbanTaskCount] URL:', `/api/projects/${projectId}/activities/${activityId}/tasks`)
 
-			const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/kanban`)
+			const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/tasks`)
 			console.log('🔍 [loadKanbanTaskCount] Response status:', response.status)
 
 			if (response.ok) {
 				const data = await response.json()
 				console.log('🔍 [loadKanbanTaskCount] Response data para atividade', activityId, ':', data)
 
-				if (data.success && data.columns) {
-					let totalTasks = 0
-					console.log('🔍 [loadKanbanTaskCount] Colunas encontradas:', data.columns.length)
-
-					data.columns.forEach((column: { tasks?: unknown[]; name?: string; type?: string }, index: number) => {
-						console.log(`🔍 [loadKanbanTaskCount] Coluna ${index + 1} (${column.name || column.type || 'sem nome'}):`, column.tasks?.length || 0, 'tarefas totais')
-
-						if (column.tasks && Array.isArray(column.tasks)) {
-							// Filtrar apenas tarefas que pertencem à atividade específica
-							const tasksForThisActivity = column.tasks.filter((task) => {
-								const taskData = task as { task?: { id: string; name: string; projectActivityId: string }; id?: string; name?: string; projectActivityId?: string }
-								const taskActivityId = taskData.task?.projectActivityId || taskData.projectActivityId
-								console.log('🔍 [loadKanbanTaskCount] Verificando tarefa:', {
-									taskId: taskData.task?.id || taskData.id,
-									taskName: taskData.task?.name || taskData.name,
-									taskActivityId,
-									targetActivityId: activityId,
-									matches: taskActivityId === activityId,
-								})
-								return taskActivityId === activityId
-							})
-
-							console.log(`🔍 [loadKanbanTaskCount] Coluna ${column.name || column.type}: ${tasksForThisActivity.length} tarefas para atividade ${activityId}`)
-							totalTasks += tasksForThisActivity.length
-						}
-					})
-
+				if (data.success && data.tasks) {
+					const totalTasks = data.tasks.length
 					console.log('🔍 [loadKanbanTaskCount] ===== RESULTADO FINAL =====')
-					console.log('🔍 [loadKanbanTaskCount] Total de tarefas calculado para atividade', activityId, ':', totalTasks)
+					console.log('🔍 [loadKanbanTaskCount] Total de tarefas para atividade', activityId, ':', totalTasks)
 					console.log('🔍 [loadKanbanTaskCount] ============================')
 					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: totalTasks }))
 				} else {
-					console.log('🔍 [loadKanbanTaskCount] API retornou falha ou sem colunas para atividade:', activityId)
+					console.log('🔍 [loadKanbanTaskCount] API retornou falha ou sem tarefas para atividade:', activityId)
 					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
 				}
 			} else {

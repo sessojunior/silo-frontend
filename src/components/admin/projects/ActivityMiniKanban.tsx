@@ -39,28 +39,14 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 	async function loadKanbanTasks() {
 		try {
 			setLoading(true)
-			const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/kanban`)
+			const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/tasks`)
 
 			if (response.ok) {
-				const kanbanData = await response.json()
+				const tasksData = await response.json()
 
-				if (kanbanData.success) {
-					// Extrair tarefas do JSON do Kanban
-					const allTasks: ProjectTask[] = []
-
-					if (kanbanData.columns && Array.isArray(kanbanData.columns)) {
-						kanbanData.columns.forEach((column: { name: string; type: string; tasks?: unknown[] }) => {
-							if (column.tasks && Array.isArray(column.tasks)) {
-								;(column.tasks as Array<{ task?: ProjectTask; project_task_id: string; subcolumn: string; order: number }>).forEach((kanbanTask) => {
-									if (kanbanTask.task) {
-										allTasks.push(kanbanTask.task)
-									}
-								})
-							}
-						})
-					}
-
-					setTasks(allTasks)
+				if (tasksData.success && tasksData.tasks) {
+					// Usar diretamente as tarefas da nova API
+					setTasks(tasksData.tasks)
 				}
 			}
 		} catch (error) {

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, closestCorners, useDroppable } from '@dnd-kit/core'
+import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, pointerWithin, useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
@@ -154,14 +154,21 @@ const categoryColors: Record<string, string> = {
 	Planejamento: 'bg-gray-100 text-gray-800',
 }
 
-// Base Task Card Content - Componente reutilizável
-function TaskCardContent({ task }: { task: Task }) {
+// Sortable Task Card Component
+function SortableTaskCard({ task }: { task: Task }) {
+	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
+
+	const style = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+	}
+
 	const formatDate = (dateString: string): string => {
 		return new Date(dateString).toLocaleDateString('pt-BR')
 	}
 
 	return (
-		<>
+		<div ref={setNodeRef} style={style} {...attributes} {...listeners} className={`bg-white rounded-lg shadow-sm border p-4 cursor-move hover:shadow-md transition-shadow ${isDragging ? 'opacity-50' : ''}`}>
 			<div className='flex items-start justify-between mb-2'>
 				<div className='flex items-center space-x-2'>
 					<div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`} />
@@ -170,8 +177,8 @@ function TaskCardContent({ task }: { task: Task }) {
 				<div className='icon-[lucide--grip-vertical] w-4 h-4 text-gray-400' />
 			</div>
 
-			<h3 className='font-medium text-gray-900 mb-1 line-clamp-2 leading-tight'>{task.name}</h3>
-			<p className='text-sm text-gray-600 mb-3 line-clamp-2'>{task.description}</p>
+			<h3 className='font-medium text-gray-900 mb-1'>{task.name}</h3>
+			<p className='text-sm text-gray-600 mb-3'>{task.description}</p>
 
 			<div className='flex items-center justify-between text-xs text-gray-500'>
 				<div className='flex items-center space-x-1'>
@@ -183,31 +190,39 @@ function TaskCardContent({ task }: { task: Task }) {
 					<span>{formatDate(task.start_date)}</span>
 				</div>
 			</div>
-		</>
-	)
-}
-
-// Sortable Task Card Component
-function SortableTaskCard({ task }: { task: Task }) {
-	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
-
-	const style = {
-		transform: CSS.Transform.toString(transform),
-		transition,
-	}
-
-	return (
-		<div ref={setNodeRef} style={style} {...attributes} {...listeners} className={`bg-white rounded-lg shadow-sm border p-4 cursor-move hover:shadow-md transition-shadow ${isDragging ? 'opacity-50' : ''}`}>
-			<TaskCardContent task={task} />
 		</div>
 	)
 }
 
-// Task Card for Drag Overlay - Usa o mesmo conteúdo com estilos diferentes
+// Task Card for Drag Overlay
 function TaskCard({ task }: { task: Task }) {
+	const formatDate = (dateString: string): string => {
+		return new Date(dateString).toLocaleDateString('pt-BR')
+	}
+
 	return (
-		<div className='bg-white rounded-lg shadow-xl border-2 border-blue-200 p-4 rotate-2 transform scale-105 opacity-95 pointer-events-none'>
-			<TaskCardContent task={task} />
+		<div className='bg-white rounded-lg shadow-lg border p-4 rotate-3 transform'>
+			<div className='flex items-start justify-between mb-2'>
+				<div className='flex items-center space-x-2'>
+					<div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`} />
+					<span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 text-gray-800'}`}>{task.category}</span>
+				</div>
+				<div className='icon-[lucide--grip-vertical] w-4 h-4 text-gray-400' />
+			</div>
+
+			<h3 className='font-medium text-gray-900 mb-1'>{task.name}</h3>
+			<p className='text-sm text-gray-600 mb-3'>{task.description}</p>
+
+			<div className='flex items-center justify-between text-xs text-gray-500'>
+				<div className='flex items-center space-x-1'>
+					<div className='icon-[lucide--clock] w-3 h-3' />
+					<span>{task.estimated_days}d</span>
+				</div>
+				<div className='flex items-center space-x-1'>
+					<div className='icon-[lucide--calendar] w-3 h-3' />
+					<span>{formatDate(task.start_date)}</span>
+				</div>
+			</div>
 		</div>
 	)
 }
@@ -215,13 +230,13 @@ function TaskCard({ task }: { task: Task }) {
 // Droppable Column Component
 function DroppableColumn({ column, tasks }: { column: Column; tasks: Task[] }) {
 	// Hook para tornar o contêiner droppable
-	const { setNodeRef: setDroppableRef } = useDroppable({ id: column.id })
+	const { setNodeRef } = useDroppable({ id: column.id })
 
 	const taskIds = tasks.map((task: Task) => task.id)
 
 	return (
 		// Ref apontando para o droppable
-		<div ref={setDroppableRef} className={`rounded-lg border-2 ${column.color} p-4 min-w-72 min-h-96`}>
+		<div ref={setNodeRef} className={`rounded-lg border-2 ${column.color} p-4 min-h-96`}>
 			<div className='flex items-center space-x-2 mb-4'>
 				<div className={`${column.icon} w-[18px] h-[18px] text-gray-600`} />
 				<h2 className='font-semibold text-gray-900'>{column.title}</h2>
@@ -245,15 +260,9 @@ function DroppableColumn({ column, tasks }: { column: Column; tasks: Task[] }) {
 	)
 }
 
-// Props interface
-interface KanbanBoardProps {
-	tasks?: Task[]
-	onTaskMove?: (taskId: string, fromStatus: TaskStatus, toStatus: TaskStatus, overId?: string) => Promise<void>
-}
-
 // Main Kanban Board Component
-export default function KanbanBoard({ tasks: externalTasks, onTaskMove }: KanbanBoardProps = {}) {
-	const [tasks, setTasks] = useState<Task[]>(externalTasks || initialTasks)
+export default function KanbanBoard() {
+	const [tasks, setTasks] = useState<Task[]>(initialTasks)
 	const [activeTask, setActiveTask] = useState<Task | null>(null)
 	const [isClient, setIsClient] = useState(false)
 
@@ -262,96 +271,50 @@ export default function KanbanBoard({ tasks: externalTasks, onTaskMove }: Kanban
 		setIsClient(true)
 	}, [])
 
-	// Sincronizar tasks externas
-	useEffect(() => {
-		if (externalTasks) {
-			setTasks(externalTasks)
-		}
-	}, [externalTasks])
-
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
-			activationConstraint: {
-				distance: 8,
-			},
+			activationConstraint: { distance: 8 },
 		}),
 	)
 
-	const getTasksByStatus = (status: TaskStatus): Task[] => {
-		return tasks.filter((task: Task) => task.status === status).sort((a: Task, b: Task) => a.sort - b.sort)
-	}
+	const getTasksByStatus = (status: TaskStatus) => tasks.filter((task) => task.status === status).sort((a, b) => a.sort - b.sort)
 
-	const handleDragStart = (event: DragStartEvent): void => {
-		const { active } = event
-		const task = tasks.find((t: Task) => t.id === active.id)
+	const handleDragStart = (event: DragStartEvent) => {
+		const task = tasks.find((t) => t.id === event.active.id)
 		setActiveTask(task || null)
 	}
 
-	const handleDragOver = (event: DragOverEvent): void => {
+	const handleDragOver = (event: DragOverEvent) => {
 		const { active, over } = event
-
 		if (!over) return
 
 		const activeId = active.id as string
 		const overId = over.id as string
 
-		if (activeId === overId) return
-
-		const activeTask = tasks.find((t: Task) => t.id === activeId)
-		const overTask = tasks.find((t: Task) => t.id === overId)
+		const activeTask = tasks.find((t) => t.id === activeId)
+		const overTask = tasks.find((t) => t.id === overId)
 
 		if (!activeTask) return
 
-		// Dropping over a column (not a task)
-		if (columns.some((col: Column) => col.id === overId)) {
+		// Se estiver sobre uma coluna
+		if (columns.some((col) => col.id === overId)) {
 			const newStatus = overId as TaskStatus
 			if (activeTask.status === newStatus) return
 
-			setTasks((prevTasks: Task[]) => {
-				const updatedTasks = prevTasks.map((task: Task) => {
-					if (task.id === activeId) {
-						const targetColumnTasks = prevTasks.filter((t: Task) => t.status === newStatus)
-						return {
-							...task,
-							status: newStatus,
-							sort: targetColumnTasks.length,
-						}
-					}
-					return task
-				})
-
-				// Reorder tasks in the target column
-				const targetColumnTasks = updatedTasks.filter((t: Task) => t.status === newStatus).sort((a: Task, b: Task) => a.sort - b.sort)
-
-				return updatedTasks.map((task: Task) => {
-					if (task.status === newStatus) {
-						const index = targetColumnTasks.findIndex((t: Task) => t.id === task.id)
-						return { ...task, sort: index }
-					}
-					return task
-				})
-			})
+			setTasks((prev) => prev.map((task) => (task.id === activeId ? { ...task, status: newStatus, sort: prev.filter((t) => t.status === newStatus).length } : task)))
 			return
 		}
 
-		// Dropping over another task
+		// Se estiver sobre outro task
 		if (overTask && activeTask.status !== overTask.status) {
-			setTasks((prevTasks: Task[]) => {
-				const activeIndex = prevTasks.findIndex((t: Task) => t.id === activeId)
+			setTasks((prev) => {
+				const updatedTasks = prev.map((task) => (task.id === activeId ? { ...task, status: overTask.status, sort: overTask.sort } : task))
 
-				const updatedTasks = [...prevTasks]
-				updatedTasks[activeIndex] = {
-					...activeTask,
-					status: overTask.status,
-					sort: overTask.sort,
-				}
+				const targetTasks = updatedTasks.filter((t) => t.status === overTask.status).sort((a, b) => a.sort - b.sort)
 
-				// Reorder tasks in the target column
-				const targetColumnTasks = updatedTasks.filter((t: Task) => t.status === overTask.status).sort((a: Task, b: Task) => a.sort - b.sort)
-
-				return updatedTasks.map((task: Task) => {
+				return updatedTasks.map((task) => {
 					if (task.status === overTask.status) {
-						const index = targetColumnTasks.findIndex((t: Task) => t.id === task.id)
+						const index = targetTasks.findIndex((t) => t.id === task.id)
 						return { ...task, sort: index }
 					}
 					return task
@@ -360,9 +323,8 @@ export default function KanbanBoard({ tasks: externalTasks, onTaskMove }: Kanban
 		}
 	}
 
-	const handleDragEnd = async (event: DragEndEvent): Promise<void> => {
+	const handleDragEnd = (event: DragEndEvent) => {
 		const { active, over } = event
-
 		if (!over) {
 			setActiveTask(null)
 			return
@@ -370,77 +332,52 @@ export default function KanbanBoard({ tasks: externalTasks, onTaskMove }: Kanban
 
 		const activeId = active.id as string
 		const overId = over.id as string
-
-		const activeTask = tasks.find((t: Task) => t.id === activeId)
-		const overTask = tasks.find((t: Task) => t.id === overId)
+		const activeTask = tasks.find((t) => t.id === activeId)
+		const overTask = tasks.find((t) => t.id === overId)
 
 		if (!activeTask) {
 			setActiveTask(null)
 			return
 		}
 
-		const originalStatus = activeTask.status
-		let newStatus = originalStatus
+		// Caso solte diretamente sobre uma coluna (ex: coluna vazia)
+		if (columns.some((col) => col.id === overId)) {
+			const newStatus = overId as TaskStatus
+			if (activeTask.status !== newStatus) {
+				setTasks((prev) => {
+					const updated = prev.map((task) => (task.id === activeId ? { ...task, status: newStatus, sort: prev.filter((t) => t.status === newStatus).length } : task))
 
-		// Determinar novo status baseado no drop
-		if (columns.some((col: Column) => col.id === overId)) {
-			// Dropped on column
-			newStatus = overId as TaskStatus
-		} else if (overTask) {
-			// Dropped on another task
-			newStatus = overTask.status
-		}
-
-		// Atualização otimista local
-		if (overTask && activeTask.status === overTask.status) {
-			// Reordering within the same column
-			setTasks((prevTasks: Task[]) => {
-				const oldIndex = prevTasks.findIndex((t: Task) => t.id === activeId)
-				const newIndex = prevTasks.findIndex((t: Task) => t.id === overId)
-
-				const updatedTasks = [...prevTasks]
-				const [removed] = updatedTasks.splice(oldIndex, 1)
-				updatedTasks.splice(newIndex, 0, removed)
-
-				// Update sort orders for the column
-				const columnTasks = updatedTasks.filter((t: Task) => t.status === activeTask.status)
-				return updatedTasks.map((task: Task) => {
-					if (task.status === activeTask.status) {
-						const index = columnTasks.findIndex((t: Task) => t.id === task.id)
-						return { ...task, sort: index }
-					}
-					return task
-				})
-			})
-		} else if (newStatus !== originalStatus) {
-			// Moving between columns
-			setTasks((prevTasks: Task[]) => {
-				return prevTasks.map((task: Task) => {
-					if (task.id === activeId) {
-						return { ...task, status: newStatus, sort: 0 }
-					}
-					return task
-				})
-			})
-		}
-
-		// Chamar função externa se disponível
-		if (onTaskMove && newStatus !== originalStatus) {
-			try {
-				await onTaskMove(activeId, originalStatus, newStatus, overId !== activeId ? overId : undefined)
-				console.log('✅ Task movida com sucesso:', { activeId, originalStatus, newStatus })
-			} catch (error) {
-				console.error('❌ Erro ao mover task:', error)
-				// Reverter mudança otimista em caso de erro
-				setTasks((prevTasks: Task[]) => {
-					return prevTasks.map((task: Task) => {
-						if (task.id === activeId) {
-							return { ...task, status: originalStatus }
+					const targetTasks = updated.filter((t) => t.status === newStatus).sort((a, b) => a.sort - b.sort)
+					return updated.map((task) => {
+						if (task.status === newStatus) {
+							const index = targetTasks.findIndex((t) => t.id === task.id)
+							return { ...task, sort: index }
 						}
 						return task
 					})
 				})
 			}
+		}
+
+		// Caso reordene dentro da mesma coluna
+		else if (overTask && activeTask.status === overTask.status) {
+			setTasks((prevTasks) => {
+				const oldIndex = prevTasks.findIndex((t) => t.id === activeId)
+				const newIndex = prevTasks.findIndex((t) => t.id === overId)
+
+				const updatedTasks = [...prevTasks]
+				const [removed] = updatedTasks.splice(oldIndex, 1)
+				updatedTasks.splice(newIndex, 0, removed)
+
+				const columnTasks = updatedTasks.filter((t) => t.status === activeTask.status)
+				return updatedTasks.map((task) => {
+					if (task.status === activeTask.status) {
+						const index = columnTasks.findIndex((t) => t.id === task.id)
+						return { ...task, sort: index }
+					}
+					return task
+				})
+			})
 		}
 
 		setActiveTask(null)
@@ -449,9 +386,10 @@ export default function KanbanBoard({ tasks: externalTasks, onTaskMove }: Kanban
 	// Loading state para evitar problemas de hidratação
 	if (!isClient) {
 		return (
-			<div className='w-full'>
+			<div className='p-6 bg-gray-50 min-h-screen'>
+				<h1 className='text-2xl font-bold text-gray-900 mb-6'>Kanban Board</h1>
 				<div className='grid grid-cols-5 gap-6'>
-					{columns.map((column: Column) => (
+					{columns.map((column) => (
 						<div key={column.id} className={`rounded-lg border-2 ${column.color} p-4 min-h-96`}>
 							<div className='flex items-center space-x-2 mb-4'>
 								<div className={`${column.icon} w-[18px] h-[18px] text-gray-600`} />
@@ -459,7 +397,7 @@ export default function KanbanBoard({ tasks: externalTasks, onTaskMove }: Kanban
 								<span className='bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full'>{getTasksByStatus(column.id).length}</span>
 							</div>
 							<div className='space-y-3'>
-								{getTasksByStatus(column.id).map((task: Task) => (
+								{getTasksByStatus(column.id).map((task) => (
 									<div key={task.id} className='bg-white rounded-lg shadow-sm border p-4'>
 										<div className='flex items-start justify-between mb-2'>
 											<div className='flex items-center space-x-2'>
@@ -468,7 +406,7 @@ export default function KanbanBoard({ tasks: externalTasks, onTaskMove }: Kanban
 											</div>
 											<div className='icon-[lucide--grip-vertical] w-4 h-4 text-gray-400' />
 										</div>
-										<h3 className='font-medium text-gray-900 mb-1 line-clamp-2 leading-tight'>{task.name}</h3>
+										<h3 className='font-medium text-gray-900 mb-1'>{task.name}</h3>
 										<p className='text-sm text-gray-600 mb-3'>{task.description}</p>
 										<div className='flex items-center justify-between text-xs text-gray-500'>
 											<div className='flex items-center space-x-1'>
@@ -496,10 +434,12 @@ export default function KanbanBoard({ tasks: externalTasks, onTaskMove }: Kanban
 	}
 
 	return (
-		<div className='p-6'>
-			<DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-				<div className='flex gap-4'>
-					{columns.map((column: Column) => (
+		<div className='p-6 bg-gray-50 min-h-screen'>
+			<h1 className='text-2xl font-bold text-gray-900 mb-6'>Kanban Board</h1>
+
+			<DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
+				<div className='grid grid-cols-5 gap-6'>
+					{columns.map((column) => (
 						<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} />
 					))}
 				</div>

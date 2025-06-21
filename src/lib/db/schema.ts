@@ -411,7 +411,7 @@ export const projectActivity = pgTable('project_activity', {
 })
 export type ProjectActivity = typeof projectActivity.$inferSelect
 
-// Tabela de tarefas dos projetos (utilizada no kanban)
+// Tabela de tarefas dos projetos (REFATORADA - ARQUITETURA SIMPLIFICADA)
 export const projectTask = pgTable('project_task', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	projectId: uuid('project_id')
@@ -427,23 +427,9 @@ export const projectTask = pgTable('project_task', {
 	startDate: date('start_date'),
 	endDate: date('end_date'),
 	priority: text('priority').notNull().default('medium'), // 'low' | 'medium' | 'high' | 'urgent'
-	status: text('status').notNull().default('todo'), // 'todo' | 'in_progress' | 'blocked' | 'review' | 'done' - FONTE DA VERDADE
+	status: text('status').notNull().default('todo'), // 'todo' | 'in_progress' | 'blocked' | 'review' | 'done'
+	sort: integer('sort').notNull().default(0), // ORDEM DENTRO DA COLUNA/STATUS - NOVO CAMPO
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 export type ProjectTask = typeof projectTask.$inferSelect
-
-// Tabela do kanban unificada (configuração + posicionamento por atividade)
-export const projectKanban = pgTable('project_kanban', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	projectId: uuid('project_id')
-		.notNull()
-		.references(() => project.id, { onDelete: 'cascade' }),
-	projectActivityId: uuid('project_activity_id')
-		.notNull()
-		.references(() => projectActivity.id, { onDelete: 'cascade' }),
-	columns: text('columns').notNull(), // JSON array das colunas com configuração e tasks
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-	updatedAt: timestamp('updated_at').notNull().defaultNow(),
-})
-export type ProjectKanban = typeof projectKanban.$inferSelect

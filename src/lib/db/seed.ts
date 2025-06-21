@@ -496,107 +496,59 @@ async function seed() {
 			console.log('⚠️ Mensagens de chat já existem, pulando...')
 		}
 
-		// === 12. CRIAR DADOS KANBAN DOS PROJETOS (NOVA ESTRUTURA POR ATIVIDADE) ===
+		// === 12. CRIAR DADOS DAS TAREFAS DOS PROJETOS (ARQUITETURA SIMPLIFICADA) ===
 		const tasksCheck = await checkTableData('project_task', () => db.select().from(schema.projectTask))
-		const kanbanCheck = await checkTableData('project_kanban', () => db.select().from(schema.projectKanban))
 
-		if ((!tasksCheck.hasData || !kanbanCheck.hasData) && insertedProjects.length > 0) {
-			console.log('🔵 Criando dados do sistema Kanban (nova estrutura por atividade)...')
+		if (!tasksCheck.hasData && insertedProjects.length > 0) {
+			console.log('🔵 Criando dados das tarefas (arquitetura simplificada)...')
 
 			// Buscar atividades existentes
 			const allActivities = await db.select().from(schema.projectActivity)
 
 			if (allActivities.length > 0) {
 				let totalTasksCreated = 0
-				let totalKanbansCreated = 0
 
 				for (const project of insertedProjects.slice(0, 3)) {
 					// Apenas primeiros 3 projetos
 					const projectActivities = allActivities.filter((a) => a.projectId === project.id)
 
 					if (projectActivities.length > 0) {
-						console.log(`   🔵 Criando Kanban para projeto "${project.name}" (${projectActivities.length} atividades)...`)
+						console.log(`   🔵 Criando tarefas para projeto "${project.name}" (${projectActivities.length} atividades)...`)
 
-						// Para cada atividade, criar seu próprio Kanban
+						// Para cada atividade, criar pelo menos 6 tarefas
 						for (const activity of projectActivities) {
-							console.log(`     🔵 Criando Kanban para atividade "${activity.name}"...`)
+							console.log(`     🔵 Criando tarefas para atividade "${activity.name}"...`)
 
-							// Criar 6 tarefas de exemplo para esta atividade
+							// Criar 6+ tarefas de exemplo para esta atividade
 							const tasksToCreate = []
 
-							interface KanbanTask {
-								project_task_id: string
-								subcolumn: 'in_progress' | 'done'
-								order: number
-							}
-
-							// Estrutura de colunas padrão para o Kanban
-							const columns = [
-								{
-									name: 'A fazer',
-									type: 'todo',
-									is_visible: true,
-									color: 'blue',
-									icon: 'icon-[lucide--circle]',
-									limit_wip: null,
-									block_wip_reached: false,
-									tasks: [] as KanbanTask[],
-								},
-								{
-									name: 'Em progresso',
-									type: 'in_progress',
-									is_visible: true,
-									color: 'yellow',
-									icon: 'icon-[lucide--play-circle]',
-									limit_wip: 3,
-									block_wip_reached: false,
-									tasks: [] as KanbanTask[],
-								},
-								{
-									name: 'Bloqueado',
-									type: 'blocked',
-									is_visible: true,
-									color: 'red',
-									icon: 'icon-[lucide--alert-circle]',
-									limit_wip: null,
-									block_wip_reached: false,
-									tasks: [] as KanbanTask[],
-								},
-								{
-									name: 'Em revisão',
-									type: 'review',
-									is_visible: true,
-									color: 'orange',
-									icon: 'icon-[lucide--eye]',
-									limit_wip: 2,
-									block_wip_reached: true,
-									tasks: [] as KanbanTask[],
-								},
-								{
-									name: 'Concluído',
-									type: 'done',
-									is_visible: true,
-									color: 'green',
-									icon: 'icon-[lucide--check-circle]',
-									limit_wip: null,
-									block_wip_reached: false,
-									tasks: [] as KanbanTask[],
-								},
-							]
-
-							// Criar 6 tarefas distribuídas nas colunas
+							// Templates de tarefas com distribuição por status
 							const taskTemplates = [
-								{ name: 'Configurar ambiente', status: 'todo', category: 'Infraestrutura' },
-								{ name: 'Implementar funcionalidade', status: 'in_progress', category: 'Desenvolvimento' },
-								{ name: 'Configurar rede interna', status: 'in_progress', category: 'Infraestrutura' },
-								{ name: 'Testes de integração', status: 'review', category: 'Testes' },
-								{ name: 'Documentação técnica', status: 'blocked', category: 'Documentação' },
-								{ name: 'Deploy em produção', status: 'done', category: 'Deploy' },
+								{ name: 'Configurar ambiente de desenvolvimento', status: 'todo', category: 'Infraestrutura', priority: 'high' },
+								{ name: 'Implementar funcionalidade principal', status: 'todo', category: 'Desenvolvimento', priority: 'urgent' },
+								{ name: 'Configurar rede interna e externa', status: 'in_progress', category: 'Infraestrutura', priority: 'medium' },
+								{ name: 'Desenvolver interface do usuário', status: 'in_progress', category: 'Desenvolvimento', priority: 'high' },
+								{ name: 'Testes de integração', status: 'review', category: 'Testes', priority: 'medium' },
+								{ name: 'Documentação técnica', status: 'blocked', category: 'Documentação', priority: 'low' },
+								{ name: 'Deploy em ambiente de produção', status: 'done', category: 'Deploy', priority: 'high' },
+								{ name: 'Configuração de monitoramento', status: 'done', category: 'DevOps', priority: 'medium' },
 							]
+
+							// Distribuir tarefas por status com sort sequencial
+							const tasksByStatus: Record<string, number> = {
+								todo: 0,
+								in_progress: 0,
+								blocked: 0,
+								review: 0,
+								done: 0,
+							}
 
 							for (let i = 0; i < taskTemplates.length; i++) {
 								const template = taskTemplates[i]
 								const taskId = randomUUID()
+
+								// Incrementar contador para este status
+								tasksByStatus[template.status]++
 
 								tasksToCreate.push({
 									id: taskId,
@@ -607,58 +559,38 @@ async function seed() {
 									category: template.category,
 									estimatedDays: Math.floor(Math.random() * 15) + 1, // 1-15 dias
 									status: template.status,
+									sort: tasksByStatus[template.status] - 1, // Sort sequencial por status (0, 1, 2...)
 									startDate: activity.startDate,
 									endDate: activity.endDate,
-									priority: activity.priority,
+									priority: template.priority,
 								})
-
-								// Adicionar task na coluna correspondente
-								const columnIndex = columns.findIndex((col) => col.type === template.status)
-								if (columnIndex !== -1) {
-									const taskSubcolumn = columns[columnIndex].limit_wip !== null ? 'in_progress' : 'in_progress'
-									columns[columnIndex].tasks.push({
-										project_task_id: taskId,
-										subcolumn: taskSubcolumn,
-										order: columns[columnIndex].tasks.length,
-									})
-								}
 							}
 
-							// Inserir tasks desta atividade
+							// Inserir tarefas desta atividade
 							if (tasksToCreate.length > 0) {
 								await db.insert(schema.projectTask).values(tasksToCreate)
 								totalTasksCreated += tasksToCreate.length
+								console.log(`     ✅ ${tasksToCreate.length} tarefas criadas para "${activity.name}"`)
 							}
-
-							// Inserir Kanban para esta atividade
-							await db.insert(schema.projectKanban).values({
-								id: randomUUID(),
-								projectId: project.id,
-								projectActivityId: activity.id,
-								columns: JSON.stringify(columns),
-							})
-
-							totalKanbansCreated++
-							console.log(`     ✅ Kanban criado para "${activity.name}" com ${tasksToCreate.length} tasks`)
 						}
 
-						console.log(`   ✅ Projeto "${project.name}" finalizado com ${projectActivities.length} Kanbans`)
+						console.log(`   ✅ Projeto "${project.name}" finalizado com ${projectActivities.length} atividades`)
 					}
 				}
 
-				console.log(`✅ Sistema Kanban criado: ${totalKanbansCreated} Kanbans com ${totalTasksCreated} tasks!`)
+				console.log(`✅ Sistema de tarefas criado: ${totalTasksCreated} tarefas distribuídas!`)
 			} else {
-				console.log('⚠️ Nenhuma atividade encontrada para criar Kanbans')
+				console.log('⚠️ Nenhuma atividade encontrada para criar tarefas')
 			}
 		} else {
-			console.log('⚠️ Dados do sistema Kanban já existem, pulando...')
+			console.log('⚠️ Dados das tarefas já existem, pulando...')
 		}
 
 		console.log('✅ Seed finalizado com sucesso!')
 		console.log('📊 Resumo do seed:')
 		console.log(`   - Sistema completamente configurado`)
 		console.log(`   - Dados de teste inseridos onde necessário`)
-		console.log(`   - Sistema Kanban com sincronização dupla implementado`)
+		console.log(`   - Sistema de tarefas com arquitetura simplificada implementado`)
 		console.log(`   - Nenhuma duplicação de dados`)
 	} catch (error) {
 		console.error('❌ Erro durante o seed:', error)

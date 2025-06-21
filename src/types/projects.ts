@@ -75,6 +75,7 @@ export interface Task {
 	endDate: string | null
 	estimatedHours: number | null
 	actualHours: number | null
+	sort: number // Ordem dentro da coluna/status
 
 	// Relacionamentos
 	assignees: TaskAssignee[] // Usuários atribuídos à tarefa
