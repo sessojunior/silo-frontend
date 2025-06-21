@@ -126,34 +126,24 @@ const categoryColors: Record<string, string> = {
 	Planejamento: 'bg-gray-100 text-gray-800',
 }
 
-function SortableTaskCard({ task, activeTask }: { task: Task; activeTask: Task | null }) {
-	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-		id: task.id,
-		data: {
-			type: 'Task',
-			task: task,
-		},
-	})
-	const style = {
-		transform: CSS.Transform.toString(transform),
-		transition,
-	}
-	const isBeingDragged = activeTask?.id === task.id
+// Componente base reutilizável para conteúdo do card
+function TaskCardContent({ task, showEditButton = true }: { task: Task; showEditButton?: boolean }) {
 	const formatDate = (dateString: string): string => {
 		return new Date(dateString).toLocaleDateString('pt-BR')
 	}
-	// Determina tema da coluna do card
-	const theme = columnTheme[task.status]
-	const cardContent = (
+
+	return (
 		<div className='select-none'>
 			<div className='flex items-start justify-between mb-2'>
 				<div className='flex items-center space-x-2'>
 					<div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`} />
 					<span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 text-gray-800'}`}>{task.category}</span>
 				</div>
-				<button className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 transition group' title='Editar tarefa' type='button'>
-					<span className='icon-[lucide--pencil] size-4 text-zinc-400 group-hover:text-zinc-600' />
-				</button>
+				{showEditButton && (
+					<button className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 transition group' title='Editar tarefa' type='button'>
+						<span className='icon-[lucide--pencil] size-4 text-zinc-400 group-hover:text-zinc-600' />
+					</button>
+				)}
 			</div>
 			<h3 className='font-medium text-gray-900 mb-1'>{task.name}</h3>
 			<p className='text-sm text-gray-600 mb-3'>{task.description}</p>
@@ -169,46 +159,42 @@ function SortableTaskCard({ task, activeTask }: { task: Task; activeTask: Task |
 			</div>
 		</div>
 	)
+}
+
+function SortableTaskCard({ task, activeTask }: { task: Task; activeTask: Task | null }) {
+	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+		id: task.id,
+		data: {
+			type: 'Task',
+			task: task,
+		},
+	})
+	const style = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+	}
+	const isBeingDragged = activeTask?.id === task.id
+	const theme = columnTheme[task.status]
+
 	if (isBeingDragged) {
 		return (
 			<div ref={setNodeRef} style={style} className={`bg-white rounded-xl border-2 ${theme.border} p-4 opacity-50`}>
-				{cardContent}
+				<TaskCardContent task={task} />
 			</div>
 		)
 	}
+
 	return (
 		<div ref={setNodeRef} style={style} {...attributes} {...listeners} className={`bg-white rounded-xl border-2 ${theme.border} p-4 cursor-move transition-shadow hover:shadow-md`}>
-			{cardContent}
+			<TaskCardContent task={task} />
 		</div>
 	)
 }
 
 function TaskCard({ task }: { task: Task }) {
-	const formatDate = (dateString: string): string => {
-		return new Date(dateString).toLocaleDateString('pt-BR')
-	}
-
 	return (
-		<div className='bg-white rounded-lg shadow-lg border border-gray-200 p-4 rotate-3 transform select-none'>
-			<div className='flex items-start justify-between mb-2'>
-				<div className='flex items-center space-x-2'>
-					<div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`} />
-					<span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 text-gray-800'}`}>{task.category}</span>
-				</div>
-				<div className='icon-[lucide--grip-vertical] w-4 h-4 text-gray-400' />
-			</div>
-			<h3 className='font-medium text-gray-900 mb-1'>{task.name}</h3>
-			<p className='text-sm text-gray-600 mb-3'>{task.description}</p>
-			<div className='flex items-center justify-between text-xs text-gray-500'>
-				<div className='flex items-center space-x-1'>
-					<div className='icon-[lucide--clock] w-3 h-3' />
-					<span>{task.estimated_days} dias</span>
-				</div>
-				<div className='flex items-center space-x-1'>
-					<div className='icon-[lucide--calendar] w-3 h-3' />
-					<span>{formatDate(task.start_date)}</span>
-				</div>
-			</div>
+		<div className='bg-white rounded-lg shadow-lg border border-gray-200 p-4 rotate-3 transform'>
+			<TaskCardContent task={task} showEditButton={false} />
 		</div>
 	)
 }
@@ -244,7 +230,7 @@ function DroppableColumn({ column, tasks, activeTask }: { column: Column; tasks:
 					))}
 					{tasks.length === 0 && (
 						<div className='h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-zinc-50'>
-							<span className='text-gray-500 text-sm'>Solte aqui</span>
+							<span className='text-gray-500 text-sm'>Arraste e solte aqui</span>
 						</div>
 					)}
 				</div>
@@ -290,11 +276,11 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder,
 				})
 
 				// Toast de feedback imediato
-				toast({
-					type: 'info',
-					title: '⏳ Salvando...',
-					description: 'Movimentação sendo salva no servidor...',
-				})
+				// toast({
+				// 	type: 'info',
+				// 	title: '⏳ Salvando...',
+				// 	description: 'Movimentação sendo salva no servidor...',
+				// })
 
 				// Enviar para backend
 				onTasksReorder(before, after)
