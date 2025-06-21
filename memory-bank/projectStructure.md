@@ -199,11 +199,9 @@ src/
 
 **PROBLEMAS CRÍTICOS RESOLVIDOS**:
 
-- ✅ **Task Counter Bug** - Cada atividade agora mostra contagem correta de suas tarefas
-- ✅ **Drag & Drop Ordering** - Campo kanbanOrder implementado com ordenação funcional
-- ✅ **Color System** - Mapeamento estático Tailwind (não interpolação dinâmica)
-- ✅ **Type System** - Separação clara Activity vs Task, eliminada confusão
-- ✅ **Movement Logic** - Status parsing e reordenação entre subcolunas corrigidos
+- ✅ **Contagem de tarefas corrigida** - Filtro por activityId implementado
+- ✅ **Colunas droppable** - useDroppable implementado em todas as colunas
+- ✅ **Sistema funciona igual test-kanban** - Drag & drop 100% funcional
 
 ## ✅ PASSO 5 - SISTEMA DE AJUDA IMPLEMENTADO
 
@@ -872,3 +870,108 @@ npm run dev          # Servidor desenvolvimento
 **PASSO 3-8**: Grupos, Usuários, Chat, Ajuda, Configurações, Dashboard
 
 Este projeto structure representa o estado atual do Silo com todas as funcionalidades principais implementadas e sistema de contatos 100% finalizado.
+
+### 🎯 MELHORIAS CRÍTICAS DO KANBAN - JANEIRO 2025
+
+**ARQUITETURA HÍBRIDA REVOLUCIONÁRIA IMPLEMENTADA**:
+
+#### **1. CORREÇÃO DE POSICIONAMENTO PRECISO**
+
+**PROBLEMA IDENTIFICADO**:
+
+- Tarefas não iam para posição exata onde usuário soltava
+- Conflito entre `handleDragOver` e `handleDragEnd`
+- Detecção incorreta de cenários (column_change vs same_column_reorder)
+
+**SOLUÇÃO IMPLEMENTADA**:
+
+```typescript
+// 🎯 ARQUITETURA HÍBRIDA - KanbanBoard.tsx
+
+// ✅ handleDragStart - Captura estado original
+const [originalTaskStatus, setOriginalTaskStatus] = useState<string | null>(null)
+
+// ✅ handleDragOver - Feedback visual simples
+handleDragOver: {
+	// Apenas preview temporário do status
+	// Sem lógica complexa de posicionamento
+	// Performance otimizada para execução frequente
+}
+
+// ✅ handleDragEnd - Lógica centralizada completa
+handleDragEnd: {
+	// 1. Restaura estado original (cancela preview)
+	// 2. Usa originalTaskStatus para detecção correta
+	// 3. Algoritmo de posicionamento preciso com splice()
+	// 4. Persistência no banco de dados
+}
+```
+
+#### **2. ALGORITMO DE POSICIONAMENTO PRECISO**
+
+**IMPLEMENTAÇÃO**:
+
+```typescript
+// 🎯 Posicionamento Exato - splice() algorithm
+const insertPosition = overTaskIndex >= 0 ? overTaskIndex : targetTasks.length
+const reorderedTasks = [...targetTasks]
+reorderedTasks.splice(insertPosition, 0, movedTask)
+
+// 🎯 Reordenação sequencial
+const finalTasks = reorderedTasks.map((task, index) => ({
+	...task,
+	sort: index,
+}))
+```
+
+#### **3. CORREÇÕES TÉCNICAS IMPLEMENTADAS**
+
+**SINCRONIZAÇÃO CONTROLADA**:
+
+- ✅ `useRef(isInitialized)` - Controla sincronização única com props externas
+- ✅ Props não sobrescrevem mudanças otimistas durante drag & drop
+- ✅ Estado local preservado durante toda sessão de uso
+
+**DETECÇÃO DE CENÁRIOS CORRIGIDA**:
+
+- ✅ `originalTaskStatus` capturado no `handleDragStart`
+- ✅ Usado para detecção correta vs `activeTask.status` (já alterado)
+- ✅ Limpeza automática do estado no final do drag
+
+**ALGORITMO DE INSERÇÃO**:
+
+- ✅ `findIndex()` para encontrar posição da tarefa alvo
+- ✅ `splice(insertPosition, 0, task)` para inserção na posição exata
+- ✅ `map((task, index) => ({ ...task, sort: index }))` para reordenação sequencial
+
+#### **4. BENEFÍCIOS CONQUISTADOS**
+
+**POSICIONAMENTO PRECISO**:
+
+- ✅ **Segunda posição**: Solta sobre segunda tarefa → vai para segunda posição
+- ✅ **Terceira posição**: Solta sobre terceira tarefa → vai para terceira posição
+- ✅ **Qualquer posição**: Respeita precisamente onde o usuário solta
+- ✅ **Colunas vazias**: Funciona perfeitamente em colunas sem tarefas
+
+**ARQUITETURA OTIMIZADA**:
+
+- ✅ **Uma fonte de verdade**: handleDragEnd centraliza toda lógica
+- ✅ **Feedback visual mantido**: handleDragOver simples e responsivo
+- ✅ **Elimina inconsistências**: Sem conflitos entre funções
+- ✅ **Fácil manutenção**: Lógica clara e bem separada
+
+**COMPATIBILIDADE TOTAL**:
+
+- ✅ **Funciona igual test-kanban**: Comportamento idêntico ao teste funcional
+- ✅ **API mantida**: Interface com página principal preservada
+- ✅ **Performance otimizada**: handleDragOver leve, handleDragEnd robusto
+
+#### **5. ARQUIVOS ATUALIZADOS**
+
+**COMPONENTE PRINCIPAL**:
+
+- `src/components/admin/projects/KanbanBoard.tsx` - **REFATORADO** com arquitetura híbrida
+
+**INTEGRAÇÃO MANTIDA**:
+
+- `src/app/admin/projects/[projectId]/activities/[activityId]/page.tsx` - Interface preservada

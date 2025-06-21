@@ -461,7 +461,7 @@ export default function ProjectDetailsPage() {
 
 	if (loading) {
 		return (
-			<div className='flex items-center justify-center min-h-[400px] w-full'>
+			<div className='flex flex-1 h-full items-center justify-center w-full'>
 				<div className='flex items-center justify-center gap-3'>
 					<span className='icon-[lucide--loader-circle] size-6 animate-spin text-zinc-400' />
 					<span className='text-zinc-600 dark:text-zinc-400'>Carregando projeto...</span>

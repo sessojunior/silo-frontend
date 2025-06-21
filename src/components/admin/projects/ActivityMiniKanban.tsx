@@ -45,8 +45,18 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 				const tasksData = await response.json()
 
 				if (tasksData.success && tasksData.tasks) {
-					// Usar diretamente as tarefas da nova API
-					setTasks(tasksData.tasks)
+					console.log('🔵 [ActivityMiniKanban] Dados recebidos da API:', tasksData.tasks)
+
+					// A API retorna tasks agrupadas por status, precisamos converter para array
+					const allTasks: ProjectTask[] = []
+					Object.values(tasksData.tasks).forEach((statusTasks: unknown) => {
+						if (Array.isArray(statusTasks)) {
+							allTasks.push(...(statusTasks as ProjectTask[]))
+						}
+					})
+
+					console.log('🔵 [ActivityMiniKanban] Tasks convertidas para array:', allTasks.length)
+					setTasks(allTasks)
 				}
 			}
 		} catch (error) {
@@ -56,8 +66,8 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 		}
 	}
 
-	// Agrupar tarefas por status
-	const tasksByStatus = tasks.reduce(
+	// Agrupar tarefas por status (garantir que tasks é um array)
+	const tasksByStatus = (Array.isArray(tasks) ? tasks : []).reduce(
 		(acc, task) => {
 			if (!acc[task.status]) {
 				acc[task.status] = []

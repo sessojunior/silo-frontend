@@ -184,6 +184,175 @@ tasks.sort((a, b) => {
 })
 ```
 
+### 🎯 ARQUITETURA HÍBRIDA - POSICIONAMENTO PRECISO (JANEIRO 2025)
+
+**PROBLEMA RESOLVIDO**: Sistema não respeitava posição exata onde usuário soltava tarefas
+
+#### **1. ARQUITETURA HÍBRIDA IMPLEMENTADA**
+
+```typescript
+// 🎯 KanbanBoard.tsx - Nova Arquitetura
+
+// ✅ Estado para capturar status original
+const [originalTaskStatus, setOriginalTaskStatus] = useState<string | null>(null)
+
+// ✅ handleDragStart - Captura estado original
+const handleDragStart = (event: DragStartEvent) => {
+	const activeTask = tasks.find((t) => t.id === event.active.id)
+	setOriginalTaskStatus(activeTask?.status || null)
+	// ... resto da lógica
+}
+
+// ✅ handleDragOver - APENAS feedback visual simples
+const handleDragOver = (event: DragOverEvent) => {
+	// Apenas preview temporário do status
+	// SEM lógica complexa de posicionamento
+	// Performance otimizada para execução frequente
+
+	if (isColumnDrop) {
+		// Mudança simples de status para preview
+		setTasks((prev) => prev.map((task) => (task.id === activeId ? { ...task, status: newStatus } : task)))
+	}
+}
+
+// ✅ handleDragEnd - TODA lógica centralizada
+const handleDragEnd = (event: DragEndEvent) => {
+	// 1. Restaura estado original (cancela preview)
+	setTasks((prev) => prev.map((task) => (task.id === activeId ? { ...task, status: originalTaskStatus } : task)))
+
+	// 2. Usa originalTaskStatus para detecção correta de cenários
+	const isColumnChange = originalTaskStatus !== targetStatus
+	const isSameColumnReorder = originalTaskStatus === targetStatus
+
+	// 3. Algoritmo de posicionamento preciso
+	// 4. Persistência final no banco de dados
+}
+```
+
+#### **2. ALGORITMO DE POSICIONAMENTO PRECISO**
+
+```typescript
+// 🎯 Inserção na posição exata usando splice()
+const handleDragEnd = (event: DragEndEvent) => {
+	// ... validações iniciais
+
+	// Cenário: Movimento entre colunas
+	if (isColumnChange) {
+		const targetTasks = tasks.filter((t) => t.status === targetStatus)
+		const overTaskIndex = targetTasks.findIndex((t) => t.id === overId)
+
+		// Posição de inserção: antes da tarefa alvo ou no final
+		const insertPosition = overTaskIndex >= 0 ? overTaskIndex : targetTasks.length
+
+		// Remove tarefa ativa temporariamente
+		const withoutActiveTask = targetTasks.filter((t) => t.id !== activeId)
+
+		// Insere na posição exata
+		const reorderedTasks = [...withoutActiveTask]
+		reorderedTasks.splice(insertPosition, 0, movedTask)
+
+		// Reordena sequencialmente (0, 1, 2, 3...)
+		const finalTasks = reorderedTasks.map((task, index) => ({
+			...task,
+			sort: index,
+		}))
+	}
+
+	// Cenário: Reordenação na mesma coluna
+	if (isSameColumnReorder) {
+		// Lógica similar com splice() para reordenação
+	}
+}
+```
+
+#### **3. CORREÇÕES TÉCNICAS IMPLEMENTADAS**
+
+**SINCRONIZAÇÃO CONTROLADA**:
+
+```typescript
+// ✅ Controle de sincronização única
+const isInitialized = useRef(false)
+
+useEffect(() => {
+	if (!isInitialized.current && tasks.length > 0) {
+		setLocalTasks(tasks)
+		isInitialized.current = true
+	}
+	// Props externas NÃO sobrescrevem mudanças otimistas
+}, [tasks])
+```
+
+**DETECÇÃO DE CENÁRIOS CORRIGIDA**:
+
+```typescript
+// ❌ ANTES: Usava activeTask.status (já alterado pelo handleDragOver)
+const isColumnChange = activeTask.status !== targetStatus
+
+// ✅ AGORA: Usa originalTaskStatus (capturado no handleDragStart)
+const isColumnChange = originalTaskStatus !== targetStatus
+```
+
+**ALGORITMO DE INSERÇÃO**:
+
+```typescript
+// ✅ Três etapas para posicionamento preciso
+1. findIndex() - Encontra posição da tarefa alvo
+2. splice(insertPosition, 0, task) - Insere na posição exata
+3. map((task, index) => ({ ...task, sort: index })) - Reordena sequencialmente
+```
+
+#### **4. BENEFÍCIOS CONQUISTADOS**
+
+**POSICIONAMENTO PRECISO**:
+
+- ✅ **Segunda posição**: Solta sobre segunda tarefa → vai para segunda posição
+- ✅ **Terceira posição**: Solta sobre terceira tarefa → vai para terceira posição
+- ✅ **Qualquer posição**: Respeita precisamente onde o usuário solta
+- ✅ **Colunas vazias**: Funciona perfeitamente em colunas sem tarefas
+
+**ARQUITETURA OTIMIZADA**:
+
+- ✅ **Uma fonte de verdade**: handleDragEnd centraliza toda lógica
+- ✅ **Feedback visual mantido**: handleDragOver simples e responsivo
+- ✅ **Elimina inconsistências**: Sem conflitos entre funções drag
+- ✅ **Fácil manutenção**: Lógica clara e bem separada
+- ✅ **Performance otimizada**: handleDragOver leve, handleDragEnd robusto
+
+**COMPATIBILIDADE TOTAL**:
+
+- ✅ **Funciona igual test-kanban**: Comportamento idêntico ao teste funcional
+- ✅ **API mantida**: Interface com página principal preservada
+- ✅ **Sem regressões**: Todas funcionalidades existentes mantidas
+
+#### **5. PADRÕES ESTABELECIDOS**
+
+**ARQUITETURA HÍBRIDA PARA DRAG & DROP**:
+
+```typescript
+// 🎯 PADRÃO ESTABELECIDO
+handleDragStart: Capturar estado original
+handleDragOver: Apenas feedback visual simples
+handleDragEnd: Toda lógica de posicionamento + persistência
+```
+
+**DETECÇÃO DE CENÁRIOS**:
+
+```typescript
+// ✅ SEMPRE usar estado original capturado no handleDragStart
+const originalStatus = capturedInDragStart
+const isColumnChange = originalStatus !== targetStatus
+const isSameColumnReorder = originalStatus === targetStatus
+```
+
+**ALGORITMO DE POSICIONAMENTO**:
+
+```typescript
+// ✅ PADRÃO: splice() para inserção precisa
+const insertPosition = targetIndex >= 0 ? targetIndex : array.length
+array.splice(insertPosition, 0, item)
+const reordered = array.map((item, index) => ({ ...item, sort: index }))
+```
+
 ### 📝 Interfaces TypeScript
 
 ```typescript

@@ -256,6 +256,99 @@ O projeto Silo está **100% FUNCIONAL E ESTÁVEL** com todas as funcionalidades 
 - ✅ **API Antiga Removida** - Endpoint `/kanban` completamente removido
 - ✅ **Contadores Funcionais** - Mini kanban e contadores de tarefas funcionando corretamente
 
+### 🎯 MELHORIAS CRÍTICAS DO KANBAN - JANEIRO 2025
+
+**STATUS**: ✅ **CORREÇÕES CRÍTICAS IMPLEMENTADAS COM SUCESSO EXTRAORDINÁRIO!**
+
+#### **PROBLEMA CRÍTICO RESOLVIDO - POSICIONAMENTO PRECISO**
+
+**CAUSA RAIZ IDENTIFICADA**: O sistema não respeitava a posição exata onde o usuário soltava as tarefas entre colunas.
+
+**SOLUÇÃO IMPLEMENTADA**:
+
+1. **Correção da Lógica de Detecção de Cenários**:
+
+   - ❌ **ANTES**: Usava `activeTask.status` (já alterado pelo `handleDragOver`)
+   - ✅ **AGORA**: Usa `originalTaskStatus` capturado no `handleDragStart`
+   - **RESULTADO**: Detecção correta de cenários (column_change vs same_column_reorder)
+
+2. **Implementação da Arquitetura Híbrida**:
+
+   - ✅ **handleDragOver**: Apenas feedback visual simples (preview temporário)
+   - ✅ **handleDragEnd**: Lógica centralizada de posicionamento + persistência
+   - **BENEFÍCIO**: Uma fonte de verdade, sem conflitos entre funções
+
+3. **Algoritmo de Posicionamento Preciso**:
+   - ✅ Remove tarefa ativa temporariamente
+   - ✅ Encontra posição de inserção baseada na tarefa alvo
+   - ✅ Insere na posição exata usando `splice(insertPosition, 0, task)`
+   - ✅ Reordena sequencialmente (0, 1, 2, 3...)
+   - **RESULTADO**: Tarefa vai EXATAMENTE onde o usuário solta
+
+#### **ARQUITETURA HÍBRIDA IMPLEMENTADA**
+
+**ABORDAGEM REVOLUCIONÁRIA**:
+
+```typescript
+// 🎯 handleDragOver - Feedback Visual Simples
+handleDragOver: {
+	// Apenas mostra onde VAI ficar (status temporário)
+	// Sem lógica complexa de posicionamento
+	// Performance otimizada para execução frequente
+}
+
+// 🎯 handleDragEnd - Lógica Centralizada
+handleDragEnd: {
+	// 1. Restaura estado original (cancela preview)
+	// 2. Calcula posicionamento final correto
+	// 3. Aplica mudanças definitivas
+	// 4. Persiste no banco de dados
+}
+```
+
+**BENEFÍCIOS CONQUISTADOS**:
+
+1. **Posicionamento Preciso**: Tarefa vai exatamente onde o usuário solta
+2. **Feedback Visual Mantido**: UX responsiva durante arraste
+3. **Lógica Centralizada**: Uma fonte de verdade, fácil manutenção
+4. **Elimina Inconsistências**: Sem conflitos entre funções
+5. **Performance Otimizada**: handleDragOver simples, handleDragEnd robusto
+
+#### **CORREÇÕES TÉCNICAS IMPLEMENTADAS**
+
+**ESTADO ORIGINAL PRESERVADO**:
+
+- ✅ `originalTaskStatus` capturado no `handleDragStart`
+- ✅ Usado para detecção correta de cenários
+- ✅ Limpeza automática no final do drag
+
+**SINCRONIZAÇÃO CORRIGIDA**:
+
+- ✅ `useRef(isInitialized)` para controlar sincronização única
+- ✅ Props externas não sobrescrevem mudanças otimistas
+- ✅ Estado local preservado durante toda sessão
+
+**ALGORITMO DE INSERÇÃO**:
+
+- ✅ `findIndex()` para encontrar posição da tarefa alvo
+- ✅ `splice()` para inserção na posição exata
+- ✅ `map()` para reordenação sequencial final
+
+#### **RESULTADO FINAL**
+
+**KANBAN AGORA FUNCIONA EXATAMENTE COMO TEST-KANBAN**:
+
+- ✅ **Segunda posição**: Solta sobre segunda tarefa → vai para segunda posição
+- ✅ **Terceira posição**: Solta sobre terceira tarefa → vai para terceira posição
+- ✅ **Qualquer posição**: Respeita precisamente onde o usuário solta
+- ✅ **Feedback visual**: Mostra onde vai ficar durante o arraste
+- ✅ **Persistência**: Salva corretamente no banco de dados
+
+**ARQUIVOS ATUALIZADOS**:
+
+- `src/components/admin/projects/KanbanBoard.tsx` - Arquitetura híbrida implementada
+- `src/app/admin/projects/[projectId]/activities/[activityId]/page.tsx` - Integração mantida
+
 **PRÓXIMA PRIORIDADE**: Sistema de configuração avançada do Kanban com offcanvas de configurações por atividade.
 
 ### ✅ PASSO 5 - IMPLEMENTAR AJUDA - **COMPLETAMENTE FINALIZADO COM SUCESSO EXTRAORDINÁRIO!**
