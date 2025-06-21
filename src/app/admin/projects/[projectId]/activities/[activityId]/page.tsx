@@ -173,21 +173,63 @@ export default function TaskKanbanPage() {
 		}
 	}, [fetchProject, fetchActivity, fetchTasks])
 
-	// Função para criar nova tarefa (placeholder)
-	const handleCreateTask = useCallback(() => {
-		toast({
-			type: 'info',
-			title: '🔵 Em desenvolvimento',
-			description: 'Funcionalidade de criar tarefa será implementada em breve',
-		})
-	}, [])
+	// Função para persistir a movimentação no backend
+	const handleTasksReorder = useCallback(
+		async (tasksBeforeMove: KanbanTask[], tasksAfterMove: KanbanTask[]) => {
+			try {
+				const payload = {
+					tasksBeforeMove: tasksBeforeMove.map((t) => ({ taskId: t.id, status: t.status, sort: t.sort })),
+					tasksAfterMove: tasksAfterMove.map((t) => ({ taskId: t.id, status: t.status, sort: t.sort })),
+				}
 
-	// Interface para dados de atualização do banco
-	interface TaskUpdateData {
-		taskId: string
-		status: string
-		sort: number
-	}
+				const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/tasks`, {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(payload),
+				})
+
+				const result = await response.json()
+
+				if (!response.ok && result.error === 'KANBAN_OUTDATED') {
+					toast({
+						type: 'warning',
+						title: '⚠️ Kanban desatualizado',
+						description: 'O Kanban foi atualizado por outro usuário ou aba. Recarregando...',
+					})
+					// Bloqueia movimentação até recarregar
+					await fetchTasks() // Isso já faz setKanbanTasks e libera o bloqueio
+					return
+				}
+
+				if (!result.success) {
+					toast({
+						type: 'error',
+						title: '❌ Erro ao salvar Kanban',
+						description: result.error || 'Erro desconhecido ao salvar Kanban',
+					})
+					// Não atualiza o estado local, apenas libera o bloqueio
+					return
+				}
+
+				// Sucesso: só agora atualiza o estado local
+				await fetchTasks() // Isso faz setKanbanTasks com o estado real do backend
+				toast({
+					type: 'success',
+					title: '✅ Kanban salvo',
+					description: 'Movimentação salva com sucesso!',
+				})
+			} catch (error) {
+				console.error('❌ Erro ao persistir Kanban:', error)
+				toast({
+					type: 'error',
+					title: '❌ Erro ao salvar Kanban',
+					description: 'Erro inesperado ao salvar Kanban',
+				})
+				// Não atualiza o estado local, apenas libera o bloqueio
+			}
+		},
+		[projectId, activityId, fetchTasks],
+	)
 
 	// Carregar dados ao montar o componente
 	useEffect(() => {
@@ -242,22 +284,12 @@ export default function TaskKanbanPage() {
 						<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Kanban - {activity.name}</h1>
 						<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Projeto: {project.name} • Gerencie as tarefas desta atividade</p>
 					</div>
-					<div className='flex items-center gap-3'>
-						<Button onClick={handleCreateTask} className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white'>
-							<span className='icon-[lucide--plus] size-4' />
-							<span>Nova Tarefa</span>
-						</Button>
-						<Button onClick={() => toast({ type: 'info', title: 'Em desenvolvimento', description: 'Configurações do Kanban em breve' })} className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white'>
-							<span className='icon-[lucide--settings] size-4' />
-							<span>Configurar</span>
-						</Button>
-					</div>
 				</div>
 			</div>
 
 			{/* Conteúdo */}
 			<div className='flex-1 bg-zinc-50 dark:bg-zinc-900'>
-				<KanbanBoard tasks={kanbanTasks} />
+				<KanbanBoard tasks={kanbanTasks} onTasksReorder={handleTasksReorder} />
 			</div>
 		</div>
 	)

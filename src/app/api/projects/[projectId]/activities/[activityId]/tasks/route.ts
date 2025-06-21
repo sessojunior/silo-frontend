@@ -68,8 +68,51 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 // PATCH - Mover/reordenar tarefas
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ projectId: string; activityId: string }> }) {
+	// São enviados para o backend todos os dados de json, do estado antes (array tasksBeforeMove) da movimentação e todos os dados de json do estado depois (array tasksAfterMove) da movimentação.
+	//
+	// Os dados a serem enviados para o backend são todas as colunas, tasks e a ordem delas.
+	//
+	// HIPÓTESES A COBRIR, APENAS PARA CONFERIR NO BACKEND:
+	//
+	// Hipótese A. Frontend desatualizado, diferente do backend
+	//
+	// Para resolver isso, é preciso enviar dados de todas as tasks, status/coluna e ordem/posição.
+	// Não só enviar dados apenas da task ou das tasks das colunas afetadas.
+	// Enviar o estado atual (anterior à movimentação - tasksBeforeMove) do kanban (todas as tasks, status/coluna e ordem/posição) e ver se corresponde ao que está sendo consultado no banco de dados (fazer verificação transparente na api).
+	//
+	// Claro que serão enviados os dados de antes da movimentação e os dados de depois da movimentação.
+	// Se não corresponde, retornar mensagem ao usuário, por toast, que o kanban estava desatualizado e atualizar os dados dele (as tasks), recarregando ele novamente.
+	// Se corresponde, alterar no banco de dados.
+	//
+	// Hipótese B. Frontend igual ao do backend
+	//
+	// Se os dados enviados (dados para conferir, antes da movimentação - tasksBeforeMove) forem iguais aos que estão no backend, pode acontecer algumas coisas:
+	// Em caso de erro, exibir mensagem de erro ao usuário por toast. Em caso de sucesso, exibir mensagem de sucesso ao usuário, por toast.
+	//
+	// 1. Reordenação na mesma coluna
+	// Altera a ordem (sort) das tasks apenas da coluna afetada.
+	//
+	// 2. Movimentação entre colunas (coluna de origem ≠ coluna de destino)
+	// Altera a ordem e status/coluna da task movida.
+	// Altera a ordem de todas as tasks da coluna de origem. Caso não tenha ficado nenhuma: atualizar a coluna como array vazio [].
+	// Altera a ordem de todas as tasks da coluna de destino, caso existam.
+	//
+	// 3. Movimentação para coluna vazia
+	// Altera a ordem e status/coluna da task movida.
+	// Altera a ordem de todas as tasks da coluna de origem. Caso não tenha ficado nenhuma: atualizar a coluna como array vazio [].
+	//
+	// 4. Movimentação de última task da coluna de origem
+	// Altera a ordem e status/coluna da task movida.
+	// Atualizar a coluna de origem como array vazio [].
+	// Altera a ordem de todas as tasks da coluna de destino, caso existam.
+	//
+	// 5. Rollback
+	// Se a API falhar, o frontend deve restaurar o estado anterior (array tasksBeforeMove) se não conseguir atualizar e exibir mensagem para o usuário por toast.
+	// Evitar conflito com o caso de que os dados do frontend são diferentes do backend. Nesse caso, deverá retornar mensagem ao usuário, por toast, que o kanban estava desatualizado e atualizar os dados dele (as tasks), recarregando ele novamente.
+	//
+	// Implementar a lógica abaixo
+
 	try {
-		// Verificar autenticação
 		const user = await getAuthUser()
 		if (!user) {
 			return NextResponse.json({ success: false, error: 'Não autenticado' }, { status: 401 })
@@ -77,276 +120,63 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 		const { projectId, activityId } = await params
 		const body = await request.json()
-		const { taskId, newStatus, newSort, reorderTasks, scenarioType, originColumnUpdates, destinationColumnUpdates } = body
+		const { tasksBeforeMove, tasksAfterMove } = body
 
-		console.log('🔵 [API] PATCH Task Move - Dados recebidos:', {
-			projectId,
-			activityId,
-			taskId,
-			newStatus,
-			newSort,
-			scenarioType,
-			reorderTasks: reorderTasks?.length || 0,
-			originColumnUpdates: originColumnUpdates?.length || 0,
-			destinationColumnUpdates: destinationColumnUpdates?.length || 0,
-		})
-
-		console.log('🔵 [API] Body completo:', JSON.stringify(body, null, 2))
-
-		// 🧪 TESTE DE ROLLBACK - Simular erro para demonstração
-		// Descomente a linha abaixo para testar o rollback
-		// return NextResponse.json({ success: false, error: 'TESTE: Erro simulado para demonstrar rollback' }, { status: 500 })
-
-		// Validação dos dados recebidos
-		if (!taskId || !newStatus) {
-			console.error('❌ [API] Dados inválidos:', { taskId, newStatus })
-			return NextResponse.json({ success: false, error: 'Dados inválidos para movimentação' }, { status: 400 })
+		if (!Array.isArray(tasksBeforeMove) || !Array.isArray(tasksAfterMove)) {
+			return NextResponse.json({ success: false, error: 'Payload inválido' }, { status: 400 })
 		}
 
-		// Verificar se a tarefa pertence à atividade
-		const task = await db
-			.select()
-			.from(schema.projectTask)
-			.where(and(eq(schema.projectTask.id, taskId), eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId)))
-			.limit(1)
-
-		if (!task.length) {
-			console.error('❌ [API] Tarefa não encontrada:', { taskId, projectId, activityId })
-			return NextResponse.json({ success: false, error: 'Tarefa não encontrada' }, { status: 404 })
-		}
-
-		const currentTask = task[0]
-		console.log('🔵 [API] Tarefa atual encontrada:', {
-			id: currentTask.id,
-			name: currentTask.name,
-			status: currentTask.status,
-			sort: currentTask.sort,
-		})
-
-		// 📊 LOG ESTADO ANTES DA MOVIMENTAÇÃO
-		console.log('\n📊 [DEBUG] ESTADO ANTES DA MOVIMENTAÇÃO:')
-		const tasksBeforeUpdate = await db
+		// Buscar todas as tasks atuais do banco para o projeto/atividade
+		const dbTasks = await db
 			.select()
 			.from(schema.projectTask)
 			.where(and(eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId)))
-			.orderBy(asc(schema.projectTask.status), asc(schema.projectTask.sort))
 
-		const groupedBefore = tasksBeforeUpdate.reduce(
-			(acc, task) => {
-				if (!acc[task.status]) acc[task.status] = []
-				acc[task.status].push({
-					id: task.id,
-					name: task.name,
-					status: task.status,
-					sort: task.sort,
-				})
-				return acc
-			},
-			{} as Record<string, any[]>,
-		)
-
-		Object.entries(groupedBefore).forEach(([status, tasks]) => {
-			console.log(`📋 [ANTES] ${status.toUpperCase()}:`)
-			tasks.forEach((task, index) => {
-				console.log(`  ${index}: ${task.name} (id: ${task.id.slice(0, 8)}..., sort: ${task.sort})`)
-			})
-		})
-
-		// Processar baseado no tipo de cenário
-
-		// CASO 1: Mudança de coluna com reordenação de ambas as colunas
-		if (scenarioType === 'column_change' && originColumnUpdates && destinationColumnUpdates) {
-			console.log('🔥 [API] Processando mudança de coluna com reordenação completa')
-			console.log('📤 [API] Origin Column Updates:', originColumnUpdates.length)
-			console.log('📥 [API] Destination Column Updates:', destinationColumnUpdates.length)
-
-			// Atualizar todas as tarefas da coluna de origem
-			if (originColumnUpdates.length > 0) {
-				console.log('🔵 [API] Atualizando coluna de origem...')
-				for (const taskUpdate of originColumnUpdates) {
-					console.log(`🔵 [API] Origem - Atualizando task:`, {
-						taskId: taskUpdate.taskId,
-						sort: taskUpdate.sort,
-					})
-
-					await db
-						.update(schema.projectTask)
-						.set({
-							sort: taskUpdate.sort,
-							updatedAt: new Date(),
-						})
-						.where(eq(schema.projectTask.id, taskUpdate.taskId))
+		// Função utilitária para comparar arrays de tasks (id, status, sort)
+		function tasksArrayEquals(a: any[], b: any[]) {
+			if (a.length !== b.length) return false
+			const sortFn = (x: any, y: any) => x.taskId.localeCompare(y.taskId)
+			const arrA = [...a].sort(sortFn)
+			const arrB = [...b].sort(sortFn)
+			for (let i = 0; i < arrA.length; i++) {
+				if (arrA[i].taskId !== arrB[i].taskId || arrA[i].status !== arrB[i].status || arrA[i].sort !== arrB[i].sort) {
+					return false
 				}
-				console.log('✅ [API] Coluna de origem atualizada')
 			}
-
-			// Atualizar todas as tarefas da coluna de destino
-			if (destinationColumnUpdates.length > 0) {
-				console.log('🔵 [API] Atualizando coluna de destino...')
-				for (const taskUpdate of destinationColumnUpdates) {
-					console.log(`🔵 [API] Destino - Atualizando task:`, {
-						taskId: taskUpdate.taskId,
-						status: taskUpdate.status,
-						sort: taskUpdate.sort,
-					})
-
-					await db
-						.update(schema.projectTask)
-						.set({
-							status: taskUpdate.status,
-							sort: taskUpdate.sort,
-							updatedAt: new Date(),
-						})
-						.where(eq(schema.projectTask.id, taskUpdate.taskId))
-				}
-				console.log('✅ [API] Coluna de destino atualizada')
-			}
-
-			console.log('✅ [API] Mudança de coluna processada com sucesso')
+			return true
 		}
 
-		// CASO 2: Reordenação na mesma coluna (quando há reorderTasks)
-		else if (scenarioType === 'same_column_reorder' && reorderTasks && Array.isArray(reorderTasks) && reorderTasks.length > 0) {
-			console.log('🔄 [API] Processando reordenação na mesma coluna')
-			console.log('🔵 [API] Reordenando tarefas - Array recebido:', reorderTasks.length)
-			console.log('🔵 [API] Conteúdo de reorderTasks:', JSON.stringify(reorderTasks, null, 2))
+		// Montar array de comparação do banco
+		const dbTasksForCompare = dbTasks.map((t) => ({
+			taskId: t.id,
+			status: t.status,
+			sort: t.sort,
+		}))
 
-			// Validar se todos os objetos têm taskId
-			const invalidTasks = reorderTasks.filter((task: { taskId: string; status?: string; sort?: number }) => !task.taskId)
-			if (invalidTasks.length > 0) {
-				console.error('❌ [API] Tasks sem taskId encontradas:', invalidTasks)
-				return NextResponse.json({ success: false, error: 'Tasks sem taskId encontradas' }, { status: 400 })
-			}
-
-			// Atualizar sort de todas as tarefas na ordem especificada
-			for (let i = 0; i < reorderTasks.length; i++) {
-				const taskToReorder = reorderTasks[i]
-				console.log(`🔵 [API] Atualizando task ${i + 1}/${reorderTasks.length}:`, {
-					taskId: taskToReorder.taskId,
-					status: taskToReorder.status,
-					newSort: taskToReorder.sort,
-				})
-
-				await db
-					.update(schema.projectTask)
-					.set({
-						sort: taskToReorder.sort,
-						updatedAt: new Date(),
-					})
-					.where(eq(schema.projectTask.id, taskToReorder.taskId))
-			}
-
-			console.log('✅ [API] Tarefas reordenadas com sucesso')
+		// Verificar se o frontend está desatualizado
+		if (!tasksArrayEquals(tasksBeforeMove, dbTasksForCompare)) {
+			// Retornar erro especial e o estado real do banco
+			return NextResponse.json(
+				{
+					success: false,
+					error: 'KANBAN_OUTDATED',
+					tasks: dbTasksForCompare,
+				},
+				{ status: 409 },
+			)
 		}
 
-		// CASO 3: Movimento via hover sobre task (cross column)
-		else if (scenarioType === 'cross_column_via_task' && originColumnUpdates && destinationColumnUpdates) {
-			console.log('🔥 [API] Processando movimento entre colunas via task')
-			console.log('📤 [API] Origin Column Updates:', originColumnUpdates.length)
-			console.log('📥 [API] Destination Column Updates:', destinationColumnUpdates.length)
-
-			// Mesmo processamento que column_change
-			// Atualizar todas as tarefas da coluna de origem
-			if (originColumnUpdates.length > 0) {
-				console.log('🔵 [API] Atualizando coluna de origem...')
-				for (const taskUpdate of originColumnUpdates) {
-					await db
-						.update(schema.projectTask)
-						.set({
-							sort: taskUpdate.sort,
-							updatedAt: new Date(),
-						})
-						.where(eq(schema.projectTask.id, taskUpdate.taskId))
-				}
-				console.log('✅ [API] Coluna de origem atualizada')
+		// Atualizar todas as tasks conforme tasksAfterMove (status e sort)
+		// Usar transação para garantir atomicidade
+		await db.transaction(async (tx) => {
+			for (const task of tasksAfterMove) {
+				await tx.update(schema.projectTask).set({ status: task.status, sort: task.sort }).where(eq(schema.projectTask.id, task.taskId))
 			}
-
-			// Atualizar todas as tarefas da coluna de destino
-			if (destinationColumnUpdates.length > 0) {
-				console.log('🔵 [API] Atualizando coluna de destino...')
-				for (const taskUpdate of destinationColumnUpdates) {
-					await db
-						.update(schema.projectTask)
-						.set({
-							status: taskUpdate.status,
-							sort: taskUpdate.sort,
-							updatedAt: new Date(),
-						})
-						.where(eq(schema.projectTask.id, taskUpdate.taskId))
-				}
-				console.log('✅ [API] Coluna de destino atualizada')
-			}
-
-			console.log('✅ [API] Movimento entre colunas processado com sucesso')
-		}
-
-		// 📊 LOG ESTADO DEPOIS DA MOVIMENTAÇÃO
-		console.log('\n📊 [DEBUG] ESTADO DEPOIS DA MOVIMENTAÇÃO:')
-		const tasksAfterUpdate = await db
-			.select()
-			.from(schema.projectTask)
-			.where(and(eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId)))
-			.orderBy(asc(schema.projectTask.status), asc(schema.projectTask.sort))
-
-		const groupedAfter = tasksAfterUpdate.reduce(
-			(acc, task) => {
-				if (!acc[task.status]) acc[task.status] = []
-				acc[task.status].push({
-					id: task.id,
-					name: task.name,
-					status: task.status,
-					sort: task.sort,
-				})
-				return acc
-			},
-			{} as Record<string, any[]>,
-		)
-
-		Object.entries(groupedAfter).forEach(([status, tasks]) => {
-			console.log(`📋 [DEPOIS] ${status.toUpperCase()}:`)
-			tasks.forEach((task, index) => {
-				console.log(`  ${index}: ${task.name} (id: ${task.id.slice(0, 8)}..., sort: ${task.sort})`)
-			})
 		})
 
-		// 🔍 COMPARAÇÃO DE MUDANÇAS
-		console.log('\n🔍 [DEBUG] RESUMO DAS MUDANÇAS:')
-		const changedTasks = tasksAfterUpdate.filter((taskAfter) => {
-			const taskBefore = tasksBeforeUpdate.find((tb) => tb.id === taskAfter.id)
-			return taskBefore && (taskBefore.status !== taskAfter.status || taskBefore.sort !== taskAfter.sort)
-		})
-
-		if (changedTasks.length > 0) {
-			console.log(`✅ ${changedTasks.length} task(s) alterada(s):`)
-			changedTasks.forEach((taskAfter) => {
-				const taskBefore = tasksBeforeUpdate.find((tb) => tb.id === taskAfter.id)
-				if (taskBefore) {
-					console.log(`  📝 ${taskAfter.name}:`)
-					if (taskBefore.status !== taskAfter.status) {
-						console.log(`    Status: ${taskBefore.status} → ${taskAfter.status}`)
-					}
-					if (taskBefore.sort !== taskAfter.sort) {
-						console.log(`    Sort: ${taskBefore.sort} → ${taskAfter.sort}`)
-					}
-				}
-			})
-		} else {
-			console.log('⚠️ Nenhuma task foi alterada no banco de dados')
-		}
-
-		console.log('\n✅ [DEBUG] OPERAÇÃO CONCLUÍDA COM SUCESSO')
-		console.log('=====================================')
-
-		return NextResponse.json({
-			success: true,
-			message: 'Tarefa movida/reordenada com sucesso',
-			taskId,
-			newStatus,
-			newSort,
-		})
+		return NextResponse.json({ success: true })
 	} catch (error) {
-		console.error('❌ [API] Erro ao mover/reordenar tarefa:', error)
-		console.error('❌ [API] Stack trace:', error instanceof Error ? error.stack : 'No stack trace')
-		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
+		console.error('❌ [API] Erro ao atualizar tarefas do kanban:', error)
+		return NextResponse.json({ success: false, error: 'Erro ao atualizar tarefas do kanban' }, { status: 500 })
 	}
 }
