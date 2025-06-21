@@ -110,7 +110,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 	// Se a API falhar, o frontend deve restaurar o estado anterior (array tasksBeforeMove) se não conseguir atualizar e exibir mensagem para o usuário por toast.
 	// Evitar conflito com o caso de que os dados do frontend são diferentes do backend. Nesse caso, deverá retornar mensagem ao usuário, por toast, que o kanban estava desatualizado e atualizar os dados dele (as tasks), recarregando ele novamente.
 	//
-	// Implementar a lógica abaixo
+	// Em caso de erro 409/KANBAN_OUTDATED:
+	// Retorna um array plano de tasks completo (tasks: dbTasks), com todos os campos necessários para o frontend se sincronizar.
+	//
+	// Em caso de sucesso:
+	// Após atualizar as tasks no banco, faz um novo select e retorna tasks: updatedTasks (array plano, todos os campos), garantindo que o frontend sempre terá o estado real e atualizado do Kanban.
+	// Com isso, o frontend pode sempre fazer setKanbanTasks(tasks) após qualquer PATCH, sem precisar de transformações extras.
 
 	try {
 		const user = await getAuthUser()
@@ -153,14 +158,23 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 			sort: t.sort,
 		}))
 
+		// Debug logs para comparação
+		console.log('🔵 [API] PATCH - Comparando dados:')
+		console.log('Frontend tasksBeforeMove:', JSON.stringify(tasksBeforeMove, null, 2))
+		console.log('Backend dbTasksForCompare:', JSON.stringify(dbTasksForCompare, null, 2))
+
 		// Verificar se o frontend está desatualizado
-		if (!tasksArrayEquals(tasksBeforeMove, dbTasksForCompare)) {
-			// Retornar erro especial e o estado real do banco
+		const isEqual = tasksArrayEquals(tasksBeforeMove, dbTasksForCompare)
+		console.log('🔍 [API] Arrays iguais?', isEqual)
+
+		if (!isEqual) {
+			console.log('❌ [API] KANBAN_OUTDATED - Frontend desatualizado!')
+			// Retornar erro especial e o estado real do banco (array plano, todos os campos)
 			return NextResponse.json(
 				{
 					success: false,
 					error: 'KANBAN_OUTDATED',
-					tasks: dbTasksForCompare,
+					tasks: dbTasks, // array plano, todos os campos
 				},
 				{ status: 409 },
 			)
@@ -174,7 +188,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 			}
 		})
 
-		return NextResponse.json({ success: true })
+		// Buscar novamente todas as tasks atualizadas do banco (array plano)
+		const updatedTasks = await db
+			.select()
+			.from(schema.projectTask)
+			.where(and(eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId)))
+
+		return NextResponse.json({ success: true, tasks: updatedTasks })
 	} catch (error) {
 		console.error('❌ [API] Erro ao atualizar tarefas do kanban:', error)
 		return NextResponse.json({ success: false, error: 'Erro ao atualizar tarefas do kanban' }, { status: 500 })

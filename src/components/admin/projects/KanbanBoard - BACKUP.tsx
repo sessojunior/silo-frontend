@@ -25,22 +25,90 @@ interface Column {
 	id: 'todo' | 'in_progress' | 'blocked' | 'review' | 'done'
 	title: string
 	icon: string
-	color: string
+	iconClass: string
+	bg: string
+	border: string
+	header: string
+	headerHover: string
+	countBg: string
+	countText: string
+	button: string
 }
 
 interface KanbanBoardProps {
 	tasks?: Task[]
+	onTasksReorder?: (tasksBeforeMove: Task[], tasksAfterMove: Task[]) => void
 }
 
 type TaskStatus = Task['status']
 type TaskPriority = Task['priority']
 
+// NOVO MAPA DE CORES E ÍCONES POR COLUNA
+const columnTheme = {
+	todo: {
+		icon: 'icon-[lucide--list-todo]',
+		iconClass: 'size-6 text-stone-500',
+		bg: 'bg-stone-50',
+		border: 'border-stone-100',
+		header: 'bg-stone-100',
+		headerHover: 'hover:bg-stone-200',
+		countBg: 'bg-stone-200',
+		countText: 'text-stone-600',
+		button: 'text-stone-600',
+	},
+	in_progress: {
+		icon: 'icon-[lucide--refresh-cw]',
+		iconClass: 'size-6 text-blue-500',
+		bg: 'bg-blue-50',
+		border: 'border-blue-100',
+		header: 'bg-blue-100',
+		headerHover: 'hover:bg-blue-200',
+		countBg: 'bg-blue-200',
+		countText: 'text-blue-600',
+		button: 'text-blue-600',
+	},
+	blocked: {
+		icon: 'icon-[lucide--ban]',
+		iconClass: 'size-6 text-red-500',
+		bg: 'bg-red-50',
+		border: 'border-red-100',
+		header: 'bg-red-100',
+		headerHover: 'hover:bg-red-200',
+		countBg: 'bg-red-200',
+		countText: 'text-red-600',
+		button: 'text-red-600',
+	},
+	review: {
+		icon: 'icon-[lucide--eye]',
+		iconClass: 'size-6 text-amber-500',
+		bg: 'bg-amber-50',
+		border: 'border-amber-100',
+		header: 'bg-amber-100',
+		headerHover: 'hover:bg-amber-200',
+		countBg: 'bg-amber-200',
+		countText: 'text-amber-600',
+		button: 'text-amber-600',
+	},
+	done: {
+		icon: 'icon-[lucide--trophy]',
+		iconClass: 'size-6 text-emerald-500',
+		bg: 'bg-emerald-50',
+		border: 'border-emerald-100',
+		header: 'bg-emerald-100',
+		headerHover: 'hover:bg-emerald-200',
+		countBg: 'bg-emerald-200',
+		countText: 'text-emerald-600',
+		button: 'text-emerald-600',
+	},
+}
+
+// NOVA DEFINIÇÃO DE COLUNAS
 const columns: Column[] = [
-	{ id: 'todo', title: 'To Do', icon: 'icon-[lucide--circle]', color: 'bg-gray-100 border-gray-300' },
-	{ id: 'in_progress', title: 'Em Progresso', icon: 'icon-[lucide--clock]', color: 'bg-blue-100 border-blue-300' },
-	{ id: 'blocked', title: 'Bloqueado', icon: 'icon-[lucide--pause]', color: 'bg-red-100 border-red-300' },
-	{ id: 'review', title: 'Revisão', icon: 'icon-[lucide--alert-circle]', color: 'bg-yellow-100 border-yellow-300' },
-	{ id: 'done', title: 'Feito', icon: 'icon-[lucide--check-circle]', color: 'bg-green-100 border-green-300' },
+	{ id: 'todo', title: 'A fazer', ...columnTheme.todo },
+	{ id: 'in_progress', title: 'Em progresso', ...columnTheme.in_progress },
+	{ id: 'blocked', title: 'Bloqueado', ...columnTheme.blocked },
+	{ id: 'review', title: 'Em revisão', ...columnTheme.review },
+	{ id: 'done', title: 'Concluído', ...columnTheme.done },
 ]
 
 const priorityColors: Record<TaskPriority, string> = {
@@ -64,18 +132,16 @@ function SortableTaskCard({ task, activeTask }: { task: Task; activeTask: Task |
 			task: task,
 		},
 	})
-
 	const style = {
 		transform: CSS.Transform.toString(transform),
 		transition,
 	}
-
 	const isBeingDragged = activeTask?.id === task.id
-
 	const formatDate = (dateString: string): string => {
 		return new Date(dateString).toLocaleDateString('pt-BR')
 	}
-
+	// Determina tema da coluna do card
+	const theme = columnTheme[task.status]
 	const cardContent = (
 		<>
 			<div className='flex items-start justify-between mb-2'>
@@ -83,7 +149,9 @@ function SortableTaskCard({ task, activeTask }: { task: Task; activeTask: Task |
 					<div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`} />
 					<span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 text-gray-800'}`}>{task.category}</span>
 				</div>
-				<div className='icon-[lucide--grip-vertical] w-4 h-4 text-gray-400' />
+				<button className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 transition group' title='Editar tarefa' type='button'>
+					<span className='icon-[lucide--pencil] size-4 text-zinc-400 group-hover:text-zinc-600' />
+				</button>
 			</div>
 			<h3 className='font-medium text-gray-900 mb-1'>{task.name}</h3>
 			<p className='text-sm text-gray-600 mb-3'>{task.description}</p>
@@ -99,17 +167,15 @@ function SortableTaskCard({ task, activeTask }: { task: Task; activeTask: Task |
 			</div>
 		</>
 	)
-
 	if (isBeingDragged) {
 		return (
-			<div ref={setNodeRef} style={style} className='bg-white rounded-lg shadow-sm border p-4 opacity-50'>
+			<div ref={setNodeRef} style={style} className={`bg-white rounded-xl border-2 ${theme.border} p-4 opacity-50`}>
 				{cardContent}
 			</div>
 		)
 	}
-
 	return (
-		<div ref={setNodeRef} style={style} {...attributes} {...listeners} className='bg-white rounded-lg shadow-sm border p-4 cursor-move hover:shadow-md transition-shadow'>
+		<div ref={setNodeRef} style={style} {...attributes} {...listeners} className={`bg-white rounded-xl border-2 ${theme.border} p-4 cursor-move transition-shadow hover:shadow-md`}>
 			{cardContent}
 		</div>
 	)
@@ -121,7 +187,7 @@ function TaskCard({ task }: { task: Task }) {
 	}
 
 	return (
-		<div className='bg-white rounded-lg shadow-lg border p-4 rotate-3 transform'>
+		<div className='bg-white rounded-lg shadow-lg border border-gray-200 p-4 rotate-3 transform'>
 			<div className='flex items-start justify-between mb-2'>
 				<div className='flex items-center space-x-2'>
 					<div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`} />
@@ -134,7 +200,7 @@ function TaskCard({ task }: { task: Task }) {
 			<div className='flex items-center justify-between text-xs text-gray-500'>
 				<div className='flex items-center space-x-1'>
 					<div className='icon-[lucide--clock] w-3 h-3' />
-					<span>{task.estimated_days}d</span>
+					<span>{task.estimated_days} dias</span>
 				</div>
 				<div className='flex items-center space-x-1'>
 					<div className='icon-[lucide--calendar] w-3 h-3' />
@@ -148,21 +214,34 @@ function TaskCard({ task }: { task: Task }) {
 function DroppableColumn({ column, tasks, activeTask }: { column: Column; tasks: Task[]; activeTask: Task | null }) {
 	const { setNodeRef } = useDroppable({ id: column.id })
 	const taskIds = tasks.map((task: Task) => task.id)
-
 	return (
-		<div ref={setNodeRef} className={`rounded-lg border-2 ${column.color} p-4 min-h-96`}>
-			<div className='flex items-center space-x-2 mb-4'>
-				<div className={`${column.icon} w-[18px] h-[18px] text-gray-600`} />
-				<h2 className='font-semibold text-gray-900'>{column.title}</h2>
-				<span className='bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full'>{tasks.length}</span>
+		<div ref={setNodeRef} className={`w-72 flex flex-col rounded-xl border-2 ${column.border} shadow-md ${column.bg}`}>
+			{/* Cabeçalho da coluna */}
+			<div className={`flex items-center justify-between px-4 py-3 rounded-t-xl ${column.header}`}>
+				<div className='flex items-center gap-2'>
+					<span className={`${column.icon} ${column.iconClass}`} />
+					<span className={`font-semibold text-base ${column.button}`}>{column.title}</span>
+					<span className={`flex items-center justify-center text-xs size-6 rounded-full ${column.countBg} ${column.countText}`}>{tasks.length}</span>
+				</div>
+				<button
+					className={`flex items-center justify-center size-8 rounded-full transition group ${column.headerHover}`}
+					title='Adicionar tarefa'
+					onClick={() => {
+						/* TODO: abrir modal de nova tarefa */
+					}}
+					type='button'
+				>
+					<span className={`icon-[lucide--plus] size-5 ${column.button}`} />
+				</button>
 			</div>
+			{/* Lista de cards com scroll */}
 			<SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-				<div className='space-y-3'>
+				<div className='flex-1 px-3 py-3 space-y-3 overflow-y-auto'>
 					{tasks.map((task: Task) => (
 						<SortableTaskCard key={task.id} task={task} activeTask={activeTask} />
 					))}
 					{tasks.length === 0 && (
-						<div className='h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center'>
+						<div className='h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-zinc-50'>
 							<span className='text-gray-500 text-sm'>Solte aqui</span>
 						</div>
 					)}
@@ -172,10 +251,12 @@ function DroppableColumn({ column, tasks, activeTask }: { column: Column; tasks:
 	)
 }
 
-export default function KanbanBoard({ tasks: externalTasks = [] }: KanbanBoardProps) {
+export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder }: KanbanBoardProps) {
 	const [tasks, setTasks] = useState<Task[]>(externalTasks)
 	const [activeTask, setActiveTask] = useState<Task | null>(null)
 	const [isClient, setIsClient] = useState(false)
+	const [tasksBeforeMove, setTasksBeforeMove] = useState<Task[] | null>(null)
+	const [isSaving, setIsSaving] = useState(false)
 
 	useEffect(() => {
 		setIsClient(true)
@@ -255,8 +336,14 @@ export default function KanbanBoard({ tasks: externalTasks = [] }: KanbanBoardPr
 	}
 
 	const handleDragStart = (event: DragStartEvent) => {
+		if (isSaving) return
 		const task = tasks.find((t) => t.id === event.active.id)
 		setActiveTask(task || null)
+		setTasksBeforeMove(tasks.map((t) => ({ ...t })))
+		console.log('🟡 [KANBAN] Drag Start:', {
+			taskId: event.active.id,
+			snapshot: tasks.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
+		})
 	}
 
 	const handleDragOver = (event: DragOverEvent) => {
@@ -289,14 +376,56 @@ export default function KanbanBoard({ tasks: externalTasks = [] }: KanbanBoardPr
 	}
 
 	const handleDragEnd = async (event: DragEndEvent) => {
+		if (isSaving) return
 		setActiveTask(null)
 		const { active, over } = event
-		if (!over) return
+		if (!over) {
+			setTasksBeforeMove(null)
+			setIsSaving(false)
+			return
+		}
 		const activeId = active.id as string
 		const overId = over.id as string
 		const position = calculateNewPosition(activeId, overId)
-		if (!position) return
+		if (!position) {
+			setTasksBeforeMove(null)
+			setIsSaving(false)
+			return
+		}
 		applyPositionChange(activeId, position.newStatus, position.targetIndex)
+		// Checagem: só envia PATCH se houve mudança real de status ou ordem
+		const after = tasks.map((t) => ({ ...t }))
+		const before = tasksBeforeMove
+		const houveMudanca =
+			before &&
+			after.some((t, idx) => {
+				const b = before[idx]
+				return !b || b.id !== t.id || b.status !== t.status || b.sort !== t.sort
+			})
+		if (!houveMudanca) {
+			setTasksBeforeMove(null)
+			setIsSaving(false)
+			return
+		}
+		console.log('🟠 [KANBAN] Enviando PATCH para backend', {
+			tasksBeforeMove: tasksBeforeMove.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
+			tasksAfterMove: tasks.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
+		})
+		if (onTasksReorder && tasksBeforeMove) {
+			setIsSaving(true)
+			setTimeout(async () => {
+				console.log('🟠 [KANBAN] Enviando PATCH para backend', {
+					tasksBeforeMove: tasksBeforeMove.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
+					tasksAfterMove: tasks.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
+				})
+				await onTasksReorder(
+					tasksBeforeMove,
+					tasks.map((t) => ({ ...t })),
+				)
+				setTasksBeforeMove(null)
+				setIsSaving(false)
+			}, 0)
+		}
 	}
 
 	if (!isClient) {
@@ -308,15 +437,25 @@ export default function KanbanBoard({ tasks: externalTasks = [] }: KanbanBoardPr
 	}
 
 	return (
-		<div className='p-6 bg-gray-50 min-h-screen'>
-			<DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-				<div className='grid grid-cols-5 gap-6'>
-					{columns.map((column) => (
-						<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={activeTask} />
-					))}
-				</div>
-				<DragOverlay>{activeTask ? <TaskCard task={activeTask} /> : null}</DragOverlay>
-			</DndContext>
+		<div className='flex-1 bg-zinc-50 dark:bg-zinc-900'>
+			<div className='min-w-max h-full p-6 relative'>
+				<DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
+					<div className='flex gap-6 items-start overflow-x-auto'>
+						{columns.map((column) => (
+							<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={activeTask} />
+						))}
+					</div>
+					<DragOverlay>{activeTask ? <TaskCard task={activeTask} /> : null}</DragOverlay>
+				</DndContext>
+				{isSaving && (
+					<div className='absolute inset-0 bg-white/60 dark:bg-zinc-900/60 flex items-center justify-center z-50 pointer-events-auto'>
+						<div className='flex flex-col items-center gap-2'>
+							<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
+							<span className='text-zinc-700 dark:text-zinc-200 text-sm'>Salvando movimentação...</span>
+						</div>
+					</div>
+				)}
+			</div>
 		</div>
 	)
 }

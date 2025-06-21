@@ -64,6 +64,7 @@ export default function TaskKanbanPage() {
 	const [kanbanTasks, setKanbanTasks] = useState<KanbanTask[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
+	const [isDragBlocked, setIsDragBlocked] = useState(false)
 
 	// Função para carregar dados do projeto
 	const fetchProject = useCallback(async () => {
@@ -173,9 +174,20 @@ export default function TaskKanbanPage() {
 		}
 	}, [fetchProject, fetchActivity, fetchTasks])
 
+	// Função para criar nova tarefa (placeholder)
+	const handleCreateTask = useCallback(() => {
+		toast({
+			type: 'info',
+			title: '🔵 Em desenvolvimento',
+			description: 'Funcionalidade de criar tarefa será implementada em breve',
+		})
+	}, [])
+
 	// Função para persistir a movimentação no backend
 	const handleTasksReorder = useCallback(
 		async (tasksBeforeMove: KanbanTask[], tasksAfterMove: KanbanTask[]) => {
+			// 🚫 BLOQUEAR DRAG COMPLETAMENTE durante operação
+			setIsDragBlocked(true)
 			try {
 				const payload = {
 					tasksBeforeMove: tasksBeforeMove.map((t) => ({ taskId: t.id, status: t.status, sort: t.sort })),
@@ -196,23 +208,23 @@ export default function TaskKanbanPage() {
 						title: '⚠️ Kanban desatualizado',
 						description: 'O Kanban foi atualizado por outro usuário ou aba. Recarregando...',
 					})
-					// Bloqueia movimentação até recarregar
-					await fetchTasks() // Isso já faz setKanbanTasks e libera o bloqueio
+					if (Array.isArray(result.tasks)) {
+						const updatedTasks = result.tasks.map(convertToKanbanTask)
+						setKanbanTasks(updatedTasks)
+					}
+					// ✅ DESBLOQUEAR ANTES DO RETURN (caso 409)
+					setIsDragBlocked(false)
 					return
 				}
 
-				if (!result.success) {
-					toast({
-						type: 'error',
-						title: '❌ Erro ao salvar Kanban',
-						description: result.error || 'Erro desconhecido ao salvar Kanban',
-					})
-					// Não atualiza o estado local, apenas libera o bloqueio
-					return
+				if (result.success && Array.isArray(result.tasks)) {
+					// SEMPRE sincronizar com backend (fonte de verdade)
+					const backendTasks = result.tasks.map(convertToKanbanTask)
+					setKanbanTasks(backendTasks)
+					console.log('✅ [KANBAN] Estado sincronizado com backend:', backendTasks.length, 'tasks')
 				}
 
-				// Sucesso: só agora atualiza o estado local
-				await fetchTasks() // Isso faz setKanbanTasks com o estado real do backend
+				// Sucesso
 				toast({
 					type: 'success',
 					title: '✅ Kanban salvo',
@@ -225,7 +237,11 @@ export default function TaskKanbanPage() {
 					title: '❌ Erro ao salvar Kanban',
 					description: 'Erro inesperado ao salvar Kanban',
 				})
-				// Não atualiza o estado local, apenas libera o bloqueio
+				// Rollback visual
+				setKanbanTasks(tasksBeforeMove)
+			} finally {
+				// ✅ SEMPRE DESBLOQUEAR DRAG (sucesso ou erro)
+				setIsDragBlocked(false)
 			}
 		},
 		[projectId, activityId, fetchTasks],
@@ -284,12 +300,22 @@ export default function TaskKanbanPage() {
 						<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Kanban - {activity.name}</h1>
 						<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Projeto: {project.name} • Gerencie as tarefas desta atividade</p>
 					</div>
+					<div className='flex items-center gap-3'>
+						<Button onClick={handleCreateTask} className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white'>
+							<span className='icon-[lucide--plus] size-4' />
+							<span>Nova Tarefa</span>
+						</Button>
+						<Button onClick={() => toast({ type: 'info', title: 'Em desenvolvimento', description: 'Configurações do Kanban em breve' })} className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white'>
+							<span className='icon-[lucide--settings] size-4' />
+							<span>Configurar</span>
+						</Button>
+					</div>
 				</div>
 			</div>
 
 			{/* Conteúdo */}
 			<div className='flex-1 bg-zinc-50 dark:bg-zinc-900'>
-				<KanbanBoard tasks={kanbanTasks} onTasksReorder={handleTasksReorder} />
+				<KanbanBoard tasks={kanbanTasks} onTasksReorder={handleTasksReorder} isDragBlocked={isDragBlocked} />
 			</div>
 		</div>
 	)
