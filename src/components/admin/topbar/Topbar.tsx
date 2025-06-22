@@ -62,7 +62,7 @@ export default function Topbar() {
 
 							{/* Título fixo do sistema */}
 							<div className='flex items-center p-2'>
-								<h1 className='text-xl font-semibold text-zinc-900 dark:text-zinc-100'>Sistema de gestão de serviços e pequenos projetos</h1>
+								<h1 className='text-xl font-semibold text-zinc-900 dark:text-zinc-100'>Sistema de gestão de produtos e projetos metereológicos</h1>
 							</div>
 						</div>
 

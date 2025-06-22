@@ -184,7 +184,154 @@ tasks.sort((a, b) => {
 })
 ```
 
-### 🎯 ARQUITETURA HÍBRIDA - POSICIONAMENTO PRECISO (JANEIRO 2025)
+## 🔄 PLANO DE CORREÇÃO DO SISTEMA DE CHAT
+
+### 🚨 **STATUS ATUAL**: PRÓXIMA PRIORIDADE CRÍTICA
+
+O sistema de chat atual possui problemas arquiteturais que precisam ser corrigidos para garantir funcionalidade e estabilidade.
+
+### 🎯 **PROBLEMAS IDENTIFICADOS**
+
+#### **1. ARQUITETURA COMPLEXA DESNECESSÁRIA**
+
+- ❌ Sistema usa `chat_channel` separado dos grupos existentes
+- ❌ Duplicação de dados (ícones, cores, nomes entre groups e channels)
+- ❌ WebSocket implementado mas não funcional (funções vazias)
+- ❌ Múltiplas tabelas relacionadas criando complexidade excessiva
+
+#### **2. WEBSOCKET NÃO FUNCIONAL**
+
+- ❌ ChatContext tem funções WebSocket vazias (`// TODO: Implementar WebSocket real`)
+- ❌ Pasta `/api/chat/websocket` vazia, sem implementação
+- ❌ Typing indicators e real-time não funcionam
+- ✅ **Solução**: Migrar para polling simples a cada 3-5 segundos
+
+#### **3. INCONSISTÊNCIA DE DADOS**
+
+- ❌ Grupos já existem com ícones e cores definidos
+- ❌ Canais duplicam essas informações desnecessariamente
+- ❌ Seed cria canais baseados em grupos, mas APIs usam canais
+- ✅ **Solução**: Usar diretamente os 6 grupos existentes como salas de chat
+
+### 📋 **PLANO DE CORREÇÃO DETALHADO**
+
+#### **ETAPA 1: SIMPLIFICAÇÃO ARQUITETURAL**
+
+1. **Eliminar tabela `chat_channel`** - usar diretamente tabela `group` existente
+2. **Modificar `chat_message`** para referenciar `groupId` ao invés de `channelId`
+3. **Atualizar todas APIs** para trabalhar diretamente com grupos
+4. **Remover código WebSocket** e implementar polling simples (3-5 segundos)
+
+#### **ETAPA 2: REFATORAÇÃO SCHEMA DATABASE**
+
+1. **Alterar `chat_message.channelId`** → **`chat_message.groupId`** (FK para group.id)
+2. **Remover tabelas desnecessárias**: `chat_channel`, `chat_participant`
+3. **Manter apenas essenciais**: `chat_message`, `chat_message_status`, `chat_user_status`
+4. **Atualizar seed** para criar mensagens diretamente nos grupos
+
+#### **ETAPA 3: SIMPLIFICAÇÃO APIs**
+
+1. **`/api/chat/groups`** - listar grupos ativos como salas de chat
+2. **`/api/chat/messages`** - mensagens filtradas por groupId
+3. **`/api/chat/presence`** - status de usuários (manter)
+4. **Remover APIs complexas**: channels, typing, websocket, notifications
+
+#### **ETAPA 4: ATUALIZAÇÃO FRONTEND**
+
+1. **ChatContext simplificado** - sem WebSocket, apenas polling de 5 em 5 segundos
+2. **Usar grupos existentes** como salas de chat (sem channels)
+3. **Interface mais simples** focada no essencial (mensagens + presença)
+4. **Remover funcionalidades complexas**: typing indicators, real-time WebSocket
+
+### 🎯 **OBJETIVO FINAL**
+
+Chat simples, funcional e estável baseado nos 6 grupos existentes:
+
+1. **🛡️ Administradores** - Canal administrativo
+2. **☁️ Meteorologistas** - Canal meteorologia
+3. **🔬 Pesquisadores** - Canal pesquisa
+4. **⚙️ Operadores** - Canal operacional
+5. **🎧 Suporte** - Canal suporte técnico
+6. **👤 Visitantes** - Canal visitantes
+
+### 🔧 **IMPLEMENTAÇÃO TÉCNICA**
+
+#### **Schema Simplificado**
+
+```sql
+-- REMOVER
+DROP TABLE chat_channel;
+DROP TABLE chat_participant;
+
+-- ALTERAR
+ALTER TABLE chat_message
+DROP COLUMN channel_id,
+ADD COLUMN group_id TEXT REFERENCES group(id);
+```
+
+#### **API Simplificada**
+
+```typescript
+// /api/chat/groups - Listar salas de chat
+export async function GET() {
+	const groups = await db.select().from(schema.group).where(eq(schema.group.active, true))
+	return NextResponse.json(groups)
+}
+
+// /api/chat/messages - Mensagens por grupo
+export async function GET(request: NextRequest) {
+	const { searchParams } = new URL(request.url)
+	const groupId = searchParams.get('groupId')
+
+	const messages = await db.select().from(schema.chatMessage).where(eq(schema.chatMessage.groupId, groupId)).orderBy(asc(schema.chatMessage.createdAt))
+
+	return NextResponse.json(messages)
+}
+```
+
+#### **Frontend Polling**
+
+```typescript
+// ChatContext simplificado
+const ChatContext = createContext({
+	groups: [],
+	messages: {},
+	loadGroups: () => {},
+	loadMessages: (groupId: string) => {},
+	sendMessage: (groupId: string, content: string) => {},
+})
+
+// Polling a cada 5 segundos
+useEffect(() => {
+	const interval = setInterval(() => {
+		if (activeGroupId) {
+			loadMessages(activeGroupId)
+		}
+	}, 5000)
+
+	return () => clearInterval(interval)
+}, [activeGroupId])
+```
+
+### ✅ **BENEFÍCIOS DA CORREÇÃO**
+
+1. **Simplicidade**: Arquitetura 70% mais simples
+2. **Consistência**: Usa dados já existentes (grupos)
+3. **Funcionalidade**: Chat realmente funcional
+4. **Manutenibilidade**: Código mais limpo e fácil de manter
+5. **Performance**: Menos queries e tabelas
+6. **Estabilidade**: Sem complexidade de WebSocket
+
+### 📅 **CRONOGRAMA ESTIMADO**
+
+- **Etapa 1**: 1 dia - Planejamento e análise
+- **Etapa 2**: 1 dia - Refatoração schema e migration
+- **Etapa 3**: 1 dia - Simplificação APIs
+- **Etapa 4**: 1 dia - Atualização frontend
+
+**Total**: 4 dias para chat funcional e estável
+
+### 🎯 ARQUITETURA HÍBRIDA - POSICIONAMENTO PRECISO (JUNHO 2025)
 
 **PROBLEMA RESOLVIDO**: Sistema não respeitava posição exata onde usuário soltava tarefas
 

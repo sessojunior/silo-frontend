@@ -4,8 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { toast } from '@/lib/toast'
 import { notFound, useParams } from 'next/navigation'
 import KanbanBoard from '@/components/admin/projects/KanbanBoard'
+import TaskFormOffcanvas from '@/components/admin/projects/TaskFormOffcanvas'
 import { ProjectTask } from '@/lib/db/schema'
-import Button from '@/components/ui/Button'
 
 // Interface Task do KanbanBoard
 interface KanbanTask {
@@ -65,6 +65,11 @@ export default function TaskKanbanPage() {
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 	const [isDragBlocked, setIsDragBlocked] = useState(false)
+
+	// Estados do TaskFormOffcanvas
+	const [taskFormOpen, setTaskFormOpen] = useState(false)
+	const [taskToEdit, setTaskToEdit] = useState<KanbanTask | null>(null)
+	const [initialTaskStatus, setInitialTaskStatus] = useState<KanbanTask['status']>('todo')
 
 	// Função para carregar dados do projeto
 	const fetchProject = useCallback(async () => {
@@ -174,14 +179,106 @@ export default function TaskKanbanPage() {
 		}
 	}, [fetchProject, fetchActivity, fetchTasks])
 
-	// Função para criar nova tarefa (placeholder)
-	const handleCreateTask = useCallback(() => {
-		toast({
-			type: 'info',
-			title: '🔵 Em desenvolvimento',
-			description: 'Funcionalidade de criar tarefa será implementada em breve',
-		})
+	// Função para abrir formulário de criação de tarefa
+	const handleCreateTask = useCallback((status: KanbanTask['status']) => {
+		setTaskToEdit(null)
+		setInitialTaskStatus(status)
+		setTaskFormOpen(true)
 	}, [])
+
+	// Função para abrir formulário de edição de tarefa
+	const handleEditTask = useCallback((task: KanbanTask) => {
+		setTaskToEdit(task)
+		setInitialTaskStatus(task.status)
+		setTaskFormOpen(true)
+	}, [])
+
+	// Função para processar envio do formulário de tarefa
+	const handleTaskSubmit = useCallback(
+		async (formData: { name: string; description: string; category: string; estimatedDays: number; startDate: string; endDate: string; priority: string; status: string }) => {
+			try {
+				const taskData = {
+					...formData,
+					projectId: projectId,
+					projectActivityId: activityId,
+				}
+
+				const url = taskToEdit ? `/api/projects/${projectId}/activities/${activityId}/tasks` : `/api/projects/${projectId}/activities/${activityId}/tasks`
+
+				const method = taskToEdit ? 'PUT' : 'POST'
+
+				const payload = taskToEdit ? { ...taskData, id: taskToEdit.id } : taskData
+
+				console.log('🔵 [FRONTEND] Enviando dados para API:', {
+					method,
+					url,
+					payload,
+					taskToEdit: !!taskToEdit,
+				})
+
+				const response = await fetch(url, {
+					method,
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(payload),
+				})
+
+				if (!response.ok) {
+					throw new Error(`Erro HTTP ${response.status}`)
+				}
+
+				const result = await response.json()
+				if (!result.success) {
+					throw new Error(result.error || 'Erro desconhecido')
+				}
+
+				// Recarregar as tarefas
+				await fetchTasks()
+			} catch (error) {
+				console.error('❌ Erro ao salvar tarefa:', error)
+				throw error
+			}
+		},
+		[projectId, activityId, taskToEdit, fetchTasks],
+	)
+
+	// Função para deletar tarefa
+	const handleTaskDelete = useCallback(
+		async (task: KanbanTask) => {
+			try {
+				const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/tasks`, {
+					method: 'DELETE',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ id: task.id }),
+				})
+
+				if (!response.ok) {
+					throw new Error(`Erro HTTP ${response.status}`)
+				}
+
+				const result = await response.json()
+				if (!result.success) {
+					throw new Error(result.error || 'Erro desconhecido')
+				}
+
+				toast({
+					type: 'success',
+					title: '✅ Tarefa excluída',
+					description: `${task.name} foi excluída com sucesso`,
+				})
+
+				// Recarregar as tarefas
+				await fetchTasks()
+			} catch (error) {
+				console.error('❌ Erro ao excluir tarefa:', error)
+				toast({
+					type: 'error',
+					title: '❌ Erro ao excluir',
+					description: 'Não foi possível excluir a tarefa. Tente novamente.',
+				})
+			}
+		},
+		[projectId, activityId, fetchTasks],
+	)
 
 	// Função para persistir a movimentação no backend
 	const handleTasksReorder = useCallback(
@@ -297,26 +394,29 @@ export default function TaskKanbanPage() {
 			<div className='w-full p-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 sticky top-0 left-0 z-10'>
 				<div className='flex items-center justify-between'>
 					<div>
-						<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Kanban - {activity.name}</h1>
-						<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Projeto: {project.name} • Gerencie as tarefas desta atividade</p>
-					</div>
-					<div className='flex items-center gap-3'>
-						<Button onClick={handleCreateTask} className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white'>
-							<span className='icon-[lucide--plus] size-4' />
-							<span>Nova Tarefa</span>
-						</Button>
-						<Button onClick={() => toast({ type: 'info', title: 'Em desenvolvimento', description: 'Configurações do Kanban em breve' })} className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white'>
-							<span className='icon-[lucide--settings] size-4' />
-							<span>Configurar</span>
-						</Button>
+						<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>{activity.name}</h1>
+						<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Projeto {project.name}</p>
 					</div>
 				</div>
 			</div>
 
 			{/* Conteúdo */}
 			<div className='flex-1 bg-zinc-50 dark:bg-zinc-900'>
-				<KanbanBoard tasks={kanbanTasks} onTasksReorder={handleTasksReorder} isDragBlocked={isDragBlocked} />
+				<KanbanBoard tasks={kanbanTasks} onTasksReorder={handleTasksReorder} isDragBlocked={isDragBlocked} onCreateTask={handleCreateTask} onEditTask={handleEditTask} />
 			</div>
+
+			{/* TaskFormOffcanvas */}
+			<TaskFormOffcanvas
+				isOpen={taskFormOpen}
+				onClose={() => {
+					setTaskFormOpen(false)
+					setTaskToEdit(null)
+				}}
+				task={taskToEdit}
+				initialStatus={initialTaskStatus}
+				onSubmit={handleTaskSubmit}
+				onDelete={handleTaskDelete}
+			/>
 		</div>
 	)
 }

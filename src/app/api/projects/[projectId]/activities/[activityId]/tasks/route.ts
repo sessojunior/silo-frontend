@@ -138,9 +138,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 			.where(and(eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId)))
 
 		// Função utilitária para comparar arrays de tasks (id, status, sort)
-		function tasksArrayEquals(a: any[], b: any[]) {
+		function tasksArrayEquals(a: { taskId: string; status: string; sort: number }[], b: { taskId: string; status: string; sort: number }[]) {
 			if (a.length !== b.length) return false
-			const sortFn = (x: any, y: any) => x.taskId.localeCompare(y.taskId)
+			const sortFn = (x: { taskId: string }, y: { taskId: string }) => x.taskId.localeCompare(y.taskId)
 			const arrA = [...a].sort(sortFn)
 			const arrB = [...b].sort(sortFn)
 			for (let i = 0; i < arrA.length; i++) {
@@ -198,5 +198,177 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 	} catch (error) {
 		console.error('❌ [API] Erro ao atualizar tarefas do kanban:', error)
 		return NextResponse.json({ success: false, error: 'Erro ao atualizar tarefas do kanban' }, { status: 500 })
+	}
+}
+
+// POST - Criar nova tarefa
+export async function POST(request: NextRequest, { params }: { params: Promise<{ projectId: string; activityId: string }> }) {
+	try {
+		const user = await getAuthUser()
+		if (!user) {
+			return NextResponse.json({ success: false, error: 'Não autenticado' }, { status: 401 })
+		}
+
+		const { projectId, activityId } = await params
+		const body = await request.json()
+		const { name, description, category, estimatedDays, startDate, endDate, priority, status } = body
+
+		console.log('🔵 [API] POST Task - Criando tarefa:', { projectId, activityId, name, status, body })
+
+		// Validações básicas
+		if (!name?.trim()) {
+			return NextResponse.json({ success: false, error: 'Nome da tarefa é obrigatório' }, { status: 400 })
+		}
+
+		if (!description?.trim()) {
+			return NextResponse.json({ success: false, error: 'Descrição da tarefa é obrigatória' }, { status: 400 })
+		}
+
+		// Buscar o próximo sort para a coluna
+		const existingTasks = await db
+			.select()
+			.from(schema.projectTask)
+			.where(and(eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId), eq(schema.projectTask.status, status)))
+
+		const nextSort = existingTasks.length
+
+		// Criar nova tarefa
+		const taskValues = {
+			projectId: projectId,
+			projectActivityId: activityId,
+			name: name.trim(),
+			description: description.trim(),
+			category: category || null,
+			estimatedDays: estimatedDays || 1,
+			startDate: startDate || null,
+			endDate: endDate || null,
+			priority: priority || 'medium',
+			status: status || 'todo',
+			sort: nextSort,
+		}
+
+		console.log('🔵 [API] Valores para inserção:', taskValues)
+
+		const newTask = await db.insert(schema.projectTask).values(taskValues).returning()
+
+		console.log('✅ [API] Tarefa criada:', newTask[0])
+
+		return NextResponse.json({
+			success: true,
+			task: newTask[0],
+		})
+	} catch (error) {
+		console.error('❌ [API] Erro ao criar tarefa:', error)
+		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
+	}
+}
+
+// PUT - Editar tarefa existente
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ projectId: string; activityId: string }> }) {
+	try {
+		const user = await getAuthUser()
+		if (!user) {
+			return NextResponse.json({ success: false, error: 'Não autenticado' }, { status: 401 })
+		}
+
+		const { projectId, activityId } = await params
+		const body = await request.json()
+		const { id, name, description, category, estimatedDays, startDate, endDate, priority, status } = body
+
+		console.log('🔵 [API] PUT Task - Editando tarefa:', { projectId, activityId, id, name, status, body })
+
+		// Validações básicas
+		if (!id) {
+			return NextResponse.json({ success: false, error: 'ID da tarefa é obrigatório' }, { status: 400 })
+		}
+
+		if (!name?.trim()) {
+			return NextResponse.json({ success: false, error: 'Nome da tarefa é obrigatório' }, { status: 400 })
+		}
+
+		if (!description?.trim()) {
+			return NextResponse.json({ success: false, error: 'Descrição da tarefa é obrigatória' }, { status: 400 })
+		}
+
+		// Verificar se a tarefa existe e pertence ao projeto/atividade
+		const existingTask = await db
+			.select()
+			.from(schema.projectTask)
+			.where(and(eq(schema.projectTask.id, id), eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId)))
+
+		if (existingTask.length === 0) {
+			return NextResponse.json({ success: false, error: 'Tarefa não encontrada' }, { status: 404 })
+		}
+
+		// Atualizar tarefa
+		const updatedTask = await db
+			.update(schema.projectTask)
+			.set({
+				name: name.trim(),
+				description: description.trim(),
+				category: category || null,
+				estimatedDays: estimatedDays || 1,
+				startDate: startDate || null,
+				endDate: endDate || null,
+				priority: priority || 'medium',
+				status: status || 'todo',
+				updatedAt: new Date(),
+			})
+			.where(eq(schema.projectTask.id, id))
+			.returning()
+
+		console.log('✅ [API] Tarefa atualizada:', updatedTask[0].id)
+
+		return NextResponse.json({
+			success: true,
+			task: updatedTask[0],
+		})
+	} catch (error) {
+		console.error('❌ [API] Erro ao editar tarefa:', error)
+		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
+	}
+}
+
+// DELETE - Excluir tarefa
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ projectId: string; activityId: string }> }) {
+	try {
+		const user = await getAuthUser()
+		if (!user) {
+			return NextResponse.json({ success: false, error: 'Não autenticado' }, { status: 401 })
+		}
+
+		const { projectId, activityId } = await params
+		const body = await request.json()
+		const { id } = body
+
+		console.log('🔵 [API] DELETE Task - Excluindo tarefa:', { id })
+
+		// Validações básicas
+		if (!id) {
+			return NextResponse.json({ success: false, error: 'ID da tarefa é obrigatório' }, { status: 400 })
+		}
+
+		// Verificar se a tarefa existe e pertence ao projeto/atividade
+		const existingTask = await db
+			.select()
+			.from(schema.projectTask)
+			.where(and(eq(schema.projectTask.id, id), eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId)))
+
+		if (existingTask.length === 0) {
+			return NextResponse.json({ success: false, error: 'Tarefa não encontrada' }, { status: 404 })
+		}
+
+		// Excluir tarefa
+		await db.delete(schema.projectTask).where(eq(schema.projectTask.id, id))
+
+		console.log('✅ [API] Tarefa excluída:', id)
+
+		return NextResponse.json({
+			success: true,
+			message: 'Tarefa excluída com sucesso',
+		})
+	} catch (error) {
+		console.error('❌ [API] Erro ao excluir tarefa:', error)
+		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

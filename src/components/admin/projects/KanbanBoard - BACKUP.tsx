@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, pointerWithin, useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -38,6 +38,9 @@ interface Column {
 interface KanbanBoardProps {
 	tasks?: Task[]
 	onTasksReorder?: (tasksBeforeMove: Task[], tasksAfterMove: Task[]) => void
+	isDragBlocked?: boolean
+	onCreateTask?: (status: Task['status']) => void
+	onEditTask?: (task: Task) => void
 }
 
 type TaskStatus = Task['status']
@@ -124,7 +127,50 @@ const categoryColors: Record<string, string> = {
 	Planejamento: 'bg-gray-100 text-gray-800',
 }
 
-function SortableTaskCard({ task, activeTask }: { task: Task; activeTask: Task | null }) {
+// Componente base reutilizável para conteúdo do card
+function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Task; showEditButton?: boolean; onEditTask?: (task: Task) => void }) {
+	const formatDate = (dateString: string): string => {
+		return new Date(dateString).toLocaleDateString('pt-BR')
+	}
+
+	return (
+		<div className='select-none'>
+			<div className='flex items-start justify-between mb-2'>
+				<div className='flex items-center space-x-2'>
+					<div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`} />
+					<span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 text-gray-800'}`}>{task.category}</span>
+				</div>
+				{showEditButton && (
+					<button
+						className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 transition group'
+						title='Editar tarefa'
+						type='button'
+						onClick={(e) => {
+							e.stopPropagation()
+							if (onEditTask) onEditTask(task)
+						}}
+					>
+						<span className='icon-[lucide--pencil] size-4 text-zinc-400 group-hover:text-zinc-600' />
+					</button>
+				)}
+			</div>
+			<h3 className='font-medium text-gray-900 mb-1'>{task.name}</h3>
+			<p className='text-sm text-gray-600 mb-3'>{task.description}</p>
+			<div className='flex items-center justify-between text-xs text-gray-500'>
+				<div className='flex items-center space-x-1' title={`Estimativa de ${task.estimated_days} dias`}>
+					<div className='icon-[lucide--clock] w-3 h-3' />
+					<span>{task.estimated_days} dias</span>
+				</div>
+				<div className='flex items-center space-x-1' title={`De ${formatDate(task.start_date)} até ${formatDate(task.end_date)}`}>
+					<div className='icon-[lucide--calendar] w-3 h-3' />
+					<span>{formatDate(task.start_date)}</span>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+function SortableTaskCard({ task, activeTask, onEditTask }: { task: Task; activeTask: Task | null; onEditTask?: (task: Task) => void }) {
 	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
 		id: task.id,
 		data: {
@@ -137,81 +183,32 @@ function SortableTaskCard({ task, activeTask }: { task: Task; activeTask: Task |
 		transition,
 	}
 	const isBeingDragged = activeTask?.id === task.id
-	const formatDate = (dateString: string): string => {
-		return new Date(dateString).toLocaleDateString('pt-BR')
-	}
-	// Determina tema da coluna do card
 	const theme = columnTheme[task.status]
-	const cardContent = (
-		<>
-			<div className='flex items-start justify-between mb-2'>
-				<div className='flex items-center space-x-2'>
-					<div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`} />
-					<span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 text-gray-800'}`}>{task.category}</span>
-				</div>
-				<button className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 transition group' title='Editar tarefa' type='button'>
-					<span className='icon-[lucide--pencil] size-4 text-zinc-400 group-hover:text-zinc-600' />
-				</button>
-			</div>
-			<h3 className='font-medium text-gray-900 mb-1'>{task.name}</h3>
-			<p className='text-sm text-gray-600 mb-3'>{task.description}</p>
-			<div className='flex items-center justify-between text-xs text-gray-500'>
-				<div className='flex items-center space-x-1'>
-					<div className='icon-[lucide--clock] w-3 h-3' />
-					<span>{task.estimated_days}d</span>
-				</div>
-				<div className='flex items-center space-x-1'>
-					<div className='icon-[lucide--calendar] w-3 h-3' />
-					<span>{formatDate(task.start_date)}</span>
-				</div>
-			</div>
-		</>
-	)
+
 	if (isBeingDragged) {
 		return (
 			<div ref={setNodeRef} style={style} className={`bg-white rounded-xl border-2 ${theme.border} p-4 opacity-50`}>
-				{cardContent}
+				<TaskCardContent task={task} onEditTask={onEditTask} />
 			</div>
 		)
 	}
+
 	return (
 		<div ref={setNodeRef} style={style} {...attributes} {...listeners} className={`bg-white rounded-xl border-2 ${theme.border} p-4 cursor-move transition-shadow hover:shadow-md`}>
-			{cardContent}
+			<TaskCardContent task={task} onEditTask={onEditTask} />
 		</div>
 	)
 }
 
 function TaskCard({ task }: { task: Task }) {
-	const formatDate = (dateString: string): string => {
-		return new Date(dateString).toLocaleDateString('pt-BR')
-	}
-
 	return (
 		<div className='bg-white rounded-lg shadow-lg border border-gray-200 p-4 rotate-3 transform'>
-			<div className='flex items-start justify-between mb-2'>
-				<div className='flex items-center space-x-2'>
-					<div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`} />
-					<span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 text-gray-800'}`}>{task.category}</span>
-				</div>
-				<div className='icon-[lucide--grip-vertical] w-4 h-4 text-gray-400' />
-			</div>
-			<h3 className='font-medium text-gray-900 mb-1'>{task.name}</h3>
-			<p className='text-sm text-gray-600 mb-3'>{task.description}</p>
-			<div className='flex items-center justify-between text-xs text-gray-500'>
-				<div className='flex items-center space-x-1'>
-					<div className='icon-[lucide--clock] w-3 h-3' />
-					<span>{task.estimated_days} dias</span>
-				</div>
-				<div className='flex items-center space-x-1'>
-					<div className='icon-[lucide--calendar] w-3 h-3' />
-					<span>{formatDate(task.start_date)}</span>
-				</div>
-			</div>
+			<TaskCardContent task={task} showEditButton={false} />
 		</div>
 	)
 }
 
-function DroppableColumn({ column, tasks, activeTask }: { column: Column; tasks: Task[]; activeTask: Task | null }) {
+function DroppableColumn({ column, tasks, activeTask, onCreateTask, onEditTask }: { column: Column; tasks: Task[]; activeTask: Task | null; onCreateTask?: (status: Task['status']) => void; onEditTask?: (task: Task) => void }) {
 	const { setNodeRef } = useDroppable({ id: column.id })
 	const taskIds = tasks.map((task: Task) => task.id)
 	return (
@@ -227,7 +224,7 @@ function DroppableColumn({ column, tasks, activeTask }: { column: Column; tasks:
 					className={`flex items-center justify-center size-8 rounded-full transition group ${column.headerHover}`}
 					title='Adicionar tarefa'
 					onClick={() => {
-						/* TODO: abrir modal de nova tarefa */
+						if (onCreateTask) onCreateTask(column.id)
 					}}
 					type='button'
 				>
@@ -238,11 +235,11 @@ function DroppableColumn({ column, tasks, activeTask }: { column: Column; tasks:
 			<SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
 				<div className='flex-1 px-3 py-3 space-y-3 overflow-y-auto'>
 					{tasks.map((task: Task) => (
-						<SortableTaskCard key={task.id} task={task} activeTask={activeTask} />
+						<SortableTaskCard key={task.id} task={task} activeTask={activeTask} onEditTask={onEditTask} />
 					))}
 					{tasks.length === 0 && (
 						<div className='h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-zinc-50'>
-							<span className='text-gray-500 text-sm'>Solte aqui</span>
+							<span className='text-gray-500 text-sm'>Arraste e solte aqui</span>
 						</div>
 					)}
 				</div>
@@ -251,12 +248,13 @@ function DroppableColumn({ column, tasks, activeTask }: { column: Column; tasks:
 	)
 }
 
-export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder }: KanbanBoardProps) {
+export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder, isDragBlocked = false, onCreateTask, onEditTask }: KanbanBoardProps) {
 	const [tasks, setTasks] = useState<Task[]>(externalTasks)
 	const [activeTask, setActiveTask] = useState<Task | null>(null)
 	const [isClient, setIsClient] = useState(false)
 	const [tasksBeforeMove, setTasksBeforeMove] = useState<Task[] | null>(null)
-	const [isSaving, setIsSaving] = useState(false)
+	const [pendingMove, setPendingMove] = useState<{ before: Task[]; after: Task[] } | null>(null)
+	const isPatchingRef = useRef(false)
 
 	useEffect(() => {
 		setIsClient(true)
@@ -265,6 +263,42 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder 
 	useEffect(() => {
 		setTasks(externalTasks)
 	}, [externalTasks])
+
+	// Detectar mudanças no estado tasks e processar movimento pendente
+	useEffect(() => {
+		if (pendingMove && pendingMove.before.length > 0 && !isPatchingRef.current && onTasksReorder) {
+			const before = pendingMove.before
+			const after = tasks.map((t) => ({ ...t })) // Estado atual das tasks
+
+			// Verificar se houve mudança real
+			const houveMudanca =
+				before &&
+				after.some((t, idx) => {
+					const b = before[idx]
+					return !b || b.id !== t.id || b.status !== t.status || b.sort !== t.sort
+				})
+
+			if (houveMudanca) {
+				console.log('🟠 [KANBAN] Detectada mudança no estado - enviando PATCH', {
+					tasksBeforeMove: before.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
+					tasksAfterMove: after.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
+				})
+
+				// Toast de feedback imediato
+				// toast({
+				// 	type: 'info',
+				// 	title: '⏳ Salvando...',
+				// 	description: 'Movimentação sendo salva no servidor...',
+				// })
+
+				// Enviar para backend
+				onTasksReorder(before, after)
+			}
+
+			// Limpar movimento pendente
+			setPendingMove(null)
+		}
+	}, [tasks, pendingMove, onTasksReorder]) // Dependência em tasks detecta mudanças automaticamente
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -336,14 +370,14 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder 
 	}
 
 	const handleDragStart = (event: DragStartEvent) => {
-		if (isSaving) return
+		console.log('🟡 [KANBAN] Drag Start:', {
+			taskId: event.active.id,
+			isDragBlocked,
+		})
+
 		const task = tasks.find((t) => t.id === event.active.id)
 		setActiveTask(task || null)
 		setTasksBeforeMove(tasks.map((t) => ({ ...t })))
-		console.log('🟡 [KANBAN] Drag Start:', {
-			taskId: event.active.id,
-			snapshot: tasks.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
-		})
 	}
 
 	const handleDragOver = (event: DragOverEvent) => {
@@ -376,12 +410,13 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder 
 	}
 
 	const handleDragEnd = async (event: DragEndEvent) => {
-		if (isSaving) return
+		if (isPatchingRef.current) return
+		isPatchingRef.current = true
 		setActiveTask(null)
 		const { active, over } = event
 		if (!over) {
 			setTasksBeforeMove(null)
-			setIsSaving(false)
+			isPatchingRef.current = false
 			return
 		}
 		const activeId = active.id as string
@@ -389,43 +424,22 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder 
 		const position = calculateNewPosition(activeId, overId)
 		if (!position) {
 			setTasksBeforeMove(null)
-			setIsSaving(false)
+			isPatchingRef.current = false
 			return
 		}
-		applyPositionChange(activeId, position.newStatus, position.targetIndex)
-		// Checagem: só envia PATCH se houve mudança real de status ou ordem
-		const after = tasks.map((t) => ({ ...t }))
+		// Capturar o estado ANTES das mudanças
 		const before = tasksBeforeMove
-		const houveMudanca =
-			before &&
-			after.some((t, idx) => {
-				const b = before[idx]
-				return !b || b.id !== t.id || b.status !== t.status || b.sort !== t.sort
-			})
-		if (!houveMudanca) {
-			setTasksBeforeMove(null)
-			setIsSaving(false)
-			return
+
+		// Aplicar mudanças
+		applyPositionChange(activeId, position.newStatus, position.targetIndex)
+
+		// Agendar movimento pendente - useEffect detectará mudança no estado tasks
+		if (before) {
+			setPendingMove({ before, after: [] }) // after será preenchido pelo useEffect
 		}
-		console.log('🟠 [KANBAN] Enviando PATCH para backend', {
-			tasksBeforeMove: tasksBeforeMove.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
-			tasksAfterMove: tasks.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
-		})
-		if (onTasksReorder && tasksBeforeMove) {
-			setIsSaving(true)
-			setTimeout(async () => {
-				console.log('🟠 [KANBAN] Enviando PATCH para backend', {
-					tasksBeforeMove: tasksBeforeMove.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
-					tasksAfterMove: tasks.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
-				})
-				await onTasksReorder(
-					tasksBeforeMove,
-					tasks.map((t) => ({ ...t })),
-				)
-				setTasksBeforeMove(null)
-				setIsSaving(false)
-			}, 0)
-		}
+
+		setTasksBeforeMove(null)
+		isPatchingRef.current = false
 	}
 
 	if (!isClient) {
@@ -436,25 +450,35 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder 
 		)
 	}
 
+	console.log('🔍 [KANBAN] Renderizando:', { isDragBlocked, activeTask: !!activeTask })
+
 	return (
 		<div className='flex-1 bg-zinc-50 dark:bg-zinc-900'>
-			<div className='min-w-max h-full p-6 relative'>
-				<DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-					<div className='flex gap-6 items-start overflow-x-auto'>
-						{columns.map((column) => (
-							<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={activeTask} />
-						))}
-					</div>
-					<DragOverlay>{activeTask ? <TaskCard task={activeTask} /> : null}</DragOverlay>
-				</DndContext>
-				{isSaving && (
-					<div className='absolute inset-0 bg-white/60 dark:bg-zinc-900/60 flex items-center justify-center z-50 pointer-events-auto'>
-						<div className='flex flex-col items-center gap-2'>
-							<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
-							<span className='text-zinc-700 dark:text-zinc-200 text-sm'>Salvando movimentação...</span>
-						</div>
-					</div>
-				)}
+			<div className={`min-w-max h-full p-6 relative ${isDragBlocked ? 'pointer-events-none select-none' : ''}`}>
+				{(() => {
+					if (isDragBlocked) {
+						console.log('🚫 [KANBAN] RENDERIZANDO VERSÃO ESTÁTICA - DndContext NÃO renderizado')
+						return (
+							<div className='flex gap-6 items-start overflow-x-auto'>
+								{columns.map((column) => (
+									<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={null} onCreateTask={onCreateTask} onEditTask={onEditTask} />
+								))}
+							</div>
+						)
+					} else {
+						console.log('✅ [KANBAN] RENDERIZANDO DNDCONTEXT - Drag & drop ATIVO')
+						return (
+							<DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
+								<div className='flex gap-6 items-start overflow-x-auto'>
+									{columns.map((column) => (
+										<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={activeTask} onCreateTask={onCreateTask} onEditTask={onEditTask} />
+									))}
+								</div>
+								<DragOverlay>{activeTask ? <TaskCard task={activeTask} /> : null}</DragOverlay>
+							</DndContext>
+						)
+					}
+				})()}
 			</div>
 		</div>
 	)

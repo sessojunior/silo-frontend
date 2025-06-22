@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from 'react'
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, pointerWithin, useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { toast } from '@/lib/toast'
 
 // Types
 interface Task {
@@ -40,6 +39,8 @@ interface KanbanBoardProps {
 	tasks?: Task[]
 	onTasksReorder?: (tasksBeforeMove: Task[], tasksAfterMove: Task[]) => void
 	isDragBlocked?: boolean
+	onCreateTask?: (status: Task['status']) => void
+	onEditTask?: (task: Task) => void
 }
 
 type TaskStatus = Task['status']
@@ -127,7 +128,7 @@ const categoryColors: Record<string, string> = {
 }
 
 // Componente base reutilizável para conteúdo do card
-function TaskCardContent({ task, showEditButton = true }: { task: Task; showEditButton?: boolean }) {
+function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Task; showEditButton?: boolean; onEditTask?: (task: Task) => void }) {
 	const formatDate = (dateString: string): string => {
 		return new Date(dateString).toLocaleDateString('pt-BR')
 	}
@@ -140,7 +141,15 @@ function TaskCardContent({ task, showEditButton = true }: { task: Task; showEdit
 					<span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 text-gray-800'}`}>{task.category}</span>
 				</div>
 				{showEditButton && (
-					<button className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 transition group' title='Editar tarefa' type='button'>
+					<button
+						className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 transition group'
+						title='Editar tarefa'
+						type='button'
+						onClick={(e) => {
+							e.stopPropagation()
+							if (onEditTask) onEditTask(task)
+						}}
+					>
 						<span className='icon-[lucide--pencil] size-4 text-zinc-400 group-hover:text-zinc-600' />
 					</button>
 				)}
@@ -148,11 +157,11 @@ function TaskCardContent({ task, showEditButton = true }: { task: Task; showEdit
 			<h3 className='font-medium text-gray-900 mb-1'>{task.name}</h3>
 			<p className='text-sm text-gray-600 mb-3'>{task.description}</p>
 			<div className='flex items-center justify-between text-xs text-gray-500'>
-				<div className='flex items-center space-x-1'>
+				<div className='flex items-center space-x-1' title={`Estimativa de ${task.estimated_days} dias`}>
 					<div className='icon-[lucide--clock] w-3 h-3' />
-					<span>{task.estimated_days}d</span>
+					<span>{task.estimated_days} dias</span>
 				</div>
-				<div className='flex items-center space-x-1'>
+				<div className='flex items-center space-x-1' title={`De ${formatDate(task.start_date)} até ${formatDate(task.end_date)}`}>
 					<div className='icon-[lucide--calendar] w-3 h-3' />
 					<span>{formatDate(task.start_date)}</span>
 				</div>
@@ -161,7 +170,7 @@ function TaskCardContent({ task, showEditButton = true }: { task: Task; showEdit
 	)
 }
 
-function SortableTaskCard({ task, activeTask }: { task: Task; activeTask: Task | null }) {
+function SortableTaskCard({ task, activeTask, onEditTask }: { task: Task; activeTask: Task | null; onEditTask?: (task: Task) => void }) {
 	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
 		id: task.id,
 		data: {
@@ -179,14 +188,14 @@ function SortableTaskCard({ task, activeTask }: { task: Task; activeTask: Task |
 	if (isBeingDragged) {
 		return (
 			<div ref={setNodeRef} style={style} className={`bg-white rounded-xl border-2 ${theme.border} p-4 opacity-50`}>
-				<TaskCardContent task={task} />
+				<TaskCardContent task={task} onEditTask={onEditTask} />
 			</div>
 		)
 	}
 
 	return (
 		<div ref={setNodeRef} style={style} {...attributes} {...listeners} className={`bg-white rounded-xl border-2 ${theme.border} p-4 cursor-move transition-shadow hover:shadow-md`}>
-			<TaskCardContent task={task} />
+			<TaskCardContent task={task} onEditTask={onEditTask} />
 		</div>
 	)
 }
@@ -199,7 +208,7 @@ function TaskCard({ task }: { task: Task }) {
 	)
 }
 
-function DroppableColumn({ column, tasks, activeTask }: { column: Column; tasks: Task[]; activeTask: Task | null }) {
+function DroppableColumn({ column, tasks, activeTask, onCreateTask, onEditTask }: { column: Column; tasks: Task[]; activeTask: Task | null; onCreateTask?: (status: Task['status']) => void; onEditTask?: (task: Task) => void }) {
 	const { setNodeRef } = useDroppable({ id: column.id })
 	const taskIds = tasks.map((task: Task) => task.id)
 	return (
@@ -215,7 +224,7 @@ function DroppableColumn({ column, tasks, activeTask }: { column: Column; tasks:
 					className={`flex items-center justify-center size-8 rounded-full transition group ${column.headerHover}`}
 					title='Adicionar tarefa'
 					onClick={() => {
-						/* TODO: abrir modal de nova tarefa */
+						if (onCreateTask) onCreateTask(column.id)
 					}}
 					type='button'
 				>
@@ -226,7 +235,7 @@ function DroppableColumn({ column, tasks, activeTask }: { column: Column; tasks:
 			<SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
 				<div className='flex-1 px-3 py-3 space-y-3 overflow-y-auto'>
 					{tasks.map((task: Task) => (
-						<SortableTaskCard key={task.id} task={task} activeTask={activeTask} />
+						<SortableTaskCard key={task.id} task={task} activeTask={activeTask} onEditTask={onEditTask} />
 					))}
 					{tasks.length === 0 && (
 						<div className='h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-zinc-50'>
@@ -239,7 +248,7 @@ function DroppableColumn({ column, tasks, activeTask }: { column: Column; tasks:
 	)
 }
 
-export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder, isDragBlocked = false }: KanbanBoardProps) {
+export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder, isDragBlocked = false, onCreateTask, onEditTask }: KanbanBoardProps) {
 	const [tasks, setTasks] = useState<Task[]>(externalTasks)
 	const [activeTask, setActiveTask] = useState<Task | null>(null)
 	const [isClient, setIsClient] = useState(false)
@@ -452,7 +461,7 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder,
 						return (
 							<div className='flex gap-6 items-start overflow-x-auto'>
 								{columns.map((column) => (
-									<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={null} />
+									<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={null} onCreateTask={onCreateTask} onEditTask={onEditTask} />
 								))}
 							</div>
 						)
@@ -462,7 +471,7 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder,
 							<DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
 								<div className='flex gap-6 items-start overflow-x-auto'>
 									{columns.map((column) => (
-										<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={activeTask} />
+										<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={activeTask} onCreateTask={onCreateTask} onEditTask={onEditTask} />
 									))}
 								</div>
 								<DragOverlay>{activeTask ? <TaskCard task={activeTask} /> : null}</DragOverlay>
