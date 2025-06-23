@@ -40,6 +40,15 @@ export default function SettingsPage() {
 	// Preferences tab state
 	const [notifyUpdates, setNotifyUpdates] = useState(false)
 	const [sendNewsletters, setSendNewsletters] = useState(false)
+	const [showWelcome, setShowWelcome] = useState<boolean>(true)
+
+	// Leitura rápida do localStorage na montagem
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const hide = localStorage.getItem('hideWelcome') === 'true'
+			setShowWelcome(!hide)
+		}
+	}, [])
 
 	// Security tab state
 	const [email, setEmail] = useState(user?.email || '')
@@ -201,6 +210,11 @@ export default function SettingsPage() {
 					type: 'success',
 					title: 'Preferências alteradas com sucesso.',
 				})
+
+				// Atualiza localStorage para refletir a preferência de boas-vindas
+				if (typeof window !== 'undefined') {
+					localStorage.setItem('hideWelcome', showWelcome ? 'false' : 'true')
+				}
 			}
 		} catch (error) {
 			console.error('❌ Erro ao atualizar preferências:', error)
@@ -462,6 +476,8 @@ export default function SettingsPage() {
 					<Switch id='notify-updates' name='notifyUpdates' checked={notifyUpdates} onChange={setNotifyUpdates} size='lg' title='Notificar quando houver novas atualizações' description='Notifique-me quando houver novas atualizações no sistema ou novas versões.' isInvalid={form?.field === 'notifyUpdates'} invalidMessage={form?.message} />
 
 					<Switch id='send-newsletters' name='sendNewsletters' checked={sendNewsletters} onChange={setSendNewsletters} size='lg' title='Enviar e-mails semanalmente' description='Enviar e-mails semanalmente com novidades e atualizações.' isInvalid={form?.field === 'sendNewsletters'} invalidMessage={form?.message} />
+
+					<Switch id='show-welcome' name='showWelcome' checked={showWelcome} onChange={setShowWelcome} size='lg' title='Exibir página de boas-vindas' description='Mostrar a página de boas-vindas na próxima vez que você acessar o sistema.' />
 
 					{/* Submit Button */}
 					<div className='flex justify-end pt-4'>

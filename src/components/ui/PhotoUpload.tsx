@@ -8,11 +8,11 @@ import { toast } from '@/lib/toast'
 
 type PhotoUploadProps = {
 	image?: string
-} & React.FormHTMLAttributes<HTMLFormElement>
+	className?: string
+}
 
-export default function PhotoUpload({ image, className, ...props }: PhotoUploadProps) {
+export default function PhotoUpload({ image, className }: PhotoUploadProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null)
-	const submitButtonRef = useRef<HTMLButtonElement>(null)
 
 	const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 	const [isInvalid, setIsInvalid] = useState(false)
@@ -24,15 +24,53 @@ export default function PhotoUpload({ image, className, ...props }: PhotoUploadP
 		}
 	}, [image])
 
-	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+	const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0]
 		if (file) {
 			const reader = new FileReader()
 			reader.onload = (e) => {
 				setPreviewUrl(e.target?.result as string)
-				submitButtonRef.current?.click()
 			}
 			reader.readAsDataURL(file)
+
+			// Upload do arquivo
+			const formData = new FormData()
+			formData.append('fileToUpload', file)
+
+			try {
+				const res = await fetch('/api/user-profile-image', {
+					method: 'POST',
+					body: formData,
+				})
+
+				if (res.ok) {
+					setIsInvalid(false)
+					toast({
+						type: 'success',
+						title: 'Imagem atualizada',
+						description: 'Sua imagem de perfil foi alterada com sucesso.',
+					})
+				} else {
+					const result = await res.json()
+					setIsInvalid(true)
+					setInvalidMessage(result.message ?? 'Erro ao atualizar imagem de perfil.')
+					setPreviewUrl(image ? `${image}?timestamp=${Date.now()}` : null)
+
+					toast({
+						type: 'error',
+						title: result.message ?? 'Não foi possível alterar a imagem de perfil.',
+					})
+				}
+			} catch {
+				setIsInvalid(true)
+				setInvalidMessage('Erro de conexão ao enviar imagem.')
+				setPreviewUrl(image ? `${image}?timestamp=${Date.now()}` : null)
+
+				toast({
+					type: 'error',
+					title: 'Erro de conexão ao enviar imagem.',
+				})
+			}
 		} else {
 			setPreviewUrl(null)
 		}
@@ -69,37 +107,8 @@ export default function PhotoUpload({ image, className, ...props }: PhotoUploadP
 		}
 	}
 
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-		const formData = new FormData(e.currentTarget)
-		const res = await fetch('/api/user-profile-image', {
-			method: 'POST',
-			body: formData,
-		})
-
-		if (res.ok) {
-			setIsInvalid(false)
-
-			toast({
-				type: 'success',
-				title: 'Imagem atualizada',
-				description: 'Sua imagem de perfil foi alterada com sucesso.',
-			})
-		} else {
-			const result = await res.json()
-			setIsInvalid(true)
-			setInvalidMessage(result.message ?? 'Erro ao atualizar imagem de perfil.')
-			setPreviewUrl(image ? `${image}?timestamp=${Date.now()}` : null)
-
-			toast({
-				type: 'error',
-				title: result.message ?? 'Não foi possível alterar a imagem de perfil.',
-			})
-		}
-	}
-
 	return (
-		<form method='post' action='/api/user-profile-image' encType='multipart/form-data' onSubmit={handleSubmit} className={twMerge(clsx('flex w-full', className))} {...props}>
+		<div className={twMerge(clsx('flex w-full', className))}>
 			<div className='flex w-full gap-4'>
 				{/* Avatar/Preview */}
 				<div className='flex items-center justify-center'>
@@ -129,12 +138,7 @@ export default function PhotoUpload({ image, className, ...props }: PhotoUploadP
 
 				{/* Input oculto */}
 				<input ref={fileInputRef} type='file' name='fileToUpload' accept='image/png, image/jpeg, image/webp' className='hidden' onChange={handleFileChange} />
-
-				{/* Submit programático */}
-				<button ref={submitButtonRef} type='submit' className='hidden'>
-					Submeter
-				</button>
 			</div>
-		</form>
+		</div>
 	)
 }

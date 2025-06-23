@@ -22,24 +22,6 @@ export default function Topbar() {
 			url: '/admin/settings',
 		},
 		{
-			id: '1',
-			icon: 'icon-[lucide--user-round-pen]',
-			title: 'Alterar perfil',
-			url: '/admin/profile',
-		},
-		{
-			id: '2',
-			icon: 'icon-[lucide--settings-2]',
-			title: 'Preferências',
-			url: '/admin/profile/preferences',
-		},
-		{
-			id: '3',
-			icon: 'icon-[lucide--shield-check]',
-			title: 'Segurança',
-			url: '/admin/profile/security',
-		},
-		{
 			id: '4',
 			icon: 'icon-[lucide--log-out]',
 			title: 'Sair',

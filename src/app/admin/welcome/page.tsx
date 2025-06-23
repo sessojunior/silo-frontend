@@ -1,11 +1,13 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
-import Label from '@/components/ui/Label'
 import InputCheckbox from '@/components/ui/InputCheckbox'
+import { useUser } from '@/context/UserContext'
 
-interface WelcomeProps {
+interface Step {
 	icon: string
 	title: string
 	description: string
@@ -13,38 +15,118 @@ interface WelcomeProps {
 	completed: boolean
 }
 
-const welcome: WelcomeProps[] = [
-	{
-		icon: 'icon-[lucide--user-round-pen]',
-		title: 'Complete seu perfil de usuário',
-		description: 'Termine de configurar as informações de seu perfil, como nome, imagem de perfil e outras informações.',
-		link: '/admin/settings/profile',
-		completed: true,
-	},
-	{
-		icon: 'icon-[lucide--folder-git-2]',
-		title: 'Configure os produtos e tarefas',
-		description: 'Selecione os produtos e tarefas que deseja monitorar e acompanhar na visão geral.',
-		link: '#',
-		completed: false,
-	},
-	{
-		icon: 'icon-[lucide--square-chart-gantt]',
-		title: 'Configure os projetos',
-		description: 'Selecione ou crie os projetos e configure seu Kanban e acompanhe o gráfico Gantt.',
-		link: '#',
-		completed: false,
-	},
-]
-
 export default function WelcomePage() {
+	const user = useUser()
+	const router = useRouter()
+
+	const [steps, setSteps] = useState<Step[]>([])
+	const [hideWelcome, setHideWelcome] = useState<boolean>(false)
+	const [loading, setLoading] = useState<boolean>(true)
+
+	useEffect(() => {
+		async function loadData() {
+			// === 1. Verificar Perfil ===
+			let profileCompleted = false
+			try {
+				const res = await fetch('/api/user-profile')
+				if (res.ok) {
+					const data = await res.json()
+					profileCompleted = Boolean(data?.user?.image)
+				}
+			} catch {
+				profileCompleted = false
+			}
+
+			// === 2. Verificar Produtos ===
+			let productsConfigured = false
+			try {
+				const res = await fetch('/api/products')
+				if (res.ok) {
+					const data = await res.json()
+					productsConfigured = Array.isArray(data?.products) && data.products.length > 0
+				}
+			} catch {
+				productsConfigured = false
+			}
+
+			// === 3. Verificar Projetos ===
+			let projectsConfigured = false
+			try {
+				const res = await fetch('/api/admin/projects')
+				if (res.ok) {
+					const data = await res.json()
+					projectsConfigured = Array.isArray(data?.projects) && data.projects.length > 0
+				}
+			} catch {
+				projectsConfigured = false
+			}
+
+			setSteps([
+				{
+					icon: 'icon-[lucide--user-round-pen]',
+					title: 'Complete seu perfil de usuário',
+					description: 'Adicione foto, função e demais informações pessoais.',
+					link: '/admin/settings',
+					completed: profileCompleted,
+				},
+				{
+					icon: 'icon-[lucide--folder-git-2]',
+					title: 'Cadastre seus produtos',
+					description: 'Crie ou configure os produtos que serão monitorados.',
+					link: '/admin/products',
+					completed: productsConfigured,
+				},
+				{
+					icon: 'icon-[lucide--square-chart-gantt]',
+					title: 'Crie seus projetos',
+					description: 'Organize suas atividades em projetos com Kanban e Gantt.',
+					link: '/admin/projects',
+					completed: projectsConfigured,
+				},
+			])
+			console.log('ℹ️ [WelcomePage] Passos carregados', { profileCompleted, productsConfigured, projectsConfigured })
+			setLoading(false)
+		}
+
+		loadData()
+	}, [])
+
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const stored = localStorage.getItem('hideWelcome')
+			setHideWelcome(stored === 'true')
+		}
+	}, [])
+
+	useEffect(() => {
+		if (hideWelcome) {
+			localStorage.setItem('hideWelcome', 'true')
+			router.replace('/admin')
+		} else {
+			localStorage.setItem('hideWelcome', 'false')
+		}
+	}, [hideWelcome, router])
+
+	const completedCount = steps.filter((s) => s.completed).length
+
+	if (loading) {
+		return (
+			<div className='flex min-h-screen w-full items-center justify-center text-zinc-500 dark:text-zinc-400'>
+				<div className='flex items-center gap-3'>
+					<span className='icon-[lucide--loader-circle] animate-spin size-5' />
+					Carregando página...
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		<div className='w-full flex min-h-full flex-col items-center justify-center p-8 text-zinc-600 dark:text-zinc-200'>
 			<div className='mb-4 max-w-2xl'>
 				<h1 className='text-center text-3xl font-bold tracking-tight'>
-					Bem-vindo <span className='text-blue-600'>Fulano</span> 👋
+					Bem-vindo <span className='text-blue-600'>{user?.name?.split(' ')[0] || 'Usuário'}</span> 👋
 				</h1>
-				<p className='mt-1 text-center text-base'>Siga as etapas abaixo para finalizar a configuração de sua conta.</p>
+				<p className='mt-1 text-center text-base'>Siga as etapas abaixo para finalizar a configuração inicial.</p>
 			</div>
 
 			{/* Cartão de boas-vindas */}
@@ -53,15 +135,15 @@ export default function WelcomePage() {
 					<div className='flex items-center justify-between rounded-t-xl border-b border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-800'>
 						<h3 className='text-2xl font-bold'>Vamos começar!</h3>
 						<div className='text-sm text-zinc-500 dark:text-zinc-400'>
-							{welcome.filter((item) => item.completed).length} de {welcome.length}
+							{completedCount} de {steps.length}
 						</div>
 					</div>
 
 					<div className='flex flex-col gap-4 p-6'>
-						{welcome.map((item, index) => (
-							<Link key={index} href={item.link} className={`group flex items-center gap-x-4 rounded-lg border p-4 transition-colors ${item.completed ? 'border-blue-200 bg-blue-50 hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-900/30 dark:hover:bg-blue-800/40' : 'border-zinc-200 bg-zinc-50 hover:border-blue-200 hover:bg-blue-50 dark:border-zinc-700 dark:bg-zinc-800/50 dark:hover:border-blue-700 dark:hover:bg-blue-900/30'}`}>
+						{steps.map((item, index) => (
+							<Link key={index} href={item.link} className={`group flex items-center gap-x-4 rounded-lg border p-4 transition-colors ${item.completed ? 'border-green-200 bg-green-50 hover:bg-green-100 dark:border-green-700 dark:bg-green-900/30 dark:hover:bg-green-800/40' : 'border-zinc-200 bg-zinc-50 hover:border-blue-200 hover:bg-blue-50 dark:border-zinc-700 dark:bg-zinc-800/50 dark:hover:border-blue-600 dark:hover:bg-blue-900/30'}`}>
 								<div>
-									<div className={`flex size-14 items-center justify-center rounded-lg border transition-colors ${item.completed ? 'border-blue-300 bg-blue-300 group-hover:bg-blue-400 dark:border-blue-600 dark:bg-blue-600 dark:group-hover:bg-blue-500' : 'border-zinc-200 bg-zinc-100 group-hover:border-blue-200 group-hover:bg-blue-100 dark:border-zinc-600 dark:bg-zinc-700 dark:group-hover:border-blue-600 dark:group-hover:bg-blue-800/50'}`}>{item.completed ? <span className='icon-[lucide--check-check] size-8 shrink-0 text-white'></span> : <span className={`${item.icon} size-8 shrink-0 text-zinc-400 group-hover:text-blue-400`}></span>}</div>
+									<div className={`flex size-14 items-center justify-center rounded-lg border transition-colors ${item.completed ? 'border-green-300 bg-green-300 group-hover:bg-green-400 dark:border-green-600 dark:bg-green-600 dark:group-hover:bg-green-500' : 'border-zinc-200 bg-zinc-100 group-hover:border-blue-200 group-hover:bg-blue-100 dark:border-zinc-600 dark:bg-zinc-700 dark:group-hover:border-blue-600 dark:group-hover:bg-blue-800/50'}`}>{item.completed ? <span className='icon-[lucide--check-check] size-8 shrink-0 text-white'></span> : <span className={`${item.icon} size-8 shrink-0 text-zinc-400 group-hover:text-blue-400`}></span>}</div>
 								</div>
 								<div>
 									<h3 className='text-lg font-medium'>{item.title}</h3>
@@ -71,9 +153,7 @@ export default function WelcomePage() {
 						))}
 
 						<div className='flex items-center justify-center pt-2 text-center'>
-							<Label htmlFor='hide-welcome'>
-								<InputCheckbox id='hide-welcome' name='hide-welcome' label='Não exibir mais as boas-vindas.' />
-							</Label>
+							<InputCheckbox id='hide-welcome' name='hide-welcome' label='Não exibir mais as boas-vindas.' checked={hideWelcome} onChange={(e) => setHideWelcome(e.currentTarget.checked)} />
 						</div>
 					</div>
 				</div>
