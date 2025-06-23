@@ -372,20 +372,21 @@ O Sistema SILO é uma plataforma integrada de gestão desenvolvida especificamen
 
 ---
 
-## 💬 Sistema de Chat
+## 💬 Sistema de Chat Ultra Simplificado
 
-### Canais Organizados
-- **Canais por Grupo**: Baseados na estrutura organizacional
-- **Mensagens Diretas**: Comunicação privada entre membros
-- **Status de Presença**: Indicadores de disponibilidade em tempo real
-- **Histórico Completo**: Busca avançada em conversas anteriores
+### Conversas Organizadas
+- **Grupos (groupMessage)**: Mensagens para grupos organizacionais baseados na estrutura do INPE
+- **Conversas Privadas (userMessage)**: Comunicação particular entre membros da equipe
+- **Status de Presença**: Indicadores de disponibilidade (Online, Ausente, Ocupado, Offline)
+- **Busca Inteligente**: Busca em mensagens, conversas e usuários
 
-### Funcionalidades Avançadas
-- Upload de arquivos (imagens, documentos, áudio)
-- Emoji picker com categorias organizadas
-- Status de leitura (✓✓ estilo WhatsApp)
-- Typing indicators em tempo real
-- Notificações push configuráveis
+### Funcionalidades Implementadas
+- **Apenas Texto**: Envio de mensagens de texto, links e emojis
+- **Emoji Picker**: Seletor de emojis ao lado do campo de texto
+- **Status de Leitura**: Para conversas privadas (mensagens lidas/não lidas)
+- **Contadores**: Total de mensagens não lidas na sidebar e dropdown topbar
+- **Exclusão Manual**: Usuário pode excluir mensagens em até 24 horas
+- **Polling Inteligente**: Atualização automática a cada 5 segundos
 
 ---
 
@@ -418,10 +419,10 @@ O Sistema SILO é uma plataforma integrada de gestão desenvolvida especificamen
 ### Problemas Comuns
 
 #### Chat não carrega mensagens
-1. Verifique a conexão WebSocket no console do navegador
+1. Aguarde até 5 segundos para sincronização automática
 2. Limpe o cache do navegador (Ctrl+Shift+R)
 3. Verifique se há bloqueadores de anúncio interferindo
-4. Tente acessar em modo anônimo
+4. Tente acessar em modo anônimo ou outro navegador
 
 #### Erro de permissão ao acessar páginas admin
 1. Confirme se está logado com usuário administrador
@@ -429,11 +430,11 @@ O Sistema SILO é uma plataforma integrada de gestão desenvolvida especificamen
 3. Faça logout e login novamente
 4. Contate suporte se persistir
 
-#### Upload de arquivos falha
-1. Verifique se o arquivo é menor que 10MB
-2. Confirme se o formato é suportado
-3. Verifique espaço em disco no servidor
-4. Tente renomear o arquivo removendo caracteres especiais
+#### Mensagens de chat não sincronizam
+1. Aguarde 5 segundos para sincronização automática
+2. Verifique se o status de presença está correto
+3. Confirme se há conexão com o servidor
+4. Recarregue a página se o problema persistir
 
 #### Gantt não exibe corretamente
 1. Atualize a página (F5)
@@ -442,10 +443,10 @@ O Sistema SILO é uma plataforma integrada de gestão desenvolvida especificamen
 4. Teste em navegador atualizado
 
 ### Performance
-- **Otimização**: Sistema otimizado para até 1000 usuários simultâneos
-- **Cache**: Dados críticos mantidos em cache Redis
-- **CDN**: Assets estáticos servidos via CDN
-- **Monitoramento**: Logs detalhados para análise de performance
+- **Otimização**: Sistema otimizado para até 200 usuários simultâneos
+- **Polling Eficiente**: Atualizações a cada 5 segundos com timestamps
+- **Queries Otimizadas**: Índices específicos para chat em PostgreSQL
+- **Cache Inteligente**: Cache de mensagens recentes no frontend
 
 ---
 
@@ -472,9 +473,9 @@ O Sistema SILO é uma plataforma integrada de gestão desenvolvida especificamen
 - **Patch**: Correções de bugs e melhorias menores
 
 ### Última Atualização
-- **Versão**: 2.1.0
-- **Data**: Janeiro 2024
-- **Principais Mudanças**: Sistema de projetos com Kanban/Gantt, chat em tempo real
+- **Versão**: 2.2.0
+- **Data**: Janeiro 2025
+- **Principais Mudanças**: Chat ultra simplificado (polling 5s), CRUD Kanban tarefas, arquitetura 2 tabelas
 
 ---
 
@@ -529,7 +530,7 @@ O Sistema de Meteorologia e Climatologia (SMEC) é responsável pelo processamen
 
 ### APIs Disponíveis
 - REST API para consulta de dados
-- WebSocket para dados em tempo real
+- Polling inteligente para atualizações
 - GraphQL para consultas complexas`,
 	},
 	{
@@ -574,8 +575,9 @@ export function generateSolutions() {
 	}))
 }
 
-// Mensagens de exemplo para o chat
-export const exampleChatMessages = ['🎉 Olá pessoal! Bem-vindos ao canal!', 'Sistema de chat funcionando perfeitamente! 🚀', 'Que bom ter todos vocês aqui. Vamos começar a colaborar! 💪', 'Este canal vai ser muito útil para nossa equipe! 👥', 'Alguém pode me ajudar com uma dúvida técnica?', 'Acabei de atualizar a documentação do projeto 📝', 'Reunião hoje às 14h, não esqueçam! ⏰', 'Parabéns pelo excelente trabalho na sprint passada! 👏']
+// === DADOS DO CHAT ULTRA SIMPLIFICADO ===
+// Mensagens de exemplo são criadas dinamicamente no seed.ts
+// Não há necessidade de dados estáticos para o novo sistema
 
 // Atividades de exemplo para projetos - organizadas por projeto
 export const projectActivitiesData = {

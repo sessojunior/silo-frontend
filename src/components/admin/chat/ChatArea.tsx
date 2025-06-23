@@ -4,194 +4,234 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useChat } from '@/context/ChatContext'
 import { useUser } from '@/context/UserContext'
 import MessageBubble from './MessageBubble'
-import type { ChatMessage } from '@/context/ChatContext'
+import EmojiPicker from './EmojiPicker'
+import type { ChatMessage, ChatGroup, ChatUser } from '@/context/ChatContext'
 import Button from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
 import FutureFeatureDialog from '@/components/ui/FutureFeatureDialog'
 
 type ChatAreaProps = {
-	activeChannelId: string | null
+	activeTargetId: string | null
+	activeTargetType: 'group' | 'user' | null
+	activeTarget: ChatGroup | ChatUser | undefined
 	onToggleSidebar: () => void
 }
 
-// TypingIndicator component - real-time WebSocket based
-function TypingIndicator({ channelId }: { channelId: string }) {
-	const { typingUsers } = useChat()
-
-	// Filtrar typing users para este canal
-	const channelTypingUsers = typingUsers.filter((user) => user.channelId === channelId)
-
-	if (channelTypingUsers.length === 0) return null
-
-	return (
-		<div className='flex items-center gap-2 px-4 py-2 text-sm text-zinc-500 dark:text-zinc-400'>
-			<div className='flex gap-1'>
-				<div className='h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.3s]'></div>
-				<div className='h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]'></div>
-				<div className='h-2 w-2 animate-bounce rounded-full bg-zinc-400'></div>
-			</div>
-			<span>{channelTypingUsers.length === 1 ? `${channelTypingUsers[0].userName} está digitando...` : channelTypingUsers.length === 2 ? `${channelTypingUsers[0].userName} e ${channelTypingUsers[1].userName} estão digitando...` : `${channelTypingUsers[0].userName} e mais ${channelTypingUsers.length - 1} pessoa${channelTypingUsers.length > 2 ? 's' : ''} estão digitando...`}</span>
-		</div>
-	)
-}
-
-export default function ChatArea({ activeChannelId, onToggleSidebar }: ChatAreaProps) {
-	const { channels, messages, sendMessage, loadMessages, startTyping, stopTyping, typingUsers, isConnected, joinChannel, leaveChannel, markMessagesAsRead } = useChat()
+export default function ChatArea({ activeTargetId, activeTargetType, activeTarget, onToggleSidebar }: ChatAreaProps) {
+	const { messages, sendMessage, loadMessages, loadOlderMessages, markMessageAsRead } = useChat()
 	const user = useUser()
 
 	const [messageText, setMessageText] = useState('')
-	const [isTyping, setIsTyping] = useState(false)
-	const [messageStatuses, setMessageStatuses] = useState<Record<string, { status: 'sent' | 'delivered' | 'read'; readCount: number; totalParticipants: number }>>({})
-	const [showEmojiDialog, setShowEmojiDialog] = useState(false)
+	const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 	const [showFileDialog, setShowFileDialog] = useState(false)
-	const messagesEndRef = useRef<HTMLDivElement>(null)
-	const inputRef = useRef<HTMLTextAreaElement>(null)
-	const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-	const lastChannelRef = useRef<string | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
+	const [isSending, setIsSending] = useState(false)
 
-	// Canal ativo
-	const activeChannel = channels.find((c) => c.id === activeChannelId)
-	const channelMessages = useMemo(() => {
-		return activeChannelId ? messages[activeChannelId] || [] : []
-	}, [activeChannelId, messages])
+	const messagesEndRef = useRef<HTMLDivElement>(null)
+	const messagesContainerRef = useRef<HTMLDivElement>(null)
+	const inputRef = useRef<HTMLTextAreaElement>(null)
+	const [isUserScrolling, setIsUserScrolling] = useState(false)
+	const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
+	const [isLoadingOlder, setIsLoadingOlder] = useState(false)
+	const [hasMoreMessages, setHasMoreMessages] = useState(true)
+	const [currentPage, setCurrentPage] = useState(1)
+	// const MESSAGES_PER_PAGE = 30 // Para referência futura
+	const lastTargetRef = useRef<string | null>(null)
 
-	// Carregar mensagens quando o canal muda
+	// Mensagens do target ativo (garantir ordem cronológica)
+	const targetMessages = useMemo(() => {
+		if (!activeTargetId) return []
+		const msgs = messages[activeTargetId] || []
+		// Garantir ordenação cronológica (mais antiga primeiro)
+		return msgs.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+	}, [activeTargetId, messages])
+
+	// Carregar mensagens quando o target muda
 	useEffect(() => {
-		if (activeChannelId && activeChannelId !== lastChannelRef.current) {
-			console.log('🔵 Mudando para canal:', activeChannelId)
+		if (activeTargetId && activeTargetType && activeTargetId !== lastTargetRef.current) {
+			console.log('🔵 [ChatArea] Mudando para target:', {
+				id: activeTargetId,
+				type: activeTargetType,
+			})
 
-			// Sair do canal anterior
-			if (lastChannelRef.current) {
-				leaveChannel(lastChannelRef.current)
-			}
-
-			// Entrar no novo canal
-			joinChannel(activeChannelId)
-			lastChannelRef.current = activeChannelId
+			lastTargetRef.current = activeTargetId
 
 			// Carregar mensagens
 			setIsLoading(true)
-			loadMessages(activeChannelId).finally(() => {
+			loadMessages(activeTargetId, activeTargetType).finally(() => {
 				setIsLoading(false)
-				messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+				setTimeout(() => {
+					messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+				}, 100)
 			})
 		}
-	}, [activeChannelId, loadMessages, joinChannel, leaveChannel])
+	}, [activeTargetId, activeTargetType, loadMessages])
 
-	// Buscar status de leitura das mensagens
-	const fetchMessageStatuses = useCallback(
-		async (channelId: string | null) => {
-			if (!channelId || channelMessages.length === 0) return
-
-			try {
-				const response = await fetch(`/api/chat/messages/read-status?messageIds=${channelMessages.map((msg) => msg.id).join(',')}`)
-				if (response.ok) {
-					const statuses = await response.json()
-					setMessageStatuses(statuses)
-				}
-			} catch (error) {
-				console.log('❌ Erro ao buscar status de mensagens:', error)
-			}
-		},
-		[channelMessages],
-	)
-
-	useEffect(() => {
-		if (channelMessages.length > 0 && activeChannelId) {
-			fetchMessageStatuses(activeChannelId)
-		}
-	}, [channelMessages, activeChannelId, fetchMessageStatuses])
-
-	// Auto-scroll para última mensagem
-	const scrollToBottom = useCallback(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+	// Verificar se usuário está no final da página (para auto-scroll)
+	const isAtBottom = useCallback(() => {
+		if (!messagesContainerRef.current) return false
+		const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
+		return scrollHeight - scrollTop <= clientHeight + 50 // 50px de tolerância
 	}, [])
 
-	// Auto-scroll quando novas mensagens chegam
+	// Auto-scroll para última mensagem (apenas se necessário)
+	const scrollToBottom = useCallback(
+		(force = false) => {
+			if (force || shouldAutoScroll) {
+				messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+			}
+		},
+		[shouldAutoScroll],
+	)
+
+	// Função para carregar mensagens mais antigas
+	const loadMoreMessages = useCallback(async () => {
+		if (isLoadingOlder || !hasMoreMessages || !activeTargetId || !activeTargetType) return
+
+		console.log('🔵 [ChatArea] Carregando mais mensagens antigas...', { page: currentPage + 1 })
+		setIsLoadingOlder(true)
+
+		try {
+			const result = await loadOlderMessages(activeTargetId, activeTargetType, currentPage + 1)
+
+			if (result.messages.length > 0) {
+				setCurrentPage((prev) => prev + 1)
+				setHasMoreMessages(result.hasMore)
+				console.log('✅ [ChatArea] Mensagens antigas carregadas:', {
+					count: result.messages.length,
+					hasMore: result.hasMore,
+					newPage: currentPage + 1,
+				})
+			} else {
+				setHasMoreMessages(false)
+				console.log('🔵 [ChatArea] Não há mais mensagens antigas')
+			}
+		} catch (error) {
+			console.error('❌ [ChatArea] Erro ao carregar mensagens antigas:', error)
+		} finally {
+			setIsLoadingOlder(false)
+		}
+	}, [isLoadingOlder, hasMoreMessages, activeTargetId, activeTargetType, currentPage, loadOlderMessages])
+
+	// Detectar scroll manual do usuário (com debounce para evitar oscilação)
+	const handleScroll = useCallback(() => {
+		if (!messagesContainerRef.current) return
+
+		const { scrollTop } = messagesContainerRef.current
+		const isBottom = isAtBottom()
+		const isNearTop = scrollTop < 100 // 100px do topo
+
+		// Carregar mais mensagens quando próximo ao topo
+		if (isNearTop && hasMoreMessages && !isLoadingOlder) {
+			loadMoreMessages()
+		}
+
+		// Debounce para evitar logs excessivos de oscilação
+		setTimeout(() => {
+			// Se usuário scrollou até o final, reativar auto-scroll
+			if (isBottom && !shouldAutoScroll) {
+				console.log('🔵 [ChatArea] Usuário voltou ao final - reativando auto-scroll')
+				setShouldAutoScroll(true)
+				setIsUserScrolling(false)
+			}
+			// Se usuário scrollou para cima, desativar auto-scroll
+			else if (!isBottom && shouldAutoScroll) {
+				console.log('🔵 [ChatArea] Usuário scrollou para cima - desativando auto-scroll')
+				setShouldAutoScroll(false)
+				setIsUserScrolling(true)
+			}
+		}, 150)
+	}, [isAtBottom, shouldAutoScroll, hasMoreMessages, isLoadingOlder, loadMoreMessages])
+
+	// Auto-scroll quando novas mensagens chegam (inteligente)
 	useEffect(() => {
-		if (activeChannelId && messages[activeChannelId]) {
-			scrollToBottom()
+		if (activeTargetId && messages[activeTargetId]) {
+			// PRIMEIRA CARGA sempre faz scroll
+			if (!lastTargetRef.current || lastTargetRef.current !== activeTargetId) {
+				scrollToBottom(true) // Force = true para primeira carga
+				console.log('🔵 [ChatArea] Primeira carga - scroll forçado para o final')
+			}
+			// MENSAGENS NOVAS: só scroll se shouldAutoScroll estiver ativo
+			else if (shouldAutoScroll) {
+				scrollToBottom(true)
+				console.log('🔵 [ChatArea] Nova mensagem - scroll automático (estava no final)')
+			} else {
+				console.log('🔵 [ChatArea] Nova mensagem - SEM scroll (usuário navegando histórico)')
+			}
 
-			// Marcar mensagens como lidas após delay
-			const channelMessages = messages[activeChannelId]
-			if (channelMessages.length > 0) {
-				setTimeout(() => {
-					const unreadMessageIds = channelMessages
-						.filter((msg) => msg.senderId !== 'current-user-id') // TODO: Usar user.id real
-						.map((msg) => msg.id)
+			// Marcar mensagens não lidas como lidas após delay (apenas para userMessage)
+			if (activeTargetType === 'user') {
+				const targetMessages = messages[activeTargetId]
+				const unreadMessages = targetMessages.filter((msg) => msg.senderUserId !== user.id && msg.readAt === null)
 
-					if (unreadMessageIds.length > 0) {
-						markMessagesAsRead(unreadMessageIds)
-					}
-				}, 1000)
+				if (unreadMessages.length > 0) {
+					setTimeout(() => {
+						unreadMessages.forEach((msg) => {
+							markMessageAsRead(msg.id)
+						})
+					}, 1000)
+				}
 			}
 		}
-	}, [messages, activeChannelId, markMessagesAsRead, scrollToBottom])
+	}, [messages, activeTargetId, activeTargetType, markMessageAsRead, scrollToBottom, shouldAutoScroll, user.id])
 
-	// Cleanup ao desmontar
+	// Reset auto-scroll ao trocar de conversa
 	useEffect(() => {
-		return () => {
-			if (lastChannelRef.current) {
-				leaveChannel(lastChannelRef.current)
-			}
-			if (typingTimeoutRef.current) {
-				clearTimeout(typingTimeoutRef.current)
-			}
+		if (activeTargetId !== lastTargetRef.current) {
+			setShouldAutoScroll(true)
+			setIsUserScrolling(false)
+			setCurrentPage(1)
+			setHasMoreMessages(true)
+			setIsLoadingOlder(false)
+			lastTargetRef.current = activeTargetId
+			console.log('🔵 [ChatArea] Nova conversa - resetando auto-scroll e paginação')
 		}
-	}, [leaveChannel])
+	}, [activeTargetId])
 
-	// Gerenciar typing indicators
-	const handleInputChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		const value = e.target.value
-		setMessageText(value)
-
-		if (!activeChannelId || !isConnected) return
-
-		// Iniciar typing se não estava digitando
-		if (!isTyping && value.length > 0) {
-			setIsTyping(true)
-			await startTyping(activeChannelId)
-		}
-
-		// Reset do timeout
-		if (typingTimeoutRef.current) {
-			clearTimeout(typingTimeoutRef.current)
-		}
-
-		// Parar typing após 2 segundos de inatividade
-		typingTimeoutRef.current = setTimeout(async () => {
-			if (isTyping) {
-				setIsTyping(false)
-				if (activeChannelId) await stopTyping(activeChannelId)
-			}
-		}, 2000)
-	}
+	// Debug removido para evitar logs excessivos
 
 	// Enviar mensagem
 	const handleSendMessage = async () => {
-		if (!messageText.trim() || !activeChannelId || !isConnected) return
+		if (!messageText.trim() || !activeTargetId || !activeTargetType || isSending) return
 
+		console.log('🔵 [ChatArea] Iniciando envio de mensagem')
 		try {
-			await sendMessage(activeChannelId, messageText.trim())
+			setIsSending(true)
+
+			if (activeTargetType === 'group') {
+				await sendMessage(messageText.trim(), activeTargetId, undefined)
+			} else {
+				await sendMessage(messageText.trim(), undefined, activeTargetId)
+			}
+
 			setMessageText('')
 
-			// Parar typing
-			if (isTyping) {
-				setIsTyping(false)
-				await stopTyping(activeChannelId)
-			}
+			// APENAS scroll automático se já estava no final antes de enviar
+			// Se usuário estava navegando no histórico, respeitar sua posição
+			setTimeout(() => {
+				if (shouldAutoScroll) {
+					scrollToBottom(true)
+					console.log('🔵 [ChatArea] Mensagem enviada - scroll automático (estava no final)')
+				} else {
+					console.log('🔵 [ChatArea] Mensagem enviada - SEM scroll (usuário navegando histórico)')
+				}
+			}, 100)
 
-			// Limpar timeout
-			if (typingTimeoutRef.current) {
-				clearTimeout(typingTimeoutRef.current)
-			}
+			console.log('🔵 [ChatArea] Tentando manter focus após envio...')
 
-			// Focar no input
-			inputRef.current?.focus()
+			// Usar setTimeout para garantir que o DOM foi atualizado
+			setTimeout(() => {
+				if (inputRef.current) {
+					inputRef.current.focus()
+					console.log('✅ [ChatArea] Focus restaurado com sucesso')
+				} else {
+					console.log('❌ [ChatArea] Ref do input não encontrado')
+				}
+			}, 150)
 		} catch (error) {
-			console.log('❌ Erro ao enviar mensagem:', error)
+			console.error('❌ [ChatArea] Erro ao enviar mensagem:', error)
+		} finally {
+			setIsSending(false)
 		}
 	}
 
@@ -203,24 +243,82 @@ export default function ChatArea({ activeChannelId, onToggleSidebar }: ChatAreaP
 		}
 	}
 
-	// Usuários digitando no canal ativo
-	const currentChannelTypingUsers = typingUsers.filter((tu) => tu.channelId === activeChannelId && tu.userId !== user.id)
+	// Converter ChatMessage para formato esperado pelo MessageBubble
+	const convertMessageForBubble = (message: ChatMessage) => {
+		return {
+			id: message.id,
+			channelId: activeTargetId || '', // Para compatibilidade
+			senderId: message.senderUserId,
+			senderName: message.senderName,
+			senderEmail: '', // Campo não usado no contexto atual
+			content: message.content,
+			messageType: 'text', // Sempre texto por enquanto
+			fileUrl: null,
+			fileName: null,
+			fileSize: null,
+			fileMimeType: null,
+			replyToId: null,
+			threadCount: 0,
+			isEdited: false,
+			editedAt: null,
+			createdAt: message.createdAt,
+			deletedAt: null,
+		}
+	}
 
-	// Se não há canal ativo
-	if (!activeChannel) {
+	// Obter informações de exibição do target
+	const getTargetDisplayInfo = () => {
+		if (!activeTarget) return null
+
+		if (activeTargetType === 'group') {
+			const group = activeTarget as ChatGroup
+			return {
+				name: group.name,
+				description: group.description || 'Grupo organizacional',
+				icon: group.icon || 'icon-[lucide--users]',
+				color: group.color || '#6B7280',
+			}
+		} else {
+			const chatUser = activeTarget as ChatUser
+			const getPresenceText = (status: string) => {
+				switch (status) {
+					case 'online':
+						return 'Online'
+					case 'away':
+						return 'Ausente'
+					case 'busy':
+						return 'Ocupado'
+					default:
+						return 'Offline'
+				}
+			}
+
+			return {
+				name: chatUser.name,
+				description: `${getPresenceText(chatUser.presenceStatus)} • ${chatUser.email}`,
+				icon: 'icon-[lucide--user]',
+				color: '#3B82F6', // azul padrão para usuários
+			}
+		}
+	}
+
+	const targetInfo = getTargetDisplayInfo()
+
+	// Se não há target ativo
+	if (!activeTarget || !targetInfo) {
 		return (
 			<div className='flex-1 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900'>
 				<div className='text-center text-zinc-500 dark:text-zinc-400'>
 					<span className='icon-[lucide--message-circle] w-16 h-16 mx-auto mb-4 opacity-30' />
 					<h3 className='text-lg font-medium mb-2'>Bem-vindo ao Chat!</h3>
-					<p className='text-sm max-w-md mx-auto'>Selecione um canal na barra lateral para começar a conversar com sua equipe.</p>
+					<p className='text-sm max-w-md mx-auto'>Selecione um grupo ou usuário na barra lateral para começar a conversar.</p>
 				</div>
 			</div>
 		)
 	}
 
 	return (
-		<div className='flex flex-col h-full bg-zinc-50 dark:bg-zinc-900'>
+		<div className='relative flex flex-col h-full bg-zinc-50 dark:bg-zinc-900'>
 			{/* Header do Chat */}
 			<div className='bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 px-4 py-3'>
 				<div className='flex items-center gap-3'>
@@ -229,28 +327,36 @@ export default function ChatArea({ activeChannelId, onToggleSidebar }: ChatAreaP
 						<span className='icon-[lucide--menu] w-5 h-5' />
 					</button>
 
-					{/* Ícone e informações do canal */}
-					<div className='w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0' style={{ backgroundColor: activeChannel.color || '#6B7280' }}>
-						<span className={`${activeChannel.icon || 'icon-[lucide--hash]'} w-5 h-5`} />
-					</div>
+					{/* Ícone e informações do target */}
+					{activeTargetType === 'group' ? (
+						<div className='w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0' style={{ backgroundColor: targetInfo.color }}>
+							<span className={`${targetInfo.icon} w-5 h-5`} />
+						</div>
+					) : (
+						<div className='w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0'>{targetInfo.name.charAt(0).toUpperCase()}</div>
+					)}
 
 					<div className='flex-1 min-w-0'>
-						<h1 className='font-semibold text-zinc-900 dark:text-zinc-100 truncate'>{activeChannel.name}</h1>
-						<p className='text-sm text-zinc-500 dark:text-zinc-400 truncate'>{activeChannel.description}</p>
+						<h1 className='font-semibold text-zinc-900 dark:text-zinc-100 truncate'>{targetInfo.name}</h1>
+						<p className='text-sm text-zinc-500 dark:text-zinc-400 truncate'>{targetInfo.description}</p>
 					</div>
 
-					{/* Status de conexão */}
-					<div className='flex items-center gap-2 text-sm'>
-						<div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-blue-400' : 'bg-red-400'}`} />
-						<span className='text-zinc-500 dark:text-zinc-400 hidden sm:inline'>{isConnected ? 'Online' : 'Offline'}</span>
+					{/* Informações adicionais */}
+					<div className='flex items-center gap-3 text-sm'>
+						{activeTargetType === 'user' && (
+							<div className='flex items-center gap-2'>
+								<div className={`w-2 h-2 rounded-full ${(activeTarget as ChatUser).presenceStatus === 'online' ? 'bg-green-400' : (activeTarget as ChatUser).presenceStatus === 'away' ? 'bg-yellow-400' : (activeTarget as ChatUser).presenceStatus === 'busy' ? 'bg-red-400' : 'bg-gray-400'}`} />
+							</div>
+						)}
+						<span className='text-zinc-500 dark:text-zinc-400 hidden sm:inline'>{targetMessages.length} mensagens</span>
 					</div>
 				</div>
 			</div>
 
 			{/* Área de Mensagens */}
-			<div className='flex-1 overflow-y-auto px-4 py-4 space-y-4'>
+			<div ref={messagesContainerRef} onScroll={handleScroll} className='flex-1 overflow-y-auto px-4 py-4 space-y-4'>
 				{isLoading ? (
-					<div className='flex-1 flex items-center justify-center'>
+					<div className='flex-1 h-full flex items-center justify-center'>
 						<div className='text-center text-zinc-500 dark:text-zinc-400'>
 							<div className='flex items-center justify-center gap-3 mb-4'>
 								<div className='h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600'></div>
@@ -258,38 +364,85 @@ export default function ChatArea({ activeChannelId, onToggleSidebar }: ChatAreaP
 							</div>
 						</div>
 					</div>
-				) : channelMessages.length === 0 ? (
-					<div className='flex-1 flex items-center justify-center'>
+				) : targetMessages.length === 0 ? (
+					<div className='flex-1 h-full flex items-center justify-center'>
 						<div className='text-center text-zinc-500 dark:text-zinc-400'>
-							<span className={`${activeChannel.icon || 'icon-[lucide--hash]'} w-12 h-12 mx-auto mb-3 opacity-30`} />
-							<h3 className='font-medium mb-1'>Este é o início do canal {activeChannel.name}</h3>
+							<span className={`${targetInfo.icon} w-12 h-12 mx-auto mb-3 opacity-30`} />
+							<h3 className='font-medium mb-1'>{activeTargetType === 'group' ? `Este é o início do grupo ${targetInfo.name}` : `Este é o início da conversa com ${targetInfo.name}`}</h3>
 							<p className='text-sm'>Seja o primeiro a enviar uma mensagem!</p>
 						</div>
 					</div>
 				) : (
 					<>
-						{channelMessages.map((message: ChatMessage) => {
-							const messageStatus = messageStatuses[message.id]
-							return <MessageBubble key={message.id} message={message} isOwnMessage={message.senderId === user.id} showAvatar={true} readStatus={messageStatus?.status || 'sent'} readCount={messageStatus?.readCount || 0} totalParticipants={messageStatus?.totalParticipants || 0} />
-						})}
+						{/* Indicador de loading para mensagens antigas */}
+						{isLoadingOlder && (
+							<div className='flex items-center justify-center py-4'>
+								<div className='flex items-center gap-2 text-zinc-500 dark:text-zinc-400'>
+									<div className='h-3 w-3 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600'></div>
+									<span className='text-xs'>Carregando mensagens antigas...</span>
+								</div>
+							</div>
+						)}
 
-						{/* Indicadores de typing */}
-						{currentChannelTypingUsers.length > 0 && activeChannelId && <TypingIndicator channelId={activeChannelId} />}
+						{/* Indicador de fim das mensagens */}
+						{!hasMoreMessages && targetMessages.length > 30 && (
+							<div className='flex items-center justify-center py-4'>
+								<div className='text-center text-zinc-400 dark:text-zinc-500'>
+									<span className='icon-[lucide--clock] w-4 h-4 mx-auto mb-1' />
+									<p className='text-xs'>Início da conversa</p>
+								</div>
+							</div>
+						)}
+
+						{/* Lista de mensagens */}
+						{targetMessages.map((message: ChatMessage) => (
+							<MessageBubble key={message.id} message={convertMessageForBubble(message)} isOwnMessage={message.senderUserId === user.id} showAvatar={true} readStatus={activeTargetType === 'user' ? (message.readAt ? 'read' : 'delivered') : 'sent'} readCount={0} totalParticipants={0} />
+						))}
 					</>
 				)}
 				<div ref={messagesEndRef} />
 			</div>
 
+			{/* Botão para voltar ao final (quando usuário scrollou para cima) */}
+			{isUserScrolling && (
+				<div className='absolute bottom-20 right-6 z-10'>
+					<button
+						onClick={() => {
+							scrollToBottom(true)
+							setShouldAutoScroll(true)
+							setIsUserScrolling(false)
+						}}
+						className='flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg transition-colors'
+					>
+						<span className='icon-[lucide--arrow-down] w-4 h-4' />
+						<span className='text-sm font-medium'>Voltar ao final</span>
+					</button>
+				</div>
+			)}
+
 			{/* Input de Mensagem */}
 			<div className='bg-white dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700 p-4'>
 				<div className='flex items-end gap-3'>
-					{/* Botão emoji */}
-					<button onClick={() => setShowEmojiDialog(true)} disabled={!isConnected} className='p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed' title='Emojis'>
-						<span className='icon-[lucide--smile] w-5 h-5' />
-					</button>
+					{/* Botão emoji com dropdown */}
+					<div className='relative'>
+						<button onClick={() => setShowEmojiPicker(!showEmojiPicker)} disabled={isSending} className='p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed' title='Emojis'>
+							<span className='icon-[lucide--smile] w-5 h-5' />
+						</button>
+
+						<EmojiPicker
+							isOpen={showEmojiPicker}
+							onClose={() => setShowEmojiPicker(false)}
+							onEmojiSelect={(emoji) => {
+								setMessageText((prev) => prev + emoji)
+								// Focar no input após inserir emoji
+								inputRef.current?.focus()
+							}}
+							position='top'
+						/>
+					</div>
 
 					{/* Botão de anexo */}
-					<button onClick={() => setShowFileDialog(true)} disabled={!isConnected} className='p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed' title='Anexar arquivo'>
+					<button onClick={() => setShowFileDialog(true)} disabled={isSending} className='p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed' title='Anexar arquivo'>
 						<span className='icon-[lucide--paperclip] w-5 h-5' />
 					</button>
 
@@ -298,10 +451,10 @@ export default function ChatArea({ activeChannelId, onToggleSidebar }: ChatAreaP
 						<Textarea
 							ref={inputRef}
 							value={messageText}
-							onChange={handleInputChange}
+							onChange={(e) => setMessageText(e.target.value)}
 							onKeyDown={handleKeyDown}
-							placeholder={isConnected ? 'Digite uma mensagem...' : 'Chat desconectado'}
-							disabled={!isConnected}
+							placeholder={activeTargetType === 'group' ? `Mensagem para ${targetInfo.name}...` : `Mensagem para ${targetInfo.name}...`}
+							disabled={isSending}
 							className='w-full resize-none rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed max-h-32'
 							rows={1}
 							style={{
@@ -313,18 +466,19 @@ export default function ChatArea({ activeChannelId, onToggleSidebar }: ChatAreaP
 					</div>
 
 					{/* Botão enviar */}
-					<Button onClick={handleSendMessage} disabled={!messageText.trim() || !isConnected} className='h-10 w-10 p-0'>
-						<span className='icon-[lucide--send] w-4 h-4' />
+					<Button onClick={handleSendMessage} disabled={!messageText.trim() || isSending} className='h-10 w-10 p-0'>
+						{isSending ? <div className='h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent' /> : <span className='icon-[lucide--send] w-4 h-4' />}
 					</Button>
 				</div>
 
 				{/* Dica de atalho */}
-				<p className='text-xs text-zinc-500 dark:text-zinc-400 mt-2 text-center'>Pressione Enter para enviar, Shift+Enter para nova linha</p>
+				<div className='flex items-center justify-between mt-2'>
+					<p className='text-xs text-zinc-500 dark:text-zinc-400'>Enter para enviar • Shift+Enter para nova linha</p>
+					{activeTargetType === 'user' && <p className='text-xs text-zinc-500 dark:text-zinc-400'>Mensagens privadas são marcadas como lidas automaticamente</p>}
+				</div>
 			</div>
 
-			{/* Dialogs de funcionalidades futuras */}
-			<FutureFeatureDialog open={showEmojiDialog} onClose={() => setShowEmojiDialog(false)} featureName='Seletor de Emojis' description='Um seletor de emojis completo com categorias e busca será implementado em breve. Você poderá adicionar emojis às suas mensagens de forma rápida e intuitiva.' icon='icon-[lucide--smile]' />
-
+			{/* Dialog de funcionalidade futura - apenas arquivos */}
 			<FutureFeatureDialog open={showFileDialog} onClose={() => setShowFileDialog(false)} featureName='Envio de Arquivos' description='Em breve você poderá enviar arquivos, imagens, documentos e outros tipos de mídia diretamente no chat. O sistema incluirá preview de imagens e controle de upload.' icon='icon-[lucide--paperclip]' />
 		</div>
 	)

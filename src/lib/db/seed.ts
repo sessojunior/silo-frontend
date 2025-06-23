@@ -7,7 +7,7 @@ import * as schema from '@/lib/db/schema'
 import { hashPassword } from '@/lib/auth/hash'
 
 // Importar dados do arquivo separado
-import { products, groups, contacts, testUsers, dependencyStructure, projectsData, helpDocumentation, manualData, generateProblems, generateSolutions, exampleChatMessages, projectActivitiesData } from './seed-data'
+import { products, groups, contacts, testUsers, dependencyStructure, projectsData, helpDocumentation, manualData, generateProblems, generateSolutions, projectActivitiesData } from './seed-data'
 
 // === TIPAGENS DO SCHEMA ===
 type ProductDependency = typeof schema.productDependency.$inferInsert
@@ -64,9 +64,9 @@ async function seed() {
 	console.log('🔵 Verificando tabelas existentes...')
 
 	// === VERIFICAÇÕES INDIVIDUAIS DE TABELAS ===
-	const tableChecks = await Promise.all([checkTableData('groups', () => db.select().from(schema.group).limit(1)), checkTableData('users', () => db.select().from(schema.authUser).limit(1)), checkTableData('products', () => db.select().from(schema.product).limit(1)), checkTableData('contacts', () => db.select().from(schema.contact).limit(1)), checkTableData('projects', () => db.select().from(schema.project).limit(1)), checkTableData('project_activities', () => db.select().from(schema.projectActivity).limit(1)), checkTableData('help', () => db.select().from(schema.help).limit(1)), checkTableData('chat_channels', () => db.select().from(schema.chatChannel).limit(1)), checkTableData('chat_messages', () => db.select().from(schema.chatMessage).limit(1))])
+	const tableChecks = await Promise.all([checkTableData('groups', () => db.select().from(schema.group).limit(1)), checkTableData('users', () => db.select().from(schema.authUser).limit(1)), checkTableData('products', () => db.select().from(schema.product).limit(1)), checkTableData('contacts', () => db.select().from(schema.contact).limit(1)), checkTableData('projects', () => db.select().from(schema.project).limit(1)), checkTableData('project_activities', () => db.select().from(schema.projectActivity).limit(1)), checkTableData('help', () => db.select().from(schema.help).limit(1)), checkTableData('chat_user_presence', () => db.select().from(schema.chatUserPresence).limit(1)), checkTableData('chat_messages', () => db.select().from(schema.chatMessage).limit(1))])
 
-	const [groupsCheck, usersCheck, productsCheck, contactsCheck, projectsCheck, activitiesCheck, helpCheck, channelsCheck, messagesCheck] = tableChecks
+	const [groupsCheck, usersCheck, productsCheck, contactsCheck, projectsCheck, activitiesCheck, helpCheck, presenceCheck, messagesCheck] = tableChecks
 
 	console.log(`📊 Status das tabelas:`)
 	console.log(`   - Grupos: ${groupsCheck.hasData ? `✅ COM DADOS (${groupsCheck.count})` : '🔄 VAZIA'}`)
@@ -76,7 +76,7 @@ async function seed() {
 	console.log(`   - Projetos: ${projectsCheck.hasData ? `✅ COM DADOS (${projectsCheck.count})` : '🔄 VAZIA'}`)
 	console.log(`   - Atividades: ${activitiesCheck.hasData ? `✅ COM DADOS (${activitiesCheck.count})` : '🔄 VAZIA'}`)
 	console.log(`   - Ajuda: ${helpCheck.hasData ? `✅ COM DADOS (${helpCheck.count})` : '🔄 VAZIA'}`)
-	console.log(`   - Canais Chat: ${channelsCheck.hasData ? `✅ COM DADOS (${channelsCheck.count})` : '🔄 VAZIA'}`)
+	console.log(`   - Chat Presença: ${presenceCheck.hasData ? `✅ COM DADOS (${presenceCheck.count})` : '🔄 VAZIA'}`)
 	console.log(`   - Mensagens Chat: ${messagesCheck.hasData ? `✅ COM DADOS (${messagesCheck.count})` : '🔄 VAZIA'}`)
 
 	// Variáveis para controle de fluxo
@@ -129,14 +129,16 @@ async function seed() {
 				lastLogin: null,
 			})
 
-			// Adicionar ao grupo padrão
-			if (defaultGroup) {
+			// Adicionar a TODOS os grupos ativos (não apenas o padrão)
+			console.log('🔵 Adicionando Mario Junior a todos os grupos ativos...')
+			for (const group of insertedGroups.filter((g) => g.active)) {
 				await db.insert(schema.userGroup).values({
 					userId: userId,
-					groupId: defaultGroup.id,
-					role: 'admin',
+					groupId: group.id,
+					role: group.name === 'Administradores' ? 'admin' : 'member',
 				})
 			}
+			console.log(`✅ Mario Junior adicionado a ${insertedGroups.filter((g) => g.active).length} grupos!`)
 
 			// Criar perfil
 			await db.insert(schema.userProfile).values({
@@ -183,9 +185,10 @@ async function seed() {
 
 		if (usersToCreate.length > 0) {
 			console.log('🔵 Criando usuários de teste para chat...')
+			const createdUserIds: string[] = []
+
 			for (const user of usersToCreate) {
 				const newUserId = randomUUID()
-				const targetGroup = insertedGroups.find((g) => g.name === user.groupName)
 
 				await db.insert(schema.authUser).values({
 					id: newUserId,
@@ -196,18 +199,63 @@ async function seed() {
 					isActive: user.isActive,
 				})
 
-				if (targetGroup) {
+				createdUserIds.push(newUserId)
+			}
+
+			// Associar TODOS os usuários criados a TODOS os grupos ativos (para chat)
+			console.log('🔵 Associando usuários a todos os grupos ativos...')
+			const activeGroups = insertedGroups.filter((g) => g.active)
+
+			for (const newUserId of createdUserIds) {
+				for (const group of activeGroups) {
 					await db.insert(schema.userGroup).values({
 						userId: newUserId,
-						groupId: targetGroup.id,
-						role: 'member',
+						groupId: group.id,
+						role: 'member', // Todos como members, apenas Mario Junior é admin
 					})
 				}
 			}
-			console.log(`✅ ${usersToCreate.length} usuários de teste criados!`)
+
+			console.log(`✅ ${usersToCreate.length} usuários de teste criados e associados a ${activeGroups.length} grupos cada!`)
 		} else {
 			console.log('⚠️ Usuários de teste já existem, pulando...')
 		}
+
+		// === GARANTIR QUE TODOS OS USUÁRIOS VEJAM TODOS OS GRUPOS (PARA CHAT) ===
+		console.log('🔵 Verificando associações usuário-grupo para chat...')
+
+		// Buscar todos os usuários ativos
+		const allActiveUsers = await db.select().from(schema.authUser).where(eq(schema.authUser.isActive, true))
+		const allActiveGroups = insertedGroups.filter((g) => g.active)
+
+		// Verificar se algum usuário não está associado a todos os grupos
+		let missingAssociations = 0
+
+		for (const user of allActiveUsers) {
+			const userGroups = await db.select({ groupId: schema.userGroup.groupId }).from(schema.userGroup).where(eq(schema.userGroup.userId, user.id))
+
+			const userGroupIds = new Set(userGroups.map((ug) => ug.groupId))
+
+			for (const group of allActiveGroups) {
+				if (!userGroupIds.has(group.id)) {
+					// Usuário não está no grupo, adicionar
+					await db.insert(schema.userGroup).values({
+						userId: user.id,
+						groupId: group.id,
+						role: group.name === 'Administradores' && user.email === 'sessojunior@gmail.com' ? 'admin' : 'member',
+					})
+					missingAssociations++
+				}
+			}
+		}
+
+		if (missingAssociations > 0) {
+			console.log(`✅ ${missingAssociations} associações faltantes adicionadas!`)
+		} else {
+			console.log('✅ Todos os usuários já estão associados a todos os grupos!')
+		}
+
+		console.log(`📊 Total: ${allActiveUsers.length} usuários × ${allActiveGroups.length} grupos = chat completo!`)
 
 		// === 4. CRIAR PRODUTOS ===
 		if (!productsCheck.hasData) {
@@ -416,84 +464,95 @@ async function seed() {
 			console.log('⚠️ Documentação de ajuda já existe, pulando...')
 		}
 
-		// === 10. CRIAR CANAIS DE CHAT ===
-		if (!channelsCheck.hasData && insertedGroups.length > 0) {
-			console.log('🔵 Criando canais de chat...')
-			const channelsToCreate = insertedGroups.map((group) => ({
-				name: `#${group.name.toLowerCase().replace(/\s+/g, '-')}`,
-				description: `Canal do grupo ${group.name} - ${group.description}`,
-				type: 'group' as const,
-				icon: group.icon,
-				color: group.color,
-				isActive: group.active,
-			}))
+		// === 10. CRIAR SISTEMA DE CHAT ULTRA SIMPLIFICADO ===
+		// Verificar se já existem dados de chat
+		const presenceCheck = await checkTableData('chat_user_presence', () => db.select().from(schema.chatUserPresence).limit(1))
 
-			const insertedChannels = await db.insert(schema.chatChannel).values(channelsToCreate).returning()
+		if (!presenceCheck.hasData && insertedGroups.length > 0) {
+			console.log('🔵 Criando sistema de chat ultra simplificado...')
 
 			// Buscar todos usuários ativos
 			const allUsers = await db.select().from(schema.authUser).where(eq(schema.authUser.isActive, true))
 
-			// Adicionar usuários como participantes
-			const participantRoles = []
-			for (const channel of insertedChannels) {
-				for (const user of allUsers) {
-					participantRoles.push({
-						channelId: channel.id,
-						userId: user.id,
-						role: user.email === 'sessojunior@gmail.com' ? 'admin' : 'member',
-						lastReadAt: null,
-					})
-				}
-			}
-
-			await db.insert(schema.chatParticipant).values(participantRoles)
-
-			// Criar status inicial dos usuários
-			const userStatuses = allUsers.map((user) => ({
+			// Criar status de presença para todos usuários
+			const userPresenceData = allUsers.map((user) => ({
 				userId: user.id,
 				status: 'offline' as const,
-				lastSeenAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
+				lastActivity: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
 			}))
 
-			await db.insert(schema.chatUserStatus).values(userStatuses)
+			await db.insert(schema.chatUserPresence).values(userPresenceData)
+			console.log(`✅ Status de presença criado para ${allUsers.length} usuários!`)
 
-			console.log(`✅ ${insertedChannels.length} canais criados e ${participantRoles.length} participações configuradas!`)
-		} else {
-			console.log('⚠️ Canais de chat já existem ou grupos não foram criados, pulando...')
-		}
-
-		// === 11. CRIAR MENSAGENS DE EXEMPLO ===
-		if (!messagesCheck.hasData) {
-			console.log('🔵 Criando mensagens de exemplo...')
-			const allChannels = await db.select().from(schema.chatChannel)
-			const allUsers = await db.select().from(schema.authUser).where(eq(schema.authUser.isActive, true))
-
-			if (allChannels.length > 0 && allUsers.length > 0) {
+			// Criar mensagens de exemplo (groupMessage e userMessage)
+			if (allUsers.length >= 3) {
+				console.log('🔵 Criando mensagens de exemplo...')
 				const exampleMessages = []
 				const now = new Date()
 
-				for (const channel of allChannels.slice(0, 3)) {
-					const channelUsers = allUsers.slice(0, 3)
-					for (let i = 0; i < Math.min(channelUsers.length, 3); i++) {
-						const user = channelUsers[i]
-						const minutesAgo = (3 - i) * 5
-						const messageTime = new Date(now.getTime() - minutesAgo * 60 * 1000)
+				// Mensagens para grupos (groupMessage)
+				const activeGroups = insertedGroups.filter((g) => g.active).slice(0, 3) // Primeiros 3 grupos
+				const messageUsers = allUsers.slice(0, 3) // Primeiros 3 usuários
 
-						exampleMessages.push({
-							channelId: channel.id,
-							senderId: user.id,
-							content: exampleChatMessages[i % exampleChatMessages.length],
-							messageType: 'text',
-							createdAt: messageTime,
-						})
-					}
+				for (let i = 0; i < activeGroups.length; i++) {
+					const group = activeGroups[i]
+					const user = messageUsers[i % messageUsers.length]
+					const minutesAgo = (i + 1) * 10
+					const messageTime = new Date(now.getTime() - minutesAgo * 60 * 1000)
+
+					exampleMessages.push({
+						content: `Mensagem de exemplo no grupo ${group.name} - Bem-vindos ao sistema de chat!`,
+						senderUserId: user.id,
+						receiverGroupId: group.id,
+						receiverUserId: null,
+						createdAt: messageTime,
+						readAt: null, // Grupos nunca têm readAt
+					})
+				}
+
+				// Mensagens privadas entre usuários (userMessage)
+				if (allUsers.length >= 2) {
+					const sender = allUsers[0] // Mario Junior
+					const receiver = allUsers[1] // Primeiro usuário de teste
+
+					// Conversa privada (userMessage - lida)
+					exampleMessages.push({
+						content: 'Olá! Como está o andamento do projeto?',
+						senderUserId: sender.id,
+						receiverGroupId: null,
+						receiverUserId: receiver.id,
+						createdAt: new Date(now.getTime() - 30 * 60 * 1000), // 30 min atrás
+						readAt: new Date(now.getTime() - 25 * 60 * 1000), // Lida 25 min atrás
+					})
+
+					// Resposta (userMessage - não lida)
+					exampleMessages.push({
+						content: 'Oi! O projeto está indo bem, acabei de finalizar a primeira fase.',
+						senderUserId: receiver.id,
+						receiverGroupId: null,
+						receiverUserId: sender.id,
+						createdAt: new Date(now.getTime() - 20 * 60 * 1000), // 20 min atrás
+						readAt: null, // Não lida (para demonstrar contador)
+					})
+
+					// Mais uma mensagem não lida
+					exampleMessages.push({
+						content: 'Podemos agendar uma reunião para revisar os resultados?',
+						senderUserId: receiver.id,
+						receiverGroupId: null,
+						receiverUserId: sender.id,
+						createdAt: new Date(now.getTime() - 15 * 60 * 1000), // 15 min atrás
+						readAt: null, // Não lida
+					})
 				}
 
 				await db.insert(schema.chatMessage).values(exampleMessages)
 				console.log(`✅ ${exampleMessages.length} mensagens de exemplo criadas!`)
+				console.log(`   - ${activeGroups.length} mensagens para grupos (groupMessage)`)
+				console.log(`   - ${exampleMessages.length - activeGroups.length} mensagens privadas (userMessage)`)
 			}
 		} else {
-			console.log('⚠️ Mensagens de chat já existem, pulando...')
+			console.log('⚠️ Sistema de chat já existe, pulando...')
 		}
 
 		// === 12. CRIAR DADOS DAS TAREFAS DOS PROJETOS (ARQUITETURA SIMPLIFICADA) ===

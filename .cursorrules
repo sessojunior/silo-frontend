@@ -1,53 +1,30 @@
-# 🧠 Memory Bank Protocol - Silo Project
+# 🧠 Protocolo Claude AI - Projeto Silo
 
 ## 🚨 PROTOCOLO CRÍTICO DE INICIALIZAÇÃO
 
-Sou um engenheiro de software especialista com memória que se reinicia entre sessões. O **Memory Bank** é meu único elo com trabalho anterior e DEVE ser consultado no início de CADA conversação.
+Sou um engenheiro de software especialista com memória que se reinicia entre sessões. O arquivo **CLAUDE.md** na raiz do projeto é meu **ÚNICO ELO** com trabalho anterior e DEVE ser consultado no início de CADA conversação.
 
-**🔥 OBRIGATÓRIO**: Sempre ler o memory-bank antes de qualquer implementação - isso NÃO é opcional!
+**🔥 OBRIGATÓRIO**: Sempre ler CLAUDE.md antes de qualquer implementação - isso NÃO é opcional!
 
 ---
 
-## 📂 MEMORY BANK - ESTRUTURA OTIMIZADA
+## 📂 ARQUIVO CENTRAL DE MEMÓRIA
 
-### Localização e Arquivos Core
+### Localização Principal
 
-**Diretório**: `/memory-bank/` (5 arquivos otimizados)
+**Arquivo**: `/CLAUDE.md` (arquivo único consolidado)
 
-#### 📋 ARQUIVOS PRINCIPAIS
+#### 📋 ARQUIVO PRINCIPAL
 
-1. **`README.md`** - **PONTO DE ENTRADA OBRIGATÓRIO**
+**`CLAUDE.md`** - **PONTO DE ENTRADA OBRIGATÓRIO**
 
-   - Navegação rápida e comandos essenciais
-   - Credenciais de teste e links diretos
-   - Visão geral do projeto e próximas prioridades
-   - **SEMPRE ler PRIMEIRO em toda sessão**
-
-2. **`projectStructure.md`** - **ÍNDICE TÉCNICO COMPLETO**
-
-   - Estrutura arquitetural completa
-   - APIs implementadas e schemas database
-   - Componentes UI e padrões estabelecidos
-   - Stack tecnológico e configurações
-
-3. **`currentStatus.md`** - **STATUS E PROGRESSO ATUAL**
-
-   - Funcionalidades implementadas e testadas
-   - Próximas prioridades por ordem de importância
-   - Problemas conhecidos e troubleshooting
-   - Últimas conquistas e implementações
-
-4. **`technicalSpecs.md`** - **ESPECIFICAÇÕES E PADRÕES**
-
-   - Stack detalhado e configurações
-   - Padrões de código estabelecidos
-   - Comandos de desenvolvimento
-   - Configurações de ambiente
-
-5. **`businessContext.md`** - **CONTEXTO DE PRODUTO**
-   - Por que o projeto existe
-   - Problemas que resolve
-   - Objetivos de UX e métricas de sucesso
+- Protocolo de trabalho completo
+- Status atual e próximas prioridades
+- Estrutura arquitetural completa
+- Padrões técnicos estabelecidos
+- Funcionalidades implementadas
+- Credenciais e comandos essenciais
+- **SEMPRE ler PRIMEIRO em toda sessão**
 
 ---
 
@@ -56,19 +33,19 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 ### 🎯 Ao Iniciar QUALQUER Sessão
 
 ```
-1. LER memory-bank/README.md (OBRIGATÓRIO)
-2. CONSULTAR projectStructure.md para arquitetura
-3. VERIFICAR currentStatus.md para estado atual
-4. APLICAR padrões de technicalSpecs.md
-5. CONSIDERAR contexto de businessContext.md
+1. LER CLAUDE.md (OBRIGATÓRIO)
+2. CONSULTAR arquitetura e status atual
+3. VERIFICAR próximas prioridades
+4. APLICAR padrões estabelecidos
+5. CONSIDERAR contexto completo do projeto
 ```
 
 ### 🔄 Para Cada Tarefa
 
 ```
-1. CONSULTAR memory-bank relevante ANTES de implementar
+1. CONSULTAR CLAUDE.md ANTES de implementar
 2. APLICAR padrões estabelecidos documentados
-3. ATUALIZAR memory-bank quando necessário
+3. ATUALIZAR CLAUDE.md quando necessário
 4. DOCUMENTAR mudanças significativas
 ```
 
@@ -97,28 +74,28 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 
 ---
 
-## 🔄 MANUTENÇÃO DO MEMORY BANK
+## 🔄 MANUTENÇÃO DO CLAUDE.MD
 
 ### ⏰ Quando Atualizar
 
 1. **Descobrir novos padrões** não documentados
 2. **Após implementar mudanças significativas**
-3. **Quando usuário solicitar**: `"atualizar banco de memória"`
+3. **Quando usuário solicitar**: `"atualizar claude.md"`
 4. **Quando encontrar inconsistências** entre código e documentação
 
 ### 📝 Como Atualizar
 
-1. **IDENTIFICAR** qual arquivo precisa de atualização
+1. **IDENTIFICAR** seção que precisa de atualização
 2. **MANTER** estrutura e formato existente
 3. **ADICIONAR** informações sem remover existentes
-4. **VERIFICAR** consistência entre arquivos
-5. **FOCAR** em currentStatus.md e projectStructure.md para mudanças técnicas
+4. **VERIFICAR** consistência em todo arquivo
+5. **FOCAR** em status atual e progressos técnicos
 
 ### 🎯 Comando Especial
 
-Quando usuário disser **"atualizar banco de memória"**:
+Quando usuário disser **"atualizar claude.md"**:
 
-- REVISAR todos os 5 arquivos do memory-bank
+- REVISAR arquivo completo CLAUDE.md
 - ATUALIZAR informações desatualizadas
 - DOCUMENTAR novo estado do projeto
 - MANTER foco em currentStatus.md e progress técnico

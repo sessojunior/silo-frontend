@@ -2,17 +2,19 @@
 
 Sistema avançado de gerenciamento de produtos meteorológicos para CPTEC/INPE desenvolvido com Next.js 15, React 19, TypeScript e PostgreSQL.
 
-## 📋 Memory Bank - Documentação Central
+## 📋 Documentação Central - CLAUDE.md
 
-Este projeto usa o diretório `/memory-bank` como única fonte de verdade de documentação. Todo o andamento do projeto, contexto, briefing, padrões de sistema e contexto técnico estão em arquivos markdown nesse diretório.
+Este projeto usa o arquivo `/CLAUDE.md` na raiz como única fonte de verdade de documentação. Todo o andamento do projeto, contexto, briefing, padrões de sistema e contexto técnico estão consolidados neste arquivo único.
 
-### 📂 Arquivos Essenciais do Memory Bank
+### 📂 Arquivo Essencial de Documentação
 
-- **`memory-bank/README.md`** - Ponto de entrada obrigatório com navegação rápida
-- **`memory-bank/currentStatus.md`** - Status atual e próximas prioridades
-- **`memory-bank/projectStructure.md`** - Índice técnico completo da arquitetura
-- **`memory-bank/technicalSpecs.md`** - Stack, padrões e configurações técnicas
-- **`memory-bank/businessContext.md`** - Contexto de produto e objetivos de negócio
+- **`CLAUDE.md`** - **Protocolo completo consolidado** com:
+  - Status atual e próximas prioridades
+  - Arquitetura técnica completa
+  - Padrões de desenvolvimento estabelecidos
+  - Funcionalidades implementadas
+  - Contexto de negócio e produto
+  - Credenciais e comandos de desenvolvimento
 
 ## 🚀 Status Atual do Projeto - Junho 2025
 
@@ -130,12 +132,7 @@ silo/
 │   │   └── rateLimit.ts         # Limitação de taxa
 │   └── types/                   # Definições TypeScript
 │       └── projects.ts          # Tipos sistema projetos
-├── memory-bank/                 # 📚 DOCUMENTAÇÃO CENTRAL
-│   ├── README.md               # Ponto de entrada obrigatório
-│   ├── currentStatus.md        # Status atual e próximas prioridades
-│   ├── projectStructure.md     # Arquitetura técnica completa
-│   ├── technicalSpecs.md       # Stack e padrões estabelecidos
-│   └── businessContext.md      # Contexto de produto e negócio
+├── CLAUDE.md                   # 📚 DOCUMENTAÇÃO CENTRAL CONSOLIDADA
 ├── public/                     # Arquivos estáticos
 │   ├── images/                 # Imagens do sistema
 │   └── uploads/                # Uploads organizados

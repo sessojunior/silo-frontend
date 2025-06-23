@@ -154,28 +154,29 @@ export default function HelpPage() {
 	// Se carregando
 	if (loading) {
 		return (
-			<div className='w-full'>
-				<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
-					<h1 className='text-2xl font-bold text-zinc-900 dark:text-white'>Documentação do Sistema</h1>
-					<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Central de ajuda e documentação do Silo</p>
-				</div>
-				<div className='p-6 flex items-center justify-center'>
-					<div className='animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full'></div>
-					<span className='ml-3 text-zinc-600 dark:text-zinc-400'>Carregando...</span>
-				</div>
+			<div className='w-full h-full flex flex-1 items-center justify-center p-6'>
+				<div className='animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full'></div>
+				<span className='ml-3 text-zinc-600 dark:text-zinc-400'>Carregando ajuda do sistema...</span>
 			</div>
 		)
 	}
 
 	// Interface principal com sidebar e conteúdo (seguindo padrão ProductManualSection)
 	return (
-		<div className='h-screen flex bg-zinc-50 dark:bg-zinc-900'>
+		<div className='flex bg-zinc-50 dark:bg-zinc-900'>
 			{/* Sidebar */}
-			<div className='w-80 border-r border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex-shrink-0'>
+			<div className='w-96 border-r border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex-shrink-0'>
 				<div className='h-full flex flex-col'>
-					<div className='p-4 border-b border-zinc-200 dark:border-zinc-700'>
-						<h2 className='text-lg font-semibold text-zinc-900 dark:text-white'>Navegação</h2>
-						<p className='text-sm text-zinc-600 dark:text-zinc-400'>Tópicos da documentação</p>
+					<div className='flex justify-between items-center border-b border-zinc-200 dark:border-zinc-700 p-6'>
+						<div>
+							<h2 className='text-2xl font-bold text-zinc-900 dark:text-white'>Ajuda</h2>
+							<p className='text-base text-zinc-600 dark:text-zinc-400 mt-1'>Documentação do Silo</p>
+						</div>
+						<div>
+							<Button onClick={() => setEditorOpen(true)} style='unstyled' className='rounded-full size-10 px-0 py-0'>
+								<span className='icon-[lucide--settings] size-4' />
+							</Button>
+						</div>
 					</div>
 					<div className='flex-1 overflow-y-auto p-3'>
 						{titles.length === 0 ? (
@@ -199,19 +200,6 @@ export default function HelpPage() {
 
 			{/* Conteúdo principal */}
 			<div className='flex-1 flex flex-col min-w-0'>
-				<div className='p-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800'>
-					<div className='flex items-center justify-between'>
-						<div>
-							<h1 className='text-2xl font-bold text-zinc-900 dark:text-white'>Documentação do Sistema</h1>
-							<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Central de ajuda e documentação do Silo</p>
-						</div>
-						<Button onClick={() => setEditorOpen(true)}>
-							<span className='icon-[lucide--edit-3] size-4 mr-2' />
-							Editar documentação
-						</Button>
-					</div>
-				</div>
-
 				<div className='flex-1 overflow-y-auto bg-white dark:bg-zinc-800'>
 					{helpDoc?.description?.trim() ? (
 						<div className='p-8'>

@@ -1,6 +1,6 @@
 'use client'
 
-import { formatDistanceToNow } from 'date-fns'
+import { format, isToday, isYesterday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 type MessageBubbleProps = {
@@ -31,13 +31,23 @@ type MessageBubbleProps = {
 }
 
 export default function MessageBubble({ message, isOwnMessage, showAvatar, readStatus = 'sent', readCount = 0, totalParticipants = 0 }: MessageBubbleProps) {
-	// Formatar timestamp - usando timezone local do Brasil
+	// Formatar timestamp - formato apropriado para chat
 	const messageDate = new Date(message.createdAt)
 
-	const timeAgo = formatDistanceToNow(messageDate, {
-		addSuffix: true,
-		locale: ptBR,
-	})
+	const formatMessageTime = (date: Date) => {
+		if (isToday(date)) {
+			// Hoje: apenas hora (14:30)
+			return format(date, 'HH:mm', { locale: ptBR })
+		} else if (isYesterday(date)) {
+			// Ontem: "Ontem 14:30"
+			return `Ontem ${format(date, 'HH:mm', { locale: ptBR })}`
+		} else {
+			// Outros dias: "24/12 14:30"
+			return format(date, 'dd/MM HH:mm', { locale: ptBR })
+		}
+	}
+
+	const timeDisplay = formatMessageTime(messageDate)
 
 	// Avatar baseado no nome do usuário (primeira letra)
 	const avatarLetter = message.senderName?.charAt(0).toUpperCase() || '?'
@@ -110,7 +120,7 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 
 					{/* Timestamp, status e leitura */}
 					<div className={`flex items-center gap-1 mt-1 text-xs ${isOwnMessage ? 'text-blue-100' : 'text-zinc-500 dark:text-zinc-400'}`}>
-						<span>{timeAgo}</span>
+						<span>{timeDisplay}</span>
 
 						{/* Indicador de editado */}
 						{message.isEdited && <span className='opacity-75'>(editado)</span>}

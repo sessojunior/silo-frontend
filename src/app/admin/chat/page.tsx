@@ -1,46 +1,91 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useChat } from '@/context/ChatContext'
 import ChatSidebar from '@/components/admin/chat/ChatSidebar'
 import ChatArea from '@/components/admin/chat/ChatArea'
 
 export default function ChatPage() {
-	// Estado global do chat (temporariamente usando mock)
-	const { isConnected, isConnecting, channels } = useChat()
+	const searchParams = useSearchParams()
 
-	// Estado local para responsividade
+	// Estado global do chat
+	const { groups, users } = useChat()
+
+	// Estado local para responsividade e seleção
 	const [showSidebar, setShowSidebar] = useState(true)
-	const [activeChannelId, setActiveChannelId] = useState<string | null>(null)
+	const [activeTargetId, setActiveTargetId] = useState<string | null>(null)
+	const [activeTargetType, setActiveTargetType] = useState<'group' | 'user' | null>(null)
 
-	// Debug: carregar canais e verificar se há dados
+	// Verificar parâmetros da URL para abrir conversa específica
 	useEffect(() => {
-		console.log('🔵 [ChatPage] Verificando canais carregados:', channels?.length || 0)
-		if (channels?.length > 0) {
+		const groupId = searchParams.get('groupId')
+		const userId = searchParams.get('userId')
+
+		if (groupId) {
+			console.log('🔵 [ChatPage] Abrindo grupo via URL:', groupId)
+			setActiveTargetId(groupId)
+			setActiveTargetType('group')
+		} else if (userId) {
+			console.log('🔵 [ChatPage] Abrindo conversa via URL:', userId)
+			setActiveTargetId(userId)
+			setActiveTargetType('user')
+		}
+	}, [searchParams])
+
+	// Debug: carregar dados e verificar se há grupos/usuários
+	useEffect(() => {
+		console.log('🔵 [ChatPage] Dados carregados:', {
+			groups: groups?.length || 0,
+			users: users?.length || 0,
+		})
+
+		if (groups?.length > 0) {
 			console.log(
-				'🔵 [ChatPage] Canais disponíveis:',
-				channels.map((c) => ({ id: c.id, name: c.name })),
+				'🔵 [ChatPage] Grupos disponíveis:',
+				groups.map((g) => ({ id: g.id, name: g.name })),
 			)
 		}
-	}, [channels])
 
-	// Debug: monitorar mudanças de canal ativo
+		if (users?.length > 0) {
+			console.log(
+				'🔵 [ChatPage] Usuários com conversas:',
+				users.map((u) => ({ id: u.id, name: u.name, unread: u.unreadCount })),
+			)
+		}
+	}, [groups, users])
+
+	// Debug: monitorar mudanças de target ativo
 	useEffect(() => {
-		console.log('🔵 [ChatPage] Canal ativo mudou para:', activeChannelId)
-	}, [activeChannelId])
+		console.log('🔵 [ChatPage] Target ativo mudou:', {
+			id: activeTargetId,
+			type: activeTargetType,
+		})
+	}, [activeTargetId, activeTargetType])
 
-	// SEMPRE usar os canais do contexto (não misturar com mock)
-	const displayChannels = channels || []
+	// Auto-selecionar primeiro grupo se nenhum target estiver selecionado
+	useEffect(() => {
+		if (!activeTargetId && groups?.length > 0) {
+			const firstGroup = groups[0]
+			console.log('🔵 [ChatPage] Auto-selecionando primeiro grupo:', firstGroup.name)
+			setActiveTargetId(firstGroup.id)
+			setActiveTargetType('group')
+		}
+	}, [groups, activeTargetId])
 
-	console.log(
-		'🔵 [ChatPage] Renderizando com canais:',
-		displayChannels.length,
-		displayChannels.map((c) => c.name),
-	)
+	// Handler para seleção de target (grupo ou usuário)
+	const handleTargetSelect = (targetId: string, type: 'group' | 'user') => {
+		console.log('🔵 [ChatPage] Selecionando target:', { targetId, type })
+		setActiveTargetId(targetId)
+		setActiveTargetType(type)
+	}
+
+	// Encontrar dados do target ativo
+	const activeTarget = activeTargetType === 'group' ? groups.find((g) => g.id === activeTargetId) : users.find((u) => u.id === activeTargetId)
 
 	return (
-		<div className='flex h-full bg-zinc-50 dark:bg-zinc-900'>
-			{/* Sidebar de Canais - 320px (w-80) */}
+		<div className='flex h-full w-full bg-zinc-50 dark:bg-zinc-900'>
+			{/* Sidebar de Chat - 384px (w-96) */}
 			<div
 				className={`
 					${showSidebar ? 'w-96' : 'w-0'} 
@@ -48,21 +93,12 @@ export default function ChatPage() {
 					bg-white dark:bg-zinc-800 flex-shrink-0 overflow-hidden
 				`}
 			>
-				<ChatSidebar
-					channels={displayChannels}
-					activeChannelId={activeChannelId}
-					onChannelSelect={(channelId) => {
-						console.log('🔵 [ChatPage] Selecionando canal:', channelId)
-						setActiveChannelId(channelId)
-					}}
-					isConnected={isConnected}
-					isReconnecting={isConnecting}
-				/>
+				<ChatSidebar activeTargetId={activeTargetId} activeTargetType={activeTargetType} onTargetSelect={handleTargetSelect} />
 			</div>
 
 			{/* Área Principal de Chat */}
 			<div className='flex-1 flex flex-col min-w-0'>
-				<ChatArea activeChannelId={activeChannelId} onToggleSidebar={() => setShowSidebar(!showSidebar)} />
+				<ChatArea activeTargetId={activeTargetId} activeTargetType={activeTargetType} activeTarget={activeTarget} onToggleSidebar={() => setShowSidebar(!showSidebar)} />
 			</div>
 		</div>
 	)

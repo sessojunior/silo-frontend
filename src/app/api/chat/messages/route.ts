@@ -1,117 +1,233 @@
-import { NextResponse } from 'next/server'
-import { getAuthUser } from '@/lib/auth/token'
+import { NextRequest, NextResponse } from 'next/server'
+import { desc, and, or, isNull, eq } from 'drizzle-orm'
+import { randomUUID } from 'crypto'
 import { db } from '@/lib/db'
-import { chatMessage, chatChannel, authUser } from '@/lib/db/schema'
-import { eq, and, isNull } from 'drizzle-orm'
-import { nanoid } from 'nanoid'
+import * as schema from '@/lib/db/schema'
+import { getAuthUser } from '@/lib/auth/token'
 
-// POST /api/chat/messages - Enviar nova mensagem
-export async function POST(request: Request) {
+// Tipos para o sistema de mensagens
+interface SendMessageRequest {
+	content: string
+	receiverGroupId?: string // groupMessage
+	receiverUserId?: string // userMessage
+}
+
+interface MessageResponse {
+	id: string
+	content: string
+	senderUserId: string
+	senderName: string
+	receiverGroupId: string | null
+	receiverUserId: string | null
+	createdAt: Date
+	readAt: Date | null
+	messageType: 'groupMessage' | 'userMessage'
+}
+
+// GET: Buscar mensagens de uma conversa específica
+export async function GET(request: NextRequest) {
 	try {
 		const user = await getAuthUser()
 		if (!user) {
-			return NextResponse.json({ error: 'Usuário não autenticado.' }, { status: 401 })
+			return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		const { channelId, content, replyToId } = await request.json()
+		const { searchParams } = new URL(request.url)
+		const groupId = searchParams.get('groupId') // groupMessage
+		const userId = searchParams.get('userId') // userMessage
+		const limit = parseInt(searchParams.get('limit') || '30')
+		const page = parseInt(searchParams.get('page') || '1')
+		const order = searchParams.get('order') || 'asc' // 'asc' para mais recentes, 'desc' para mais antigas
+		const offset = (page - 1) * limit
 
-		console.log('ℹ️ Enviando mensagem:', { channelId, content: content?.substring(0, 50), replyToId })
+		console.log('🔵 Buscando mensagens:', { groupId, userId, limit, page, order, offset, currentUser: user.id })
 
-		// Validações
-		if (!channelId) {
-			return NextResponse.json({ error: 'ID do canal é obrigatório.' }, { status: 400 })
-		}
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		let messages: any[] = []
 
-		if (!content || content.trim().length === 0) {
-			return NextResponse.json({ error: 'Conteúdo da mensagem é obrigatório.' }, { status: 400 })
-		}
-
-		if (content.length > 5000) {
-			return NextResponse.json({ error: 'Mensagem muito longa (máximo 5000 caracteres).' }, { status: 400 })
-		}
-
-		// Verificar se o canal existe e o usuário tem acesso
-		const channel = await db
-			.select()
-			.from(chatChannel)
-			.where(and(eq(chatChannel.id, channelId), eq(chatChannel.isActive, true)))
-			.limit(1)
-
-		if (channel.length === 0) {
-			return NextResponse.json({ error: 'Canal não encontrado.' }, { status: 404 })
-		}
-
-		// TODO: Verificar se o usuário é participante do canal
-
-		// Verificar se a mensagem de resposta existe (se especificada)
-		if (replyToId) {
-			const replyMessage = await db
+		if (groupId) {
+			// BUSCAR groupMessage - verificar se usuário participa do grupo
+			const isMember = await db
 				.select()
-				.from(chatMessage)
-				.where(and(eq(chatMessage.id, replyToId), eq(chatMessage.channelId, channelId), isNull(chatMessage.deletedAt)))
+				.from(schema.userGroup)
+				.where(and(eq(schema.userGroup.userId, user.id), eq(schema.userGroup.groupId, groupId)))
 				.limit(1)
 
-			if (replyMessage.length === 0) {
-				return NextResponse.json({ error: 'Mensagem de resposta não encontrada.' }, { status: 404 })
+			if (isMember.length === 0) {
+				return NextResponse.json({ error: 'Usuário não participa deste grupo' }, { status: 403 })
+			}
+
+			// Buscar mensagens do grupo
+			messages = await db
+				.select({
+					id: schema.chatMessage.id,
+					content: schema.chatMessage.content,
+					senderUserId: schema.chatMessage.senderUserId,
+					senderName: schema.authUser.name,
+					receiverGroupId: schema.chatMessage.receiverGroupId,
+					receiverUserId: schema.chatMessage.receiverUserId,
+					createdAt: schema.chatMessage.createdAt,
+					readAt: schema.chatMessage.readAt,
+				})
+				.from(schema.chatMessage)
+				.innerJoin(schema.authUser, eq(schema.chatMessage.senderUserId, schema.authUser.id))
+				.where(and(eq(schema.chatMessage.receiverGroupId, groupId), isNull(schema.chatMessage.deletedAt)))
+				.orderBy(order === 'desc' ? desc(schema.chatMessage.createdAt) : schema.chatMessage.createdAt)
+				.limit(limit)
+				.offset(offset)
+		} else if (userId) {
+			// BUSCAR userMessage - conversa entre 2 usuários
+			messages = await db
+				.select({
+					id: schema.chatMessage.id,
+					content: schema.chatMessage.content,
+					senderUserId: schema.chatMessage.senderUserId,
+					senderName: schema.authUser.name,
+					receiverGroupId: schema.chatMessage.receiverGroupId,
+					receiverUserId: schema.chatMessage.receiverUserId,
+					createdAt: schema.chatMessage.createdAt,
+					readAt: schema.chatMessage.readAt,
+				})
+				.from(schema.chatMessage)
+				.innerJoin(schema.authUser, eq(schema.chatMessage.senderUserId, schema.authUser.id))
+				.where(
+					and(
+						or(
+							// Mensagens enviadas pelo usuário atual para o target
+							and(eq(schema.chatMessage.senderUserId, user.id), eq(schema.chatMessage.receiverUserId, userId)),
+							// Mensagens recebidas do target pelo usuário atual
+							and(eq(schema.chatMessage.senderUserId, userId), eq(schema.chatMessage.receiverUserId, user.id)),
+						),
+						isNull(schema.chatMessage.deletedAt),
+					),
+				)
+				.orderBy(order === 'desc' ? desc(schema.chatMessage.createdAt) : schema.chatMessage.createdAt)
+				.limit(limit)
+				.offset(offset)
+		} else {
+			return NextResponse.json({ error: 'Especifique groupId ou userId' }, { status: 400 })
+		}
+
+		// Mapear tipo de mensagem
+		const messagesWithType: MessageResponse[] = messages.map((msg) => ({
+			...msg,
+			messageType: msg.receiverGroupId ? 'groupMessage' : 'userMessage',
+		}))
+
+		console.log('✅ Mensagens encontradas:', { count: messagesWithType.length, type: groupId ? 'groupMessage' : 'userMessage' })
+
+		return NextResponse.json({
+			messages: messagesWithType,
+			count: messagesWithType.length,
+		})
+	} catch (error) {
+		console.error('❌ Erro ao buscar mensagens:', error)
+		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+	}
+}
+
+// POST: Enviar nova mensagem (groupMessage ou userMessage)
+export async function POST(request: NextRequest) {
+	try {
+		const user = await getAuthUser()
+		if (!user) {
+			return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 })
+		}
+
+		const body: SendMessageRequest = await request.json()
+		const { content, receiverGroupId, receiverUserId } = body
+
+		// Validações
+		if (!content || content.trim().length === 0) {
+			return NextResponse.json({ error: 'Conteúdo da mensagem é obrigatório' }, { status: 400 })
+		}
+
+		if (content.length > 2000) {
+			return NextResponse.json({ error: 'Mensagem muito longa (máximo 2000 caracteres)' }, { status: 400 })
+		}
+
+		// Apenas um receptor
+		if ((receiverGroupId && receiverUserId) || (!receiverGroupId && !receiverUserId)) {
+			return NextResponse.json({ error: 'Especifique apenas um receptor (groupId ou userId)' }, { status: 400 })
+		}
+
+		console.log('🔵 Enviando mensagem:', {
+			content: content.substring(0, 50) + '...',
+			receiverGroupId,
+			receiverUserId,
+			sender: user.id,
+		})
+
+		// Validação específica para groupMessage
+		if (receiverGroupId) {
+			const isMember = await db
+				.select()
+				.from(schema.userGroup)
+				.where(and(eq(schema.userGroup.userId, user.id), eq(schema.userGroup.groupId, receiverGroupId)))
+				.limit(1)
+
+			if (isMember.length === 0) {
+				return NextResponse.json({ error: 'Usuário não participa deste grupo' }, { status: 403 })
 			}
 		}
 
-		// Criar nova mensagem com timestamp atual
-		const messageId = nanoid()
-		const now = new Date()
-		const newMessage = {
-			id: messageId,
-			channelId,
-			senderId: user.id,
-			content: content.trim(),
-			messageType: 'text',
-			replyToId: replyToId || null,
-			threadCount: 0,
-			isEdited: false,
-			createdAt: now,
+		// Validação específica para userMessage
+		if (receiverUserId) {
+			if (receiverUserId === user.id) {
+				return NextResponse.json({ error: 'Não é possível enviar mensagem para si mesmo' }, { status: 400 })
+			}
+
+			// Verificar se usuário destinatário existe
+			const targetUser = await db.select().from(schema.authUser).where(eq(schema.authUser.id, receiverUserId)).limit(1)
+
+			if (targetUser.length === 0) {
+				return NextResponse.json({ error: 'Usuário destinatário não encontrado' }, { status: 404 })
+			}
 		}
 
-		await db.insert(chatMessage).values(newMessage)
+		// Criar mensagem
+		const messageId = randomUUID()
+		await db.insert(schema.chatMessage).values({
+			id: messageId,
+			content: content.trim(),
+			senderUserId: user.id,
+			receiverGroupId: receiverGroupId || null,
+			receiverUserId: receiverUserId || null,
+			// readAt permanece NULL (grupos sempre NULL, userMessage não lida)
+		})
 
-		// Buscar a mensagem completa com dados do remetente
+		// Buscar dados completos da mensagem criada
 		const messageWithSender = await db
 			.select({
-				id: chatMessage.id,
-				channelId: chatMessage.channelId,
-				senderId: chatMessage.senderId,
-				senderName: authUser.name,
-				senderEmail: authUser.email,
-				content: chatMessage.content,
-				messageType: chatMessage.messageType,
-				fileUrl: chatMessage.fileUrl,
-				fileName: chatMessage.fileName,
-				fileSize: chatMessage.fileSize,
-				fileMimeType: chatMessage.fileMimeType,
-				replyToId: chatMessage.replyToId,
-				threadCount: chatMessage.threadCount,
-				isEdited: chatMessage.isEdited,
-				editedAt: chatMessage.editedAt,
-				createdAt: chatMessage.createdAt,
-				deletedAt: chatMessage.deletedAt,
+				id: schema.chatMessage.id,
+				content: schema.chatMessage.content,
+				senderUserId: schema.chatMessage.senderUserId,
+				senderName: schema.authUser.name,
+				receiverGroupId: schema.chatMessage.receiverGroupId,
+				receiverUserId: schema.chatMessage.receiverUserId,
+				createdAt: schema.chatMessage.createdAt,
+				readAt: schema.chatMessage.readAt,
 			})
-			.from(chatMessage)
-			.innerJoin(authUser, eq(chatMessage.senderId, authUser.id))
-			.where(eq(chatMessage.id, messageId))
+			.from(schema.chatMessage)
+			.innerJoin(schema.authUser, eq(schema.chatMessage.senderUserId, schema.authUser.id))
+			.where(eq(schema.chatMessage.id, messageId))
 			.limit(1)
 
-		if (messageWithSender.length === 0) {
-			return NextResponse.json({ error: 'Erro ao recuperar mensagem criada.' }, { status: 500 })
+		const message = messageWithSender[0]
+		const messageResponse: MessageResponse = {
+			...message,
+			messageType: message.receiverGroupId ? 'groupMessage' : 'userMessage',
 		}
 
-		console.log('✅ Mensagem enviada:', messageId)
+		console.log('✅ Mensagem enviada:', {
+			id: messageId,
+			type: messageResponse.messageType,
+			to: receiverGroupId || receiverUserId,
+		})
 
-		// TODO: Emitir evento WebSocket para outros usuários do canal
-		// TODO: Atualizar timestamp do canal
-		// TODO: Incrementar contador de mensagens não lidas para outros participantes
-
-		return NextResponse.json(messageWithSender[0], { status: 201 })
+		return NextResponse.json(messageResponse, { status: 201 })
 	} catch (error) {
-		console.log('❌ Erro ao enviar mensagem:', error)
-		return NextResponse.json({ error: 'Erro interno do servidor.' }, { status: 500 })
+		console.error('❌ Erro ao enviar mensagem:', error)
+		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
