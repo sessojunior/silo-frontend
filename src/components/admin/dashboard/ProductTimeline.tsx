@@ -20,14 +20,16 @@ function cls(status: string) {
 }
 
 export default function ProductTimeline({ statuses }: Props) {
+	// Mostra o dia mais recente na esquerda; inverte o array
+	const reversed = [...statuses].reverse()
 	const weeks = [0, 7, 14, 21]
 	const weekClass = 'flex gap-x-0.5 p-1.5'
 	return (
 		<div className='h-8'>
-			<div className='flex'>
+			<div className='flex flex-row-reverse'>
 				{weeks.map((start, wIdx) => (
 					<div key={wIdx} className={weekClass}>
-						{statuses.slice(start, start + 7).map((s, idx) => (
+						{reversed.slice(start, start + 7).map((s, idx) => (
 							<div key={idx} className={`h-5 w-1.5 rounded-full ${cls(s)}`}></div>
 						))}
 					</div>

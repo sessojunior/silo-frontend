@@ -57,6 +57,47 @@ export default function DashboardPage() {
 
 	const groups = splitGroups(data)
 
+	// ===== Estatísticas dinâmicas =====
+	const today = new Date()
+	const cut28 = new Date()
+	cut28.setDate(today.getDate() - 28)
+
+	// Mapeamento de status → info visual
+	const STATUS_INFO: Record<string, { label: string; color: string; colorDark: string; severity: number }> = {
+		completed: { label: 'Concluídos', color: 'bg-green-400', colorDark: 'bg-green-700', severity: 0 },
+		waiting: { label: 'Aguardando', color: 'bg-zinc-400', colorDark: 'bg-zinc-700', severity: 1 },
+		in_progress: { label: 'Em execução', color: 'bg-zinc-100', colorDark: 'bg-zinc-600', severity: 2 },
+		pending: { label: 'Pendentes', color: 'bg-orange-600', colorDark: 'bg-orange-500', severity: 3 },
+		under_support: { label: 'Sob intervenção', color: 'bg-orange-500', colorDark: 'bg-orange-600', severity: 3 },
+		suspended: { label: 'Suspensos', color: 'bg-orange-400', colorDark: 'bg-orange-700', severity: 3 },
+		not_run: { label: 'Não rodaram', color: 'bg-red-600', colorDark: 'bg-red-500', severity: 4 },
+		with_problems: { label: 'Com problemas', color: 'bg-red-600', colorDark: 'bg-red-600', severity: 4 },
+		run_again: { label: 'Rodar novamente', color: 'bg-red-400', colorDark: 'bg-red-700', severity: 4 },
+		off: { label: 'Desligados', color: 'bg-black', colorDark: 'bg-white', severity: 5 },
+	}
+
+	// Inicializa contagem
+	const statusCounts: Record<string, number> = {}
+	Object.keys(STATUS_INFO).forEach((s) => (statusCounts[s] = 0))
+
+	// Conta cada ocorrência (turno) no período de 28 dias, limitado aos turnos configurados do produto
+	data.forEach((product) => {
+		product.dates.forEach((d) => {
+			if (new Date(d.date) < cut28) return
+			if (!product.turns.includes(String(d.turn))) return
+			if (STATUS_INFO[d.status]) statusCounts[d.status]++
+		})
+	})
+
+	// Monta itens para Stats, omitindo status com 0
+	const statsItems = Object.entries(statusCounts)
+		.filter(([, count]) => count > 0)
+		.map(([status, count]) => {
+			const info = STATUS_INFO[status]
+			const incidents = info.severity >= 3 ? count : 0 // incidentes = laranja ou vermelho
+			return { name: info.label, progress: count, incidents, color: info.color, colorDark: info.colorDark }
+		})
+
 	return (
 		<div className='flex w-full bg-white dark:bg-zinc-900'>
 			{/* Lado esquerdo */}
@@ -64,38 +105,7 @@ export default function DashboardPage() {
 				<div className='size-full h-[calc(100vh-64px)] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-300 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-500 [&::-webkit-scrollbar-track]:bg-zinc-50 dark:[&::-webkit-scrollbar-track]:bg-zinc-700'>
 					{/* Estatísticas */}
 					<div className='flex flex-col border-b border-b-zinc-200 p-8 pb-10 dark:border-b-zinc-700'>
-						<Stats
-							items={[
-								{
-									name: 'Em execução',
-									incidents: 0,
-									progress: 18,
-									color: 'bg-blue-400',
-									colorDark: 'bg-blue-700',
-								},
-								{
-									name: 'Precisam de atenção',
-									incidents: 13,
-									progress: 13,
-									color: 'bg-orange-400',
-									colorDark: 'bg-orange-700',
-								},
-								{
-									name: 'Com problemas',
-									incidents: 6,
-									progress: 6,
-									color: 'bg-red-400',
-									colorDark: 'bg-red-700',
-								},
-								{
-									name: 'Falta rodar',
-									incidents: 0,
-									progress: 9,
-									color: 'bg-zinc-200',
-									colorDark: 'bg-zinc-700',
-								},
-							]}
-						/>
+						<Stats productCount={data.length} items={statsItems} />
 					</div>
 
 					{/* Colunas */}
