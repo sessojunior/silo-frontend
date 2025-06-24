@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, boolean, unique, index, date, uuid } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, timestamp, boolean, unique, index, date, uuid, jsonb } from 'drizzle-orm/pg-core'
 
 // Grupos de usuários (categorias para futuro chat)
 export const group = pgTable('group', {
@@ -121,6 +121,9 @@ export const product = pgTable('product', {
 	name: text('name').notNull(),
 	slug: text('slug').notNull(),
 	available: boolean('available').notNull().default(true),
+	priority: text('priority').notNull().default('normal'), // 'low', 'normal', 'high', 'urgent'
+	turns: jsonb('turns').notNull().default(['0', '6', '12', '18']),
+	description: text('description'),
 })
 export type Product = typeof product.$inferSelect
 
@@ -373,3 +376,28 @@ export const projectTask = pgTable('project_task', {
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 export type ProjectTask = typeof projectTask.$inferSelect
+
+// Tabela de atividades/rodadas de produtos
+export const productActivity = pgTable(
+	'product_activity',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		productId: text('product_id')
+			.notNull()
+			.references(() => product.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => authUser.id, { onDelete: 'cascade' }),
+		date: date('date').notNull(),
+		turn: integer('turn').notNull(), // 0,6,12,18
+		status: text('status').notNull(), // 'completed', 'waiting', 'pending', 'in_progress', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended', 'off'
+		description: text('description'),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+		updatedAt: timestamp('updated_at').notNull().defaultNow(),
+	},
+	(table) => ({
+		productDateIdx: index('idx_product_activity_product_date').on(table.productId, table.date),
+	}),
+)
+
+export type ProductActivity = typeof productActivity.$inferSelect

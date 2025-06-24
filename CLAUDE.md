@@ -367,4 +367,162 @@ npm run db:seed           # Popular com dados teste
 
 ---
 
+## 🔮 PLANEJAMENTO DETALHADO – PASSO 7: DASHBOARD APRIMORADO (Fevereiro 2025)
+
+### 🎯 Objetivo
+
+Implementar uma visão geral interativa e orientada a dados que permita o acompanhamento em tempo real do status dos produtos, incidentes e projetos, sem quebrar o layout existente.
+
+### 📋 Requisitos Funcionais
+
+1. **Seção Estatísticas (Topo – Lado Esquerdo)**  
+   • Total de produtos registrados  
+   • Total de incidentes (últimos 30 dias)  
+   • Barra de progresso segmentada em quatro categorias: _Em execução_, _Precisam de atenção_, _Com problemas_, _Falta rodar_ – valores calculados dinamicamente.
+2. **Lista de Produtos (Coluna Esquerda)**  
+   • Agrupar em _Não iniciados_, _Rodando_ e _Finalizados_.  
+   • Para cada produto exibir: nome, % de execuções sem problemas (últimos 30 dias), data da última execução, prioridade, "semaforização" dos últimos dois dias (verde, vermelho, laranja, cinza).  
+   • Heat-map das últimas quatro semanas (28 dias) clicável ⇒ abre **Modal de Monitoramento**.
+3. **Modal de Monitoramento**  
+   • Calendário 7 × 3 (dias × turnos) com cores de status.  
+   • Sumário: % de turnos sem problemas e tempo parado acumulado.  
+   • Clique num turno ⇒ **Modal Detalhe do Turno** empilhado.
+4. **Modal Detalhe do Turno**  
+   • Campos: modelo, data, turno, descrição livre, seletor de status (verde/laranja/vermelho).  
+   • Permitir salvar/atualizar descrição e status.
+5. **Gráficos (Coluna Direita)**  
+   • _Incidentes por data_ (ChartColumn)  
+   • _Causas de problemas_ (ChartDonut)  
+   • _Problemas × Soluções_ (ChartLine)  
+   • Por ora usar dados estáticos → será dinamizado na Fase 2.
+6. **Painel Lateral Direito**  
+   • Resumo do dia (texto gerado a partir de métricas).  
+   • Tempo parado total do dia.  
+   • % de produtos finalizados (CircleProgress).  
+   • Radiais para _Produtos_, _Processos_, _Projetos_.  
+   • Lista de projetos em andamento com progresso.
+
+### 🗄️ Alterações de Banco de Dados
+
+| Tabela                        | Campos principais                                                                                                                                     | Finalidade                                 |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **product_run**               | id (PK), productId (FK), executedAt (timestamp), shift (int 1-3), status (enum: ok, warning, error, not_run), durationMinutes, downtimeMinutes, notes | Registra cada execução/turno de um produto |
+| **product_priority** (coluna) | priority (enum: low, normal, urgent)                                                                                                                  | Prioridade visível no dashboard            |
+| **incident_cause** (lookup)   | id, name                                                                                                                                              | Usada no ChartDonut                        |
+| **product_incident**          | id, productId, causeId, createdAt                                                                                                                     | Relaciona produtos a incidentes/categorias |
+
+> As novas tabelas/colunas serão criadas via Drizzle migration e popularão o `seed.ts`.
+
+### 🔗 APIs
+
+1. **GET `/api/admin/dashboard`** – retorna objeto resumido com todos os blocos necessários para a página.
+2. **GET `/api/admin/products/[id]/runs`** – devolve execuções (para modal).
+3. **PUT `/api/admin/products/[id]/runs/[runId]`** – atualiza status/notes de um turno.
+
+### 💻 Frontend
+
+1. **Hook `useDashboardData()`** usando `fetch`/SWR para `/api/admin/dashboard`.
+2. **Context opcional `DashboardContext`** para evitar prop-drilling nos modais.
+3. **Componentes**: reaproveitar `Stats`, `Product`, `Chart*`, `CircleProgress`, `Radial`, `Project`, `Modal`.
+4. **Novos componentes**: `ProductMonitorModal`, `ProductTurnDetailModal`, `ProductHeatmap` (mini-grid) ➜ todos dentro de `components/admin/dashboard/`.
+
+### 🗓️ Cronograma Estratégico – 7 Fases (Jan → Mar 2025)
+
+| Fase | Objetivo Central                           | Entregáveis Funcionais (o **o que** faz)                                                                                                                                                                                                                         | Duração Estimada |
+| ---- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| 1    | **Consolidação de Requisitos & Modelagem** | • Documento de requisitos final (foco em métricas e indicadores). • Modelagem entidade-relacionamento das novas estruturas `product_run`, `incident_cause`, `product_incident`, coluna `priority` em `product`. • Plano de migração de dados legados, se houver. | 4 semanas        |
+| 2    | **Infra de Dados & Seed Inicial**          | • Migrações Drizzle aplicadas e revisadas. • Índices de performance em colunas temporais e chaves estrangeiras. • `seed.ts` ampliado para gerar execuções (turnos) realistas e incidentes categorizados.                                                         | 4 semanas        |
+| 3    | **Serviço de Agregação & APIs Núcleo**     | • Serviço interno que consolida dados de execução, incidentes e projetos em respostas JSON prontas para consumo. • Rotas `GET /dashboard`, `GET /products/:id/runs`, `PUT /products/:id/runs/:runId` com validação, paginação e filtros.                         | 6 semanas        |
+| 4    | **Camada de Métricas**                     | • Algoritmos que calculam: percentuais de sucesso, tempo de inatividade, classificação por prioridade, ranking de produtos com mais incidentes. • Funções utilitárias reutilizáveis para qualquer módulo que precise de KPIs.                                    | 4 semanas        |
+| 5    | **Módulo de Monitoramento de Execuções**   | • Rotina de geração do "heat-map" diário (28 dias × 3 turnos). • Lógica para atualização de status de turno e registro de observações. • Agregação de dados históricos para análise rápida (materialized view ou cache Redis opcional).                          | 4 semanas        |
+| 6    | **Camada Analítica & Projeções**           | • Endpoints que alimentam gráficos de tendências: incidentes por dia, causas mais frequentes e correlação problemas × soluções. • Funções de projeção simples (média móvel/EMA) para prever incidentes futuros.                                                  | 4 semanas        |
+| 7    | **Qualidade, Observabilidade & Release**   | • Suite de testes unitários + integração cobrindo 85% das regras de negócio. • Logs padronizados (emojis) e métricas Prometheus/Grafana. • Scripts de deploy e rollback. • Documentação técnica atualizada no CLAUDE.md e README.                                | 6 semanas        |
+
+### ⚠️ Riscos & Mitigações
+
+- **Volume de dados** – indices em `product_run.productId` e `executedAt`.
+- **Performance front-end** – lazy-load modais, memoização de listas.
+- **Compatibilidade Design** – seguir componentes existentes e layout Flex/Grid original.
+
+---
+
+### 📑 Especificação de Banco (Coluna Esquerda MVP)
+
+**Alteração em `product`**
+| Coluna | Tipo | Default / Regra | Observação |
+|------------|-------------------------------------|-----------------|------------|
+| `priority` | enum `low \| normal \| high \| urgent` | `'normal'` | Exibida no dashboard e filtros. |
+| `turns` | `jsonb` array de números | `[0,6,12,18]` | Turnos programados; usado para heat-map. |
+| `description` | `varchar(2048)` | `NULL` | Texto guiado com dica no form (execução, dependências, impacto). |
+
+**Nova tabela `product_activity`**
+| Coluna | Tipo | Regra/Índice | Descrição |
+|---------------|-----------------------------------------------|--------------|-----------|
+| `id` | `uuid` PK | | |
+| `product_id` | FK → `product.id` | idx | |
+| `user_id` | FK → `auth_user.id` | idx | Responsável pela rodada. |
+| `turn` | enum `0 \| 6 \| 12 \| 18` | | Hora de início em UTC-3. |
+| `description` | `varchar(1024)` | opcional | Observação do turno. |
+| `status` | enum (`completed`, `waiting`, `pending`, `in_progress`, `not_run`, `with_problems`, `run_again`, `under_support`, `suspended`, `off`) | | |
+| `created_at` | `timestamp` | default now | |
+| `updated_at` | `timestamp` | default now | |
+
+> Índices compostos `(product_id, created_at)` para consultas "últimos 60 dias".
+
+---
+
 _Última atualização: Janeiro 2025 - Etapa 4 Sistema Chat finalizada com sucesso extraordinário_
+
+```json
+[
+	{
+		"productId": "uuid",
+		"name": "BRAMS 15 km",
+		"priority": "urgent",
+		"last_run": "2025-03-21T11:17:00Z",
+		"percent_completed": 78,
+		"dates": [
+			{
+				"date": "2025-03-21",
+				"turn": 0,
+				"user_id": "uuid-usr",
+				"status": "completed",
+				"description": "",
+				"alert": false
+			},
+			{
+				"date": "2025-03-20",
+				"turn": 12,
+				"user_id": "uuid-usr",
+				"status": "pending",
+				"description": "Aguardando execução devido a problemas na rede",
+				"alert": true
+			}
+			// ... demais registros dos 60 dias passados
+		]
+	}
+]
+```
+
+Regras de alerta (campo `alert` ⇢ `true`): `pending`, `not_run`, `with_problems`, `run_again`, `under_support`, `suspended`.
+
+No backend esse boolean é gerado na query; no frontend ele será:
+• Somado para exibir contador de alertas no dropdown.  
+• Filtrado para destacar cores laranja/vermelho nos pips.  
+• Reutilizado no modal de monitoramento para ícone/tooltip.
+
+### 🎨 Mapeamento de Cores de Status (Light/Dark)
+
+| Status                              | Classe Tailwind padrão (light) | Classe Tailwind dark |
+| ----------------------------------- | ------------------------------ | -------------------- |
+| completed                           | bg-emerald-500                 | bg-emerald-600       |
+| waiting                             | bg-zinc-200                    | bg-zinc-600          |
+| pending                             | bg-amber-500                   | bg-amber-600         |
+| in_progress                         | bg-transparent                 | bg-transparent       |
+| not_run / with_problems / run_again | bg-red-500                     | bg-red-600           |
+| under_support / suspended           | bg-amber-500                   | bg-amber-600         |
+| off                                 | bg-black                       | bg-zinc-900          |
+
+> O componente `<Product>` e o `heatmap` aplicarão a classe conforme `status`, envolvendo a célula/bolinha com `dark:` para cor alternativa quando `html.dark`.
+
+---
