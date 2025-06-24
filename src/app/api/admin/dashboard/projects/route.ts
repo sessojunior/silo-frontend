@@ -33,11 +33,21 @@ export async function GET() {
 			const agg = summary.get(p.id) || { total: 0, done: 0 }
 			const progress = agg.total > 0 ? Math.round((agg.done / agg.total) * 100) : 0
 
-			let daysElapsed = ''
+			let daysElapsed = 0
 			if (p.startDate) {
 				const diffMs = today.getTime() - new Date(p.startDate as unknown as string).getTime()
-				const diffDays = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)))
-				daysElapsed = `${diffDays} dias`
+				daysElapsed = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)))
+			}
+
+			const humanize = (days: number): string => {
+				const years = Math.floor(days / 365)
+				const months = Math.floor((days % 365) / 30)
+				const restDays = days % 30
+				const parts: string[] = []
+				if (years > 0) parts.push(`${years} ${years === 1 ? 'ano' : 'anos'}`)
+				if (months > 0) parts.push(`${months} ${months === 1 ? 'mês' : 'meses'}`)
+				if (restDays > 0 || parts.length === 0) parts.push(`${restDays} ${restDays === 1 ? 'dia' : 'dias'}`)
+				return parts.join(', ')
 			}
 
 			return {
@@ -45,7 +55,9 @@ export async function GET() {
 				name: p.name,
 				shortDescription: p.shortDescription,
 				progress,
-				time: daysElapsed,
+				daysElapsed,
+				time: `${daysElapsed} dias`,
+				elapsedText: humanize(daysElapsed),
 			}
 		})
 

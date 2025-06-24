@@ -44,7 +44,7 @@ function splitGroups(items: DashboardProduct[]) {
 export default function DashboardPage() {
 	const [data, setData] = useState<DashboardProduct[]>([])
 	const [loading, setLoading] = useState(true)
-	const [projects, setProjects] = useState<{ projectId: string; name: string; shortDescription: string; progress: number; time: string }[]>([])
+	const [projects, setProjects] = useState<{ projectId: string; name: string; shortDescription: string; elapsedText: string; progress: number; time: string }[]>([])
 	const [projectsLoading, setProjectsLoading] = useState(true)
 
 	useEffect(() => {
@@ -324,7 +324,7 @@ export default function DashboardPage() {
 								{projectsLoading && [1, 2, 3].map((i) => <Project key={i} name='Carregando...' progress={0} time='' />)}
 								{!projectsLoading &&
 									projects.map((p) => (
-										<Link key={p.projectId} href={`/admin/projects/${p.projectId}`} title={p.shortDescription} className='block'>
+										<Link key={p.projectId} href={`/admin/projects/${p.projectId}`} title={`${p.shortDescription} (${p.elapsedText})`} className='block'>
 											<Project name={p.name} progress={p.progress} time={p.time} />
 										</Link>
 									))}
