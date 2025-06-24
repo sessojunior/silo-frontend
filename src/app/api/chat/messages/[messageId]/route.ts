@@ -5,14 +5,14 @@ import * as schema from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
 
 // PATCH: Marcar userMessage como lida
-export async function PATCH(request: NextRequest, { params }: { params: { messageId: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ messageId: string }> }) {
 	try {
 		const user = await getAuthUser()
 		if (!user) {
 			return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		const { messageId } = params
+		const { messageId } = await params
 
 		console.log('🔵 Marcando mensagem como lida:', { messageId, userId: user.id })
 
@@ -47,14 +47,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { messag
 }
 
 // DELETE: Excluir mensagem (apenas até 24h após envio)
-export async function DELETE(request: NextRequest, { params }: { params: { messageId: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ messageId: string }> }) {
 	try {
 		const user = await getAuthUser()
 		if (!user) {
 			return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		const { messageId } = params
+		const { messageId } = await params
 
 		console.log('🔵 Tentando excluir mensagem:', { messageId, userId: user.id })
 
