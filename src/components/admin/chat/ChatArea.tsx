@@ -8,7 +8,6 @@ import EmojiPicker from './EmojiPicker'
 import type { ChatMessage, ChatGroup, ChatUser } from '@/context/ChatContext'
 import Button from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
-import FutureFeatureDialog from '@/components/ui/FutureFeatureDialog'
 
 type ChatAreaProps = {
 	activeTargetId: string | null
@@ -23,7 +22,6 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 
 	const [messageText, setMessageText] = useState('')
 	const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-	const [showFileDialog, setShowFileDialog] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [isSending, setIsSending] = useState(false)
 
@@ -441,11 +439,6 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 						/>
 					</div>
 
-					{/* Botão de anexo */}
-					<button onClick={() => setShowFileDialog(true)} disabled={isSending} className='p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed' title='Anexar arquivo'>
-						<span className='icon-[lucide--paperclip] w-5 h-5' />
-					</button>
-
 					{/* Campo de texto */}
 					<div className='flex-1 relative'>
 						<Textarea
@@ -477,9 +470,6 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 					{activeTargetType === 'user' && <p className='text-xs text-zinc-500 dark:text-zinc-400'>Mensagens privadas são marcadas como lidas automaticamente</p>}
 				</div>
 			</div>
-
-			{/* Dialog de funcionalidade futura - apenas arquivos */}
-			<FutureFeatureDialog open={showFileDialog} onClose={() => setShowFileDialog(false)} featureName='Envio de Arquivos' description='Em breve você poderá enviar arquivos, imagens, documentos e outros tipos de mídia diretamente no chat. O sistema incluirá preview de imagens e controle de upload.' icon='icon-[lucide--paperclip]' />
 		</div>
 	)
 }
