@@ -85,17 +85,8 @@ export default function GroupUsersSection({ group, isExpanded, onUserAdded }: Gr
 				return
 			}
 
-			const response = await fetch('/api/admin/users', {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					id: userId,
-					name: userToUpdate.name,
-					email: userToUpdate.email,
-					emailVerified: userToUpdate.emailVerified,
-					groupId: null, // Remove do grupo
-					isActive: userToUpdate.isActive,
-				}),
+			const response = await fetch(`/api/admin/groups/users?userId=${userId}&groupId=${group.id}`, {
+				method: 'DELETE',
 			})
 
 			const data = await response.json()

@@ -38,10 +38,8 @@ export default function GroupDeleteDialog({ isOpen, onClose, group, onSuccess }:
 				isDefault: group.isDefault,
 			})
 
-			const response = await fetch('/api/admin/groups', {
+			const response = await fetch(`/api/admin/groups?id=${group.id}`, {
 				method: 'DELETE',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ id: group.id }),
 			})
 
 			const data = await response.json()
@@ -57,10 +55,11 @@ export default function GroupDeleteDialog({ isOpen, onClose, group, onSuccess }:
 				onClose()
 			} else {
 				console.error('❌ Erro ao excluir grupo:', data)
+				const msg = data.error || data.message || 'Erro desconhecido'
 				toast({
 					type: 'error',
 					title: 'Erro ao excluir',
-					description: data.error || 'Erro desconhecido',
+					description: msg,
 				})
 			}
 		} catch (error) {
