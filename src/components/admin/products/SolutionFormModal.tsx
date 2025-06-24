@@ -105,7 +105,7 @@ export default function SolutionFormModal({ isOpen, onClose, mode, editingSoluti
 									formData.append('id', editingSolution.id)
 									formData.append('description', solutionDescription)
 									formData.append('removeImage', 'true')
-									const res = await fetch('/api/products/solutions', {
+									const res = await fetch('/api/admin/products/solutions', {
 										method: 'PUT',
 										body: formData,
 									})

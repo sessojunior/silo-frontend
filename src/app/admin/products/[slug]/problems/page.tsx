@@ -82,7 +82,7 @@ export default function ProblemsPage() {
 
 		try {
 			const problemIds = problems.map((p) => p.id)
-			const response = await fetch('/api/products/solutions/count', {
+			const response = await fetch('/api/admin/products/solutions/count', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ problemIds }),
@@ -108,7 +108,7 @@ export default function ProblemsPage() {
 		setProblem(selected)
 		setLoadingDetail(true)
 		try {
-			const [solutionsRes, imagesRes] = await Promise.all([fetch(`/api/products/solutions?problemId=${selected.id}`), fetch(`/api/products/images?problemId=${selected.id}`)])
+			const [solutionsRes, imagesRes] = await Promise.all([fetch(`/api/admin/products/solutions?problemId=${selected.id}`), fetch(`/api/admin/products/images?problemId=${selected.id}`)])
 			const solutionsData = await solutionsRes.json()
 			const imagesData = await imagesRes.json()
 
@@ -128,7 +128,7 @@ export default function ProblemsPage() {
 		const fetchProblems = async () => {
 			setInitialLoading(true)
 			try {
-				const response = await fetch(`/api/products/problems?slug=${slug}`)
+				const response = await fetch(`/api/admin/products/problems?slug=${slug}`)
 				const data = await response.json()
 
 				if (!response.ok) {
@@ -206,7 +206,7 @@ export default function ProblemsPage() {
 			let res, data
 			if (editing) {
 				// Editar
-				res = await fetch('/api/products/problems', {
+				res = await fetch('/api/admin/products/problems', {
 					method: 'PUT',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
@@ -227,7 +227,7 @@ export default function ProblemsPage() {
 					setFormTitle('')
 					setFormDescription('')
 					// Atualiza a lista de problemas
-					const response = await fetch(`/api/products/problems?slug=${slug}`)
+					const response = await fetch(`/api/admin/products/problems?slug=${slug}`)
 					const data = await response.json()
 					setProblems(data.items || [])
 
@@ -254,7 +254,7 @@ export default function ProblemsPage() {
 					toast({ type: 'error', title: 'Produto não encontrado.' })
 					return
 				}
-				res = await fetch('/api/products/problems', {
+				res = await fetch('/api/admin/products/problems', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
@@ -274,7 +274,7 @@ export default function ProblemsPage() {
 					setFormTitle('')
 					setFormDescription('')
 					// Atualiza a lista de problemas
-					const response = await fetch(`/api/products/problems?slug=${slug}`)
+					const response = await fetch(`/api/admin/products/problems?slug=${slug}`)
 					const data = await response.json()
 					setProblems(data.items || [])
 
@@ -308,7 +308,7 @@ export default function ProblemsPage() {
 		if (!editing) return
 		setDeleteLoading(true)
 		try {
-			const res = await fetch('/api/products/problems', {
+			const res = await fetch('/api/admin/products/problems', {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ id: editing.id }),
@@ -326,7 +326,7 @@ export default function ProblemsPage() {
 				setFormTitle('')
 				setFormDescription('')
 				// Atualiza a lista de problemas
-				const response = await fetch(`/api/products/problems?slug=${slug}`)
+				const response = await fetch(`/api/admin/products/problems?slug=${slug}`)
 				const data = await response.json()
 				setProblems(data.items || [])
 
@@ -421,7 +421,7 @@ export default function ProblemsPage() {
 				formData.append('file', solutionImage)
 			}
 			const method = solutionMode === 'edit' ? 'PUT' : 'POST'
-			const res = await fetch('/api/products/solutions', {
+			const res = await fetch('/api/admin/products/solutions', {
 				method,
 				body: formData,
 			})
@@ -463,7 +463,7 @@ export default function ProblemsPage() {
 		if (!solutionToDelete) return
 		setDeleteSolutionLoading(true)
 		try {
-			const res = await fetch('/api/products/solutions', {
+			const res = await fetch('/api/admin/products/solutions', {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ id: solutionToDelete.id }),
@@ -488,7 +488,7 @@ export default function ProblemsPage() {
 
 	// Sempre que atualizar as soluções (ex: após criar/editar/excluir), sobrescreve isMine
 	async function atualizarSolucoes(problemId: string) {
-		const solutionsRes = await fetch(`/api/products/solutions?problemId=${problemId}`)
+		const solutionsRes = await fetch(`/api/admin/products/solutions?problemId=${problemId}`)
 		const solutionsData = await solutionsRes.json()
 		const solutionsWithIsMine = (solutionsData.items || []).map((sol: SolutionWithDetails) => ({
 			...sol,
@@ -506,7 +506,7 @@ export default function ProblemsPage() {
 	async function updateProblemImages() {
 		if (!problem) return
 		try {
-			const imagesRes = await fetch(`/api/products/images?problemId=${problem.id}`)
+			const imagesRes = await fetch(`/api/admin/products/images?problemId=${problem.id}`)
 			const imagesData = await imagesRes.json()
 			setImages(imagesData.items || [])
 		} catch (error) {

@@ -7,10 +7,10 @@ export default function Project({ name, progress, time }: { name: string; progre
 				<div className='flex w-full flex-col gap-1'>
 					<div className='flex items-center gap-2'>
 						<span className='icon-[lucide--square-chart-gantt] size-5 shrink-0 text-zinc-400 dark:text-zinc-500'></span>
-						<span className='text-lg font-medium text-zinc-800 dark:text-zinc-100'>{name}</span>
+						<span className='text-lg font-medium text-zinc-800 dark:text-zinc-100 truncate'>{name}</span>
 					</div>
 					<div className='flex items-center gap-2'>
-						<div className='text-sm text-zinc-500 dark:text-zinc-400'>
+						<div className='text-sm text-zinc-500 dark:text-zinc-400 shrink-0'>
 							{progress}% <span className='text-zinc-400 dark:text-zinc-500'>•</span> {time}
 						</div>
 						{/* Barra de progresso */}

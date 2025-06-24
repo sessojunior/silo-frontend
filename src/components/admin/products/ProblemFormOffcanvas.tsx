@@ -124,7 +124,7 @@ export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle
 												const formData = new FormData()
 												formData.append('file', previewFile)
 												formData.append('productProblemId', editing.id)
-												const res = await fetch('/api/products/images', {
+												const res = await fetch('/api/admin/products/images', {
 													method: 'POST',
 													body: formData,
 												})
@@ -212,7 +212,7 @@ export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle
 							onClick={async () => {
 								if (!deleteImageId) return
 								if (!editing) return
-								const res = await fetch('/api/products/images', {
+								const res = await fetch('/api/admin/products/images', {
 									method: 'DELETE',
 									headers: { 'Content-Type': 'application/json' },
 									body: JSON.stringify({ id: deleteImageId }),

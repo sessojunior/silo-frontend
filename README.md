@@ -209,13 +209,13 @@ if (!user) {
 - **`/api/admin/users`** - CRUD usuários (GET, POST, PUT, DELETE)
 - **`/api/admin/projects`** - CRUD projetos (GET, POST, PUT, DELETE)
 - **`/api/admin/help`** - Sistema ajuda (GET, PUT)
+- **`/api/admin/products/*`** - Produtos meteorológicos
+- **`/api/admin/projects/*/activities/*/tasks`** - Kanban de tarefas
+- **`/api/admin/chat/*`** - Sistema de chat
 
 ### 🔓 APIs Públicas (sem autenticação)
 
 - **`/api/auth/*`** - Sistema de autenticação
-- **`/api/products/*`** - Produtos meteorológicos
-- **`/api/projects/*/activities/*/tasks`** - Kanban de tarefas
-- **`/api/chat/*`** - Sistema de chat
 - **`/api/(user)/*`** - APIs do usuário logado
 
 ## 🔐 Autenticação

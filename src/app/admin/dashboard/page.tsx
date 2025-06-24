@@ -10,6 +10,7 @@ import Radial from '@/components/admin/dashboard/Radial'
 import Project from '@/components/admin/dashboard/Project'
 import Product from '@/components/admin/dashboard/Product'
 import ProductSkeleton from '@/components/admin/dashboard/ProductSkeleton'
+import Link from 'next/link'
 
 type ProductDateStatus = {
 	date: string
@@ -43,6 +44,8 @@ function splitGroups(items: DashboardProduct[]) {
 export default function DashboardPage() {
 	const [data, setData] = useState<DashboardProduct[]>([])
 	const [loading, setLoading] = useState(true)
+	const [projects, setProjects] = useState<{ projectId: string; name: string; shortDescription: string; progress: number; time: string }[]>([])
+	const [projectsLoading, setProjectsLoading] = useState(true)
 
 	useEffect(() => {
 		async function load() {
@@ -53,6 +56,23 @@ export default function DashboardPage() {
 			setLoading(false)
 		}
 		load()
+	}, [])
+
+	// Carregar projetos em andamento
+	useEffect(() => {
+		async function loadProjects() {
+			try {
+				const res = await fetch('/api/admin/dashboard/projects')
+				if (res.ok) {
+					setProjects(await res.json())
+				}
+			} catch (error) {
+				console.error('⚠️ Erro ao carregar projetos em andamento', error)
+			} finally {
+				setProjectsLoading(false)
+			}
+		}
+		loadProjects()
 	}, [])
 
 	const groups = splitGroups(data)
@@ -292,9 +312,8 @@ export default function DashboardPage() {
 						</div>
 
 						{/* Progresso radial */}
-						<div className='grid w-full grid-cols-3 divide-x divide-zinc-200 border-b border-b-zinc-200 dark:divide-zinc-700 dark:border-b-zinc-700'>
+						<div className='grid w-full grid-cols-2 divide-x divide-zinc-200 border-b border-b-zinc-200 dark:divide-zinc-700 dark:border-b-zinc-700'>
 							<Radial name='Produtos' progress={36} color='text-purple-500' colorDark='text-purple-600' />
-							<Radial name='Processos' progress={77} color='text-teal-500' colorDark='text-teal-600' />
 							<Radial name='Projetos' progress={63} color='text-rose-400' colorDark='text-rose-500' />
 						</div>
 
@@ -302,9 +321,13 @@ export default function DashboardPage() {
 						<div className='flex flex-col py-6'>
 							<h3 className='pb-4 text-xl font-medium text-zinc-800 dark:text-zinc-100'>Projetos em andamento</h3>
 							<div className='flex flex-col gap-3'>
-								<Project name='Nome do projeto 1' progress={56} time='14 dias' />
-								<Project name='Nome do projeto 2' progress={78} time='69 dias' />
-								<Project name='Nome do projeto 3' progress={19} time='9 dias' />
+								{projectsLoading && [1, 2, 3].map((i) => <Project key={i} name='Carregando...' progress={0} time='' />)}
+								{!projectsLoading &&
+									projects.map((p) => (
+										<Link key={p.projectId} href={`/admin/projects/${p.projectId}`} title={p.shortDescription} className='block'>
+											<Project name={p.name} progress={p.progress} time={p.time} />
+										</Link>
+									))}
 							</div>
 						</div>
 					</div>

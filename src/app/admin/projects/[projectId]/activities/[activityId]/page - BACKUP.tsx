@@ -97,7 +97,7 @@ export default function TaskKanbanPage() {
 	// Função para carregar dados da atividade
 	const fetchActivity = useCallback(async () => {
 		try {
-			const response = await fetch(`/api/projects/${projectId}/activities`)
+			const response = await fetch(`/api/admin/projects/${projectId}/activities`)
 			if (!response.ok) {
 				throw new Error('Erro ao carregar atividades')
 			}
@@ -123,7 +123,7 @@ export default function TaskKanbanPage() {
 	// Função para carregar tarefas
 	const fetchTasks = useCallback(async () => {
 		try {
-			const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/tasks`)
+			const response = await fetch(`/api/admin/projects/${projectId}/activities/${activityId}/tasks`)
 			if (!response.ok) {
 				throw new Error(`Erro HTTP ${response.status}`)
 			}
@@ -203,7 +203,7 @@ export default function TaskKanbanPage() {
 					projectActivityId: activityId,
 				}
 
-				const url = taskToEdit ? `/api/projects/${projectId}/activities/${activityId}/tasks` : `/api/projects/${projectId}/activities/${activityId}/tasks`
+				const url = taskToEdit ? `/api/admin/projects/${projectId}/activities/${activityId}/tasks` : `/api/admin/projects/${projectId}/activities/${activityId}/tasks`
 
 				const method = taskToEdit ? 'PUT' : 'POST'
 
@@ -245,7 +245,7 @@ export default function TaskKanbanPage() {
 	const handleTaskDelete = useCallback(
 		async (task: KanbanTask) => {
 			try {
-				const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/tasks`, {
+				const response = await fetch(`/api/admin/projects/${projectId}/activities/${activityId}/tasks`, {
 					method: 'DELETE',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ id: task.id }),
@@ -291,7 +291,7 @@ export default function TaskKanbanPage() {
 					tasksAfterMove: tasksAfterMove.map((t) => ({ taskId: t.id, status: t.status, sort: t.sort })),
 				}
 
-				const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/tasks`, {
+				const response = await fetch(`/api/admin/projects/${projectId}/activities/${activityId}/tasks`, {
 					method: 'PATCH',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(payload),

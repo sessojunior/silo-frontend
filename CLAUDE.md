@@ -95,7 +95,7 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 **ARQUITETURA FINAL**:
 
 - ChatContext com polling 5 segundos (sem WebSocket complexo)
-- API `/api/chat/sync` otimizada para apenas mensagens relevantes
+- API `/api/admin/chat/sync` otimizada para apenas mensagens relevantes
 - Sistema presença com 4 estados (Online, Ausente, Ocupado, Offline)
 - Interface WhatsApp-like com bubbles, status ✓✓✓, timestamps formatados
 
@@ -289,9 +289,9 @@ export async function GET() {
 
 **APIs Otimizadas**:
 
-- `/api/chat/sync` - Polling inteligente apenas para mensagens relevantes
-- `/api/chat/presence` - Sistema presença com 4 estados
-- `/api/chat/sidebar` - Lista usuários com ordenação inteligente
+- `/api/admin/chat/sync` - Polling inteligente apenas para mensagens relevantes
+- `/api/admin/chat/presence` - Sistema presença com 4 estados
+- `/api/admin/chat/sidebar` - Lista usuários com ordenação inteligente
 
 ### 🏗️ **Sistema Kanban Avançado**
 

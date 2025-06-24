@@ -4,10 +4,10 @@ import { projectActivity, project } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { getAuthUser } from '@/lib/auth/token'
 
-// GET /api/projects/[projectId]/activities - Buscar todas as atividades de um projeto
+// GET /api/admin/projects/[projectId]/activities - Buscar todas as atividades de um projeto
 export async function GET(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
 	try {
-		console.log('🔵 GET /api/projects/[projectId]/activities')
+		console.log('🔵 GET /api/admin/projects/[projectId]/activities')
 
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -40,10 +40,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 	}
 }
 
-// POST /api/projects/[projectId]/activities - Criar nova atividade
+// POST /api/admin/projects/[projectId]/activities - Criar nova atividade
 export async function POST(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
 	try {
-		console.log('🔵 POST /api/projects/[projectId]/activities')
+		console.log('🔵 POST /api/admin/projects/[projectId]/activities')
 
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -105,10 +105,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 	}
 }
 
-// PUT /api/projects/[projectId]/activities - Atualizar atividade
+// PUT /api/admin/projects/[projectId]/activities - Atualizar atividade
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
 	try {
-		console.log('🔵 PUT /api/projects/[projectId]/activities')
+		console.log('🔵 PUT /api/admin/projects/[projectId]/activities')
 
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -180,10 +180,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 	}
 }
 
-// DELETE /api/projects/[projectId]/activities - Excluir atividade
+// DELETE /api/admin/projects/[projectId]/activities - Excluir atividade
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
 	try {
-		console.log('🔵 DELETE /api/projects/[projectId]/activities')
+		console.log('🔵 DELETE /api/admin/projects/[projectId]/activities')
 
 		// Verificar autenticação
 		const user = await getAuthUser()

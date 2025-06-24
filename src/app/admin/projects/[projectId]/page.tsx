@@ -321,7 +321,7 @@ export default function ProjectDetailsPage() {
 				// Editar atividade existente
 				console.log('🔵 Atualizando atividade:', editingActivity.id)
 
-				const response = await fetch(`/api/projects/${projectId}/activities`, {
+				const response = await fetch(`/api/admin/projects/${projectId}/activities`, {
 					method: 'PUT',
 					headers: {
 						'Content-Type': 'application/json',
@@ -361,7 +361,7 @@ export default function ProjectDetailsPage() {
 				// Criar nova atividade
 				console.log('🔵 Criando nova atividade')
 
-				const response = await fetch(`/api/projects/${projectId}/activities`, {
+				const response = await fetch(`/api/admin/projects/${projectId}/activities`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',

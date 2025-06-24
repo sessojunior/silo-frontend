@@ -200,7 +200,7 @@ export default function ProductsPage() {
 	useEffect(() => {
 		const fetchProductId = async () => {
 			try {
-				const res = await fetch(`/api/products?slug=${slug}`)
+				const res = await fetch(`/api/admin/products?slug=${slug}`)
 				const data = await res.json()
 				if (data.products && data.products.length > 0) {
 					setProductId(data.products[0].id)
@@ -222,7 +222,7 @@ export default function ProductsPage() {
 		const fetchData = async () => {
 			setLoading(true)
 			try {
-				const [depsRes, contactsRes, manualRes, problemsRes] = await Promise.all([fetch(`/api/products/dependencies?productId=${productId}`), fetch(`/api/products/contacts?productId=${productId}`), fetch(`/api/products/manual?productId=${productId}`), fetch(`/api/products/problems?slug=${slug}`)])
+				const [depsRes, contactsRes, manualRes, problemsRes] = await Promise.all([fetch(`/api/admin/products/dependencies?productId=${productId}`), fetch(`/api/admin/products/contacts?productId=${productId}`), fetch(`/api/admin/products/manual?productId=${productId}`), fetch(`/api/admin/products/problems?slug=${slug}`)])
 
 				const [depsData, contactsData, manualData, problemsData] = await Promise.all([depsRes.json(), contactsRes.json(), manualRes.json(), problemsRes.json()])
 
@@ -236,7 +236,7 @@ export default function ProductsPage() {
 
 				// 🚀 OTIMIZAÇÃO: Uma única chamada para obter summary de soluções
 				// Substitui múltiplas chamadas por query SQL otimizada
-				const solutionsSummaryRes = await fetch(`/api/products/solutions/summary?productSlug=${slug}`)
+				const solutionsSummaryRes = await fetch(`/api/admin/products/solutions/summary?productSlug=${slug}`)
 				const solutionsSummaryData = await solutionsSummaryRes.json()
 
 				if (solutionsSummaryData.success) {
@@ -262,7 +262,7 @@ export default function ProductsPage() {
 	const refreshDependencies = async () => {
 		if (!productId) return
 		try {
-			const res = await fetch(`/api/products/dependencies?productId=${productId}`)
+			const res = await fetch(`/api/admin/products/dependencies?productId=${productId}`)
 			const data = await res.json()
 			setDependencies(data.dependencies || [])
 		} catch (error) {
@@ -274,7 +274,7 @@ export default function ProductsPage() {
 	const refreshContacts = async () => {
 		if (!productId) return
 		try {
-			const res = await fetch(`/api/products/contacts?productId=${productId}`)
+			const res = await fetch(`/api/admin/products/contacts?productId=${productId}`)
 			const data = await res.json()
 			setContacts(data.data?.contacts || [])
 			console.log('✅ Contatos recarregados:', data.data?.contacts?.length || 0)
@@ -306,7 +306,7 @@ export default function ProductsPage() {
 				console.log('🔵 Lista flat gerada:', flatList.length, 'itens para salvar')
 
 				// Envia para API em lote
-				const res = await fetch('/api/products/dependencies/reorder', {
+				const res = await fetch('/api/admin/products/dependencies/reorder', {
 					method: 'PUT',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
@@ -436,7 +436,7 @@ export default function ProductsPage() {
 		if (!itemToDelete) return
 		setFormLoading(true)
 		try {
-			const res = await fetch('/api/products/dependencies', {
+			const res = await fetch('/api/admin/products/dependencies', {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ id: itemToDelete.id }),
@@ -480,7 +480,7 @@ export default function ProductsPage() {
 		setFormLoading(true)
 		try {
 			if (isAddingNewItem) {
-				const res = await fetch('/api/products/dependencies', {
+				const res = await fetch('/api/admin/products/dependencies', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
@@ -507,7 +507,7 @@ export default function ProductsPage() {
 					})
 				}
 			} else if (selectedItemForEdit) {
-				const res = await fetch('/api/products/dependencies', {
+				const res = await fetch('/api/admin/products/dependencies', {
 					method: 'PUT',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
@@ -566,7 +566,7 @@ export default function ProductsPage() {
 		setFormLoading(true)
 		try {
 			console.log('🔵 Salvando manual:', { productId, contentLength: formContent.length })
-			const res = await fetch('/api/products/manual', {
+			const res = await fetch('/api/admin/products/manual', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({

@@ -46,7 +46,7 @@ export default function ContactSelectorOffcanvas({ isOpen, onClose, productId, o
 			setLoading(true)
 
 			// Buscar todos os contatos ativos
-			const [allContactsRes, associatedContactsRes] = await Promise.all([fetch('/api/admin/contacts?status=active'), fetch(`/api/products/contacts?productId=${productId}`)])
+			const [allContactsRes, associatedContactsRes] = await Promise.all([fetch('/api/admin/contacts?status=active'), fetch(`/api/admin/products/contacts?productId=${productId}`)])
 
 			const allContactsData = await allContactsRes.json()
 			const associatedContactsData = await associatedContactsRes.json()
@@ -115,7 +115,7 @@ export default function ContactSelectorOffcanvas({ isOpen, onClose, productId, o
 		try {
 			setSaving(true)
 
-			const response = await fetch('/api/products/contacts', {
+			const response = await fetch('/api/admin/products/contacts', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
