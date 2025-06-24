@@ -107,23 +107,18 @@ export async function POST(request: NextRequest) {
 
 		const now = new Date()
 
-		// Upsert na tabela de presença
-		await db
-			.insert(schema.chatUserPresence)
-			.values({
+		// Estratégia: primeiro tenta UPDATE; se nenhuma linha afetada, faz INSERT.
+		const updateResult = await db.update(schema.chatUserPresence).set({ status, lastActivity: now, updatedAt: now }).where(eq(schema.chatUserPresence.userId, user.id)).returning()
+
+		if (updateResult.length === 0) {
+			// Nenhuma linha existente – realizar INSERT
+			await db.insert(schema.chatUserPresence).values({
 				userId: user.id,
 				status,
 				lastActivity: now,
 				updatedAt: now,
 			})
-			.onConflictDoUpdate({
-				target: schema.chatUserPresence.userId,
-				set: {
-					status,
-					lastActivity: now,
-					updatedAt: now,
-				},
-			})
+		}
 
 		console.log('✅ Status de presença atualizado:', { userId: user.id, status })
 
@@ -136,7 +131,7 @@ export async function POST(request: NextRequest) {
 		})
 	} catch (error) {
 		console.error('❌ Erro ao atualizar status de presença:', error)
-		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+		return NextResponse.json({ error: (error as Error).message || 'Erro interno do servidor' }, { status: 500 })
 	}
 }
 
