@@ -1,75 +1,45 @@
 import Popover from '@/components/ui/Popover'
 
-const turns = {
-	product: 'SMEC',
-	days: [
-		{
-			date: '2025-03-23',
-			turns: [
-				{
-					time: 0,
-					status: 'normal',
-					incidents: 0,
-					description: null,
-				},
-				{
-					time: 6,
-					status: 'normal',
-					incidents: 0,
-					description: null,
-				},
-				{
-					time: 12,
-					status: 'danger',
-					incidents: 1,
-					description: 'Acabou a luz.',
-				},
-				{
-					time: 18,
-					status: 'alert',
-					incidents: 0,
-					description: 'Acabou a luz.',
-				},
-			],
-		},
-		{
-			date: '2025-03-24',
-			turns: [
-				{
-					time: 0,
-					status: 'normal',
-					incidents: 0,
-					description: null,
-				},
-				{
-					time: 6,
-					status: 'normal',
-					incidents: 0,
-					description: null,
-				},
-				{
-					time: 12,
-					status: 'pending',
-					incidents: 1,
-					description: null,
-				},
-				{
-					time: 18,
-					status: 'pending',
-					incidents: 0,
-					description: null,
-				},
-			],
-		},
-	],
+interface TurnCell {
+	time: number
+	status: string
+	description?: string | null
+}
+interface DayItem {
+	date: string
+	turns: TurnCell[]
+}
+interface Props {
+	productName: string
+	days: DayItem[]
 }
 
-export default function ProductTurn() {
+function statusToClass(status: string) {
+	switch (status) {
+		case 'completed':
+		case 'normal':
+			return { bg: 'bg-green-600 text-white', label: 'Normal' }
+		case 'pending':
+		case 'waiting':
+			return { bg: 'bg-zinc-100 text-zinc-600', label: '' }
+		case 'with_problems':
+		case 'not_run':
+		case 'run_again':
+			return { bg: 'bg-red-600 text-white', label: 'Crítico' }
+		case 'under_support':
+		case 'suspended':
+			return { bg: 'bg-orange-600 text-white', label: 'Alerta' }
+		default:
+			return { bg: 'bg-zinc-200 text-zinc-600', label: '' }
+	}
+}
+
+export default function ProductTurn({ productName, days }: Props) {
 	return (
 		<div className='relative h-8'>
 			<div className='flex gap-1'>
-				{turns.days.map((day, i) => {
-					const totalIncidents = day.turns.reduce((acc, turn) => acc + turn.incidents, 0)
+				{days.map((day, i) => {
+					const totalIncidents = day.turns.filter((t) => ['pending', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended'].includes(t.status)).length
 
 					return (
 						<Popover
@@ -82,7 +52,7 @@ export default function ProductTurn() {
 										<div className='flex flex-col'>
 											<div className='flex items-center gap-2'>
 												<span className='icon-[lucide--folder-git-2] size-5 shrink-0 text-zinc-400'></span>
-												<span className='text-lg font-medium'>{turns.product}</span>
+												<span className='text-lg font-medium'>{productName}</span>
 											</div>
 										</div>
 									</div>

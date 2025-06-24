@@ -1,6 +1,5 @@
 'use client'
 
-import Product from '@/components/admin/dashboard/Product'
 import ChartColumn from '@/components/admin/dashboard/ChartColumn'
 import ChartLine from '@/components/admin/dashboard/ChartLine'
 import ChartDonut from '@/components/admin/dashboard/ChartDonut'
@@ -9,8 +8,55 @@ import CircleProgress from '@/components/admin/dashboard/CircleProgress'
 import Stats from '@/components/admin/dashboard/Stats'
 import Radial from '@/components/admin/dashboard/Radial'
 import Project from '@/components/admin/dashboard/Project'
+import Product from '@/components/admin/dashboard/Product'
+import ProductSkeleton from '@/components/admin/dashboard/ProductSkeleton'
+
+type ProductDateStatus = {
+	date: string
+	turn: number
+	user_id: string
+	status: string
+	description: string | null
+	alert: boolean
+}
+
+type DashboardProduct = {
+	productId: string
+	name: string
+	priority: string
+	last_run: string | null
+	percent_completed: number
+	dates: ProductDateStatus[]
+	turns: string[]
+}
+
+import { useEffect, useState } from 'react'
+
+function splitGroups(items: DashboardProduct[]) {
+	return {
+		notStarted: items.filter((p) => p.percent_completed === 0),
+		running: items.filter((p) => p.percent_completed > 0 && p.percent_completed < 100),
+		finished: items.filter((p) => p.percent_completed === 100),
+	}
+}
 
 export default function DashboardPage() {
+	const [data, setData] = useState<DashboardProduct[]>([])
+	const [loading, setLoading] = useState(true)
+
+	useEffect(() => {
+		async function load() {
+			const res = await fetch('/api/admin/dashboard')
+			if (res.ok) {
+				setData(await res.json())
+			}
+			setLoading(false)
+		}
+		load()
+	}, [])
+
+	const groups = splitGroups(data)
+
 	return (
 		<div className='flex w-full bg-white dark:bg-zinc-900'>
 			{/* Lado esquerdo */}
@@ -61,23 +107,82 @@ export default function DashboardPage() {
 							<div className='p-8'>
 								<h3 className='pb-4 text-xl font-medium text-zinc-500 dark:text-zinc-400'>Produtos não iniciados</h3>
 								<div className='flex flex-col gap-3'>
-									{/* Itens */}
-									<Product id='bam' name='BAM' progress={84} priority='low' date='21 mar. 16:35' />
-									<Product id='smec' name='SMEC' progress={91} priority='normal' date='21 mar. 09:41' />
+									{/* Itens dinâmicos */}
+									{loading && [1, 2, 3].map((i) => <ProductSkeleton key={i} />)}
+									{!loading &&
+										groups.notStarted.map((p) => {
+											const uniqueDates = Array.from(new Set(p.dates.map((d) => d.date))).sort()
+
+											let daysCount = 2
+											if (p.turns.length === 1) daysCount = 4
+											else if (p.turns.length === 2) daysCount = 3
+
+											const lastDates = uniqueDates.slice(-daysCount)
+											const lastDaysStatus = p.dates.filter((d) => lastDates.includes(d.date))
+
+											// Últimos 28 dias (timeline)
+											const last28Dates = uniqueDates.slice(-28)
+											const last28DaysStatus = p.dates.filter((d) => last28Dates.includes(d.date))
+
+											const calendarStatus = p.dates // 3 meses já retornados pela API
+
+											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={calendarStatus} />
+										})}
 								</div>
 							</div>
 							{/* Item 2 */}
 							<div className='p-8'>
 								<h3 className='pb-4 text-xl font-medium text-orange-500'>Produtos rodando</h3>
-								<div className='flex flex-col'>
-									{/* Itens */}
-									<Product id='brams_15km' name='BRAMS 15 km' progress={78} priority='urgent' date='21 mar. 11:17' />
+								<div className='flex flex-col gap-3'>
+									{/* Itens dinâmicos */}
+									{loading && [1, 2, 3].map((i) => <ProductSkeleton key={i} />)}
+									{!loading &&
+										groups.running.map((p) => {
+											const uniqueDates = Array.from(new Set(p.dates.map((d) => d.date))).sort()
+
+											let daysCount = 2
+											if (p.turns.length === 1) daysCount = 4
+											else if (p.turns.length === 2) daysCount = 3
+
+											const lastDates = uniqueDates.slice(-daysCount)
+											const lastDaysStatus = p.dates.filter((d) => lastDates.includes(d.date))
+
+											// Últimos 28 dias (timeline)
+											const last28Dates = uniqueDates.slice(-28)
+											const last28DaysStatus = p.dates.filter((d) => last28Dates.includes(d.date))
+
+											const calendarStatus = p.dates // 3 meses já retornados pela API
+
+											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={calendarStatus} />
+										})}
 								</div>
 							</div>
 							{/* Item 3 */}
 							<div className='p-8'>
 								<h3 className='pb-4 text-xl font-medium text-green-500'>Produtos finalizados</h3>
-								<div className='flex flex-col'></div>
+								<div className='flex flex-col gap-3'>
+									{/* Itens dinâmicos */}
+									{loading && [1, 2, 3].map((i) => <ProductSkeleton key={i} />)}
+									{!loading &&
+										groups.finished.map((p) => {
+											const uniqueDates = Array.from(new Set(p.dates.map((d) => d.date))).sort()
+
+											let daysCount = 2
+											if (p.turns.length === 1) daysCount = 4
+											else if (p.turns.length === 2) daysCount = 3
+
+											const lastDates = uniqueDates.slice(-daysCount)
+											const lastDaysStatus = p.dates.filter((d) => lastDates.includes(d.date))
+
+											// Últimos 28 dias (timeline)
+											const last28Dates = uniqueDates.slice(-28)
+											const last28DaysStatus = p.dates.filter((d) => last28Dates.includes(d.date))
+
+											const calendarStatus = p.dates // 3 meses já retornados pela API
+
+											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={calendarStatus} />
+										})}
+								</div>
 							</div>
 						</div>
 						{/* Coluna direita */}

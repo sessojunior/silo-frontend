@@ -22,6 +22,7 @@ type DashboardProduct = {
 		description: string | null
 		alert: boolean
 	}[]
+	turns: string[]
 }
 
 function isAlert(status: string): status is AlertStatus {
@@ -33,10 +34,10 @@ function isAlert(status: string): status is AlertStatus {
 //   productId: string,          // id do produto
 //   name: string,               // nome do produto
 //   priority: string,           // 'low' | 'normal' | 'high' | 'urgent'
-//   last_run: string | null,    // ‘YYYY-MM-DD HH:mm:ss’
+//   last_run: string | null,    // 'YYYY-MM-DD HH:mm:ss'
 //   percent_completed: number,  // 0-100 (últimos 28 dias)
 //   dates: Array<{
-//     date: string,             // ‘YYYY-MM-DD’ (60 dias para trás)
+//     date: string,             // 'YYYY-MM-DD' (3 últimos meses, do dia 1º do mês menos 2 até hoje)
 //     turn: number,             // 0 | 6 | 12 | 18
 //     user_id: string,          // id do usuário responsável
 //     status: string,           // 'completed', 'waiting', 'pending', 'in_progress', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended', 'off'
@@ -52,10 +53,10 @@ export async function GET() {
 
 		const productIds = products.map((p) => p.id)
 
-		// Data cutoff: últimos 60 dias
-		const cutoffDate = new Date()
-		cutoffDate.setDate(cutoffDate.getDate() - 60)
-		const cutoff = cutoffDate.toISOString().slice(0, 10)
+		// Data cutoff: 3 últimos meses (do dia 1º do mês menos 2 até hoje)
+		const today = new Date()
+		const startDate = new Date(today.getFullYear(), today.getMonth() - 2, 1) // primeiro dia do mês há 2 meses
+		const cutoff = startDate.toISOString().slice(0, 10)
 
 		const activityRows = await db.select().from(productActivity).where(gte(productActivity.date, cutoff)).orderBy(productActivity.date, productActivity.turn)
 
@@ -66,6 +67,7 @@ export async function GET() {
 				productId: p.id,
 				name: p.name,
 				priority: p.priority,
+				turns: (p.turns as unknown as string[]) || ['0', '6', '12', '18'],
 				last_run: null,
 				percent_completed: 0,
 				dates: [],

@@ -7,620 +7,106 @@ import ProductTurn from '@/components/admin/dashboard/ProductTurn'
 import ProductCalendar from '@/components/admin/dashboard/ProductCalendar'
 import Modal from '@/components/ui/Modal'
 
-const month1 = {
-	month: 1,
-	year: 2025,
-	dates: [
-		{
-			dateDay: 1,
-			dateWeek: 'wednesday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 2,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'orange' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 3,
-			dateWeek: 'friday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'red' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'orange' },
-			],
-		},
-		{
-			dateDay: 4,
-			dateWeek: 'saturday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'red' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 5,
-			dateWeek: 'sunday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'orange' },
-			],
-		},
-		{
-			dateDay: 6,
-			dateWeek: 'monday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'orange' },
-				{ dateTurn: 6, dateStatus: 'red' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 7,
-			dateWeek: 'tuesday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 8,
-			dateWeek: 'wednesday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'orange' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'red' },
-			],
-		},
-		{
-			dateDay: 9,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'orange' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 10,
-			dateWeek: 'friday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 11,
-			dateWeek: 'saturday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'orange' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 12,
-			dateWeek: 'sunday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'red' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'orange' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 13,
-			dateWeek: 'monday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'orange' },
-			],
-		},
-		{
-			dateDay: 14,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'red' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'orange' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 15,
-			dateWeek: 'wednesday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'orange' },
-			],
-		},
-		{
-			dateDay: 16,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'red' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 17,
-			dateWeek: 'friday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 18,
-			dateWeek: 'saturday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'orange' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 19,
-			dateWeek: 'sunday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 20,
-			dateWeek: 'monday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'orange' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'red' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 21,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'orange' },
-			],
-		},
-		{
-			dateDay: 22,
-			dateWeek: 'wednesday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'orange' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 23,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 24,
-			dateWeek: 'friday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'orange' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 25,
-			dateWeek: 'saturday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'red' },
-			],
-		},
-		{
-			dateDay: 26,
-			dateWeek: 'sunday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'red' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'orange' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 27,
-			dateWeek: 'monday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 28,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'orange' },
-			],
-		},
-		{
-			dateDay: 29,
-			dateWeek: 'wednesday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'orange' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 30,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 31,
-			dateWeek: 'friday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-	],
-}
-
-const month2 = {
-	month: 2,
-	year: 2025,
-	dates: [
-		{
-			dateDay: 1,
-			dateWeek: 'saturday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 2,
-			dateWeek: 'sunday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'orange' },
-				{ dateTurn: 12, dateStatus: 'orange' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 3,
-			dateWeek: 'monday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'red' },
-				{ dateTurn: 6, dateStatus: 'red' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 4,
-			dateWeek: 'tuesday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'orange' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 5,
-			dateWeek: 'wednesday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'red' },
-			],
-		},
-		{
-			dateDay: 6,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'orange' },
-				{ dateTurn: 6, dateStatus: 'orange' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 7,
-			dateWeek: 'friday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'red' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'orange' },
-			],
-		},
-		{
-			dateDay: 8,
-			dateWeek: 'saturday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'red' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 9,
-			dateWeek: 'sunday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'red' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'orange' },
-			],
-		},
-		{
-			dateDay: 10,
-			dateWeek: 'monday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'orange' },
-				{ dateTurn: 6, dateStatus: 'red' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 11,
-			dateWeek: 'tuesday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'red' },
-			],
-		},
-		{
-			dateDay: 12,
-			dateWeek: 'wednesday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'orange' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'red' },
-			],
-		},
-		{
-			dateDay: 13,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'orange' },
-				{ dateTurn: 6, dateStatus: 'red' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 14,
-			dateWeek: 'friday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'red' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 15,
-			dateWeek: 'saturday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'orange' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'red' },
-			],
-		},
-		{
-			dateDay: 16,
-			dateWeek: 'sunday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'red' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'orange' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 17,
-			dateWeek: 'monday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'orange' },
-			],
-		},
-		{
-			dateDay: 18,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'red' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'orange' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 19,
-			dateWeek: 'wednesday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'red' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'orange' },
-			],
-		},
-		{
-			dateDay: 20,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'red' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 21,
-			dateWeek: 'friday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 22,
-			dateWeek: 'saturday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'red' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'orange' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 23,
-			dateWeek: 'sunday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 24,
-			dateWeek: 'monday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'orange' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'red' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 25,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'red' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'orange' },
-			],
-		},
-		{
-			dateDay: 26,
-			dateWeek: 'wednesday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'orange' },
-				{ dateTurn: 12, dateStatus: 'red' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 27,
-			dateWeek: 'thursday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'red' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'green' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-		{
-			dateDay: 28,
-			dateWeek: 'friday',
-			dateTurns: [
-				{ dateTurn: 0, dateStatus: 'green' },
-				{ dateTurn: 6, dateStatus: 'green' },
-				{ dateTurn: 12, dateStatus: 'orange' },
-				{ dateTurn: 18, dateStatus: 'green' },
-			],
-		},
-	],
+interface ProductDateStatus {
+	date: string
+	turn: number
+	status: string
+	description?: string | null
 }
 
 interface ProductProps {
 	id: string
 	name: string
+	turns: string[]
 	progress: number
 	priority: string
 	date: string
+	lastDaysStatus: ProductDateStatus[]
+	last28DaysStatus: ProductDateStatus[] // para timeline
+	calendarStatus: ProductDateStatus[] // para calendário 3 meses
 }
 
-export default function Product({ id, name, progress, priority, date }: ProductProps) {
+export default function Product({ id, name, turns, progress, priority, date, lastDaysStatus, last28DaysStatus, calendarStatus }: ProductProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false)
+
+	// Filtra status conforme turnos configurados do produto
+	const filteredLastDays = lastDaysStatus.filter((d) => turns.includes(String(d.turn)))
+	const filteredTimeline = last28DaysStatus.filter((d) => turns.includes(String(d.turn)))
+	const filteredCalendar = calendarStatus.filter((d) => turns.includes(String(d.turn)))
+
+	const timelineStatuses = filteredTimeline.map((d) => d.status)
+
+	// Build days array for ProductTurn
+	const daysMap: Record<string, { date: string; turns: { time: number; status: string; description?: string | null }[] }> = {}
+
+	filteredLastDays.forEach((d) => {
+		if (!daysMap[d.date]) {
+			daysMap[d.date] = { date: d.date, turns: [] }
+		}
+		daysMap[d.date].turns.push({ time: d.turn, status: d.status, description: d.description })
+	})
+	const days = Object.values(daysMap).sort((a, b) => a.date.localeCompare(b.date))
+
+	/* ----------- Construção de calendários para os últimos 28 dias ----------- */
+	type CalendarDate = {
+		dateWeek: string
+		dateDay: number
+		dateTurns: { dateTurn: number; dateStatus: 'green' | 'orange' | 'red' | '' }[]
+	}
+
+	type Calendar = { month: number; dates: CalendarDate[] }
+
+	const dayOfWeekName = (d: number): string => ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][d]
+
+	const colorForStatus = (status?: string): 'green' | 'orange' | 'red' | '' => {
+		switch (status) {
+			case 'completed':
+				return 'green'
+			case 'pending':
+			case 'under_support':
+			case 'suspended':
+				return 'orange'
+			case 'not_run':
+			case 'with_problems':
+			case 'run_again':
+				return 'red'
+			default:
+				return ''
+		}
+	}
+
+	// Mapa status por (date + turn) para calendário
+	const statusMap = new Map<string, string>()
+	filteredCalendar.forEach((d) => {
+		statusMap.set(`${d.date}_${d.turn}`, d.status)
+	})
+
+	// Gera lista dos 3 últimos meses a partir da data atual
+	const today = new Date()
+	const monthsArr: string[] = []
+	for (let i = 0; i < 3; i++) {
+		const dt = new Date(today.getFullYear(), today.getMonth() - i, 1)
+		const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`
+		monthsArr.push(ym)
+	}
+	monthsArr.sort()
+
+	const calendars: Calendar[] = monthsArr.map((ym) => {
+		const [yearStr, monthStr] = ym.split('-')
+		const month = Number(monthStr) // 1-12
+
+		const daysInMonth = new Date(Number(yearStr), month, 0).getDate()
+		const dates: CalendarDate[] = []
+
+		for (let day = 1; day <= daysInMonth; day++) {
+			const dateStr = `${ym}-${String(day).padStart(2, '0')}`
+			const weekName = dayOfWeekName(new Date(dateStr).getDay())
+			const dateTurns = [0, 6, 12, 18].map((t) => ({ dateTurn: t, dateStatus: colorForStatus(statusMap.get(`${dateStr}_${t}`)) }))
+			dates.push({ dateWeek: weekName, dateDay: day, dateTurns })
+		}
+
+		return { month, dates }
+	})
 
 	return (
 		<>
@@ -640,14 +126,14 @@ export default function Product({ id, name, progress, priority, date }: ProductP
 
 					{/* Barra de turno */}
 					<div className='flex flex-col'>
-						<ProductTurn />
+						<ProductTurn productName={name} days={days} />
 					</div>
 				</div>
 				<div className='mt-1.5 flex items-center justify-between'>
 					{/* Modal Trigger */}
 					<button onClick={() => setIsModalOpen(true)} className='rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700'>
 						{/* Linha do tempo */}
-						<ProductTimeline />
+						<ProductTimeline statuses={timelineStatuses} />
 					</button>
 
 					{/* Prioridade */}
@@ -655,6 +141,11 @@ export default function Product({ id, name, progress, priority, date }: ProductP
 						{priority == 'urgent' && (
 							<div className='inline-block rounded-full bg-red-100 px-4 py-2 dark:bg-red-600'>
 								<span className='text-xs font-medium text-nowrap text-red-500 uppercase dark:text-white'>Urgente</span>
+							</div>
+						)}
+						{priority == 'high' && (
+							<div className='inline-block rounded-full bg-orange-100 px-4 py-2 dark:bg-red-600'>
+								<span className='text-xs font-medium text-nowrap text-red-500 uppercase dark:text-white'>Alta</span>
 							</div>
 						)}
 						{priority == 'normal' && (
@@ -671,9 +162,35 @@ export default function Product({ id, name, progress, priority, date }: ProductP
 				</div>
 			</div>
 			<Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={`Detalhes de ${name}`}>
-				{/* Calendário do produto */}
-				<ProductCalendar calendar={month1} />
-				<ProductCalendar calendar={month2} />
+				{/* Calendário gerado dinamicamente (últimos 28 dias) */}
+				{calendars.map((cal, idx) => (
+					<ProductCalendar key={idx} calendar={cal} />
+				))}
+
+				{/* Legenda */}
+				<div className='p-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm'>
+					<div className='flex items-center gap-1.5' title='Quando está ok.'>
+						<span className='size-3 rounded-full bg-green-600 dark:bg-green-700'></span> Concluído
+					</div>
+					<div className='flex items-center gap-1.5' title='Quando ainda não deu a hora de executar.'>
+						<span className='size-3 rounded-full bg-zinc-300 dark:bg-zinc-700'></span> Aguardando
+					</div>
+					<div className='flex items-center gap-1.5' title='Deu a hora de executar, mas não executou o modelo, é necessário executá-lo depois. Ou sob intervenção do suporte técnico. Ou rodada suspensa.'>
+						<span className='size-3 rounded-full bg-orange-400 dark:bg-orange-700'></span> Pendente • Sob intervenção • Suspenso
+					</div>
+					<div className='flex items-center gap-1.5' title='Produto rodando normalmente no turno atual.'>
+						<span className='size-3 rounded-full bg-transparent border border-zinc-300 dark:border-zinc-700'></span> Em andamento
+					</div>
+					<div className='flex items-center gap-1.5' title='Produto não rodou durante o turno, rodou com problemas ou deve ser rodado novamente.'>
+						<span className='size-3 rounded-full bg-red-600'></span> Não rodou • Com problemas • Rodar novamente
+					</div>
+					<div className='flex items-center gap-1.5' title='Quando não executou'>
+						<span className='size-3 rounded-full bg-zinc-300 dark:bg-zinc-700'></span> Sem execução
+					</div>
+					<div className='flex items-center gap-1.5' title='Produto desligado'>
+						<span className='size-3 rounded-full bg-black dark:bg-white'></span> Desligado
+					</div>
+				</div>
 			</Modal>
 		</>
 	)

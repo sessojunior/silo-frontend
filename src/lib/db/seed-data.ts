@@ -1,7 +1,7 @@
 import * as schema from '@/lib/db/schema'
 
 // === TIPAGENS DO SCHEMA ===
-export type ProductData = Pick<typeof schema.product.$inferInsert, 'name' | 'slug'>
+export type ProductData = Pick<typeof schema.product.$inferInsert, 'name' | 'slug' | 'available' | 'priority' | 'turns'>
 export type GroupData = Omit<typeof schema.group.$inferInsert, 'id' | 'createdAt' | 'updatedAt'>
 export type ContactData = Omit<typeof schema.contact.$inferInsert, 'id' | 'createdAt' | 'updatedAt'>
 export type TestUserData = Pick<typeof schema.authUser.$inferInsert, 'name' | 'email' | 'password' | 'emailVerified' | 'isActive'> & { groupName: string }
@@ -19,10 +19,10 @@ export interface DependencyItem {
 
 // === DADOS BÁSICOS ===
 export const products: ProductData[] = [
-	{ name: 'BAM', slug: 'bam' },
-	{ name: 'SMEC', slug: 'smec' },
-	{ name: 'BRAMS AMS 15KM', slug: 'brams-ams-15km' },
-	{ name: 'WRF', slug: 'wrf' },
+	{ name: 'BAM', slug: 'bam', available: true, priority: 'normal', turns: ['0'] },
+	{ name: 'SMEC', slug: 'smec', available: true, priority: 'high', turns: ['0', '12'] },
+	{ name: 'BRAMS AMS 15KM', slug: 'brams-ams-15km', available: true, priority: 'urgent', turns: ['0', '6', '12', '18'] },
+	{ name: 'WRF', slug: 'wrf', available: true, priority: 'low', turns: ['0', '6', '12', '18'] },
 ]
 
 export const groups: GroupData[] = [

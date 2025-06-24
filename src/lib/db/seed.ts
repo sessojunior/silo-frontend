@@ -274,6 +274,54 @@ async function seed() {
 			existingProducts.forEach((p) => productMap.set(p.slug, p.id))
 		}
 
+		// === 4.1 CRIAR ATIVIDADES DE PRODUTO (60 dias × 4 turnos) ===
+		const activityExisting = await db.select().from(schema.productActivity).limit(1)
+		if (activityExisting.length === 0) {
+			console.log('🔵 Gerando histórico de product_activity (60 dias)...')
+			const statusPool = ['completed', 'waiting', 'pending', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended'] as const
+
+			const descriptionSamples: Record<string, string[]> = {
+				pending: ['Rodada não iniciada no horário programado', 'Execução pendente, aguardar próximo turno', 'Execução atrasada; necessário iniciar manualmente'],
+				not_run: ['Modelo não executou no turno previsto', 'Execução falhou, sem saída gerada', 'Turno perdido; verificar agendamento'],
+				with_problems: ['Saída gerada com inconsistências', 'Modelo concluiu com erros de validação', 'Resultados suspeitos; revisar parâmetros'],
+				run_again: ['Necessário reexecutar devido a dados de entrada corrigidos', 'Solicitada nova execução pelo usuário', 'Reprocessamento agendado'],
+				under_support: ['Execução em análise pela equipe do IO', 'Intervenção técnica em andamento', 'Suporte investigando problema de infraestrutura'],
+				suspended: ['Rodada suspensa por manutenção programada', 'Execução pausada por falta de recursos', 'Processo suspenso até nova ordem'],
+			}
+
+			const productsAll = await db.select().from(schema.product)
+			for (const prod of productsAll.slice(0, 4)) {
+				for (let d = 0; d < 90; d++) {
+					const day = new Date()
+					day.setDate(day.getDate() - d)
+					const dateStr = day.toISOString().slice(0, 10)
+					for (const turn of [0, 6, 12, 18]) {
+						// Distribuição simples: completed 70%, outros 30%
+						const rnd = Math.random()
+						let status: (typeof statusPool)[number] = 'completed'
+						if (rnd > 0.7) {
+							status = statusPool[Math.floor(Math.random() * statusPool.length)]
+						}
+
+						const randomDescription = descriptionSamples[status]?.[Math.floor(Math.random() * (descriptionSamples[status]?.length || 1))] || null
+
+						await db.insert(schema.productActivity).values({
+							id: randomUUID(),
+							productId: prod.id,
+							userId: userId || prod.id, // fallback qualquer
+							date: dateStr as unknown as string,
+							turn,
+							status,
+							description: randomDescription,
+						})
+					}
+				}
+			}
+			console.log('✅ product_activity gerado!')
+		} else {
+			console.log('⚠️ product_activity já possui dados, pulando geração...')
+		}
+
 		// === 5. CRIAR CONTATOS ===
 		if (!contactsCheck.hasData) {
 			console.log('🔵 Criando contatos globais...')
