@@ -50,13 +50,13 @@ export default function Topbar() {
 
 						{/* Botoes, divisoria e dropdown */}
 						<div className='flex flex-row items-center justify-end gap-1'>
-							<TopbarButton href='#' icon='icon-[lucide--circle-help]'>
+							<TopbarButton href='/admin/help' icon='icon-[lucide--circle-help]'>
 								Ajuda
 							</TopbarButton>
-							<TopbarButton href='#' icon='icon-[lucide--activity]'>
+							<TopbarButton href='/admin/dashboard' icon='icon-[lucide--activity]'>
 								Atividades
 							</TopbarButton>
-							<TopbarButton href='#' icon='icon-[lucide--settings]'>
+							<TopbarButton href='/admin/settings' icon='icon-[lucide--settings]'>
 								Configurações
 							</TopbarButton>
 							<TopbarDivider />

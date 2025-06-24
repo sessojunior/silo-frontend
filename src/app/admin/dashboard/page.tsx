@@ -65,7 +65,7 @@ export default function DashboardPage() {
 	// Mapeamento de status → info visual
 	const STATUS_INFO: Record<string, { label: string; color: string; colorDark: string; severity: number }> = {
 		completed: { label: 'Concluídos', color: 'bg-green-400', colorDark: 'bg-green-700', severity: 0 },
-		waiting: { label: 'Aguardando', color: 'bg-zinc-400', colorDark: 'bg-zinc-700', severity: 1 },
+		waiting: { label: 'Aguardando', color: 'bg-zinc-400', colorDark: 'bg-zinc-500', severity: 1 },
 		in_progress: { label: 'Em execução', color: 'bg-zinc-100', colorDark: 'bg-zinc-600', severity: 2 },
 		pending: { label: 'Pendentes', color: 'bg-orange-600', colorDark: 'bg-orange-500', severity: 3 },
 		under_support: { label: 'Sob intervenção', color: 'bg-orange-500', colorDark: 'bg-orange-600', severity: 3 },
@@ -88,6 +88,32 @@ export default function DashboardPage() {
 			if (STATUS_INFO[d.status]) statusCounts[d.status]++
 		})
 	})
+
+	// Incidentes últimos 7 dias
+	const last7Dates: string[] = []
+	for (let i = 6; i >= 0; i--) {
+		const d = new Date()
+		d.setDate(today.getDate() - i)
+		last7Dates.push(d.toISOString().split('T')[0])
+	}
+
+	const incidentsByDay: Record<string, number> = {}
+	last7Dates.forEach((d) => (incidentsByDay[d] = 0))
+
+	data.forEach((product) => {
+		product.dates.forEach((d) => {
+			if (last7Dates.includes(d.date) && STATUS_INFO[d.status]?.severity >= 3) {
+				incidentsByDay[d.date]++
+			}
+		})
+	})
+
+	const columnCategories = last7Dates.map((d) => {
+		const parts = d.split('-')
+		return `${parts[2]}/${parts[1]}`
+	})
+
+	const columnData = last7Dates.map((d) => incidentsByDay[d])
 
 	// Monta itens para Stats, omitindo status com 0
 	const statsItems = Object.entries(statusCounts)
@@ -200,9 +226,9 @@ export default function DashboardPage() {
 							{/* Gráficos */}
 							{/* Item 1 */}
 							<div className='flex flex-col p-8'>
-								<h3 className='pb-2 text-xl font-medium'>Incidentes por data</h3>
+								<h3 className='pb-2 text-xl font-medium'>Incidentes nos últimos 7 dias</h3>
 								<div className='mx-auto -mb-4 w-full'>
-									<ChartColumn />
+									<ChartColumn categories={columnCategories} data={columnData} />
 								</div>
 							</div>
 							{/* Item 2 */}
