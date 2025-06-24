@@ -242,7 +242,7 @@ export default function DashboardPage() {
 							</div>
 							{/* Item 3 */}
 							<div className='flex flex-col p-8'>
-								<h3 className='pb-2 text-xl font-medium'>Problemas & soluções</h3>
+								<h3 className='pb-2 text-xl font-medium'>Problemas & soluções nos últimos 28 dias</h3>
 								<div className='flex'>
 									<div className='mx-auto w-full'>
 										<ChartLine />

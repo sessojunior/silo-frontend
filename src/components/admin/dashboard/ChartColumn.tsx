@@ -83,6 +83,7 @@ export default function ChartColumn({ categories, data }: { categories: string[]
 			fill: {
 				type: 'gradient',
 				gradient: {
+					shade: 'light',
 					type: 'horizontal',
 					shadeIntensity: 0.25,
 					gradientToColors: undefined,

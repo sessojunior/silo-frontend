@@ -7,23 +7,44 @@ import type { ApexOptions } from 'apexcharts'
 // Importação dinâmica para evitar SSR
 const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false })
 
+interface ChartApiResponse {
+	categories: string[]
+	problems: number[]
+	solutions: number[]
+}
+
 export default function ChartLine() {
 	const [mounted, setMounted] = useState(false)
+	const [chartData, setChartData] = useState<ChartApiResponse | null>(null)
 
 	useEffect(() => {
 		setMounted(true)
 	}, [])
 
-	const series = [
-		{
-			name: 'Problemas',
-			data: [45, 52, 38, 24, 33, 26, 21, 20, 6, 8, 15, 10],
-		},
-		{
-			name: 'Soluções',
-			data: [35, 41, 62, 42, 13, 18, 29, 37, 36, 51, 32, 35],
-		},
-	]
+	useEffect(() => {
+		async function load() {
+			try {
+				const res = await fetch('/api/admin/dashboard/problems-solutions')
+				if (res.ok) {
+					const json = (await res.json()) as ChartApiResponse
+					setChartData(json)
+				}
+			} catch (error) {
+				console.error('⚠️ Erro ao carregar dados do gráfico de problemas & soluções', error)
+			}
+		}
+		load()
+	}, [])
+
+	const series = chartData
+		? [
+				{ name: 'Problemas', data: chartData.problems },
+				{ name: 'Soluções', data: chartData.solutions },
+			]
+		: [
+				{ name: 'Problemas', data: [] },
+				{ name: 'Soluções', data: [] },
+			]
 
 	const options: ApexOptions = {
 		chart: {
@@ -46,7 +67,7 @@ export default function ChartLine() {
 			},
 		},
 		xaxis: {
-			categories: ['01/01', '02/01', '03/01', '04/01', '05/01', '06/01', '07/01', '08/01', '09/01', '10/01', '11/01', '12/01'],
+			categories: chartData ? chartData.categories : [],
 		},
 		tooltip: {
 			y: [
@@ -67,5 +88,5 @@ export default function ChartLine() {
 		},
 	}
 
-	return <div className='w-full max-w-lg'>{mounted && <ReactApexChart options={options} series={series} type='line' height={360} />}</div>
+	return <div className='w-full max-w-lg'>{mounted && chartData && <ReactApexChart options={options} series={series} type='line' height={360} />}</div>
 }
