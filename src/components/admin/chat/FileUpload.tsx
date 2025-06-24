@@ -132,7 +132,7 @@ export default function FileUpload({ channelId, onFileUploaded, onClose }: FileU
 				formData.append('file', filePreview.file)
 				formData.append('channelId', channelId)
 
-				const response = await fetch('/api/chat/upload', {
+				const response = await fetch('/api/admin/chat/upload', {
 					method: 'POST',
 					body: formData,
 				})

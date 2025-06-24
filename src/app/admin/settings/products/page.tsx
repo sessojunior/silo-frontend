@@ -54,7 +54,7 @@ export default function SettingsProductsPage() {
 	async function fetchProducts() {
 		try {
 			setLoading(true)
-			const response = await fetch('/api/products?page=1&limit=1000') // Carregar todos para filtrar no frontend
+			const response = await fetch('/api/admin/products?page=1&limit=1000') // Carregar todos para filtrar no frontend
 			const data = await response.json()
 
 			if (data.items) {
@@ -121,7 +121,7 @@ export default function SettingsProductsPage() {
 	async function handleFormSubmit(data: { id?: string; name: string; available: boolean }) {
 		setFormLoading(true)
 		try {
-			const response = await fetch('/api/products', {
+			const response = await fetch('/api/admin/products', {
 				method: data.id ? 'PUT' : 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(data),
@@ -157,7 +157,7 @@ export default function SettingsProductsPage() {
 
 		setFormLoading(true)
 		try {
-			const response = await fetch(`/api/products?id=${deleting.id}`, {
+			const response = await fetch(`/api/admin/products?id=${deleting.id}`, {
 				method: 'DELETE',
 			})
 			const data = await response.json()
@@ -188,7 +188,7 @@ export default function SettingsProductsPage() {
 
 	const toggleProductAvailability = async (product: Product) => {
 		try {
-			const response = await fetch('/api/products', {
+			const response = await fetch('/api/admin/products', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({

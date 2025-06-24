@@ -37,7 +37,7 @@ export default function Sidebar() {
 	// Obter dados dos produtos
 	useEffect(() => {
 		const fetchProducts = async () => {
-			const response = await fetch('/api/products')
+			const response = await fetch('/api/admin/products')
 			const data = await response.json()
 			// Filtrar apenas produtos disponíveis
 			const availableProducts = data.items.filter((product: Product) => product.available)

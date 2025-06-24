@@ -143,7 +143,7 @@ export default function ProjectDetailsPage() {
 			setActivitiesLoading(true)
 			console.log('🔵 Carregando atividades do projeto:', projectId)
 
-			const response = await fetch(`/api/projects/${projectId}/activities`)
+			const response = await fetch(`/api/admin/projects/${projectId}/activities`)
 			const data = await response.json()
 
 			if (!response.ok || !data.success) {
@@ -420,7 +420,7 @@ export default function ProjectDetailsPage() {
 		try {
 			console.log('🔵 Excluindo atividade:', activityId)
 
-			const response = await fetch(`/api/projects/${projectId}/activities?activityId=${activityId}`, {
+			const response = await fetch(`/api/admin/projects/${projectId}/activities?activityId=${activityId}`, {
 				method: 'DELETE',
 			})
 
@@ -478,9 +478,9 @@ export default function ProjectDetailsPage() {
 
 		try {
 			console.log('🔍 [loadKanbanTaskCount] Carregando contagem para atividade:', activityId)
-			console.log('🔍 [loadKanbanTaskCount] URL:', `/api/projects/${projectId}/activities/${activityId}/tasks`)
+			console.log('🔍 [loadKanbanTaskCount] URL:', `/api/admin/projects/${projectId}/activities/${activityId}/tasks`)
 
-			const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/tasks`)
+			const response = await fetch(`/api/admin/projects/${projectId}/activities/${activityId}/tasks`)
 			console.log('🔍 [loadKanbanTaskCount] Response status:', response.status)
 
 			if (response.ok) {

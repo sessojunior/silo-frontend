@@ -91,7 +91,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	const loadSidebarData = useCallback(async () => {
 		try {
 			console.log('🔵 [ChatContext] Carregando dados da sidebar...')
-			const response = await fetch('/api/chat/sidebar')
+			const response = await fetch('/api/admin/chat/sidebar')
 
 			if (response.ok) {
 				const data = await response.json()
@@ -122,7 +122,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			}
 
 			console.log('🔵 [ChatContext] Carregando mensagens iniciais:', { targetId, type })
-			const response = await fetch(`/api/chat/messages?${params}`)
+			const response = await fetch(`/api/admin/chat/messages?${params}`)
 
 			if (response.ok) {
 				const data = await response.json()
@@ -161,7 +161,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			}
 
 			console.log('🔵 [ChatContext] Carregando mensagens mais antigas:', { targetId, type, page })
-			const response = await fetch(`/api/chat/messages?${params}`)
+			const response = await fetch(`/api/admin/chat/messages?${params}`)
 
 			if (response.ok) {
 				const data = await response.json()
@@ -206,7 +206,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 					receiverUserId,
 				})
 
-				const response = await fetch('/api/chat/messages', {
+				const response = await fetch('/api/admin/chat/messages', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
@@ -257,7 +257,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			try {
 				console.log('🔵 [ChatContext] Marcando mensagem como lida:', messageId)
 
-				const response = await fetch(`/api/chat/messages/${messageId}`, {
+				const response = await fetch(`/api/admin/chat/messages/${messageId}`, {
 					method: 'PATCH',
 				})
 
@@ -290,7 +290,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		try {
 			console.log('🔵 [ChatContext] Excluindo mensagem:', messageId)
 
-			const response = await fetch(`/api/chat/messages/${messageId}`, {
+			const response = await fetch(`/api/admin/chat/messages/${messageId}`, {
 				method: 'DELETE',
 			})
 
@@ -320,7 +320,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		try {
 			console.log('🔵 [ChatContext] Atualizando presença:', status)
 
-			const response = await fetch('/api/chat/presence', {
+			const response = await fetch('/api/admin/chat/presence', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ status }),
@@ -340,7 +340,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 	const sendHeartbeat = useCallback(async () => {
 		try {
-			await fetch('/api/chat/presence', {
+			await fetch('/api/admin/chat/presence', {
 				method: 'PATCH',
 			})
 		} catch (error) {
@@ -361,7 +361,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				params.set('since', fiveMinutesAgo)
 			}
 
-			const response = await fetch(`/api/chat/sync?${params}`)
+			const response = await fetch(`/api/admin/chat/sync?${params}`)
 
 			if (response.ok) {
 				const data = await response.json()
@@ -447,7 +447,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	const initializePresence = useCallback(async () => {
 		try {
 			// Buscar status atual do usuário
-			const response = await fetch('/api/chat/presence')
+			const response = await fetch('/api/admin/chat/presence')
 			if (response.ok) {
 				const data = await response.json()
 				// Usar novo campo currentUserPresence da API

@@ -40,7 +40,7 @@ export default function WelcomePage() {
 			// === 2. Verificar Produtos ===
 			let productsConfigured = false
 			try {
-				const res = await fetch('/api/products')
+				const res = await fetch('/api/admin/products')
 				if (res.ok) {
 					const data = await res.json()
 					productsConfigured = Array.isArray(data?.products) && data.products.length > 0

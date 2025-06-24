@@ -97,7 +97,7 @@ export default function TaskKanbanPage() {
 	// Função para carregar dados da atividade
 	const fetchActivity = useCallback(async () => {
 		try {
-			const response = await fetch(`/api/projects/${projectId}/activities`)
+			const response = await fetch(`/api/admin/projects/${projectId}/activities`)
 			if (!response.ok) {
 				throw new Error('Erro ao carregar atividades')
 			}

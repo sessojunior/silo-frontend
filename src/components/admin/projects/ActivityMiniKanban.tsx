@@ -39,7 +39,7 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 	async function loadKanbanTasks() {
 		try {
 			setLoading(true)
-			const response = await fetch(`/api/projects/${projectId}/activities/${activityId}/tasks`)
+			const response = await fetch(`/api/admin/projects/${projectId}/activities/${activityId}/tasks`)
 
 			if (response.ok) {
 				const tasksData = await response.json()
