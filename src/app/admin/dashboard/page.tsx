@@ -126,7 +126,7 @@ export default function DashboardPage() {
 	for (let i = 6; i >= 0; i--) {
 		const d = new Date()
 		d.setDate(today.getDate() - i)
-		last7Dates.push(d.toISOString().split('T')[0])
+		last7Dates.push(dateYMD(d))
 	}
 
 	const incidentsByDay: Record<string, number> = {}
@@ -187,69 +187,13 @@ export default function DashboardPage() {
 					<div className='flex flex-col divide-zinc-200 border-zinc-200 md:grid md:grid-cols-2 md:divide-x dark:divide-zinc-700 dark:border-zinc-700 dark:border-b-zinc-700'>
 						{/* Coluna esquerda */}
 						<div className='flex flex-col divide-y divide-zinc-200 dark:divide-zinc-700'>
-							{/* Produtos & tasks */}
-							{/* Item 1 */}
+							{/* Seção única de Produtos */}
 							<div className='p-8'>
-								<h3 className='pb-4 text-xl font-medium text-zinc-500 dark:text-zinc-400'>Produtos não iniciados</h3>
+								<h3 className='pb-4 text-xl font-medium'>Produtos (últimos 28 dias)</h3>
 								<div className='flex flex-col gap-3'>
-									{/* Itens dinâmicos */}
 									{loading && [1, 2, 3].map((i) => <ProductSkeleton key={i} />)}
 									{!loading &&
-										groups.notStarted.map((p) => {
-											const uniqueDates = Array.from(new Set(p.dates.map((d) => d.date))).sort()
-
-											let daysCount = 2
-											if (p.turns.length === 1) daysCount = 4
-											else if (p.turns.length === 2) daysCount = 3
-
-											const lastDates = uniqueDates.slice(-daysCount)
-											const lastDaysStatus = p.dates.filter((d) => lastDates.includes(d.date))
-
-											// Últimos 28 dias (timeline)
-											const last28Dates = uniqueDates.slice(-28)
-											const last28DaysStatus = p.dates.filter((d) => last28Dates.includes(d.date))
-
-											const calendarStatus = p.dates // 3 meses já retornados pela API
-
-											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={calendarStatus} onSaved={fetchDashboard} />
-										})}
-								</div>
-							</div>
-							{/* Item 2 */}
-							<div className='p-8'>
-								<h3 className='pb-4 text-xl font-medium text-orange-500'>Produtos rodando</h3>
-								<div className='flex flex-col gap-3'>
-									{/* Itens dinâmicos */}
-									{loading && [1, 2, 3].map((i) => <ProductSkeleton key={i} />)}
-									{!loading &&
-										groups.running.map((p) => {
-											const uniqueDates = Array.from(new Set(p.dates.map((d) => d.date))).sort()
-
-											let daysCount = 2
-											if (p.turns.length === 1) daysCount = 4
-											else if (p.turns.length === 2) daysCount = 3
-
-											const lastDates = uniqueDates.slice(-daysCount)
-											const lastDaysStatus = p.dates.filter((d) => lastDates.includes(d.date))
-
-											// Últimos 28 dias (timeline)
-											const last28Dates = uniqueDates.slice(-28)
-											const last28DaysStatus = p.dates.filter((d) => last28Dates.includes(d.date))
-
-											const calendarStatus = p.dates // 3 meses já retornados pela API
-
-											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={calendarStatus} onSaved={fetchDashboard} />
-										})}
-								</div>
-							</div>
-							{/* Item 3 */}
-							<div className='p-8'>
-								<h3 className='pb-4 text-xl font-medium text-green-500'>Produtos finalizados</h3>
-								<div className='flex flex-col gap-3'>
-									{/* Itens dinâmicos */}
-									{loading && [1, 2, 3].map((i) => <ProductSkeleton key={i} />)}
-									{!loading &&
-										groups.finished.map((p) => {
+										data.map((p) => {
 											const uniqueDates = Array.from(new Set(p.dates.map((d) => d.date))).sort()
 
 											let daysCount = 2
@@ -275,7 +219,7 @@ export default function DashboardPage() {
 							{/* Gráficos */}
 							{/* Item 1 */}
 							<div className='flex flex-col p-8'>
-								<h3 className='pb-2 text-xl font-medium'>Incidentes nos últimos 7 dias</h3>
+								<h3 className='pb-2 text-xl font-medium'>Incidentes (últimos 7 dias)</h3>
 								<div className='mx-auto -mb-4 w-full'>
 									<ChartColumn categories={columnCategories} data={columnData} />
 								</div>
@@ -291,7 +235,7 @@ export default function DashboardPage() {
 							</div>
 							{/* Item 3 */}
 							<div className='flex flex-col p-8'>
-								<h3 className='pb-2 text-xl font-medium'>Problemas & soluções nos últimos 28 dias</h3>
+								<h3 className='pb-2 text-xl font-medium'>Problemas & soluções (últimos 28 dias)</h3>
 								<div className='flex'>
 									<div className='mx-auto w-full'>
 										<ChartLine refresh={chartRefresh} />
@@ -365,4 +309,11 @@ export default function DashboardPage() {
 			</div>
 		</div>
 	)
+}
+
+function dateYMD(dt: Date) {
+	const y = dt.getFullYear()
+	const m = String(dt.getMonth() + 1).padStart(2, '0')
+	const d = String(dt.getDate()).padStart(2, '0')
+	return `${y}-${m}-${d}`
 }

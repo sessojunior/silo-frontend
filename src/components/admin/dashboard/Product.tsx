@@ -163,22 +163,22 @@ export default function Product({ id, name, turns, progress, priority, date, las
 					{/* Prioridade */}
 					<div className='flex items-center text-xs leading-none'>
 						{priority == 'urgent' && (
-							<div className='inline-block rounded-full bg-red-100 px-4 py-2 dark:bg-red-600'>
+							<div className='inline-block rounded-md bg-red-100 px-2 py-1.5 dark:bg-red-600'>
 								<span className='text-xs font-medium text-nowrap text-red-500 uppercase dark:text-white'>Urgente</span>
 							</div>
 						)}
 						{priority == 'high' && (
-							<div className='inline-block rounded-full bg-orange-100 px-4 py-2 dark:bg-red-600'>
+							<div className='inline-block rounded-md bg-orange-100 px-2 py-1.5 dark:bg-red-600'>
 								<span className='text-xs font-medium text-nowrap text-red-500 uppercase dark:text-white'>Alta</span>
 							</div>
 						)}
 						{priority == 'normal' && (
-							<div className='inline-block rounded-full bg-orange-100 px-4 py-2 dark:bg-orange-600'>
+							<div className='inline-block rounded-md bg-orange-100 px-2 py-1.5 dark:bg-orange-600'>
 								<span className='text-xs font-medium text-nowrap text-orange-500 uppercase dark:text-white'>Normal</span>
 							</div>
 						)}
 						{priority == 'low' && (
-							<div className='inline-block rounded-full bg-green-200 px-4 py-2 dark:bg-green-700'>
+							<div className='inline-block rounded-md bg-green-200 px-2 py-1.5 dark:bg-green-700'>
 								<span className='text-xs font-medium text-nowrap text-green-600 uppercase dark:text-white'>Baixa</span>
 							</div>
 						)}

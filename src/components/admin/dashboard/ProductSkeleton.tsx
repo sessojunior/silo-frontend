@@ -10,13 +10,13 @@ export default function ProductSkeleton() {
 				</div>
 				<div className='flex gap-1'>
 					{[...Array(3)].map((_, i) => (
-						<div key={i} className='h-5 w-10 rounded-full bg-zinc-200 dark:bg-zinc-700'></div>
+						<div key={i} className='h-5 w-10 rounded-md bg-zinc-200 dark:bg-zinc-700'></div>
 					))}
 				</div>
 			</div>
 			<div className='mt-2 flex items-center justify-between gap-16'>
 				<div className='h-5 flex-grow rounded-md bg-zinc-200 dark:bg-zinc-700'></div>
-				<div className='h-5 w-16 rounded-full bg-zinc-200 dark:bg-zinc-700'></div>
+				<div className='h-5 w-14 rounded-md bg-zinc-200 dark:bg-zinc-700'></div>
 			</div>
 		</div>
 	)
