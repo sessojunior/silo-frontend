@@ -13,7 +13,7 @@ interface ChartApiResponse {
 	solutions: number[]
 }
 
-export default function ChartLine() {
+export default function ChartLine({ refresh = 0 }: { refresh?: number }) {
 	const [mounted, setMounted] = useState(false)
 	const [chartData, setChartData] = useState<ChartApiResponse | null>(null)
 
@@ -34,7 +34,7 @@ export default function ChartLine() {
 			}
 		}
 		load()
-	}, [])
+	}, [refresh])
 
 	const series = chartData
 		? [
@@ -88,5 +88,5 @@ export default function ChartLine() {
 		},
 	}
 
-	return <div className='w-full max-w-lg'>{mounted && chartData && <ReactApexChart options={options} series={series} type='line' height={360} />}</div>
+	return <div className='w-full max-w-lg'>{mounted && chartData && <ReactApexChart key={refresh} options={options} series={series} type='line' height={360} />}</div>
 }

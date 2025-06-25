@@ -46,6 +46,8 @@ export default function DashboardPage() {
 	const [loading, setLoading] = useState(true)
 	const [projects, setProjects] = useState<{ projectId: string; name: string; shortDescription: string; elapsedText: string; progress: number; time: string }[]>([])
 	const [projectsLoading, setProjectsLoading] = useState(true)
+	const [chartRefresh, setChartRefresh] = useState(0)
+	const [summary, setSummary] = useState<{ recentCount: number; percentChange: number; categories: { name: string; count: number }[] } | null>(null)
 
 	const fetchDashboard = async () => {
 		const res = await fetch('/api/admin/dashboard')
@@ -53,6 +55,15 @@ export default function DashboardPage() {
 			setData(await res.json())
 		}
 		setLoading(false)
+		setChartRefresh((c) => c + 1)
+		fetchSummary()
+	}
+
+	const fetchSummary = async () => {
+		const res = await fetch('/api/admin/dashboard/summary')
+		if (res.ok) {
+			setSummary(await res.json())
+		}
 	}
 
 	useEffect(() => {
@@ -144,6 +155,23 @@ export default function DashboardPage() {
 			const incidents = info.severity >= 3 ? count : 0 // incidentes = laranja ou vermelho
 			return { name: info.label, progress: count, incidents, color: info.color, colorDark: info.colorDark }
 		})
+
+	// ===== Progress Radials =====
+	// Produtos: % de turnos completos nos últimos 7 dias
+	let totalTurns7 = 0
+	let completedTurns7 = 0
+	data.forEach((prod) => {
+		prod.dates.forEach((d) => {
+			if (last7Dates.includes(d.date) && prod.turns.includes(String(d.turn))) {
+				totalTurns7++
+				if (d.status === 'completed') completedTurns7++
+			}
+		})
+	})
+	const productsProgressPercent = totalTurns7 > 0 ? Math.round((completedTurns7 / totalTurns7) * 100) : 0
+
+	// Projetos: média de progresso dos projetos ativos
+	const projectsProgressPercent = projects.length > 0 ? Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length) : 0
 
 	return (
 		<div className='flex w-full bg-white dark:bg-zinc-900'>
@@ -254,10 +282,10 @@ export default function DashboardPage() {
 							</div>
 							{/* Item 2 */}
 							<div className='flex flex-col p-8'>
-								<h3 className='pb-2 text-xl font-medium'>Causas de problemas</h3>
+								<h3 className='pb-2 text-xl font-medium'>Causas de problemas (28 dias)</h3>
 								<div className='flex'>
 									<div className='mx-auto w-full'>
-										<ChartDonut />
+										<ChartDonut refresh={chartRefresh} />
 									</div>
 								</div>
 							</div>
@@ -266,7 +294,7 @@ export default function DashboardPage() {
 								<h3 className='pb-2 text-xl font-medium'>Problemas & soluções nos últimos 28 dias</h3>
 								<div className='flex'>
 									<div className='mx-auto w-full'>
-										<ChartLine />
+										<ChartLine refresh={chartRefresh} />
 									</div>
 								</div>
 							</div>
@@ -281,41 +309,42 @@ export default function DashboardPage() {
 					<div className='p-8'>
 						{/* Resumo */}
 						<div className='flex flex-col border-b border-b-zinc-200 pb-6 dark:border-b-zinc-700'>
-							<h3 className='pb-4 text-2xl font-medium'>Resumo do dia</h3>
-							<p className='text-base'>
-								Hoje você tem
-								<strong>20%</strong>
-								mais problemas que o normal, você resolveu
-								<strong>3 problemas</strong> em dois projetos, mas o foco está
-								<strong>12%</strong>
-								menor.
-							</p>
-						</div>
-
-						{/* Resumo da produtividade */}
-						<div className='grid grid-cols-2 border-b border-b-zinc-200 py-6 dark:border-b-zinc-700'>
-							<div>
-								<h4 className='pb-2 text-base font-medium'>Tempo parado</h4>
-								<div>
-									<span className='text-xl font-medium'>6h 18min</span>
-								</div>
-							</div>
-							<div>
-								<h4 className='pb-2 text-base font-medium'>Produtos finalizados</h4>
-								<div>
-									<span className='flex items-center'>
-										<CircleProgress percent={79} strokeWidth={4} showText={false} size='size-6' fontSize='text-sm' fontColor='text-zinc-600' fontColorDark='text-zinc-200' colorFilled='text-zinc-200' colorDarkFilled='text-zinc-600' colorUnfilled='text-blue-500' colorDarkUnfilled='text-blue-600' />
-										<span className='px-2 text-xl font-medium'> 79% </span>
-										<span className='pt-0.5 text-sm text-zinc-400'>17 de 23</span>
+							<h3 className='pb-4 text-2xl font-medium'>Resumo de 7 dias</h3>
+							{summary ? (
+								<p className='text-base'>
+									Nos últimos 7 dias você teve
+									<span className='font-semibold'> {Math.abs(summary.percentChange).toFixed(2)}% </span>
+									{summary.percentChange >= 0 ? ' mais ' : ' menos '} problemas que o{' '}
+									<span className='italic' title='7 dias anteriores a estes últimos 7 dias'>
+										período anterior
 									</span>
+									, foram
+									<span className='font-semibold'>
+										{' '}
+										{summary.recentCount} problema{summary.recentCount === 1 ? '' : 's'}{' '}
+									</span>
+									nas categorias{' '}
+									{summary.categories.map((c, idx) => (
+										<span key={c.name} className='font-semibold italic'>
+											{c.name}
+											{idx < summary.categories.length - 2 ? ', ' : idx === summary.categories.length - 2 ? ' e ' : ''}
+										</span>
+									))}
+									.
+								</p>
+							) : (
+								<div className='flex animate-pulse flex-col gap-2'>
+									<div className='h-4 w-full rounded bg-zinc-200 dark:bg-zinc-700'></div>
+									<div className='h-4 w-3/4 rounded bg-zinc-200 dark:bg-zinc-700'></div>
+									<div className='h-4 w-1/4 rounded bg-zinc-200 dark:bg-zinc-700'></div>
 								</div>
-							</div>
+							)}
 						</div>
 
 						{/* Progresso radial */}
 						<div className='grid w-full grid-cols-2 divide-x divide-zinc-200 border-b border-b-zinc-200 dark:divide-zinc-700 dark:border-b-zinc-700'>
-							<Radial name='Produtos' progress={36} color='text-purple-500' colorDark='text-purple-600' />
-							<Radial name='Projetos' progress={63} color='text-rose-400' colorDark='text-rose-500' />
+							<Radial name='Produtos' progress={productsProgressPercent} color='text-purple-500' colorDark='text-purple-600' title='Porcentagem de rodadas concluídas nos últimos 7 dias' />
+							<Radial name='Projetos' progress={projectsProgressPercent} color='text-rose-400' colorDark='text-rose-500' title='Porcentagem de tarefas concluídas sobre o total de todo o projeto' />
 						</div>
 
 						{/* Projetos em andamento */}

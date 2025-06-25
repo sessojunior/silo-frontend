@@ -7,11 +7,37 @@ import type { ApexOptions } from 'apexcharts'
 // Importa dinamicamente o ApexChart para evitar SSR
 const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false })
 
-export default function ChartDonut() {
-	const [mounted, setMounted] = useState(false)
+interface ApiResponse {
+	labels: string[]
+	values: number[]
+	colors?: (string | null)[]
+}
 
-	const series = [65, 17, 21, 48, 121]
-	const labels = ['Rede externa', 'Servidor indisponível', 'Falha humana', 'Rede interna', 'Erro no software']
+export default function ChartDonut({ refresh = 0 }: { refresh?: number }) {
+	const [mounted, setMounted] = useState(false)
+	const [data, setData] = useState<ApiResponse | null>(null)
+
+	useEffect(() => {
+		setMounted(true)
+	}, [])
+
+	useEffect(() => {
+		async function load() {
+			try {
+				const res = await fetch('/api/admin/dashboard/problems-causes')
+				if (res.ok) {
+					const json: ApiResponse = await res.json()
+					setData(json)
+				}
+			} catch (error) {
+				console.error('⚠️ Erro ao carregar causas de problemas', error)
+			}
+		}
+		load()
+	}, [refresh])
+
+	const series = data?.values ?? []
+	const labels = data?.labels ?? []
 
 	const options: ApexOptions = {
 		chart: {
@@ -19,6 +45,7 @@ export default function ChartDonut() {
 			width: '100%',
 		},
 		labels,
+		colors: data?.colors as string[] | undefined,
 		plotOptions: {
 			pie: {
 				startAngle: -90,
@@ -30,7 +57,7 @@ export default function ChartDonut() {
 			enabled: false,
 		},
 		fill: {
-			type: 'gradient',
+			type: 'solid',
 		},
 		legend: {
 			show: true,
@@ -61,11 +88,12 @@ export default function ChartDonut() {
 				},
 			},
 		],
+		tooltip: {
+			y: {
+				formatter: (val) => `${val} problemas`,
+			},
+		},
 	}
 
-	useEffect(() => {
-		setMounted(true)
-	}, [])
-
-	return <div className='w-full max-w-lg'>{mounted && <ReactApexChart options={options} series={series} type='donut' height={360} />}</div>
+	return <div className='w-full max-w-lg'>{mounted && data && data.labels.length > 0 && <ReactApexChart key={refresh} options={options} series={series} type='donut' height={360} />}</div>
 }

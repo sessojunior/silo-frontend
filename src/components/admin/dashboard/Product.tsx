@@ -13,6 +13,7 @@ interface ProductDateStatus {
 	turn: number
 	status: string
 	description?: string | null
+	category_id?: string | null
 }
 
 interface ProductProps {
@@ -30,7 +31,7 @@ interface ProductProps {
 
 export default function Product({ id, name, turns, progress, priority, date, lastDaysStatus, last28DaysStatus, calendarStatus, onSaved }: ProductProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false)
-	const [activityCtx, setActivityCtx] = useState<{ date: string; turn: number; status: string; description?: string | null } | null>(null)
+	const [activityCtx, setActivityCtx] = useState<{ date: string; turn: number; status: string; description?: string | null; category_id?: string | null } | null>(null)
 	const [activityPanelOpen, setActivityPanelOpen] = useState(false)
 
 	// Filtra status conforme turnos configurados do produto
@@ -41,7 +42,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 	const timelineStatuses = filteredTimeline.map((d) => d.status)
 
 	// Build days array for ProductTurn
-	const daysMap: Record<string, { date: string; turns: { time: number; status: string; description?: string | null }[] }> = {}
+	const daysMap: Record<string, { date: string; turns: { time: number; status: string; description?: string | null; category_id?: string | null }[] }> = {}
 
 	filteredLastDays.forEach((d) => {
 		if (!daysMap[d.date]) {
@@ -49,13 +50,14 @@ export default function Product({ id, name, turns, progress, priority, date, las
 		}
 		const existingTurn = daysMap[d.date].turns.find((t) => t.time === d.turn)
 		if (!existingTurn) {
-			daysMap[d.date].turns.push({ time: d.turn, status: d.status, description: d.description })
+			daysMap[d.date].turns.push({ time: d.turn, status: d.status, description: d.description, category_id: d.category_id })
 		} else {
 			// Se já existe, escolher status mais severo (orange/red substitui green) – simples prioridade
 			const severityOrder: Record<string, number> = { completed: 0, waiting: 1, in_progress: 2, pending: 3, under_support: 3, suspended: 3, not_run: 4, with_problems: 4, run_again: 4, off: 5 }
 			if ((severityOrder[d.status] ?? 0) > (severityOrder[existingTurn.status] ?? 0)) {
 				existingTurn.status = d.status
 				existingTurn.description = d.description
+				existingTurn.category_id = d.category_id
 			}
 		}
 	})
@@ -145,7 +147,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 							productName={name}
 							days={days}
 							onTurnClick={(ctx) => {
-								setActivityCtx(ctx)
+								setActivityCtx({ date: ctx.date, turn: ctx.turn, status: ctx.status, description: ctx.description, category_id: ctx.category_id })
 								setActivityPanelOpen(true)
 							}}
 						/>
@@ -192,7 +194,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 						onDotClick={({ date: d, turn }) => {
 							const target = filteredCalendar.find((ds) => ds.date === d && ds.turn === turn)
 							if (target) {
-								setActivityCtx({ date: target.date, turn: target.turn, status: target.status, description: target.description })
+								setActivityCtx({ date: target.date, turn: target.turn, status: target.status, description: target.description, category_id: target.category_id })
 								setActivityPanelOpen(true)
 							}
 						}}
@@ -236,6 +238,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 					turn={activityCtx.turn}
 					initialStatus={activityCtx.status}
 					initialDescription={activityCtx.description || ''}
+					initialCategoryId={activityCtx.category_id || null}
 					onSaved={() => {
 						onSaved?.()
 					}}

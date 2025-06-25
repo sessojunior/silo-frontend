@@ -1,19 +1,25 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { productProblem, productProblemCategory } from '@/lib/db/schema'
-import { gte, inArray } from 'drizzle-orm'
+import { productActivity, productProblemCategory } from '@/lib/db/schema'
+import { gte, inArray as inArr, and, isNotNull } from 'drizzle-orm'
+
+// Não filtrar por status – qualquer atividade com categoria conta como causa de problema
 
 export async function GET() {
 	try {
 		const cutDate = new Date()
 		cutDate.setDate(cutDate.getDate() - 28)
 
-		// Buscar problemas nos últimos 28 dias com categoria definida
-		const problems = await db.select({ categoryId: productProblem.problemCategoryId }).from(productProblem).where(gte(productProblem.createdAt, cutDate))
+		const cutoffStr = cutDate.toISOString().slice(0, 10)
 
-		// Contagem por categoriaId
+		// Atividades incidentes nos últimos 28 dias com categoria definida
+		const rows = await db
+			.select({ categoryId: productActivity.problemCategoryId })
+			.from(productActivity)
+			.where(and(gte(productActivity.date, cutoffStr), isNotNull(productActivity.problemCategoryId)))
+
 		const counts = new Map<string, number>()
-		for (const row of problems) {
+		for (const row of rows) {
 			if (!row.categoryId) continue
 			counts.set(row.categoryId, (counts.get(row.categoryId) || 0) + 1)
 		}
@@ -24,7 +30,7 @@ export async function GET() {
 		const categoryRows = await db
 			.select({ id: productProblemCategory.id, name: productProblemCategory.name, color: productProblemCategory.color })
 			.from(productProblemCategory)
-			.where(inArray(productProblemCategory.id, Array.from(counts.keys())))
+			.where(inArr(productProblemCategory.id, Array.from(counts.keys())))
 
 		const labels: string[] = []
 		const values: number[] = []

@@ -4,6 +4,7 @@ interface TurnCell {
 	time: number
 	status: string
 	description?: string | null
+	category_id?: string | null
 }
 interface DayItem {
 	date: string
@@ -12,7 +13,7 @@ interface DayItem {
 interface Props {
 	productName: string
 	days: DayItem[]
-	onTurnClick?: (ctx: { date: string; turn: number; status: string; description?: string | null }) => void
+	onTurnClick?: (ctx: { date: string; turn: number; status: string; description?: string | null; category_id?: string | null }) => void
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -55,7 +56,7 @@ export default function ProductTurn({ productName, days, onTurnClick }: Props) {
 											<li
 												key={index}
 												onClick={() => {
-													onTurnClick?.({ date: day.date, turn: turn.time, status: turn.status, description: turn.description })
+													onTurnClick?.({ date: day.date, turn: turn.time, status: turn.status, description: turn.description, category_id: turn.category_id })
 												}}
 												className='flex cursor-pointer items-start gap-2 rounded-lg p-2 hover:bg-zinc-50 dark:hover:bg-zinc-900'
 											>

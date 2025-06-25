@@ -20,6 +20,7 @@ type DashboardProduct = {
 		user_id: string
 		status: string
 		description: string | null
+		category_id: string | null
 		alert: boolean
 	}[]
 	turns: string[]
@@ -89,6 +90,7 @@ export async function GET() {
 				user_id: row.userId,
 				status: row.status,
 				description: row.description,
+				category_id: row.problemCategoryId ?? null,
 				alert: isAlert(row.status),
 			})
 
