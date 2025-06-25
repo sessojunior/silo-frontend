@@ -47,15 +47,16 @@ export default function DashboardPage() {
 	const [projects, setProjects] = useState<{ projectId: string; name: string; shortDescription: string; elapsedText: string; progress: number; time: string }[]>([])
 	const [projectsLoading, setProjectsLoading] = useState(true)
 
-	useEffect(() => {
-		async function load() {
-			const res = await fetch('/api/admin/dashboard')
-			if (res.ok) {
-				setData(await res.json())
-			}
-			setLoading(false)
+	const fetchDashboard = async () => {
+		const res = await fetch('/api/admin/dashboard')
+		if (res.ok) {
+			setData(await res.json())
 		}
-		load()
+		setLoading(false)
+	}
+
+	useEffect(() => {
+		fetchDashboard()
 	}, [])
 
 	// Carregar projetos em andamento
@@ -182,7 +183,7 @@ export default function DashboardPage() {
 
 											const calendarStatus = p.dates // 3 meses já retornados pela API
 
-											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={calendarStatus} />
+											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={calendarStatus} onSaved={fetchDashboard} />
 										})}
 								</div>
 							</div>
@@ -209,7 +210,7 @@ export default function DashboardPage() {
 
 											const calendarStatus = p.dates // 3 meses já retornados pela API
 
-											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={calendarStatus} />
+											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={calendarStatus} onSaved={fetchDashboard} />
 										})}
 								</div>
 							</div>
@@ -236,7 +237,7 @@ export default function DashboardPage() {
 
 											const calendarStatus = p.dates // 3 meses já retornados pela API
 
-											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={calendarStatus} />
+											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={calendarStatus} onSaved={fetchDashboard} />
 										})}
 								</div>
 							</div>

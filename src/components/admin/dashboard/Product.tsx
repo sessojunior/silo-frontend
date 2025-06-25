@@ -25,9 +25,10 @@ interface ProductProps {
 	lastDaysStatus: ProductDateStatus[]
 	last28DaysStatus: ProductDateStatus[] // para timeline
 	calendarStatus: ProductDateStatus[] // para calendário 3 meses
+	onSaved?: () => void
 }
 
-export default function Product({ id, name, turns, progress, priority, date, lastDaysStatus, last28DaysStatus, calendarStatus }: ProductProps) {
+export default function Product({ id, name, turns, progress, priority, date, lastDaysStatus, last28DaysStatus, calendarStatus, onSaved }: ProductProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [activityCtx, setActivityCtx] = useState<{ date: string; turn: number; status: string; description?: string | null } | null>(null)
 	const [activityPanelOpen, setActivityPanelOpen] = useState(false)
@@ -46,7 +47,17 @@ export default function Product({ id, name, turns, progress, priority, date, las
 		if (!daysMap[d.date]) {
 			daysMap[d.date] = { date: d.date, turns: [] }
 		}
-		daysMap[d.date].turns.push({ time: d.turn, status: d.status, description: d.description })
+		const existingTurn = daysMap[d.date].turns.find((t) => t.time === d.turn)
+		if (!existingTurn) {
+			daysMap[d.date].turns.push({ time: d.turn, status: d.status, description: d.description })
+		} else {
+			// Se já existe, escolher status mais severo (orange/red substitui green) – simples prioridade
+			const severityOrder: Record<string, number> = { completed: 0, waiting: 1, in_progress: 2, pending: 3, under_support: 3, suspended: 3, not_run: 4, with_problems: 4, run_again: 4, off: 5 }
+			if ((severityOrder[d.status] ?? 0) > (severityOrder[existingTurn.status] ?? 0)) {
+				existingTurn.status = d.status
+				existingTurn.description = d.description
+			}
+		}
 	})
 	const days = Object.values(daysMap).sort((a, b) => a.date.localeCompare(b.date))
 
@@ -226,7 +237,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 					initialStatus={activityCtx.status}
 					initialDescription={activityCtx.description || ''}
 					onSaved={() => {
-						/* TODO: refresh data */
+						onSaved?.()
 					}}
 				/>
 			)}

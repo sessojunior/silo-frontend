@@ -73,7 +73,8 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 			const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
 			const json = await res.json()
 			if (res.ok && json.success) {
-				toast({ type: 'success', title: existingId ? 'Atividade atualizada' : 'Atividade criada' })
+				const action = json.action ?? (existingId ? 'updated' : 'created')
+				toast({ type: 'success', title: action === 'updated' ? 'Atividade atualizada' : 'Atividade criada' })
 				onClose()
 				onSaved?.()
 			} else {
