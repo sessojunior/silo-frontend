@@ -127,6 +127,16 @@ export const product = pgTable('product', {
 })
 export type Product = typeof product.$inferSelect
 
+// === NOVA TABELA: Categorias de Problemas ===
+export const productProblemCategory = pgTable('product_problem_category', {
+	id: text('id').primaryKey(),
+	name: text('name').notNull().unique(),
+	color: text('color'),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+export type ProductProblemCategory = typeof productProblemCategory.$inferSelect
+
 export const productProblem = pgTable('product_problem', {
 	id: text('id').primaryKey(),
 	productId: text('product_id')
@@ -139,6 +149,7 @@ export const productProblem = pgTable('product_problem', {
 	description: text('description').notNull(),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
+	problemCategoryId: text('problem_category_id').references(() => productProblemCategory.id),
 })
 export type ProductProblem = typeof productProblem.$inferSelect
 
@@ -391,6 +402,7 @@ export const productActivity = pgTable(
 		date: date('date').notNull(),
 		turn: integer('turn').notNull(), // 0,6,12,18
 		status: text('status').notNull(), // 'completed', 'waiting', 'pending', 'in_progress', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended', 'off'
+		problemCategoryId: text('problem_category_id').references(() => productProblemCategory.id),
 		description: text('description'),
 		createdAt: timestamp('created_at').notNull().defaultNow(),
 		updatedAt: timestamp('updated_at').notNull().defaultNow(),

@@ -84,6 +84,7 @@ async function seed() {
 	let defaultGroup: typeof schema.group.$inferSelect | null = null
 	let userId = ''
 	const productMap = new Map<string, string>()
+	const categoryMap = new Map<string, string>()
 	let insertedContacts: (typeof schema.contact.$inferSelect)[] = []
 
 	try {
@@ -374,10 +375,12 @@ async function seed() {
 				// Problemas e soluções
 				if (userId) {
 					const problems = generateProblems()
+					const categoryIds: string[] = Array.from(categoryMap.values())
 					const problemRows = problems.map((p) => ({
 						id: randomUUID(),
 						productId,
 						userId: userId,
+						problemCategoryId: categoryIds[Math.floor(Math.random() * categoryIds.length)],
 						title: p.title,
 						description: p.description,
 					}))
@@ -691,6 +694,29 @@ async function seed() {
 			}
 		} else {
 			console.log('⚠️ Dados das tarefas já existem, pulando...')
+		}
+
+		// === 2.5 CRIAR CATEGORIAS DE PROBLEMA ===
+		const problemCategories = [
+			{ name: 'Rede externa', color: '#1E40AF' },
+			{ name: 'Rede interna', color: '#10B981' },
+			{ name: 'Servidor indisponível', color: '#DC2626' },
+			{ name: 'Falha humana', color: '#F59E0B' },
+			{ name: 'Erro no software', color: '#7C3AED' },
+			{ name: 'Outros', color: '#6B7280' },
+		]
+		const categoryCheck = await db.select().from(schema.productProblemCategory).limit(1)
+		if (categoryCheck.length === 0) {
+			console.log('🔵 Criando categorias de problemas...')
+			const insertedCats = await db
+				.insert(schema.productProblemCategory)
+				.values(problemCategories.map((c) => ({ id: randomUUID(), ...c })))
+				.returning()
+			insertedCats.forEach((c) => categoryMap.set(c.name, c.id))
+			console.log(`✅ ${insertedCats.length} categorias criadas!`)
+		} else {
+			const cats = await db.select().from(schema.productProblemCategory)
+			cats.forEach((c) => categoryMap.set(c.name, c.id))
 		}
 
 		console.log('✅ Seed finalizado com sucesso!')

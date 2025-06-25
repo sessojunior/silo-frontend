@@ -14,9 +14,10 @@ interface OffcanvasProps {
 	children: React.ReactNode
 	side?: 'right' | 'left'
 	width?: 'sm' | 'md' | 'lg' | 'xl' | string
+	zIndex?: number
 }
 
-export default function Offcanvas({ open, onClose, title, children, side = 'right', width = 'md' }: OffcanvasProps) {
+export default function Offcanvas({ open, onClose, title, children, side = 'right', width = 'md', zIndex = 70 }: OffcanvasProps) {
 	const ref = useRef<HTMLDivElement>(null)
 	const panelRef = useRef<HTMLDivElement>(null)
 
@@ -37,7 +38,7 @@ export default function Offcanvas({ open, onClose, title, children, side = 'righ
 	if (!panelWidth) panelWidth = '480px'
 
 	return (
-		<div ref={ref} className='fixed inset-0 z-[70] flex' style={{ justifyContent: side === 'right' ? 'flex-end' : 'flex-start' }} aria-modal='true' role='dialog' tabIndex={-1}>
+		<div ref={ref} className='fixed inset-0 flex' style={{ justifyContent: side === 'right' ? 'flex-end' : 'flex-start', zIndex }} aria-modal='true' role='dialog' tabIndex={-1}>
 			<div
 				ref={panelRef}
 				className={`h-full bg-white shadow-xl flex flex-col transition-transform duration-300 ease-in-out dark:bg-zinc-800 ` + (side === 'right' ? 'animate-slide-in-right' : 'animate-slide-in-left')}

@@ -8,6 +8,7 @@ interface ProblemsListColumnProps {
 	filter: string
 	setFilter: (value: string) => void
 	onAddProblem: () => void
+	onOpenCategories: () => void
 	filteredProblems: ProductProblem[]
 	problemsToShow: ProductProblem[]
 	solutionsCount: Record<string, number>
@@ -16,12 +17,12 @@ interface ProblemsListColumnProps {
 	loadingDetail: boolean
 }
 
-export function ProblemsListColumn({ listRef, filter, setFilter, onAddProblem, filteredProblems, problemsToShow, solutionsCount, onSelectProblem, selectedProblemId, loadingDetail }: ProblemsListColumnProps) {
+export function ProblemsListColumn({ listRef, filter, setFilter, onAddProblem, onOpenCategories, filteredProblems, problemsToShow, solutionsCount, onSelectProblem, selectedProblemId, loadingDetail }: ProblemsListColumnProps) {
 	return (
 		<div className='flex w-full flex-shrink-0 flex-col border-r border-zinc-200 sm:w-[480px] dark:border-zinc-700'>
 			<div ref={listRef} className='scrollbar size-full h-[calc(100vh-131px)] overflow-y-auto'>
 				{/* Campo de busca */}
-				<div className='border-b border-zinc-200 px-8 py-4 flex items-center gap-2'>
+				<div className='border-b border-zinc-200 p-4 flex items-center gap-2'>
 					<div className='relative flex flex-1 h-10'>
 						<input type='text' name='problem' value={filter} onChange={(e) => setFilter(e.target.value)} className='block w-full rounded-lg border-zinc-200 px-4 py-2.5 pe-11 sm:py-3 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500' placeholder='Procurar problema...' />
 						<div className='pointer-events-none absolute inset-y-0 end-0 z-20 flex items-center pe-4'>
@@ -29,6 +30,7 @@ export function ProblemsListColumn({ listRef, filter, setFilter, onAddProblem, f
 						</div>
 					</div>
 					<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='flex size-10' title='Adicionar problema' aria-label='Adicionar problema' onClick={onAddProblem} />
+					<Button type='button' icon='icon-[lucide--settings]' style='unstyled' className='flex size-10' title='Gerenciar categorias' aria-label='Gerenciar categorias' onClick={onOpenCategories} />
 				</div>
 
 				{filteredProblems.length > 0 ? (

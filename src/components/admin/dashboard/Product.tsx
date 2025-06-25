@@ -6,6 +6,7 @@ import ProductTimeline from '@/components/admin/dashboard/ProductTimeline'
 import ProductTurn from '@/components/admin/dashboard/ProductTurn'
 import ProductCalendar from '@/components/admin/dashboard/ProductCalendar'
 import Modal from '@/components/ui/Modal'
+import ProductActivityOffcanvas from '@/components/admin/dashboard/ProductActivityOffcanvas'
 
 interface ProductDateStatus {
 	date: string
@@ -28,6 +29,8 @@ interface ProductProps {
 
 export default function Product({ id, name, turns, progress, priority, date, lastDaysStatus, last28DaysStatus, calendarStatus }: ProductProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false)
+	const [activityCtx, setActivityCtx] = useState<{ date: string; turn: number; status: string; description?: string | null } | null>(null)
+	const [activityPanelOpen, setActivityPanelOpen] = useState(false)
 
 	// Filtra status conforme turnos configurados do produto
 	const filteredLastDays = lastDaysStatus.filter((d) => turns.includes(String(d.turn)))
@@ -54,7 +57,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 		dateTurns: { dateTurn: number; dateStatus: 'green' | 'orange' | 'red' | '' }[]
 	}
 
-	type Calendar = { month: number; dates: CalendarDate[] }
+	type Calendar = { year: number; month: number; dates: CalendarDate[] }
 
 	const dayOfWeekName = (d: number): string => ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][d]
 
@@ -93,6 +96,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 
 	const calendars: Calendar[] = monthsArr.map((ym) => {
 		const [yearStr, monthStr] = ym.split('-')
+		const year = Number(yearStr)
 		const month = Number(monthStr) // 1-12
 
 		const daysInMonth = new Date(Number(yearStr), month, 0).getDate()
@@ -105,7 +109,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 			dates.push({ dateWeek: weekName, dateDay: day, dateTurns })
 		}
 
-		return { month, dates }
+		return { year, month, dates }
 	})
 
 	return (
@@ -126,7 +130,14 @@ export default function Product({ id, name, turns, progress, priority, date, las
 
 					{/* Barra de turno */}
 					<div className='flex flex-col'>
-						<ProductTurn productName={name} days={days} />
+						<ProductTurn
+							productName={name}
+							days={days}
+							onTurnClick={(ctx) => {
+								setActivityCtx(ctx)
+								setActivityPanelOpen(true)
+							}}
+						/>
 					</div>
 				</div>
 				<div className='mt-1.5 flex items-center justify-between'>
@@ -164,7 +175,17 @@ export default function Product({ id, name, turns, progress, priority, date, las
 			<Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={`Detalhes de ${name}`}>
 				{/* Calendário gerado dinamicamente (últimos 28 dias) */}
 				{calendars.map((cal, idx) => (
-					<ProductCalendar key={idx} calendar={cal} />
+					<ProductCalendar
+						key={idx}
+						calendar={cal}
+						onDotClick={({ date: d, turn }) => {
+							const target = filteredCalendar.find((ds) => ds.date === d && ds.turn === turn)
+							if (target) {
+								setActivityCtx({ date: target.date, turn: target.turn, status: target.status, description: target.description })
+								setActivityPanelOpen(true)
+							}
+						}}
+					/>
 				))}
 
 				{/* Legenda */}
@@ -192,6 +213,23 @@ export default function Product({ id, name, turns, progress, priority, date, las
 					</div>
 				</div>
 			</Modal>
+
+			{/* Offcanvas edição de turno */}
+			{activityCtx && (
+				<ProductActivityOffcanvas
+					open={activityPanelOpen}
+					onClose={() => setActivityPanelOpen(false)}
+					productId={id}
+					productName={name}
+					date={activityCtx.date}
+					turn={activityCtx.turn}
+					initialStatus={activityCtx.status}
+					initialDescription={activityCtx.description || ''}
+					onSaved={() => {
+						/* TODO: refresh data */
+					}}
+				/>
+			)}
 		</>
 	)
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { product, productProblem, productProblemImage, productSolution, productSolutionChecked, authUser } from '@/lib/db/schema'
+import { product, productProblem, productProblemImage, productSolution, productSolutionChecked, authUser, productProblemCategory } from '@/lib/db/schema'
 import { eq, inArray, desc } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { getAuthUser } from '@/lib/auth/token'
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 
 		const productId = foundProduct[0].id
 
-		// Busca os problemas desse produto com informações do usuário
+		// Busca problemas + usuário + categoria
 		const problems = await db
 			.select({
 				id: productProblem.id,
@@ -35,12 +35,16 @@ export async function GET(req: NextRequest) {
 				userId: productProblem.userId,
 				title: productProblem.title,
 				description: productProblem.description,
+				problemCategoryId: productProblem.problemCategoryId,
+				categoryName: productProblemCategory.name,
+				categoryColor: productProblemCategory.color,
 				createdAt: productProblem.createdAt,
 				updatedAt: productProblem.updatedAt,
 				userName: authUser.name,
 			})
 			.from(productProblem)
 			.leftJoin(authUser, eq(productProblem.userId, authUser.id))
+			.leftJoin(productProblemCategory, eq(productProblem.problemCategoryId, productProblemCategory.id))
 			.where(eq(productProblem.productId, productId))
 			.orderBy(desc(productProblem.createdAt))
 			.limit(limit)
@@ -60,8 +64,8 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
 		}
 
-		const { productId, title, description } = await req.json()
-		if (!productId || typeof title !== 'string' || typeof description !== 'string') {
+		const { productId, title, description, problemCategoryId } = await req.json()
+		if (!productId || !problemCategoryId || typeof title !== 'string' || typeof description !== 'string') {
 			return NextResponse.json({ field: null, message: 'Todos os campos são obrigatórios.' }, { status: 400 })
 		}
 		if (title.trim().length < 5) {
@@ -71,12 +75,19 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ field: 'description', message: 'A descrição deve ter pelo menos 20 caracteres.' }, { status: 400 })
 		}
 
+		// verificar categoria existe
+		const catExists = await db.select().from(productProblemCategory).where(eq(productProblemCategory.id, problemCategoryId)).limit(1)
+		if (!catExists.length) {
+			return NextResponse.json({ field: 'problemCategoryId', message: 'Categoria não encontrada.' }, { status: 400 })
+		}
+
 		const newProblem = {
 			id: randomUUID(),
 			productId,
 			userId: user.id,
 			title: title.trim(),
 			description: description.trim(),
+			problemCategoryId,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		}
@@ -94,8 +105,8 @@ export async function PUT(req: NextRequest) {
 	}
 
 	try {
-		const { id, title, description } = await req.json()
-		if (!id || typeof title !== 'string' || typeof description !== 'string') {
+		const { id, title, description, problemCategoryId } = await req.json()
+		if (!id || typeof title !== 'string' || typeof description !== 'string' || !problemCategoryId) {
 			return NextResponse.json({ field: null, message: 'Todos os campos são obrigatórios.' }, { status: 400 })
 		}
 		if (title.trim().length < 5) {
@@ -104,7 +115,7 @@ export async function PUT(req: NextRequest) {
 		if (description.trim().length < 20) {
 			return NextResponse.json({ field: 'description', message: 'A descrição deve ter pelo menos 20 caracteres.' }, { status: 400 })
 		}
-		const updated = await db.update(productProblem).set({ title: title.trim(), description: description.trim(), updatedAt: new Date() }).where(eq(productProblem.id, id)).returning()
+		const updated = await db.update(productProblem).set({ title: title.trim(), description: description.trim(), problemCategoryId, updatedAt: new Date() }).where(eq(productProblem.id, id)).returning()
 		if (!updated.length) {
 			return NextResponse.json({ field: null, message: 'Problema não encontrado.' }, { status: 404 })
 		}

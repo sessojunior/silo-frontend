@@ -1,4 +1,5 @@
 interface DateTurn {
+	dateTurn: number
 	dateStatus: 'green' | 'orange' | 'red' | string
 }
 
@@ -9,15 +10,17 @@ interface CalendarDate {
 }
 
 interface Calendar {
+	year: number
 	month: number
 	dates: CalendarDate[]
 }
 
 interface ProductCalendarProps {
 	calendar: Calendar
+	onDotClick?: (ctx: { date: string; turn: number }) => void
 }
 
-export default function ProductCalendar({ calendar }: ProductCalendarProps) {
+export default function ProductCalendar({ calendar, onDotClick }: ProductCalendarProps) {
 	const monthFullName = (month: number): string => ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][month - 1] || ''
 	const weekDayLetter = (day: string): string => ({ sunday: 'D', monday: 'S', tuesday: 'T', wednesday: 'Q', thursday: 'Q', friday: 'S', saturday: 'S' })[day.toLowerCase()] || ''
 	const turns = [0, 6, 12, 18]
@@ -64,9 +67,19 @@ export default function ProductCalendar({ calendar }: ProductCalendarProps) {
 					{/* Turnos */}
 					{date.dateTurns.map((turn, index) => (
 						<div key={index} className={dayTurn}>
-							<div className={dayButton}>
+							<button
+								type='button'
+								disabled={turn.dateStatus === ''}
+								onClick={() => {
+									if (turn.dateStatus !== '') {
+										const fullDate = `${calendar.year}-${String(calendar.month).padStart(2, '0')}-${String(date.dateDay).padStart(2, '0')}`
+										onDotClick?.({ date: fullDate, turn: turn.dateTurn })
+									}
+								}}
+								className={dayButton}
+							>
 								<div className={turn.dateStatus === 'green' ? dayGreen : turn.dateStatus === 'orange' ? dayOrange : turn.dateStatus === 'red' ? dayRed : dayNone}></div>
-							</div>
+							</button>
 						</div>
 					))}
 				</div>

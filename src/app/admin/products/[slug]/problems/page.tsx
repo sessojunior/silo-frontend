@@ -12,6 +12,7 @@ import DeleteSolutionDialog from '@/components/admin/products/DeleteSolutionDial
 import { ProblemsListColumn } from '@/components/admin/products/ProblemsListColumn'
 import { ProblemDetailColumn } from '@/components/admin/products/ProblemDetailColumn'
 import { ProblemSolutionsSection } from '@/components/admin/products/ProblemSolutionsSection'
+import ProblemCategoryOffcanvas from '@/components/admin/products/ProblemCategoryOffcanvas'
 
 // Tipo customizado para soluções retornadas pela API
 interface SolutionWithDetails {
@@ -75,6 +76,8 @@ export default function ProblemsPage() {
 	const [solutionToDelete, setSolutionToDelete] = useState<SolutionWithDetails | null>(null)
 	const [deleteSolutionLoading, setDeleteSolutionLoading] = useState(false)
 	const [expandedSolutionIds, setExpandedSolutionIds] = useState<string[]>([])
+	const [categoryOffcanvasOpen, setCategoryOffcanvasOpen] = useState(false)
+	const [formCategoryId, setFormCategoryId] = useState<string | null>(null)
 
 	// 🚀 FUNÇÃO HELPER OTIMIZADA: Busca contagem de soluções para múltiplos problemas
 	const fetchSolutionsCount = async (problems: ProductProblem[]): Promise<Record<string, number>> => {
@@ -185,6 +188,7 @@ export default function ProblemsPage() {
 			setEditing(problem)
 			setFormTitle(problem.title)
 			setFormDescription(problem.description)
+			setFormCategoryId(problem.problemCategoryId || null)
 			setOffcanvasOpen(true)
 		}
 	}
@@ -201,6 +205,10 @@ export default function ProblemsPage() {
 			setFormError('A descrição deve ter pelo menos 20 caracteres.')
 			return
 		}
+		if (!formCategoryId) {
+			setFormError('Selecione a categoria.')
+			return
+		}
 		setFormLoading(true)
 		try {
 			let res, data
@@ -213,6 +221,7 @@ export default function ProblemsPage() {
 						id: editing.id,
 						title: formTitle,
 						description: formDescription,
+						problemCategoryId: formCategoryId,
 					}),
 				})
 				data = await res.json()
@@ -226,6 +235,7 @@ export default function ProblemsPage() {
 					setEditing(null)
 					setFormTitle('')
 					setFormDescription('')
+					setFormCategoryId(null)
 					// Atualiza a lista de problemas
 					const response = await fetch(`/api/admin/products/problems?slug=${slug}`)
 					const data = await response.json()
@@ -261,6 +271,7 @@ export default function ProblemsPage() {
 						productId,
 						title: formTitle,
 						description: formDescription,
+						problemCategoryId: formCategoryId,
 					}),
 				})
 				data = await res.json()
@@ -273,6 +284,7 @@ export default function ProblemsPage() {
 					setOffcanvasOpen(false)
 					setFormTitle('')
 					setFormDescription('')
+					setFormCategoryId(null)
 					// Atualiza a lista de problemas
 					const response = await fetch(`/api/admin/products/problems?slug=${slug}`)
 					const data = await response.json()
@@ -325,6 +337,7 @@ export default function ProblemsPage() {
 				setEditing(null)
 				setFormTitle('')
 				setFormDescription('')
+				setFormCategoryId(null)
 				// Atualiza a lista de problemas
 				const response = await fetch(`/api/admin/products/problems?slug=${slug}`)
 				const data = await response.json()
@@ -529,7 +542,7 @@ export default function ProblemsPage() {
 		<>
 			<div className='flex w-full'>
 				{/* Coluna da esquerda */}
-				<ProblemsListColumn listRef={listRef} filter={filter} setFilter={setFilter} onAddProblem={() => setOffcanvasOpen(true)} filteredProblems={filteredProblems} problemsToShow={problemsToShow} solutionsCount={solutionsCount} onSelectProblem={handleSelectProblem} selectedProblemId={problem?.id ?? null} loadingDetail={loadingDetail} />
+				<ProblemsListColumn listRef={listRef} filter={filter} setFilter={setFilter} onAddProblem={() => setOffcanvasOpen(true)} onOpenCategories={() => setCategoryOffcanvasOpen(true)} filteredProblems={filteredProblems} problemsToShow={problemsToShow} solutionsCount={solutionsCount} onSelectProblem={handleSelectProblem} selectedProblemId={problem?.id ?? null} loadingDetail={loadingDetail} />
 
 				{/* Coluna direita com o problema selecionado */}
 				<div className='flex w-full flex-grow flex-col'>
@@ -575,6 +588,8 @@ export default function ProblemsPage() {
 				setFormTitle={setFormTitle}
 				formDescription={formDescription}
 				setFormDescription={setFormDescription}
+				formCategoryId={formCategoryId}
+				setFormCategoryId={setFormCategoryId}
 				onSubmit={handleAddOrEditProblem}
 				formLoading={formLoading}
 				formError={formError}
@@ -612,6 +627,9 @@ export default function ProblemsPage() {
 
 			{/* Lightbox para imagem em destaque */}
 			<Lightbox open={lightboxOpen} image={lightboxImage?.src || ''} alt={lightboxImage?.alt} onClose={() => setLightboxOpen(false)} />
+
+			{/* Offcanvas categorias */}
+			<ProblemCategoryOffcanvas open={categoryOffcanvasOpen} onClose={() => setCategoryOffcanvasOpen(false)} />
 		</>
 	)
 }

@@ -12,6 +12,7 @@ interface DayItem {
 interface Props {
 	productName: string
 	days: DayItem[]
+	onTurnClick?: (ctx: { date: string; turn: number; status: string; description?: string | null }) => void
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -26,7 +27,7 @@ const COLOR_MAP: Record<string, string> = {
 	run_again: 'bg-red-600 text-white',
 }
 
-export default function ProductTurn({ productName, days }: Props) {
+export default function ProductTurn({ productName, days, onTurnClick }: Props) {
 	return (
 		<div className='relative h-8'>
 			<div className='flex gap-1'>
@@ -51,12 +52,18 @@ export default function ProductTurn({ productName, days }: Props) {
 									{/* Turnos detalhados */}
 									<ul className='px-2 py-1 space-y-0.5'>
 										{day.turns.map((turn, index) => (
-											<li key={index} className='flex items-start gap-2 rounded-lg p-2 hover:bg-zinc-50 dark:hover:bg-zinc-900'>
+											<li
+												key={index}
+												onClick={() => {
+													onTurnClick?.({ date: day.date, turn: turn.time, status: turn.status, description: turn.description })
+												}}
+												className='flex cursor-pointer items-start gap-2 rounded-lg p-2 hover:bg-zinc-50 dark:hover:bg-zinc-900'
+											>
 												<div className={`flex h-5 w-5 items-center justify-center rounded-full text-xs ${COLOR_MAP[turn.status] || 'bg-zinc-200 text-zinc-600'}`}>{turn.time}</div>
 												<div className='flex flex-col'>
 													<span className='font-medium'>{STATUS_LABEL(turn.status)}.</span>
 													{turn.description && (
-														<span className='text-xs text-zinc-500 dark:text-zinc-400 line-clamp-4 cursor-default' title={turn.description}>
+														<span className='text-xs text-zinc-500 dark:text-zinc-400 line-clamp-4' title={turn.description}>
 															{turn.description}
 														</span>
 													)}

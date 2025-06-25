@@ -9,6 +9,8 @@ import { toast } from '@/lib/toast'
 import clsx from 'clsx'
 import Image from 'next/image'
 import type { ProductProblem, ProductProblemImage } from '@/lib/db/schema'
+import Select, { SelectOption } from '@/components/ui/Select'
+import { useEffect, useState } from 'react'
 
 interface ProblemFormOffcanvasProps {
 	open: boolean
@@ -18,6 +20,8 @@ interface ProblemFormOffcanvasProps {
 	setFormTitle: (value: string) => void
 	formDescription: string
 	setFormDescription: (value: string) => void
+	formCategoryId: string | null
+	setFormCategoryId: (id: string | null) => void
 	onSubmit: (e: React.FormEvent) => void
 	formLoading: boolean
 	formError: string | null
@@ -39,7 +43,22 @@ interface ProblemFormOffcanvasProps {
 	onImagesUpdate: () => Promise<void>
 }
 
-export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle, setFormTitle, formDescription, setFormDescription, onSubmit, formLoading, formError, form, images, previewFile, setPreviewFile, onDeleteProblem, deleteDialogOpen, setDeleteDialogOpen, deleteLoading, deleteImageId, setDeleteImageId, deleteImageLoading, lightboxOpen, setLightboxOpen, lightboxImage, setLightboxImage, onImagesUpdate }: ProblemFormOffcanvasProps) {
+export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle, setFormTitle, formDescription, setFormDescription, formCategoryId, setFormCategoryId, onSubmit, formLoading, formError, form, images, previewFile, setPreviewFile, onDeleteProblem, deleteDialogOpen, setDeleteDialogOpen, deleteLoading, deleteImageId, setDeleteImageId, deleteImageLoading, lightboxOpen, setLightboxOpen, lightboxImage, setLightboxImage, onImagesUpdate }: ProblemFormOffcanvasProps) {
+	const [categoryOptions, setCategoryOptions] = useState<SelectOption[]>([])
+
+	useEffect(() => {
+		if (open) {
+			fetch('/api/admin/products/problems/categories')
+				.then((res) => res.json())
+				.then((data) => {
+					if (data.data) {
+						const opts = data.data.map((c: any) => ({ label: c.name, value: c.id }))
+						setCategoryOptions(opts)
+					}
+				})
+		}
+	}, [open])
+
 	const handleCloseOffcanvas = () => {
 		onClose()
 	}
@@ -53,6 +72,10 @@ export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle
 							Título do problema
 						</Label>
 						<Input id='problem-title' type='text' value={formTitle} setValue={setFormTitle} minLength={5} maxLength={120} required placeholder='Ex: Erro ao processar dados meteorológicos' isInvalid={form.field === 'title'} invalidMessage={form.field === 'title' ? (form.message ?? undefined) : undefined} />
+					</div>
+					<div>
+						<Label required>Categoria do problema</Label>
+						<Select name='category' options={categoryOptions} selected={formCategoryId ?? undefined} onChange={(val) => setFormCategoryId(val)} placeholder='Selecione a categoria' required isInvalid={form.field === 'problemCategoryId'} />
 					</div>
 					<div>
 						<Label htmlFor='problem-description' required>
