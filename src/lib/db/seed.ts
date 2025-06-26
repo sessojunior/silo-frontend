@@ -275,7 +275,33 @@ async function seed() {
 			existingProducts.forEach((p) => productMap.set(p.slug, p.id))
 		}
 
-		// === 4.1 CRIAR ATIVIDADES DE PRODUTO (60 dias × 4 turnos) ===
+		// === 4.1 GARANTIR CATEGORIAS DE PROBLEMA ANTES DE CRIAR product_activity ===
+		if (categoryMap.size === 0) {
+			const existingCats = await db.select().from(schema.productProblemCategory)
+			if (existingCats.length === 0) {
+				console.log('🔵 Categorias de problema ainda não existem – criando antes do product_activity...')
+				const problemCategories = [
+					{ name: 'Rede externa', color: '#1E40AF' },
+					{ name: 'Servidor indisponível', color: '#DC2626' },
+					{ name: 'Falha humana', color: '#F59E0B' },
+					{ name: 'Rede interna', color: '#10B981' },
+					{ name: 'Erro no modelo', color: '#7C3AED' },
+					{ name: 'Dados indisponíveis', color: '#6B7280' },
+				]
+
+				const insertedCats = await db
+					.insert(schema.productProblemCategory)
+					.values(problemCategories.map((c) => ({ id: randomUUID(), ...c })))
+					.returning()
+				insertedCats.forEach((c) => categoryMap.set(c.name, c.id))
+			} else {
+				existingCats.forEach((c) => categoryMap.set(c.name, c.id))
+			}
+		}
+
+		const categoryIdsArray = Array.from(categoryMap.values())
+
+		// === 4.2 CRIAR ATIVIDADES DE PRODUTO (60 dias × 4 turnos) ===
 		const activityExisting = await db.select().from(schema.productActivity).limit(1)
 		if (activityExisting.length === 0) {
 			console.log('🔵 Gerando histórico de product_activity (60 dias)...')
@@ -297,7 +323,6 @@ async function seed() {
 					day.setDate(day.getDate() - d)
 					const dateStr = day.toISOString().slice(0, 10)
 					for (const turn of [0, 6, 12, 18]) {
-						// Distribuição simples: completed 70%, outros 30%
 						const rnd = Math.random()
 						let status: (typeof statusPool)[number] = 'completed'
 						if (rnd > 0.7) {
@@ -313,6 +338,7 @@ async function seed() {
 							date: dateStr as unknown as string,
 							turn,
 							status,
+							problemCategoryId: status === 'completed' || status === 'waiting' ? null : categoryIdsArray[Math.floor(Math.random() * categoryIdsArray.length)],
 							description: randomDescription,
 						})
 					}
@@ -694,29 +720,6 @@ async function seed() {
 			}
 		} else {
 			console.log('⚠️ Dados das tarefas já existem, pulando...')
-		}
-
-		// === 2.5 CRIAR CATEGORIAS DE PROBLEMA ===
-		const problemCategories = [
-			{ name: 'Rede externa', color: '#1E40AF' },
-			{ name: 'Rede interna', color: '#10B981' },
-			{ name: 'Servidor indisponível', color: '#DC2626' },
-			{ name: 'Falha humana', color: '#F59E0B' },
-			{ name: 'Erro no software', color: '#7C3AED' },
-			{ name: 'Outros', color: '#6B7280' },
-		]
-		const categoryCheck = await db.select().from(schema.productProblemCategory).limit(1)
-		if (categoryCheck.length === 0) {
-			console.log('🔵 Criando categorias de problemas...')
-			const insertedCats = await db
-				.insert(schema.productProblemCategory)
-				.values(problemCategories.map((c) => ({ id: randomUUID(), ...c })))
-				.returning()
-			insertedCats.forEach((c) => categoryMap.set(c.name, c.id))
-			console.log(`✅ ${insertedCats.length} categorias criadas!`)
-		} else {
-			const cats = await db.select().from(schema.productProblemCategory)
-			cats.forEach((c) => categoryMap.set(c.name, c.id))
 		}
 
 		console.log('✅ Seed finalizado com sucesso!')

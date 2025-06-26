@@ -45,12 +45,54 @@ Este projeto usa o arquivo `/CLAUDE.md` na raiz como única fonte de verdade de 
 9. **Testes Sistema de Ajuda** - Navegação hierárquica, busca, edição markdown
 10. **Testes Integração** - Performance, mobile, navegadores, carregamento grandes volumes
 
-### ⏳ Funcionalidades Pendentes (4 sistemas críticos)
+### ⏳ Checklist de Pendências Atualizado
 
-- **Sistema de Dados Reais**: Migração dados teste → produção CPTEC com produtos reais
-- **Obtenção Automática**: Integração sistemas CPTEC para coleta automática dados rodadas
-- **Relatórios Avançados**: Disponibilidade, problemas frequentes, performance equipe
-- **Notificações Avançadas**: Email críticos, push mobile, escalação automática
+1. **Sistema de Dados Reais de Produção**  
+   • Migrar produtos-exemplo para produtos reais do CPTEC  
+   • Importar histórico existente de problemas e soluções
+
+2. **Obtenção Automática de Dados das Rodadas**  
+   • Serviço de coleta periódica gravando em `product_activity`  
+   • Atualização automática de status/descrição
+
+3. **Relatórios Avançados**  
+   • Dashboards de disponibilidade, MTTR, problemas frequentes  
+   • Exportação PDF/CSV
+
+4. **Notificações Avançadas**  
+   • E-mails críticos, push mobile, escalação automática  
+   • Preferências granular por usuário
+
+5. **Proteção Total das APIs Administrativas**  
+   • Middleware global para `/api/admin/*` garantindo autenticação  
+   • Revisão de todas as rotas existentes
+
+6. **Dashboard Visão Geral**  
+   • KPIs globais, gráficos de tendência, alertas em tempo real
+
+7. **Página Configurações Gerais (/admin/settings)**  
+   • Nova aba "Sistema" (temas, polling, SMTP, limites WIP)  
+   • Persistência em tabela `system_settings`
+
+8. **Pipeline CI/CD**  
+   • Build, migrations, seed opcional, testes  
+   • Ambientes _staging_ e _production_
+
+9. **Qualidade & QA**  
+   • Executar os 10 testes manuais descritos em CLAUDE.md  
+   • Cobertura automatizada (unitários + e2e Playwright)  
+   • Resolver warnings restantes de ESLint/TypeScript
+
+10. **Performance & DB**  
+    • Revisar índices, planos `EXPLAIN ANALYZE`  
+    • Otimizar queries de relatórios e coleta automática
+
+11. **Documentação**  
+    • Manter README e CLAUDE.md atualizados a cada entrega
+
+12. **Deploy**  
+    • Definir variáveis de ambiente seguras  
+    • Estratégia azul/verde ou canário, backup & rollback
 
 ### 📊 Progresso Total: **68%** (11 de 16 funcionalidades completas)
 
