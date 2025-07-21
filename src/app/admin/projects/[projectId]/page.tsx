@@ -488,8 +488,23 @@ export default function ProjectDetailsPage() {
 				console.log('🔍 [loadKanbanTaskCount] Response data para atividade', activityId, ':', data)
 
 				if (data.success && data.tasks) {
-					const totalTasks = data.tasks.length
+					// A API retorna tasks como objeto agrupado por status: { "todo": [...], "in_progress": [...] }
+					// Precisamos somar todas as tarefas de todos os status
+					let totalTasks = 0
+					if (typeof data.tasks === 'object' && !Array.isArray(data.tasks)) {
+						// Somar tarefas de todos os status
+						for (const status in data.tasks) {
+							if (Array.isArray(data.tasks[status])) {
+								totalTasks += data.tasks[status].length
+							}
+						}
+					} else if (Array.isArray(data.tasks)) {
+						// Fallback se for array direto
+						totalTasks = data.tasks.length
+					}
+
 					console.log('🔍 [loadKanbanTaskCount] ===== RESULTADO FINAL =====')
+					console.log('🔍 [loadKanbanTaskCount] Tasks agrupadas por status:', Object.keys(data.tasks || {}))
 					console.log('🔍 [loadKanbanTaskCount] Total de tarefas para atividade', activityId, ':', totalTasks)
 					console.log('🔍 [loadKanbanTaskCount] ============================')
 					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: totalTasks }))
@@ -719,9 +734,24 @@ export default function ProjectDetailsPage() {
 														<div className='flex items-center gap-2'>
 															<span className='icon-[lucide--kanban-square] size-4 text-zinc-400' />
 															<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Kanban:</span>
-															<div className='flex items-center gap-2 text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-md'>
-																<span className='text-zinc-700 dark:text-zinc-300 font-medium'>{kanbanTaskCounts[activity.id] !== undefined ? `${kanbanTaskCounts[activity.id]} tarefa${kanbanTaskCounts[activity.id] !== 1 ? 's' : ''}` : 'Carregando...'}</span>
-															</div>
+															{kanbanTaskCounts[activity.id] !== undefined ? (
+																<div className='flex items-center gap-2'>
+																	<div className='flex items-center gap-2 text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-md'>
+																		<span className='text-zinc-700 dark:text-zinc-300 font-medium'>
+																			{kanbanTaskCounts[activity.id]} tarefa{kanbanTaskCounts[activity.id] !== 1 ? 's' : ''}
+																		</span>
+																	</div>
+																	<Button onClick={() => handleGoToKanban(activity.id)} className='h-8 px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5' title='Abrir Kanban da atividade'>
+																		<span className='icon-[lucide--external-link] size-3' />
+																		Abrir Kanban
+																	</Button>
+																</div>
+															) : (
+																<div className='flex items-center gap-2 text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-md'>
+																	<span className='icon-[lucide--loader-circle] size-3 animate-spin text-zinc-400' />
+																	<span className='text-zinc-700 dark:text-zinc-300 font-medium'>Carregando...</span>
+																</div>
+															)}
 														</div>
 													</div>
 												</div>
