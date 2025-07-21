@@ -6,7 +6,6 @@ import { useSidebar } from '@/context/SidebarContext'
 import SidebarHeader from '@/components/admin/sidebar/SidebarHeader'
 import SidebarFooter from '@/components/admin/sidebar/SidebarFooter'
 import SidebarMenu from '@/components/admin/sidebar/SidebarMenu'
-import SidebarBlocks from '@/components/admin/sidebar/SidebarBlocks'
 import type { Product } from '@/lib/db/schema'
 import type { Project } from '@/types/projects'
 
@@ -18,15 +17,8 @@ export type SidebarMenuProps = {
 	items: SidebarMenuProps[] | null
 }
 
-export type SidebarBlockProps = {
-	id: string
-	title: string
-	description: string
-}
-
 export type SidebarProps = {
 	menu: SidebarMenuProps[]
-	blocks: SidebarBlockProps[]
 }
 
 export default function Sidebar() {
@@ -225,13 +217,6 @@ export default function Sidebar() {
 				],
 			},
 		],
-		blocks: [
-			{
-				id: '1',
-				title: 'O que há de novo?',
-				description: 'Você pode conferir todas as novidades dessa nova versão do dashboard no aplicativo Silo.',
-			},
-		],
 	}
 
 	return (
@@ -254,11 +239,6 @@ export default function Sidebar() {
 						<div className='flex w-full'>
 							{/* Menu */}
 							<SidebarMenu menu={sidebar.menu} />
-						</div>
-						{/* Bottom */}
-						<div className='flex w-full flex-col'>
-							{/* Blocos */}
-							<SidebarBlocks blocks={sidebar.blocks} />
 						</div>
 					</div>
 				</div>
