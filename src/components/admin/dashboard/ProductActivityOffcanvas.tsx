@@ -46,10 +46,33 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 			setStatus(initialStatus)
 			setDescription(initialDescription || '')
 			setCategoryId(initialCategoryId || null)
-			fetch('/api/admin/products/problems/categories')
-				.then((res) => res.json())
+
+			// Carregar categorias da API
+			fetch('/api/admin/products/problems/categories', {
+				credentials: 'include', // Incluir cookies de autenticação
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			})
+				.then((res) => {
+					if (res.status === 401) {
+						throw new Error('Usuário não autenticado')
+					}
+					if (!res.ok) {
+						throw new Error(`HTTP ${res.status}`)
+					}
+					return res.json()
+				})
 				.then((json) => {
-					if (json.data) setCategories(json.data.map((c: any) => ({ label: c.name, value: c.id })))
+					if (json.success && json.data && json.data.length > 0) {
+						const categoryOptions = json.data.map((c: { name: string; id: string }) => ({ label: c.name, value: c.id }))
+						setCategories(categoryOptions)
+					}
+					// Se não houver categorias da API, mantém as padrão já definidas
+				})
+				.catch((error) => {
+					console.error('❌ Erro ao carregar categorias:', error)
+					// Mantém categorias padrão já definidas
 				})
 		}
 	}, [open, initialStatus, initialDescription, initialCategoryId])
@@ -63,8 +86,15 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 		}
 		setLoading(true)
 		try {
-			const payload: any = { productId, date, turn, status, description, problemCategoryId: categoryId }
-			let url = '/api/admin/products/activities'
+			const payload: { productId: string; date: string; turn: number; status: string; description: string; problemCategoryId: string | null; id?: string } = {
+				productId,
+				date,
+				turn,
+				status,
+				description,
+				problemCategoryId: categoryId,
+			}
+			const url = '/api/admin/products/activities'
 			let method: 'POST' | 'PUT' = 'POST'
 			if (existingId) {
 				method = 'PUT'

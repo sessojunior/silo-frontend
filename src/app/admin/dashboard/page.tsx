@@ -4,7 +4,6 @@ import ChartColumn from '@/components/admin/dashboard/ChartColumn'
 import ChartLine from '@/components/admin/dashboard/ChartLine'
 import ChartDonut from '@/components/admin/dashboard/ChartDonut'
 
-import CircleProgress from '@/components/admin/dashboard/CircleProgress'
 import Stats from '@/components/admin/dashboard/Stats'
 import Radial from '@/components/admin/dashboard/Radial'
 import Project from '@/components/admin/dashboard/Project'
@@ -32,14 +31,6 @@ type DashboardProduct = {
 }
 
 import { useEffect, useState } from 'react'
-
-function splitGroups(items: DashboardProduct[]) {
-	return {
-		notStarted: items.filter((p) => p.percent_completed === 0),
-		running: items.filter((p) => p.percent_completed > 0 && p.percent_completed < 100),
-		finished: items.filter((p) => p.percent_completed === 100),
-	}
-}
 
 export default function DashboardPage() {
 	const [data, setData] = useState<DashboardProduct[]>([])
@@ -86,8 +77,6 @@ export default function DashboardPage() {
 		}
 		loadProjects()
 	}, [])
-
-	const groups = splitGroups(data)
 
 	// ===== Estatísticas dinâmicas =====
 	const today = new Date()

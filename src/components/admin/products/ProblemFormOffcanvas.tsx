@@ -52,7 +52,7 @@ export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle
 				.then((res) => res.json())
 				.then((data) => {
 					if (data.data) {
-						const opts = data.data.map((c: any) => ({ label: c.name, value: c.id }))
+						const opts = data.data.map((c: { name: string; id: string }) => ({ label: c.name, value: c.id }))
 						setCategoryOptions(opts)
 					}
 				})

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { product, productActivity } from '@/lib/db/schema'
-import { desc, eq, gte } from 'drizzle-orm'
+import { eq, gte } from 'drizzle-orm'
 
 // Utilidades
 const ALERT_STATUSES = ['pending', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended'] as const
@@ -51,8 +51,6 @@ export async function GET() {
 		// Buscar produtos ativos
 		const products = await db.select().from(product).where(eq(product.available, true))
 		if (products.length === 0) return NextResponse.json([])
-
-		const productIds = products.map((p) => p.id)
 
 		// Data cutoff: 3 últimos meses (do dia 1º do mês menos 2 até hoje)
 		const today = new Date()

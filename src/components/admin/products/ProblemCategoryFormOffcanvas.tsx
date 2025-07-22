@@ -40,7 +40,7 @@ export default function ProblemCategoryFormOffcanvas({ open, onClose, category, 
 			toast({ type: 'error', title: 'Nome obrigatório' })
 			return
 		}
-		const payload: any = { name: name.trim(), color: color || null }
+		const payload: { name: string; color: string | null; id?: string } = { name: name.trim(), color: color || null }
 		const method = category ? 'PUT' : 'POST'
 		if (category) payload.id = category.id
 

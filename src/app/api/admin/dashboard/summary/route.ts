@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { productActivity, productProblemCategory } from '@/lib/db/schema'
-import { gte, lt, and, isNotNull, inArray } from 'drizzle-orm'
+import { gte, and, isNotNull, inArray } from 'drizzle-orm'
 
 // Status considerados incidentes (mesmos do dashboard)
 const INCIDENT_STATUS = ['pending', 'under_support', 'suspended', 'not_run', 'with_problems', 'run_again'] as const

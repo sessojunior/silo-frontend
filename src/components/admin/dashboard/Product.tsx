@@ -154,11 +154,30 @@ export default function Product({ id, name, turns, progress, priority, date, las
 					</div>
 				</div>
 				<div className='mt-1.5 flex items-center justify-between'>
-					{/* Modal Trigger */}
-					<button onClick={() => setIsModalOpen(true)} className='rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700'>
+					{/* Modal Trigger - DIV ao invés de BUTTON */}
+					<div onClick={() => setIsModalOpen(true)} className='rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 cursor-pointer'>
 						{/* Linha do tempo */}
-						<ProductTimeline statuses={timelineStatuses} />
-					</button>
+						<ProductTimeline
+							statuses={timelineStatuses}
+							timelineData={filteredTimeline.map((d) => ({
+								date: d.date,
+								turn: d.turn,
+								status: d.status,
+								description: d.description,
+								category_id: d.category_id,
+							}))}
+							onTimelineClick={(item) => {
+								setActivityCtx({
+									date: item.date,
+									turn: item.turn,
+									status: item.status,
+									description: item.description,
+									category_id: item.category_id,
+								})
+								setActivityPanelOpen(true)
+							}}
+						/>
+					</div>
 
 					{/* Prioridade */}
 					<div className='flex items-center text-xs leading-none'>

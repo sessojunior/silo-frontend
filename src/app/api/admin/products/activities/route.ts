@@ -6,7 +6,7 @@ import { randomUUID } from 'crypto'
 import { eq, and } from 'drizzle-orm'
 
 // Helper para resposta padronizada
-function jsonResponse(body: any, status = 200) {
+function jsonResponse(body: Record<string, unknown>, status = 200) {
 	return NextResponse.json(body, { status })
 }
 

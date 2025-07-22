@@ -74,8 +74,9 @@ export default function ProjectDetailsPage() {
 	// Estado para controlar dropdown expandido
 	const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null)
 
-	// Estado para contar tarefas do kanban por atividade
+	// Estado para contar tarefas do kanban por atividade e calcular progresso
 	const [kanbanTaskCounts, setKanbanTaskCounts] = useState<Record<string, number>>({})
+	const [kanbanTaskProgress, setKanbanTaskProgress] = useState<Record<string, { total: number; completed: number; percentage: number }>>({})
 
 	// Carregar projeto e atividades
 	useEffect(() => {
@@ -472,7 +473,7 @@ export default function ProjectDetailsPage() {
 
 	if (!project) return null
 
-	// Função para carregar contagem de tarefas do kanban
+	// Função para carregar contagem de tarefas do kanban e calcular progresso real
 	const loadKanbanTaskCount = async (activityId: string) => {
 		if (kanbanTaskCounts[activityId] !== undefined) return // Já carregado
 
@@ -488,37 +489,70 @@ export default function ProjectDetailsPage() {
 				console.log('🔍 [loadKanbanTaskCount] Response data para atividade', activityId, ':', data)
 
 				if (data.success && data.tasks) {
-					// A API retorna tasks como objeto agrupado por status: { "todo": [...], "in_progress": [...] }
-					// Precisamos somar todas as tarefas de todos os status
+					// A API retorna tasks como objeto agrupado por status: { "todo": [...], "in_progress": [...], "done": [...] }
 					let totalTasks = 0
+					let completedTasks = 0
+
 					if (typeof data.tasks === 'object' && !Array.isArray(data.tasks)) {
-						// Somar tarefas de todos os status
+						// Somar tarefas de todos os status e contar as concluídas
 						for (const status in data.tasks) {
 							if (Array.isArray(data.tasks[status])) {
 								totalTasks += data.tasks[status].length
+								// Contar tarefas concluídas (status "done")
+								if (status === 'done') {
+									completedTasks += data.tasks[status].length
+								}
 							}
 						}
 					} else if (Array.isArray(data.tasks)) {
 						// Fallback se for array direto
 						totalTasks = data.tasks.length
+						completedTasks = data.tasks.filter((task: { status: string }) => task.status === 'done').length
 					}
+
+					// Calcular porcentagem de progresso
+					const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
 					console.log('🔍 [loadKanbanTaskCount] ===== RESULTADO FINAL =====')
 					console.log('🔍 [loadKanbanTaskCount] Tasks agrupadas por status:', Object.keys(data.tasks || {}))
 					console.log('🔍 [loadKanbanTaskCount] Total de tarefas para atividade', activityId, ':', totalTasks)
+					console.log('🔍 [loadKanbanTaskCount] Tarefas concluídas:', completedTasks)
+					console.log('🔍 [loadKanbanTaskCount] Progresso calculado:', progressPercentage + '%')
 					console.log('🔍 [loadKanbanTaskCount] ============================')
+
+					// Atualizar estados
 					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: totalTasks }))
+					setKanbanTaskProgress((prev) => ({
+						...prev,
+						[activityId]: {
+							total: totalTasks,
+							completed: completedTasks,
+							percentage: progressPercentage,
+						},
+					}))
 				} else {
 					console.log('🔍 [loadKanbanTaskCount] API retornou falha ou sem tarefas para atividade:', activityId)
 					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
+					setKanbanTaskProgress((prev) => ({
+						...prev,
+						[activityId]: { total: 0, completed: 0, percentage: 0 },
+					}))
 				}
 			} else {
 				console.error('🔍 [loadKanbanTaskCount] Response não OK para atividade:', activityId, 'Status:', response.status)
 				setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
+				setKanbanTaskProgress((prev) => ({
+					...prev,
+					[activityId]: { total: 0, completed: 0, percentage: 0 },
+				}))
 			}
 		} catch (error) {
 			console.error('❌ [loadKanbanTaskCount] Erro ao carregar contagem de tarefas para atividade:', activityId, error)
 			setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
+			setKanbanTaskProgress((prev) => ({
+				...prev,
+				[activityId]: { total: 0, completed: 0, percentage: 0 },
+			}))
 		}
 	}
 
@@ -548,6 +582,27 @@ export default function ProjectDetailsPage() {
 			blocked: 'Bloqueado',
 		}
 		return `${statusIcons[status]} ${statusLabels[status]}`
+	}
+
+	// Função para status inteligente baseado no progresso real das tarefas
+	const getSmartStatusIcon = (activity: ProjectActivity) => {
+		const progress = kanbanTaskProgress[activity.id]
+
+		// Se ainda não carregou o progresso, usar status do banco
+		if (!progress) {
+			return getStatusIcon(activity.status)
+		}
+
+		// Status inteligente baseado no progresso real
+		if (progress.percentage === 100) {
+			return '✅ Concluído (100%)'
+		} else if (progress.percentage > 0) {
+			return `🔵 Em progresso (${progress.percentage}%)`
+		} else if (activity.status === 'blocked') {
+			return '🔴 Bloqueado'
+		} else {
+			return '⏳ A fazer (0%)'
+		}
 	}
 
 	const getPriorityIcon = (priority: ProjectActivity['priority']) => {
@@ -698,7 +753,7 @@ export default function ProjectDetailsPage() {
 														{/* Status */}
 														<div className='flex items-center gap-2'>
 															<span className='icon-[lucide--check-circle] size-4 text-zinc-400' />
-															<span className='text-sm'>{getStatusIcon(activity.status)}</span>
+															<span className='text-sm'>{getSmartStatusIcon(activity)}</span>
 														</div>
 
 														{/* Prioridade */}
@@ -722,12 +777,22 @@ export default function ProjectDetailsPage() {
 														<div className='flex items-center gap-2'>
 															<span className='icon-[lucide--trending-up] size-4 text-zinc-400' />
 															<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Progresso:</span>
-															<div className='flex items-center gap-3'>
-																<div className='w-20 bg-zinc-200 dark:bg-zinc-700 rounded-full h-2'>
-																	<div className={`h-2 rounded-full transition-all duration-300 ${activity.status === 'done' ? 'bg-green-500' : activity.status === 'progress' ? 'bg-blue-500' : 'bg-orange-500'}`} style={{ width: `${activity.status === 'done' ? 100 : activity.status === 'progress' ? 50 : 0}%` }} />
+															{kanbanTaskProgress[activity.id] !== undefined ? (
+																<div className='flex items-center gap-3'>
+																	<div className='w-20 bg-zinc-200 dark:bg-zinc-700 rounded-full h-2'>
+																		<div className={`h-2 rounded-full transition-all duration-300 ${kanbanTaskProgress[activity.id].percentage === 100 ? 'bg-green-500' : kanbanTaskProgress[activity.id].percentage > 0 ? 'bg-blue-500' : 'bg-orange-500'}`} style={{ width: `${kanbanTaskProgress[activity.id].percentage}%` }} />
+																	</div>
+																	<span className='text-sm font-semibold text-zinc-800 dark:text-zinc-200'>{kanbanTaskProgress[activity.id].percentage}%</span>
+																	<span className='text-xs text-zinc-500 dark:text-zinc-400'>
+																		({kanbanTaskProgress[activity.id].completed}/{kanbanTaskProgress[activity.id].total})
+																	</span>
 																</div>
-																<span className='text-sm font-semibold text-zinc-800 dark:text-zinc-200'>{activity.status === 'done' ? 100 : activity.status === 'progress' ? 50 : 0}%</span>
-															</div>
+															) : (
+																<div className='flex items-center gap-2'>
+																	<span className='icon-[lucide--loader-circle] size-3 animate-spin text-zinc-400' />
+																	<span className='text-sm text-zinc-500 dark:text-zinc-400'>Calculando...</span>
+																</div>
+															)}
 														</div>
 
 														{/* Kanban */}
