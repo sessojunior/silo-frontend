@@ -177,7 +177,8 @@ export default function TaskKanbanPage() {
 		} finally {
 			setLoading(false)
 		}
-	}, [fetchProject, fetchActivity, fetchTasks])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [fetchProject, fetchActivity])
 
 	// Função para abrir formulário de criação de tarefa
 	const handleCreateTask = useCallback((status: KanbanTask['status']) => {
@@ -238,7 +239,8 @@ export default function TaskKanbanPage() {
 				throw error
 			}
 		},
-		[projectId, activityId, taskToEdit, fetchTasks],
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[projectId, activityId, taskToEdit],
 	)
 
 	// Função para deletar tarefa
@@ -277,7 +279,8 @@ export default function TaskKanbanPage() {
 				})
 			}
 		},
-		[projectId, activityId, fetchTasks],
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[projectId, activityId],
 	)
 
 	// Função para persistir a movimentação no backend
@@ -341,7 +344,7 @@ export default function TaskKanbanPage() {
 				setIsDragBlocked(false)
 			}
 		},
-		[projectId, activityId, fetchTasks],
+		[projectId, activityId],
 	)
 
 	// Carregar dados ao montar o componente

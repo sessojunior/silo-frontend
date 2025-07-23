@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 interface ProjectTask {
 	id: string
@@ -29,14 +29,7 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 	const [tasks, setTasks] = useState<ProjectTask[]>([])
 	const [loading, setLoading] = useState(true)
 
-	// Carregar tarefas do Kanban da atividade
-	useEffect(() => {
-		if (activityId && projectId) {
-			loadKanbanTasks()
-		}
-	}, [activityId, projectId])
-
-	async function loadKanbanTasks() {
+	const loadKanbanTasks = useCallback(async () => {
 		try {
 			setLoading(true)
 			const response = await fetch(`/api/admin/projects/${projectId}/activities/${activityId}/tasks`)
@@ -64,7 +57,14 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 		} finally {
 			setLoading(false)
 		}
-	}
+	}, [projectId, activityId])
+
+	// Carregar tarefas do Kanban da atividade
+	useEffect(() => {
+		if (activityId && projectId) {
+			loadKanbanTasks()
+		}
+	}, [activityId, projectId, loadKanbanTasks])
 
 	// Agrupar tarefas por status (garantir que tasks é um array)
 	const tasksByStatus = (Array.isArray(tasks) ? tasks : []).reduce(

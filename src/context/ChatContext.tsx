@@ -489,7 +489,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		return () => {
 			stopPolling()
 		}
-	}, [user?.id]) // Apenas dependência do ID do usuário
+	}, [user, initializePresence, loadSidebarData, startPolling, stopPolling])
 
 	// Cleanup ao desmontar
 	useEffect(() => {

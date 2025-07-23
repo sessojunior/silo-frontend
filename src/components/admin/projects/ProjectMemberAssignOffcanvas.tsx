@@ -54,6 +54,7 @@ export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project,
 		if (isOpen && project) {
 			fetchAvailableUsers()
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isOpen, project])
 
 	// Filtrar usuários por busca

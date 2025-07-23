@@ -84,6 +84,7 @@ export default function ProjectDetailsPage() {
 			fetchProject()
 			fetchActivities()
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [projectId])
 
 	async function fetchProject() {

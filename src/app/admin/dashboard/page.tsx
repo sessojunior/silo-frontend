@@ -30,7 +30,7 @@ type DashboardProduct = {
 	turns: string[]
 }
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 export default function DashboardPage() {
 	const [data, setData] = useState<DashboardProduct[]>([])
@@ -40,7 +40,14 @@ export default function DashboardPage() {
 	const [chartRefresh, setChartRefresh] = useState(0)
 	const [summary, setSummary] = useState<{ recentCount: number; percentChange: number; categories: { name: string; count: number }[] } | null>(null)
 
-	const fetchDashboard = async () => {
+	const fetchSummary = useCallback(async () => {
+		const res = await fetch('/api/admin/dashboard/summary')
+		if (res.ok) {
+			setSummary(await res.json())
+		}
+	}, [])
+
+	const fetchDashboard = useCallback(async () => {
 		const res = await fetch('/api/admin/dashboard')
 		if (res.ok) {
 			setData(await res.json())
@@ -48,18 +55,11 @@ export default function DashboardPage() {
 		setLoading(false)
 		setChartRefresh((c) => c + 1)
 		fetchSummary()
-	}
-
-	const fetchSummary = async () => {
-		const res = await fetch('/api/admin/dashboard/summary')
-		if (res.ok) {
-			setSummary(await res.json())
-		}
-	}
+	}, [fetchSummary])
 
 	useEffect(() => {
 		fetchDashboard()
-	}, [])
+	}, [fetchDashboard])
 
 	// Carregar projetos em andamento
 	useEffect(() => {
