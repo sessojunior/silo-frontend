@@ -18,9 +18,9 @@ Este projeto usa o arquivo `/CLAUDE.md` na raiz como única fonte de verdade de 
 
 ## 🚀 Status Atual do Projeto
 
-### ✅ Funcionalidades Implementadas (11 completas)
+### ✅ Funcionalidades Implementadas (12 completas)
 
-- **Sistema de Autenticação Completo**: Login/registro, OTP, Google OAuth, recuperação de senha
+- **Sistema de Autenticação Completo**: Login/registro, OTP, Google OAuth, recuperação de senha **+ Validação @inpe.br + Ativação por administrador**
 - **Dashboard Administrativo**: Interface moderna com gráficos ApexCharts e estatísticas
 - **CRUD de Produtos**: Gestão completa de produtos meteorológicos com problemas e soluções
 - **Sistema de Problemas e Soluções**: Threading colaborativo com upload de imagens
@@ -31,8 +31,31 @@ Este projeto usa o arquivo `/CLAUDE.md` na raiz como única fonte de verdade de 
 - **Sistema de Chat WhatsApp-like**: Interface profissional com presença e real-time completamente funcional
 - **Sistema de Ajuda**: Documentação centralizada com interface dual e navegação hierárquica
 - **✅ Sistema de Categorias de Problemas**: **COMPLETAMENTE FINALIZADO** com dashboard donut "Causas de problemas", CRUD categorias, 6 categorias padrão (Rede externa, Rede interna, Servidor indisponível, Falha humana, Erro no software, Outros), offcanvas settings integrado, APIs completas /api/admin/problem-categories e /api/admin/dashboard/problem-causes
+- **✅ Sistema de Segurança Avançada**: **COMPLETAMENTE FINALIZADO** com validação de domínio @inpe.br obrigatória e sistema de ativação por administrador para todos usuários novos
 
 ### 🎯 Conquista Mais Recente
+
+**✅ SISTEMA DE ATIVAÇÃO POR ADMINISTRADOR COMPLETAMENTE IMPLEMENTADO!**
+
+**Implementações Finalizadas**:
+
+1. **Validação de domínio @inpe.br**: Apenas e-mails do domínio institucional são permitidos para cadastro
+2. **Sistema de ativação obrigatória**: Novos usuários são criados inativos e precisam ser ativados por administrador
+3. **Proteção em todas as APIs de autenticação**: Login com senha, apenas e-mail, Google OAuth e recuperação de senha
+4. **Interface administrativa completa**: Botão toggle para ativar/desativar usuários diretamente na lista
+5. **Mensagens informativas**: Usuários são informados sobre necessidade de ativação após cadastro
+6. **Schema atualizado**: Campo `isActive` com default `false` para novos usuários
+
+**Arquitetura de Segurança**:
+
+- Usuários criados via cadastro com senha → inativos por padrão
+- Usuários criados via login apenas e-mail → verificação de ativação antes do OTP
+- Usuários criados via Google OAuth → inativos por padrão mesmo com e-mail verificado
+- Interface admin com switch para ativação/desativação direta
+- Filtros na lista de usuários para visualizar ativos/inativos
+- Mensagens de erro específicas informando sobre necessidade de ativação
+
+### 🏆 Conquista Anterior - Sistema de Categorias de Problemas
 
 **✅ SISTEMA DE CATEGORIAS DE PROBLEMAS COMPLETAMENTE FINALIZADO!**
 
@@ -92,15 +115,16 @@ Este projeto usa o arquivo `/CLAUDE.md` na raiz como única fonte de verdade de 
    • Escalação automática de problemas não resolvidos  
    • Configuração personalizada de alertas por usuário
 
-### 📊 Progresso Total: **68%** (11 de 16 funcionalidades completas)
+### 📊 Progresso Total: **75%** (12 de 16 funcionalidades completas)
 
-**✅ Sistemas Implementados**: 11 funcionalidades 100% operacionais  
+**✅ Sistemas Implementados**: 12 funcionalidades 100% operacionais  
 **🧪 Fase Atual**: Testes manuais abrangentes (10 etapas de testes detalhados)  
 **⏳ Sistemas Pendentes**: 4 funcionalidades críticas para production-ready no CPTEC  
 **📈 Estimativa Conclusão**: Após testes completos e implementação de dados reais de produção
 
 ### 🏆 Conquistas Técnicas
 
+- **Sistema de Segurança Avançada**: Validação @inpe.br + ativação por administrador em todas APIs
 - **CRUD Kanban Completo**: Sistema profissional de gestão de tarefas com formulários avançados
 - **Performance Otimizada**: 95%+ redução em chamadas de API com queries SQL otimizadas
 - **Refatoração Histórica**: Página de problemas reduzida de 1.506 → 629 linhas (58,2%)
@@ -259,6 +283,15 @@ if (!user) {
 }
 ```
 
+### 🔐 Políticas de Segurança Institucional
+
+**RESTRIÇÕES IMPLEMENTADAS**:
+
+- **Domínio Obrigatório**: Apenas e-mails `@inpe.br` podem se cadastrar
+- **Ativação Administrativa**: Usuários novos ficam inativos até ativação por administrador
+- **Verificação Múltipla**: Aplicada em todas as rotas de autenticação (login, registro, Google OAuth, recuperação)
+- **Interface de Gestão**: Administradores podem ativar/desativar usuários diretamente na lista
+
 ### 📋 APIs Administrativas Protegidas
 
 - **`/api/admin/contacts`** - CRUD contatos (GET, POST, PUT, DELETE)
@@ -278,6 +311,26 @@ if (!user) {
 ## 🔐 Autenticação
 
 Este aplicativo utiliza um método de autenticação baseada em sessão com cookies HttpOnly. É segura e adequada para o sistema que está sendo desenvolvido. Possui segurança contra vazamento (hash no banco), boa proteção contra XSS e CSRF, capacidade de revogação, renovação automática de sessão e controle completo do ciclo de vida do login.
+
+### 🔒 Política de Segurança Institucional
+
+**IMPORTANTE**: O sistema implementa políticas de segurança específicas para o CPTEC/INPE:
+
+1. **Restrição de Domínio**: Apenas e-mails do domínio `@inpe.br` são permitidos para cadastro
+2. **Ativação por Administrador**: Todos os usuários novos são criados inativos e precisam ser ativados por um administrador antes de conseguir fazer login
+3. **Verificação Múltipla**: Aplicado em todos os métodos de autenticação (senha, e-mail, Google OAuth)
+
+### 🛡️ Fluxo de Segurança
+
+```
+1. Cadastro → E-mail deve ser @inpe.br
+2. Verificação → E-mail verificado via OTP
+3. Status → Usuário fica INATIVO esperando ativação
+4. Ativação → Administrador ativa na interface admin
+5. Login → Usuário pode acessar o sistema normalmente
+```
+
+### 🔧 Vantagens do Sistema
 
 Este método possui as seguintes vantagens:
 
@@ -377,18 +430,20 @@ npm run db:studio
 - **APIs**: 40+ endpoints organizados e protegidos
 - **Páginas**: 20+ páginas administrativas
 - **Tabelas DB**: 25+ tabelas relacionais
-- **Funcionalidades**: 16 sistemas (11 completos, 4 pendentes, 1 em testes)
-- **Progresso**: 68% concluído - 11 de 16 funcionalidades operacionais
+- **Funcionalidades**: 16 sistemas (12 completos, 4 pendentes)
+- **Progresso**: 75% concluído - 12 de 16 funcionalidades operacionais
 
 ## 🏆 Conquistas do Projeto
 
-- ✅ **Sistema 68% Production-Ready**: Build funcional, zero erros críticos, 11 funcionalidades operacionais
+- ✅ **Sistema 75% Production-Ready**: Build funcional, zero erros críticos, 12 funcionalidades operacionais
+- ✅ **Segurança Institucional**: Restrição @inpe.br + ativação por administrador implementada
 - ✅ **Arquitetura Sólida**: Padrões estabelecidos e documentados
 - ✅ **UX Profissional**: Interface consistente e intuitiva
 - ✅ **Performance Otimizada**: Queries eficientes e carregamento rápido
-- ✅ **Segurança Robusta**: APIs protegidas e autenticação segura
+- ✅ **Segurança Robusta**: APIs protegidas e autenticação segura com políticas institucionais
 - ✅ **Documentação Completa**: CLAUDE.md como fonte única de verdade
 - ✅ **MenuBuilder Funcional**: Drag & drop hierárquico estilo WordPress
 - ✅ **Chat WhatsApp-like Finalizado**: Sistema profissional com presença real-time 100% funcional
 - ✅ **Kanban Avançado**: Drag & drop por atividade com CRUD completo
 - ✅ **Dashboard Inteligente**: Categorias problemas + gráficos ApexCharts + donut causas
+- ✅ **Controle de Acesso Institucional**: Validação @inpe.br + ativação administrativa obrigatória
