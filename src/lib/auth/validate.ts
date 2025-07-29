@@ -102,3 +102,15 @@ export function isValidCode(code: string): boolean {
 	// 3. Se passou por todas as verificações, o código é valido
 	return true
 }
+
+// Valida se o e-mail pertence ao domínio @inpe.br
+export function isValidDomain(email: string): boolean {
+	// 1. Verifica se o valor é uma string
+	if (typeof email !== 'string') return false
+
+	// 2. Converte para lowercase para comparação case-insensitive
+	const lowerEmail = email.toLowerCase().trim()
+
+	// 3. Verifica se termina com @inpe.br
+	return lowerEmail.endsWith('@inpe.br')
+}

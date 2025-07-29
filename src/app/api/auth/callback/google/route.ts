@@ -3,6 +3,10 @@ import { cookies } from 'next/headers'
 import { OAuth2Tokens, decodeIdToken } from 'arctic'
 import { createUserFromGoogleId, getUserFromGoogleId, google } from '@/lib/auth/oauth'
 import { createSessionCookie } from '@/lib/auth/session'
+import { isValidDomain } from '@/lib/auth/validate'
+import { db } from '@/lib/db'
+import { authUser } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 
 // Valida o retorno de chamada do Google pelo código de autorização
 // - Verifica se o estado na URL corresponde ao estado armazenado
@@ -48,13 +52,28 @@ export async function GET(req: NextRequest) {
 	const email = claims.email
 	const picture = claims.picture
 
-	// 7. Verifica se o usuário já existe
+	// 7. Verifica se o e-mail pertence ao domínio @inpe.br
+	if (!isValidDomain(email)) {
+		return new NextResponse('Apenas contas Google com e-mail @inpe.br são permitidas para acesso.', { status: 403 })
+	}
+
+	// 8. Verifica se o usuário já existe
 	const existingUser = await getUserFromGoogleId(googleId)
 
-	// 8. Se o usuário não existir, cria um novo usuário com os dados do Google
+	// 9. Se o usuário não existir, cria um novo usuário com os dados do Google
 	const user = existingUser.user ?? (await createUserFromGoogleId(googleId, email, name, picture))
 
-	// 9. Cria a sessão e o cookie de sessão
+	// 10. Verifica se o usuário está ativo (ativado por administrador)
+	// Busca os dados completos do usuário no banco para verificar status
+	const userWithStatus = await db.query.authUser.findFirst({
+		where: eq(authUser.id, user.id),
+	})
+
+	if (!userWithStatus?.isActive) {
+		return new NextResponse('Sua conta ainda não foi ativada por um administrador. Entre em contato com o suporte.', { status: 403 })
+	}
+
+	// 11. Cria a sessão e o cookie de sessão
 	const sessionToken = await createSessionCookie(user.id)
 	if ('error' in sessionToken) return new NextResponse('Ocorreu um erro ao criar a sessão.', { status: 500 })
 

@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { authUser } from '@/lib/db/schema'
 import { generateCode, sendEmailCode } from '@/lib/auth/code'
-import { isValidEmail } from '@/lib/auth/validate'
+import { isValidEmail, isValidDomain } from '@/lib/auth/validate'
 
 // Faz login do usuário apenas com e-mail e código OTP
 export async function POST(req: NextRequest) {
@@ -19,10 +19,19 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ field: 'email', message: 'O e-mail é inválido.' }, { status: 400 })
 		}
 
+		if (!isValidDomain(email)) {
+			return NextResponse.json({ field: 'email', message: 'Apenas e-mails do domínio @inpe.br são permitidos.' }, { status: 400 })
+		}
+
 		// Verifica se o usuário existe
 		const user = await db.query.authUser.findFirst({ where: eq(authUser.email, email) })
 		if (!user) {
 			return NextResponse.json({ field: 'email', message: 'Não existe um usuário com este e-mail.' }, { status: 400 })
+		}
+
+		// Verifica se o usuário está ativo (ativado por administrador)
+		if (!user.isActive) {
+			return NextResponse.json({ field: 'email', message: 'Sua conta ainda não foi ativada por um administrador. Entre em contato com o suporte.' }, { status: 403 })
 		}
 
 		// Obtém um código OTP e salva-o no banco de dados

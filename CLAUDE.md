@@ -83,6 +83,28 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 
 ### 🎯 **CONQUISTA MAIS RECENTE - DEZEMBRO 2024**
 
+**STATUS**: ✅ **SISTEMA DE ATIVAÇÃO POR ADMINISTRADOR COMPLETAMENTE IMPLEMENTADO!**
+
+**IMPLEMENTAÇÕES FINALIZADAS**:
+
+1. **Validação de domínio @inpe.br**: Apenas e-mails do domínio institucional são permitidos para cadastro
+2. **Sistema de ativação obrigatória**: Novos usuários são criados inativos e precisam ser ativados por administrador
+3. **Proteção em todas as APIs de autenticação**: Login com senha, apenas e-mail, Google OAuth e recuperação de senha
+4. **Interface administrativa completa**: Botão toggle para ativar/desativar usuários diretamente na lista
+5. **Mensagens informativas**: Usuários são informados sobre necessidade de ativação após cadastro
+6. **Schema atualizado**: Campo `isActive` com default `false` para novos usuários
+
+**ARQUITETURA DE SEGURANÇA**:
+
+- Usuários criados via cadastro com senha → inativos por padrão
+- Usuários criados via login apenas e-mail → verificação de ativação antes do OTP
+- Usuários criados via Google OAuth → inativos por padrão mesmo com e-mail verificado
+- Interface admin com switch para ativação/desativação direta
+- Filtros na lista de usuários para visualizar ativos/inativos
+- Mensagens de erro específicas informando sobre necessidade de ativação
+
+### 🎯 **CONQUISTA ANTERIOR - DEZEMBRO 2024**
+
 **STATUS**: ✅ **SISTEMA DE CATEGORIAS DE PROBLEMAS COMPLETAMENTE FINALIZADO!**
 
 **IMPLEMENTAÇÕES FINALIZADAS**:

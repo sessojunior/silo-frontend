@@ -145,6 +145,55 @@ export default function UsersPage() {
 		})
 	}
 
+	async function toggleUserStatus(user: UserWithGroup) {
+		const newStatus = !user.isActive
+		const action = newStatus ? 'ativando' : 'desativando'
+
+		console.log(`🔵 ${action} usuário:`, user.name)
+
+		try {
+			const response = await fetch('/api/admin/users', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					id: user.id,
+					name: user.name,
+					email: user.email,
+					emailVerified: user.emailVerified,
+					isActive: newStatus,
+					// Preservar outros campos se existirem
+					...(user.groupId && { groupId: user.groupId }),
+				}),
+			})
+
+			const data = await response.json()
+
+			if (data.success) {
+				console.log(`✅ Usuário ${newStatus ? 'ativado' : 'desativado'} com sucesso`)
+				toast({
+					type: 'success',
+					title: `Usuário ${newStatus ? 'ativado' : 'desativado'}`,
+					description: `${user.name} foi ${newStatus ? 'ativado' : 'desativado'} com sucesso.`,
+				})
+				fetchUsers() // Recarrega a lista
+			} else {
+				console.log(`❌ Erro ao ${action} usuário:`, data.error)
+				toast({
+					type: 'error',
+					title: `Erro ao ${newStatus ? 'ativar' : 'desativar'} usuário`,
+					description: data.message || data.error || 'Erro desconhecido',
+				})
+			}
+		} catch (error) {
+			console.log(`❌ Erro inesperado ao ${action} usuário:`, error)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado',
+				description: `Erro ao ${newStatus ? 'ativar' : 'desativar'} usuário`,
+			})
+		}
+	}
+
 	return (
 		<>
 			{/* Header */}
@@ -285,6 +334,11 @@ export default function UsersPage() {
 											</td>
 											<td className='px-4 py-4'>
 												<div className='flex items-center gap-2'>
+													{/* Botão Ativar/Desativar */}
+													<Button onClick={() => toggleUserStatus(user)} className={`size-8 p-0 rounded-md bg-transparent ${user.isActive ? 'hover:bg-red-50 dark:hover:bg-red-900/20' : 'hover:bg-green-50 dark:hover:bg-green-900/20'}`} title={user.isActive ? 'Desativar usuário' : 'Ativar usuário'}>
+														<span className={`size-4 ${user.isActive ? 'icon-[lucide--user-x] text-red-600 dark:text-red-400' : 'icon-[lucide--user-check] text-green-600 dark:text-green-400'}`} />
+													</Button>
+
 													<Button onClick={() => openEditForm(user)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20'>
 														<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />
 													</Button>

@@ -86,7 +86,14 @@ export async function createUserFromGoogleId(googleId: string, email: string, na
 
 	// Cria um novo usuário
 	const userId = randomUUID()
-	await db.insert(authUser).values({ id: userId, name: formatName, email: formatEmail, emailVerified: true, password: '' })
+	await db.insert(authUser).values({
+		id: userId,
+		name: formatName,
+		email: formatEmail,
+		emailVerified: true,
+		password: '',
+		isActive: false, // usuários criados via Google também precisam de ativação por administrador
+	})
 
 	// Vincula o usuário ao provedor com o googleId
 	const providerId = randomUUID()

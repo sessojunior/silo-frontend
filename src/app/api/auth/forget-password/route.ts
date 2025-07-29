@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { authUser } from '@/lib/db/schema'
-import { isValidEmail } from '@/lib/auth/validate'
+import { isValidEmail, isValidDomain } from '@/lib/auth/validate'
 import { generateCode, sendEmailCode } from '@/lib/auth/code'
 
 // Recuperação de senha através do e-mail:
@@ -21,6 +21,10 @@ export async function POST(req: NextRequest) {
 
 		if (!isValidEmail(email)) {
 			return NextResponse.json({ field: 'email', message: 'O e-mail é inválido.' }, { status: 400 })
+		}
+
+		if (!isValidDomain(email)) {
+			return NextResponse.json({ field: 'email', message: 'Apenas e-mails do domínio @inpe.br são permitidos.' }, { status: 400 })
 		}
 
 		// Verifica se o usuário existe

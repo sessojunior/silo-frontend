@@ -34,6 +34,11 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ field: 'email', message: 'Não existe um usuário com este e-mail.' }, { status: 400 })
 		}
 
+		// Verifica se o usuário está ativo (ativado por administrador)
+		if (!user.isActive) {
+			return NextResponse.json({ field: 'email', message: 'Sua conta ainda não foi ativada por um administrador. Entre em contato com o suporte.' }, { status: 403 })
+		}
+
 		// Verifica se a senha está correta
 		const passwordMatch = await verifyPassword(password, user.password)
 		if (!passwordMatch) {
