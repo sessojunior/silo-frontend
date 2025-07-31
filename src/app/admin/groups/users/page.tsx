@@ -21,7 +21,6 @@ interface UserWithGroup extends AuthUser {
 		groupName: string
 		groupIcon: string
 		groupColor: string
-		role: string
 	}>
 }
 
@@ -318,12 +317,24 @@ export default function UsersPage() {
 												<div className='text-sm text-zinc-600 dark:text-zinc-400'>{user.email}</div>
 											</td>
 											<td className='px-4 py-4'>
-												{user.groupName ? (
-													<div className='flex items-center gap-2'>
-														<div className='size-6 rounded-full flex items-center justify-center' style={{ backgroundColor: user.groupColor || '#6b7280' }}>
-															<span className={`${user.groupIcon || 'icon-[lucide--users]'} size-3 text-white`} />
+												{user.groups && user.groups.length > 0 ? (
+													<div className='flex flex-wrap gap-1'>
+														{user.groups.map((group) => (
+															<div key={group.groupId} className='flex items-center gap-1 px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md'>
+																<div className='size-4 rounded-full flex items-center justify-center' style={{ backgroundColor: group.groupColor || '#6b7280' }}>
+																	<span className={`icon-[lucide--${group.groupIcon}] size-2 text-white`} />
+																</div>
+																<span className='text-xs text-zinc-700 dark:text-zinc-300'>{group.groupName}</span>
+															</div>
+														))}
+													</div>
+												) : user.groupName ? (
+													// Fallback para formato legado
+													<div className='flex items-center gap-1 px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md'>
+														<div className='size-4 rounded-full flex items-center justify-center' style={{ backgroundColor: user.groupColor || '#6b7280' }}>
+															<span className={`icon-[lucide--${user.groupIcon}] size-2 text-white`} />
 														</div>
-														<span className='text-sm text-zinc-600 dark:text-zinc-400'>{user.groupName}</span>
+														<span className='text-xs text-zinc-700 dark:text-zinc-300'>{user.groupName}</span>
 													</div>
 												) : (
 													<span className='text-sm text-zinc-500 dark:text-zinc-400'>Sem grupo</span>

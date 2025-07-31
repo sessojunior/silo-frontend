@@ -6,6 +6,12 @@ import { randomUUID } from 'crypto'
 import bcrypt from 'bcryptjs'
 import { getAuthUser } from '@/lib/auth/token'
 
+// Interface para grupos de usuário
+interface UserGroupInput {
+	groupId: string
+	role?: string
+}
+
 // GET - Listar usuários com busca e filtros
 export async function GET(request: NextRequest) {
 	try {
@@ -79,7 +85,6 @@ export async function GET(request: NextRequest) {
 					groupName: group.name,
 					groupIcon: group.icon,
 					groupColor: group.color,
-					role: userGroup.role,
 				})
 				.from(userGroup)
 				.innerJoin(group, eq(group.id, userGroup.groupId))
@@ -128,9 +133,12 @@ export async function POST(request: NextRequest) {
 		}
 
 		const body = await request.json()
-		const { name, email, password, emailVerified, groupId, isActive } = body
+		const { name, email, password, emailVerified, groups, groupId, isActive } = body
 
-		console.log('ℹ️ Criando novo usuário:', { name, email, emailVerified, groupId, isActive })
+		// Determinar grupos usando novo formato ou legado
+		const userGroups: UserGroupInput[] = groups || (groupId ? [{ groupId, role: 'member' }] : [])
+
+		console.log('ℹ️ Criando novo usuário:', { name, email, emailVerified, groups: userGroups, isActive })
 
 		// Validações
 		if (!name || name.trim().length < 2) {
@@ -166,12 +174,12 @@ export async function POST(request: NextRequest) {
 			)
 		}
 
-		if (!groupId) {
+		if (!userGroups || userGroups.length === 0) {
 			return NextResponse.json(
 				{
 					success: false,
-					field: 'groupId',
-					message: 'Grupo é obrigatório.',
+					field: 'groups',
+					message: 'Pelo menos um grupo é obrigatório.',
 				},
 				{ status: 400 },
 			)
@@ -191,15 +199,19 @@ export async function POST(request: NextRequest) {
 			)
 		}
 
-		// Verificar se grupo existe
-		const existingGroup = await db.select().from(group).where(eq(group.id, groupId)).limit(1)
+		// Verificar se todos os grupos existem
+		const groupIds = userGroups.map((ug: UserGroupInput) => ug.groupId)
+		const existingGroups = await db.select().from(group).where(inArray(group.id, groupIds))
 
-		if (existingGroup.length === 0) {
+		if (existingGroups.length !== groupIds.length) {
+			const foundGroupIds = existingGroups.map((g) => g.id)
+			const missingGroups = groupIds.filter((id: string) => !foundGroupIds.includes(id))
+
 			return NextResponse.json(
 				{
 					success: false,
-					field: 'groupId',
-					message: 'Grupo não encontrado.',
+					field: 'groups',
+					message: `Grupos não encontrados: ${missingGroups.join(', ')}`,
 				},
 				{ status: 400 },
 			)
@@ -221,14 +233,32 @@ export async function POST(request: NextRequest) {
 
 		await db.insert(authUser).values(newUser)
 
-		// Adicionar usuário ao grupo via tabela user_group
-		await db.insert(userGroup).values({
+		// Adicionar usuário aos grupos via tabela user_group
+		const newUserGroupEntries = userGroups.map((ug: UserGroupInput) => ({
 			userId: userId,
-			groupId: groupId,
-			role: 'member',
+			groupId: ug.groupId,
+			role: ug.role || 'member',
+		}))
+
+		await db.insert(userGroup).values(newUserGroupEntries)
+
+		console.log('✅ Usuário criado com sucesso:', {
+			userId,
+			groups: userGroups.map((ug) => ug.groupId),
+			newEntries: newUserGroupEntries.length,
 		})
 
-		console.log('✅ Usuário criado com sucesso:', userId)
+		// Buscar grupos criados para retorno
+		const finalUserGroups = await db
+			.select({
+				groupId: userGroup.groupId,
+				groupName: group.name,
+				groupIcon: group.icon,
+				groupColor: group.color,
+			})
+			.from(userGroup)
+			.innerJoin(group, eq(group.id, userGroup.groupId))
+			.where(eq(userGroup.userId, userId))
 
 		// Retornar usuário sem senha
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -236,7 +266,12 @@ export async function POST(request: NextRequest) {
 
 		return NextResponse.json({
 			success: true,
-			data: { ...userWithoutPassword, groupId }, // Incluir groupId para compatibilidade
+			data: {
+				...userWithoutPassword,
+				groups: finalUserGroups,
+				// Manter compatibilidade com código legado
+				groupId: finalUserGroups[0]?.groupId || null,
+			},
 		})
 	} catch (error) {
 		console.error('❌ Erro ao criar usuário:', error)
@@ -259,9 +294,12 @@ export async function PUT(request: NextRequest) {
 		}
 
 		const body = await request.json()
-		const { id, name, email, emailVerified, groupId, isActive, password } = body
+		const { id, name, email, emailVerified, groups, groupId, isActive, password } = body
 
-		console.log('ℹ️ Atualizando usuário:', { id, name, email, emailVerified, groupId, isActive })
+		// Suporte a ambos os formatos: novo (groups array) e legado (groupId único)
+		const userGroups: UserGroupInput[] = groups || (groupId ? [{ groupId, role: 'member' }] : [])
+
+		console.log('ℹ️ Atualizando usuário:', { id, name, email, emailVerified, userGroups, isActive })
 
 		// Validações
 		if (!id) {
@@ -297,12 +335,12 @@ export async function PUT(request: NextRequest) {
 			)
 		}
 
-		if (!groupId) {
+		if (!userGroups || userGroups.length === 0) {
 			return NextResponse.json(
 				{
 					success: false,
-					field: 'groupId',
-					message: 'Grupo é obrigatório.',
+					field: 'groups',
+					message: 'Pelo menos um grupo é obrigatório.',
 				},
 				{ status: 400 },
 			)
@@ -339,15 +377,19 @@ export async function PUT(request: NextRequest) {
 			)
 		}
 
-		// Verificar se grupo existe
-		const existingGroup = await db.select().from(group).where(eq(group.id, groupId)).limit(1)
+		// Verificar se todos os grupos existem
+		const groupIds = userGroups.map((ug: UserGroupInput) => ug.groupId)
+		const existingGroups = await db.select().from(group).where(inArray(group.id, groupIds))
 
-		if (existingGroup.length === 0) {
+		if (existingGroups.length !== groupIds.length) {
+			const foundGroupIds = existingGroups.map((g) => g.id)
+			const missingGroups = groupIds.filter((id: string) => !foundGroupIds.includes(id))
+
 			return NextResponse.json(
 				{
 					success: false,
-					field: 'groupId',
-					message: 'Grupo não encontrado.',
+					field: 'groups',
+					message: `Grupos não encontrados: ${missingGroups.join(', ')}`,
 				},
 				{ status: 400 },
 			)
@@ -375,24 +417,47 @@ export async function PUT(request: NextRequest) {
 		// Atualizar usuário
 		await db.update(authUser).set(updatedData).where(eq(authUser.id, id))
 
-		// Verificar se usuário já está no grupo
-		const existingUserGroup = await db
-			.select()
-			.from(userGroup)
-			.where(and(eq(userGroup.userId, id), eq(userGroup.groupId, groupId)))
-			.limit(1)
+		// Buscar grupos atuais do usuário
+		const currentUserGroups = await db.select({ groupId: userGroup.groupId, role: userGroup.role }).from(userGroup).where(eq(userGroup.userId, id))
 
-		// Se não estiver no grupo, remover de outros grupos e adicionar ao novo
-		if (existingUserGroup.length === 0) {
-			// Remover de outros grupos
+		const currentGroupIds = currentUserGroups.map((ug) => ug.groupId).sort()
+		const newGroupIds = userGroups.map((ug: UserGroupInput) => ug.groupId).sort()
+
+		console.log('🔵 Verificando mudança de grupos:', {
+			userId: id,
+			currentGroups: currentGroupIds,
+			newGroups: newGroupIds,
+			shouldUpdate: JSON.stringify(currentGroupIds) !== JSON.stringify(newGroupIds),
+		})
+
+		// Se os grupos são diferentes, fazer a mudança
+		if (JSON.stringify(currentGroupIds) !== JSON.stringify(newGroupIds)) {
+			console.log('🔵 Fazendo mudança de grupos...', {
+				userId: id,
+				from: currentGroupIds,
+				to: newGroupIds,
+			})
+
+			// Remover de todos os grupos atuais
 			await db.delete(userGroup).where(eq(userGroup.userId, id))
 
-			// Adicionar ao novo grupo
-			await db.insert(userGroup).values({
+			// Adicionar aos novos grupos
+			const newUserGroupEntries = userGroups.map((ug: UserGroupInput) => ({
 				userId: id,
-				groupId: groupId,
-				role: 'member',
+				groupId: ug.groupId,
+				role: ug.role || 'member',
+			}))
+
+			await db.insert(userGroup).values(newUserGroupEntries)
+
+			console.log('✅ Usuário atualizado nos grupos:', {
+				userId: id,
+				from: currentGroupIds,
+				to: newGroupIds,
+				newEntries: newUserGroupEntries.length,
 			})
+		} else {
+			console.log('🟡 Usuário já está nos grupos desejados, nenhuma mudança necessária')
 		}
 
 		console.log('✅ Usuário atualizado com sucesso:', id)
@@ -401,9 +466,27 @@ export async function PUT(request: NextRequest) {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { password: _pwd, ...responseData } = updatedData
 
+		// Buscar grupos atualizados para retorno
+		const finalUserGroups = await db
+			.select({
+				groupId: userGroup.groupId,
+				groupName: group.name,
+				groupIcon: group.icon,
+				groupColor: group.color,
+			})
+			.from(userGroup)
+			.innerJoin(group, eq(group.id, userGroup.groupId))
+			.where(eq(userGroup.userId, id))
+
 		return NextResponse.json({
 			success: true,
-			data: { id, ...responseData, groupId },
+			data: {
+				id,
+				...responseData,
+				groups: finalUserGroups,
+				// Manter compatibilidade com código legado
+				groupId: finalUserGroups[0]?.groupId || null,
+			},
 		})
 	} catch (error) {
 		console.error('❌ Erro ao atualizar usuário:', error)

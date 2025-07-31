@@ -5,17 +5,27 @@ import { toast } from '@/lib/toast'
 
 import Offcanvas from '@/components/ui/Offcanvas'
 import Input from '@/components/ui/Input'
-import Select from '@/components/ui/Select'
 import Switch from '@/components/ui/Switch'
 import Button from '@/components/ui/Button'
 import { AuthUser, Group } from '@/lib/db/schema'
 
+// Interface para grupos selecionados (apenas IDs dos grupos)
+interface SelectedGroup {
+	groupId: string
+}
+
 // Interface para usuário com informações do grupo
 interface UserWithGroup extends AuthUser {
-	groupId?: string // Adicionado para compatibilidade com novo sistema
+	groupId?: string // Mantido para compatibilidade com código legado
 	groupName?: string
 	groupIcon?: string
 	groupColor?: string
+	groups?: Array<{
+		groupId: string
+		groupName: string
+		groupIcon: string
+		groupColor: string
+	}>
 }
 
 interface UserFormOffcanvasProps {
@@ -33,9 +43,9 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 		email: '',
 		password: '',
 		emailVerified: false,
-		groupId: '',
 		isActive: true,
 	})
+	const [selectedGroups, setSelectedGroups] = useState<SelectedGroup[]>([])
 
 	const isEditing = !!user
 
@@ -47,18 +57,32 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 					email: user.email || '',
 					password: '',
 					emailVerified: user.emailVerified || false,
-					groupId: user.groupId || '',
 					isActive: user.isActive !== undefined ? user.isActive : true,
 				})
+
+				// Carregar grupos selecionados (novo formato ou compatibilidade com legado)
+				if (user.groups && user.groups.length > 0) {
+					// Formato novo: múltiplos grupos
+					setSelectedGroups(
+						user.groups.map((g) => ({
+							groupId: g.groupId,
+						})),
+					)
+				} else if (user.groupId) {
+					// Formato legado: um grupo apenas
+					setSelectedGroups([{ groupId: user.groupId }])
+				} else {
+					setSelectedGroups([])
+				}
 			} else {
 				setFormData({
 					name: '',
 					email: '',
 					password: '',
 					emailVerified: false,
-					groupId: '',
 					isActive: true,
 				})
+				setSelectedGroups([])
 			}
 		}
 	}, [isOpen, user])
@@ -66,11 +90,11 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault()
 
-		if (!formData.name.trim() || !formData.email.trim() || !formData.groupId) {
+		if (!formData.name.trim() || !formData.email.trim() || selectedGroups.length === 0) {
 			toast({
 				type: 'error',
 				title: 'Campos obrigatórios',
-				description: 'Preencha todos os campos obrigatórios.',
+				description: 'Preencha todos os campos obrigatórios e selecione pelo menos um grupo.',
 			})
 			return
 		}
@@ -87,13 +111,22 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 		try {
 			setLoading(true)
 			const method = isEditing ? 'PUT' : 'POST'
+
+			// Preparar dados com múltiplos grupos (apenas IDs dos grupos)
+			const bodyData = {
+				...formData,
+				groups: selectedGroups.map((sg) => ({ groupId: sg.groupId, role: 'member' })), // API ainda espera role
+				// Manter compatibilidade com API legado
+				groupId: selectedGroups[0]?.groupId || '',
+			}
+
 			const body = isEditing
 				? {
 						id: user.id,
-						...formData,
+						...bodyData,
 						...(formData.password ? { password: formData.password } : {}),
 					}
-				: formData
+				: bodyData
 
 			const response = await fetch('/api/admin/users', {
 				method,
@@ -157,18 +190,46 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 
 				<div>
 					<label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
-						Grupo <span className='text-red-500'>*</span>
+						Grupos <span className='text-red-500'>*</span>
 					</label>
-					<Select
-						name='groupId'
-						selected={formData.groupId}
-						onChange={(value) => setFormData((prev) => ({ ...prev, groupId: value }))}
-						options={groups.map((group) => ({
-							value: group.id,
-							label: group.name,
-						}))}
-						placeholder='Selecione um grupo'
-					/>
+					<div className='max-h-48 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-1'>
+						{groups.map((group) => {
+							const isSelected = selectedGroups.some((sg) => sg.groupId === group.id)
+
+							return (
+								<div key={group.id} className='flex items-center hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-md py-1 px-2'>
+									<input
+										type='checkbox'
+										id={`group-${group.id}`}
+										checked={isSelected}
+										onChange={(e) => {
+											if (e.target.checked) {
+												setSelectedGroups((prev) => [...prev, { groupId: group.id }])
+											} else {
+												setSelectedGroups((prev) => prev.filter((sg) => sg.groupId !== group.id))
+											}
+										}}
+										className='h-4 w-4 text-blue-600 border-zinc-300 rounded focus:ring-blue-500'
+										disabled={loading}
+									/>
+									<div className='flex items-center'>
+										<span className={`icon-[lucide--${group.icon}] size-4`} style={{ color: group.color || '#6b7280' }} />
+										<label htmlFor={`group-${group.id}`} className='text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer'>
+											{group.name}
+										</label>
+									</div>
+								</div>
+							)
+						})}
+					</div>
+
+					{selectedGroups.length === 0 && <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-1'>Selecione pelo menos um grupo</p>}
+
+					{selectedGroups.length > 0 && (
+						<p className='text-xs text-zinc-600 dark:text-zinc-400 mt-1'>
+							{selectedGroups.length} grupo{selectedGroups.length !== 1 ? 's' : ''} selecionado{selectedGroups.length !== 1 ? 's' : ''}
+						</p>
+					)}
 				</div>
 
 				<div className='space-y-4'>
