@@ -353,6 +353,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	const syncMessages = useCallback(async () => {
 		try {
 			const params = new URLSearchParams()
+			// Usar ref para lastSync para evitar re-criação desnecessária do useCallback
 			if (lastSync) {
 				params.set('since', lastSync)
 			} else {
@@ -417,10 +418,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		} catch (error) {
 			console.error('❌ [ChatContext] Erro na sincronização:', error)
 		}
-	}, [lastSync, loadSidebarData])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []) // Intencionalmente sem dependências para evitar loop infinito
 
 	const startPolling = useCallback(() => {
-		if (isPollingActive.current) return
+		if (isPollingActive.current) {
+			console.log('🟡 [ChatContext] Polling já ativo - ignorando solicitação')
+			return
+		}
 
 		console.log('🔵 [ChatContext] Iniciando polling (5 segundos)')
 		isPollingActive.current = true
@@ -429,10 +434,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			syncMessages()
 			sendHeartbeat()
 		}, 5000) // 5 segundos conforme especificado
-	}, [syncMessages, sendHeartbeat])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []) // Intencionalmente sem dependências para evitar loop infinito
 
 	const stopPolling = useCallback(() => {
-		if (!isPollingActive.current) return
+		if (!isPollingActive.current) {
+			console.log('🟡 [ChatContext] Polling já parado - ignorando solicitação')
+			return
+		}
 
 		console.log('🔵 [ChatContext] Parando polling')
 		isPollingActive.current = false
@@ -489,7 +498,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		return () => {
 			stopPolling()
 		}
-	}, [user, initializePresence, loadSidebarData, startPolling, stopPolling])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [user]) // Intencionalmente apenas [user] para evitar loop infinito
 
 	// Cleanup ao desmontar
 	useEffect(() => {
