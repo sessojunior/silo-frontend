@@ -377,9 +377,16 @@ export default function ProblemsPage() {
 		if (mode === 'edit' && solution) {
 			setEditingSolution(solution)
 			setSolutionDescription(solution.description)
-			// TODO: buscar imagem da solução se existir (API)
-			setSolutionImage(null)
-			setSolutionImagePreview(null)
+			// Carregar imagem da solução se existir
+			if (solution.image?.image) {
+				console.log('✅ Carregando imagem existente da solução:', solution.image.image)
+				setSolutionImage(null) // Não há arquivo para edição, apenas preview
+				setSolutionImagePreview(solution.image.image)
+			} else {
+				console.log('🔵 Solução não possui imagem associada')
+				setSolutionImage(null)
+				setSolutionImagePreview(null)
+			}
 			setReplyTo(null)
 		} else if (mode === 'reply' && solution) {
 			setReplyTo(solution)
