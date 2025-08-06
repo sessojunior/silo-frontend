@@ -185,7 +185,15 @@ export default function LoginPage() {
 									<Button href='/login-email' type='button' style='bordered' icon='icon-[lucide--log-in]' className='w-full'>
 										Entrar só com e-mail
 									</Button>
-									<Button href='/login-google' type='button' style='bordered' icon='icon-[logos--google-icon]' className='w-full'>
+									<Button
+										type='button'
+										style='bordered'
+										icon='icon-[logos--google-icon]'
+										className='w-full'
+										onClick={() => {
+											window.location.href = '/login-google'
+										}}
+									>
 										Entrar com Google
 									</Button>
 								</div>
