@@ -362,6 +362,15 @@ Este método possui as seguintes vantagens:
 
 ## 🔑 Login com o Google
 
+> ⚠️ **Importante – Prefetch e Cookies**
+> 
+> Detectado bug crítico: links ou botões apontando para rotas de autenticação (`/login-google`) ou logout (`/logout`) com *prefetch* padrão do Next.js faziam chamadas antecipadas, limpando o cookie `session_token` e causando 401 nas APIs.
+> 
+> • **Correção**: botões de login Google agora usam `onClick` com `window.location.href` (sem Link) e link de logout usa `prefetch={false}`.
+> • **Regra obrigatória**: **NUNCA** habilitar prefetch em rotas críticas de sessão. Defina explicitamente `prefetch={false}` ou use navegação full-page.
+> 
+> Registrar esta lição evita horas de debug e garante persistência da sessão em produção (Vercel).
+
 Para usar o Google como um provedor social, você precisa obter suas credenciais do Google.
 
 Você pode obtê-las criando um novo projeto no [Google Cloud Console](https://console.cloud.google.com/apis/dashboard).

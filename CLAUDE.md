@@ -601,6 +601,7 @@ try {
 - **Interface de Gestão**: Administradores podem ativar/desativar usuários diretamente na lista
 - **Mensagens Específicas**: Usuários informados sobre necessidade de ativação após cadastro
 - **Proteção de Session**: Usuários inativos não conseguem criar sessões válidas
+- **Prefetch Desativado em Rotas Críticas**: Links/botões que apontam para `/login-google` e `/logout` **devem** ter `prefetch={false}` ou usar navegação full-page (`window.location.href`). O prefetch antecipado limpava o cookie `session_token` em produção, causando 401 e horas perdidas de debug.
 
 ### 🚨 **APIS PROTEGIDAS IMPLEMENTADAS**
 
