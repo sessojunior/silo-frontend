@@ -759,7 +759,7 @@ Senha: #Admin123
 ### ⚡ **Comandos de Desenvolvimento**
 
 ```bash
-npm run dev                # Servidor desenvolvimento com Turbopack
+npm run dev               # Servidor de desenvolvimento com Turbopack
 npm run build             # Build produção
 npm run start             # Servidor produção
 npm run lint              # Verificação ESLint
