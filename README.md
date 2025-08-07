@@ -23,17 +23,35 @@ Este projeto usa o arquivo `/CLAUDE.md` na raiz como única fonte de verdade de 
 - **Sistema de Autenticação Completo**: Login/registro, OTP, Google OAuth, recuperação de senha **+ Validação @inpe.br + Ativação por administrador**
 - **Dashboard Administrativo**: Interface moderna com gráficos ApexCharts e estatísticas
 - **CRUD de Produtos**: Gestão completa de produtos meteorológicos com problemas e soluções
-- **Sistema de Problemas e Soluções**: Threading colaborativo com upload de imagens
+- **Sistema de Problemas e Soluções**: Threading colaborativo com upload de imagens via UploadThing
 - **Base de Conhecimento**: Estrutura hierárquica com MenuBuilder drag & drop funcional
 - **Sistema de Manual do Produto**: Editor markdown com hierarquia inteligente
-- **Sistema de Contatos**: CRUD completo + associação produto-contato com upload de fotos
+- **Sistema de Contatos**: CRUD completo + associação produto-contato com upload de fotos via UploadThing
 - **Sistema de Grupos**: CRUD completo com abas navegáveis e gestão hierárquica usuários
 - **Sistema de Chat WhatsApp-like**: Interface profissional com presença e real-time completamente funcional
 - **Sistema de Ajuda**: Documentação centralizada com interface dual e navegação hierárquica
 - **✅ Sistema de Categorias de Problemas**: **COMPLETAMENTE FINALIZADO** com dashboard donut "Causas de problemas", CRUD categorias, 6 categorias padrão (Rede externa, Rede interna, Servidor indisponível, Falha humana, Erro no software, Outros), offcanvas settings integrado, APIs completas /api/admin/problem-categories e /api/admin/dashboard/problem-causes
 - **✅ Sistema de Segurança Avançada**: **COMPLETAMENTE FINALIZADO** com validação de domínio @inpe.br obrigatória e sistema de ativação por administrador para todos usuários novos
 
-### 🎯 Conquista Mais Recente
+### 🎯 Conquistas Recentes
+
+**✅ SISTEMA DE UPLOAD COM UPLOADTHING V7 COMPLETAMENTE IMPLEMENTADO!**
+
+**Implementações Finalizadas**:
+
+1. **Integração UploadThing v7** com `UPLOADTHING_TOKEN` para autenticação na nuvem
+2. **FileRouter configurado** com 3 endpoints para diferentes tipos de uploads:
+   - `avatarUploader`: Avatar de usuário com resize automático (128x128 WebP)
+   - `contactImageUploader`: Imagens de contatos (até 4MB)
+   - `problemImageUploader`: Imagens de problemas/soluções (até 3 imagens, 4MB cada)
+3. **Componentes 100% migrados** para usar UploadThing:
+   - `PhotoUpload.tsx`: Avatar com UploadButton
+   - `ContactFormOffcanvas.tsx`: Upload de fotos de contatos
+   - `ProblemFormOffcanvas.tsx`: Upload de imagens de problemas
+   - `SolutionFormModal.tsx`: Upload de imagens de soluções
+4. **APIs completamente refatoradas** - apenas aceitam `imageUrl` do UploadThing
+5. **DELETE via UploadThing**: Exclusão de arquivos na nuvem quando removidos do sistema
+6. **Diretório public/uploads removido**: Todo upload agora é via UploadThing
 
 **✅ SISTEMA DE ATIVAÇÃO POR ADMINISTRADOR COMPLETAMENTE IMPLEMENTADO!**
 
@@ -213,11 +231,7 @@ frontend/
 │   └── middleware.ts           # Middleware Next.js
 ├── CLAUDE.md                   # 📚 DOCUMENTAÇÃO CENTRAL CONSOLIDADA
 ├── public/                     # Arquivos estáticos
-│   ├── images/                 # Imagens do sistema
-│   └── uploads/                # Uploads organizados
-│       ├── contacts/           # Fotos contatos
-│       ├── products/           # Imagens produtos
-│       └── profile/            # Fotos perfil
+│   └── images/                 # Imagens do sistema
 ├── drizzle/                    # Migrations database
 └── scripts/                    # Scripts utilitários
 ```
@@ -229,6 +243,7 @@ frontend/
 - **Next.js 15.3.2** - Framework React full-stack com App Router
 - **React 19.0.0** - Biblioteca de componentes com Server Components
 - **TypeScript 5** - Tipagem estática strict mode
+- **UploadThing v7** - Gerenciamento de uploads de imagens na nuvem
 
 ### Database & ORM
 
@@ -249,6 +264,7 @@ frontend/
 - **@uiw/react-md-editor 4.0.7** - Editor markdown completo
 - **Arctic 3.7.0** - OAuth Google simplificado
 - **Nodemailer 7.0.3** - Envio de emails OTP
+- **UploadThing v7** - Upload de imagens na nuvem com processamento automático
 
 ## 🔧 Comandos de Desenvolvimento
 
@@ -363,12 +379,12 @@ Este método possui as seguintes vantagens:
 ## 🔑 Login com o Google
 
 > ⚠️ **Importante – Prefetch e Cookies**
-> 
-> Detectado bug crítico: links ou botões apontando para rotas de autenticação (`/login-google`) ou logout (`/logout`) com *prefetch* padrão do Next.js faziam chamadas antecipadas, limpando o cookie `session_token` e causando 401 nas APIs.
-> 
+>
+> Detectado bug crítico: links ou botões apontando para rotas de autenticação (`/login-google`) ou logout (`/logout`) com _prefetch_ padrão do Next.js faziam chamadas antecipadas, limpando o cookie `session_token` e causando 401 nas APIs.
+>
 > • **Correção**: botões de login Google agora usam `onClick` com `window.location.href` (sem Link) e link de logout usa `prefetch={false}`.
 > • **Regra obrigatória**: **NUNCA** habilitar prefetch em rotas críticas de sessão. Defina explicitamente `prefetch={false}` ou use navegação full-page.
-> 
+>
 > Registrar esta lição evita horas de debug e garante persistência da sessão em produção (Vercel).
 
 Para usar o Google como um provedor social, você precisa obter suas credenciais do Google.
@@ -456,3 +472,4 @@ npm run db:studio
 - ✅ **Kanban Avançado**: Drag & drop por atividade com CRUD completo
 - ✅ **Dashboard Inteligente**: Categorias problemas + gráficos ApexCharts + donut causas
 - ✅ **Controle de Acesso Institucional**: Validação @inpe.br + ativação administrativa obrigatória
+- ✅ **Sistema de Upload na Nuvem**: UploadThing v7 para todos os uploads de imagens do sistema

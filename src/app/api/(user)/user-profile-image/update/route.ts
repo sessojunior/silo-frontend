@@ -17,9 +17,6 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ field: null, message: 'URL da imagem não fornecida.' }, { status: 400 })
 		}
 
-		// Busca a imagem atual do usuário para verificar se é preciso atualizar
-		const currentUser = await db.select({ image: authUser.image }).from(authUser).where(eq(authUser.id, user.id)).limit(1)
-
 		// Atualiza a URL da imagem no banco de dados
 		await db.update(authUser).set({ image: imageUrl }).where(eq(authUser.id, user.id))
 

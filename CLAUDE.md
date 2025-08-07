@@ -66,7 +66,7 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 - **Base de Conhecimento**: Estrutura hierárquica com MenuBuilder funcional
 - **Editor Markdown**: Componente com CSS inline e tema dinâmico
 - **UI/UX Dark Mode**: Otimizada com contraste perfeito
-- **Upload de Arquivos**: Sistema nginx externo com validação
+- **Upload de Arquivos**: UploadThing v7 com UPLOADTHING_TOKEN (fallback para local storage)
 - **PostgreSQL Database**: Schema otimizado e simplificado
 
 #### 🆕 **SISTEMAS AVANÇADOS COMPLETAMENTE FINALIZADOS**
@@ -83,6 +83,29 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 10. **✅ Sistema de Categorias de Problemas**: Dashboard donut + CRUD categorias + offcanvas atribuição
 
 ### 🎯 **CONQUISTA MAIS RECENTE - DEZEMBRO 2024**
+
+**STATUS**: ✅ **SISTEMA DE UPLOAD COM UPLOADTHING V7 COMPLETAMENTE IMPLEMENTADO!**
+
+**Funcionalidades Implementadas**:
+
+1. **Integração UploadThing v7** com `UPLOADTHING_TOKEN` (obrigatório - sem flag USE_UPLOADTHING)
+2. **FileRouter configurado** com 3 endpoints:
+   - `avatarUploader`: Avatar de usuário com resize automático (128x128 WebP)
+   - `contactImageUploader`: Imagens de contatos (até 4MB)
+   - `problemImageUploader`: Imagens de problemas/soluções (até 3 imagens, 4MB cada)
+3. **Componentes 100% migrados**:
+   - `PhotoUpload.tsx`: Avatar com UploadButton
+   - `ContactFormOffcanvas.tsx`: Upload de fotos de contatos
+   - `ProblemFormOffcanvas.tsx`: Upload de imagens de problemas
+   - `SolutionFormModal.tsx`: Upload de imagens de soluções
+4. **APIs completamente refatoradas** - apenas aceitam `imageUrl` do UploadThing:
+   - `/api/admin/contacts` - removida lógica de upload local
+   - `/api/admin/products/images` - apenas UploadThing
+   - `/api/admin/products/solutions` - apenas UploadThing
+5. **DELETE via UploadThing**: Rota `/api/(user)/user-profile-image` deleta do UT
+6. **Diretório public/uploads removido**: Todo upload agora é via UploadThing
+7. **Schema atualizado**: Campo `image` adicionado em `authUser` para avatar do usuário
+8. **Seed atualizado**: Removidas referências a arquivos locais de imagens
 
 **STATUS**: ✅ **SISTEMA DE SEGURANÇA INSTITUCIONAL COMPLETAMENTE IMPLEMENTADO!**
 
@@ -323,7 +346,8 @@ src/
 │   ├── api/                      # API Routes
 │   │   ├── (user)/               # APIs usuário autenticado
 │   │   ├── admin/                # APIs protegidas administrativas
-│   │   └── auth/                 # APIs autenticação
+│   │   ├── auth/                 # APIs autenticação
+│   │   └── uploadthing/          # API UploadThing para uploads
 │   ├── tests/                    # Páginas de teste
 │   ├── apexcharts.css            # Estilos ApexCharts
 │   ├── favicon.ico               # Favicon
@@ -395,7 +419,10 @@ src/
 │   ├── sendEmail.ts
 │   ├── theme.ts
 │   ├── toast.ts
+│   ├── uploadthing.ts            # React helpers para UploadThing
 │   └── utils.ts
+├── server/                       # Server-side utilities
+│   └── uploadthing.ts            # FileRouter e configuração UploadThing
 ├── types/                        # Tipos TypeScript (1 arquivo)
 │   └── projects.ts
 └── middleware.ts                 # Middleware Next.js
