@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from '@/lib/toast'
+import { UploadButton } from '@/lib/uploadthing'
 
 import Offcanvas from '@/components/ui/Offcanvas'
 import Button from '@/components/ui/Button'
@@ -21,7 +22,9 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 	const [loading, setLoading] = useState(false)
 	const [imagePreview, setImagePreview] = useState<string | null>(contact?.image || null)
 	const [removeImage, setRemoveImage] = useState(false)
-	const fileInputRef = useRef<HTMLInputElement>(null)
+	// UploadThing não precisa de ref de arquivo
+	const [imageUrl, setImageUrl] = useState<string | null>(contact?.image || null)
+	// const fileInputRef = useRef<HTMLInputElement>(null)
 
 	// Estados do formulário
 	const [formData, setFormData] = useState({
@@ -77,45 +80,12 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 		setFormData((prev) => ({ ...prev, [field]: value }))
 	}
 
-	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0]
-		if (!file) return
-
-		// Validações
-		if (file.size > 4 * 1024 * 1024) {
-			toast({
-				type: 'error',
-				title: 'Arquivo muito grande',
-				description: 'A imagem deve ter no máximo 4MB',
-			})
-			return
-		}
-
-		const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-		if (!allowedTypes.includes(file.type)) {
-			toast({
-				type: 'error',
-				title: 'Formato não suportado',
-				description: 'Use apenas imagens JPG, PNG ou WebP',
-			})
-			return
-		}
-
-		// Preview
-		const reader = new FileReader()
-		reader.onload = (e) => {
-			setImagePreview(e.target?.result as string)
-			setRemoveImage(false)
-		}
-		reader.readAsDataURL(file)
-	}
+	// Função removida - agora usando UploadThing
 
 	const handleRemoveImage = () => {
 		setImagePreview(null)
+		setImageUrl(null)
 		setRemoveImage(true)
-		if (fileInputRef.current) {
-			fileInputRef.current.value = ''
-		}
 	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -176,10 +146,9 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 				submitFormData.append('id', contact.id)
 			}
 
-			// Imagem
-			const fileInput = fileInputRef.current
-			if (fileInput?.files?.[0]) {
-				submitFormData.append('file', fileInput.files[0])
+			// Imagem via UploadThing
+			if (imageUrl) {
+				submitFormData.append('imageUrl', imageUrl)
 			}
 
 			if (removeImage) {
@@ -215,9 +184,6 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 				})
 				setImagePreview(null)
 				setRemoveImage(false)
-				if (fileInputRef.current) {
-					fileInputRef.current.value = ''
-				}
 			} else {
 				toast({
 					type: 'error',
@@ -254,9 +220,6 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 				})
 				setImagePreview(null)
 				setRemoveImage(false)
-				if (fileInputRef.current) {
-					fileInputRef.current.value = ''
-				}
 			}, 300)
 		}
 	}
@@ -275,18 +238,35 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 
 							{/* Controles */}
 							<div className='flex-1 space-y-2'>
-								<input ref={fileInputRef} type='file' accept='image/jpeg,image/jpg,image/png,image/webp' onChange={handleImageChange} className='hidden' />
-
 								<div className='flex gap-2'>
-									<Button type='button' style='bordered' onClick={() => fileInputRef.current?.click()}>
-										<span className='icon-[lucide--upload] size-4 mr-2' />
-										Escolher imagem
-									</Button>
+									<UploadButton
+										endpoint='contactImageUploader'
+										onClientUploadComplete={(res) => {
+											const url = res?.[0]?.url
+											if (url) {
+												setImagePreview(url)
+												setImageUrl(url)
+												setRemoveImage(false)
+											}
+										}}
+										onUploadError={(error) => toast({ type: 'error', title: error.message })}
+										appearance={{
+											button: 'inline-flex items-center gap-x-2 rounded-lg border border-transparent bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700',
+											container: '',
+											allowedContent: 'hidden',
+										}}
+										content={{
+											button: (
+												<>
+													<span className='icon-[lucide--upload] size-4 mr-2' /> Enviar imagem
+												</>
+											),
+										}}
+									/>
 
 									{imagePreview && (
 										<Button type='button' style='bordered' onClick={handleRemoveImage} className='text-red-600 hover:text-red-700'>
-											<span className='icon-[lucide--x] size-4 mr-2' />
-											Remover
+											<span className='icon-[lucide--x] size-4 mr-2' /> Remover
 										</Button>
 									)}
 								</div>

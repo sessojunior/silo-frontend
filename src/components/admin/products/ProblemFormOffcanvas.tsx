@@ -6,6 +6,7 @@ import Label from '@/components/ui/Label'
 import Dialog from '@/components/ui/Dialog'
 import Lightbox from '@/components/ui/Lightbox'
 import { toast } from '@/lib/toast'
+import { UploadButton } from '@/lib/uploadthing'
 import clsx from 'clsx'
 import Image from 'next/image'
 import type { ProductProblem, ProductProblemImage } from '@/lib/db/schema'
@@ -27,8 +28,7 @@ interface ProblemFormOffcanvasProps {
 	formError: string | null
 	form: { field: string | null; message: string | null }
 	images: ProductProblemImage[]
-	previewFile: File | null
-	setPreviewFile: (file: File | null) => void
+	// Removidos - agora usando UploadThing
 	onDeleteProblem: () => void
 	deleteDialogOpen: boolean
 	setDeleteDialogOpen: (open: boolean) => void
@@ -43,7 +43,7 @@ interface ProblemFormOffcanvasProps {
 	onImagesUpdate: () => Promise<void>
 }
 
-export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle, setFormTitle, formDescription, setFormDescription, formCategoryId, setFormCategoryId, onSubmit, formLoading, formError, form, images, previewFile, setPreviewFile, onDeleteProblem, deleteDialogOpen, setDeleteDialogOpen, deleteLoading, deleteImageId, setDeleteImageId, deleteImageLoading, lightboxOpen, setLightboxOpen, lightboxImage, setLightboxImage, onImagesUpdate }: ProblemFormOffcanvasProps) {
+export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle, setFormTitle, formDescription, setFormDescription, formCategoryId, setFormCategoryId, onSubmit, formLoading, formError, form, images, onDeleteProblem, deleteDialogOpen, setDeleteDialogOpen, deleteLoading, deleteImageId, setDeleteImageId, deleteImageLoading, lightboxOpen, setLightboxOpen, lightboxImage, setLightboxImage, onImagesUpdate }: ProblemFormOffcanvasProps) {
 	const [categoryOptions, setCategoryOptions] = useState<SelectOption[]>([])
 
 	useEffect(() => {
@@ -117,57 +117,46 @@ export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle
 											</div>
 										</div>
 									))}
-								{/* Botão de upload (div quadrada) */}
-								<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-zinc-300 rounded-lg cursor-pointer hover:border-blue-400 dark:border-zinc-600 dark:hover:border-blue-500 transition group relative'>
-									<input
-										type='file'
-										name='file-upload'
-										accept='image/png, image/jpeg, image/webp'
-										className='absolute inset-0 opacity-0 cursor-pointer z-10'
-										style={{ width: '100%', height: '100%' }}
-										onChange={(e) => {
-											const file = e.target.files?.[0]
-											if (file) {
-												setPreviewFile(file)
+								<UploadButton
+									endpoint='problemImageUploader'
+									onClientUploadComplete={async (res) => {
+										if (res && res[0]) {
+											// Enviar a URL da imagem para a API
+											const formData = new FormData()
+											formData.append('imageUrl', res[0].url)
+											formData.append('productProblemId', editing?.id || '')
+											formData.append('description', 'Imagem enviada via UploadThing')
+
+											const apiRes = await fetch('/api/admin/products/images', {
+												method: 'POST',
+												body: formData,
+											})
+
+											if (apiRes.ok) {
+												toast({ type: 'success', title: 'Imagem enviada' })
+												await onImagesUpdate()
+											} else {
+												toast({ type: 'error', title: 'Erro ao salvar imagem' })
 											}
-										}}
-									/>
-									<span className='icon-[lucide--plus] size-10 text-zinc-400 group-hover:text-blue-500 dark:text-zinc-500 dark:group-hover:text-blue-400' />
-									<span className='text-xs text-zinc-400 dark:text-zinc-500 mt-2'>Adicionar</span>
-								</div>
+										}
+									}}
+									onUploadError={(error) => toast({ type: 'error', title: error.message })}
+									appearance={{
+										button: 'flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-zinc-300 rounded-lg hover:border-blue-400 dark:border-zinc-600 dark:hover:border-blue-500 transition',
+										container: '',
+										allowedContent: 'hidden',
+									}}
+									content={{
+										button: (
+											<>
+												<span className='icon-[lucide--plus] size-10 text-zinc-400' />
+												<span className='text-xs text-zinc-400 mt-2'>Adicionar</span>
+											</>
+										),
+										allowedContent: 'Imagens até 4MB',
+									}}
+								/>
 								{/* Preview da imagem selecionada */}
-								{previewFile && (
-									<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-blue-400 rounded-lg relative'>
-										<Image src={URL.createObjectURL(previewFile)} alt='Preview' className='object-contain h-full w-full rounded-lg max-h-32 max-w-32' width={128} height={128} style={{ objectFit: 'contain' }} unoptimized={true} />
-										<button
-											type='button'
-											className='absolute bottom-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white rounded-full px-3 py-1 text-xs font-semibold shadow hover:bg-blue-700 transition'
-											onClick={async () => {
-												if (!editing) return
-												const formData = new FormData()
-												formData.append('file', previewFile)
-												formData.append('productProblemId', editing.id)
-												const res = await fetch('/api/admin/products/images', {
-													method: 'POST',
-													body: formData,
-												})
-												if (res.ok) {
-													toast({ type: 'success', title: 'Imagem enviada' })
-													setPreviewFile(null)
-													// Atualiza lista de imagens na página parent
-													await onImagesUpdate()
-												} else {
-													toast({ type: 'error', title: 'Erro ao enviar imagem' })
-												}
-											}}
-										>
-											Enviar
-										</button>
-										<button type='button' className='absolute top-2 right-2 size-8 flex items-center justify-center bg-white/80 text-red-500 rounded-full hover:bg-red-100 dark:bg-zinc-800/80 dark:text-red-400 dark:hover:bg-red-800/30 transition' onClick={() => setPreviewFile(null)}>
-											<span className='icon-[lucide--x] size-5' />
-										</button>
-									</div>
-								)}
 							</div>
 							<Lightbox open={lightboxOpen} image={lightboxImage?.src || ''} alt={lightboxImage?.alt} onClose={() => setLightboxOpen(false)} />
 						</div>

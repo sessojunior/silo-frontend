@@ -4,8 +4,7 @@ import { productSolution, authUser, productSolutionChecked, productSolutionImage
 import { eq, inArray } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { getAuthUser } from '@/lib/auth/token'
-import fs from 'fs'
-import path from 'path'
+import { utapi, getFileKeyFromUrl } from '@/server/uploadthing'
 
 export async function GET(req: NextRequest) {
 	const { searchParams } = new URL(req.url)
@@ -78,7 +77,8 @@ export async function POST(req: NextRequest) {
 	const description = (formData.get('description') as string)?.trim() || ''
 	const problemId = formData.get('problemId') as string | null
 	const replyId = formData.get('replyId') as string | null
-	const file = formData.get('file') as File | null
+	const imageUrl = formData.get('imageUrl') as string | null
+	// const file = formData.get('file') as File | null - não mais usado, apenas UploadThing
 
 	if (!problemId || description.length < 2) {
 		return NextResponse.json({ error: 'Descrição e problema são obrigatórios (mín. 2 caracteres).' }, { status: 400 })
@@ -87,19 +87,12 @@ export async function POST(req: NextRequest) {
 	let imageId: string | null = null
 	let imagePath: string | null = null
 
-	if (file) {
-		if (file.size > 4 * 1024 * 1024) return NextResponse.json({ error: 'A imagem deve ter no máximo 4MB.' }, { status: 400 })
-		const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-		if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) return NextResponse.json({ error: 'Formato de imagem não suportado.' }, { status: 400 })
+	if (imageUrl) {
 		imageId = randomUUID()
-		const fileName = `${imageId}.${ext}`
-		const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products', 'solutions')
-		if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
-		const filePath = path.join(uploadDir, fileName)
-		const arrayBuffer = await file.arrayBuffer()
-		fs.writeFileSync(filePath, Buffer.from(arrayBuffer))
-		imagePath = `/uploads/products/solutions/${fileName}`
+		imagePath = imageUrl
 	}
+
+	// Upload de arquivo local não é mais suportado - usar UploadThing
 
 	const solutionId = randomUUID()
 	await db.insert(productSolution).values({
@@ -132,7 +125,8 @@ export async function PUT(req: NextRequest) {
 	const formData = await req.formData()
 	const id = formData.get('id') as string | null
 	const description = (formData.get('description') as string)?.trim() || ''
-	const file = formData.get('file') as File | null
+	const imageUrl = formData.get('imageUrl') as string | null
+	// const file = formData.get('file') as File | null - não mais usado, apenas UploadThing
 
 	if (!id || description.length < 2) {
 		return NextResponse.json({ error: 'ID e descrição são obrigatórios (mín. 2 caracteres).' }, { status: 400 })
@@ -147,47 +141,55 @@ export async function PUT(req: NextRequest) {
 	await db.update(productSolution).set({ description, updatedAt: new Date() }).where(eq(productSolution.id, id))
 
 	// Imagem: se enviada, substitui a anterior
-	if (file) {
-		if (file.size > 4 * 1024 * 1024) return NextResponse.json({ error: 'A imagem deve ter no máximo 4MB.' }, { status: 400 })
-		const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-		if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) return NextResponse.json({ error: 'Formato de imagem não suportado.' }, { status: 400 })
-		// Remove imagem anterior, se houver
+	if (imageUrl) {
+		// Remove imagem anterior se houver
 		const oldImg = await db.select().from(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
 		if (oldImg.length) {
-			const oldPath = oldImg[0].image
+			// Exclui a imagem antiga do UploadThing
+			const oldImageUrl = oldImg[0].image
+			const oldFileKey = getFileKeyFromUrl(oldImageUrl)
+			if (oldFileKey) {
+				try {
+					console.log('🔵 Excluindo arquivo antigo do UploadThing:', oldFileKey)
+					await utapi.deleteFiles([oldFileKey])
+					console.log('✅ Arquivo antigo excluído do UploadThing com sucesso')
+				} catch (error) {
+					console.error('❌ Erro ao excluir arquivo antigo do UploadThing:', error)
+					// Continua mesmo se falhar a exclusão do arquivo remoto
+				}
+			}
+
 			await db.delete(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
-			try {
-				const filePath = path.join(process.cwd(), 'public', oldPath.startsWith('/') ? oldPath.slice(1) : oldPath)
-				if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
-			} catch {}
 		}
-		// Salva nova imagem
-		const imageId = randomUUID()
-		const fileName = `${imageId}.${ext}`
-		const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products', 'solutions')
-		if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
-		const filePath = path.join(uploadDir, fileName)
-		const arrayBuffer = await file.arrayBuffer()
-		fs.writeFileSync(filePath, Buffer.from(arrayBuffer))
-		const imagePath = `/uploads/products/solutions/${fileName}`
 		await db.insert(productSolutionImage).values({
-			id: imageId,
+			id: randomUUID(),
 			productSolutionId: id,
-			image: imagePath,
+			image: imageUrl,
 			description: '',
 		})
-	} else {
-		// Se não enviou imagem, pode querer remover a existente
+	}
+	// Upload de arquivo local não é mais suportado - usar UploadThing
+	// Se não enviou imagem via URL, pode querer remover a existente
+	if (!imageUrl) {
 		const removeImage = formData.get('removeImage') === 'true'
 		if (removeImage) {
 			const oldImg = await db.select().from(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
 			if (oldImg.length) {
-				const oldPath = oldImg[0].image
+				// Exclui a imagem do UploadThing
+				const oldImageUrl = oldImg[0].image
+				const oldFileKey = getFileKeyFromUrl(oldImageUrl)
+				if (oldFileKey) {
+					try {
+						console.log('🔵 Excluindo arquivo do UploadThing:', oldFileKey)
+						await utapi.deleteFiles([oldFileKey])
+						console.log('✅ Arquivo excluído do UploadThing com sucesso')
+					} catch (error) {
+						console.error('❌ Erro ao excluir arquivo do UploadThing:', error)
+						// Continua mesmo se falhar a exclusão do arquivo remoto
+					}
+				}
+
 				await db.delete(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
-				try {
-					const filePath = path.join(process.cwd(), 'public', oldPath.startsWith('/') ? oldPath.slice(1) : oldPath)
-					if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
-				} catch {}
 			}
 		}
 	}
@@ -209,15 +211,24 @@ export async function DELETE(req: NextRequest) {
 		return NextResponse.json({ error: 'Permissão negada.' }, { status: 403 })
 	}
 
-	// Remove imagem associada, se houver
-	const img = await db.select().from(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
-	if (img.length) {
-		const imgPath = img[0].image
+	// Remove imagem associada e exclui do UploadThing
+	const oldImg = await db.select().from(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
+	if (oldImg.length) {
+		// Exclui a imagem do UploadThing
+		const oldImageUrl = oldImg[0].image
+		const oldFileKey = getFileKeyFromUrl(oldImageUrl)
+		if (oldFileKey) {
+			try {
+				console.log('🔵 Excluindo arquivo da solução do UploadThing:', oldFileKey)
+				await utapi.deleteFiles([oldFileKey])
+				console.log('✅ Arquivo da solução excluído do UploadThing com sucesso')
+			} catch (error) {
+				console.error('❌ Erro ao excluir arquivo da solução do UploadThing:', error)
+				// Continua mesmo se falhar a exclusão do arquivo remoto
+			}
+		}
+
 		await db.delete(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
-		try {
-			const filePath = path.join(process.cwd(), 'public', imgPath.startsWith('/') ? imgPath.slice(1) : imgPath)
-			if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
-		} catch {}
 	}
 
 	// Remove a solução

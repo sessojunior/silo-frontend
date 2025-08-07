@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getAuthUser } from '@/lib/auth/token'
-import { getProfileImagePath } from '@/lib/profileImage'
+import { db } from '@/lib/db'
+import { authUser } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { UserProvider } from '@/context/UserContext'
 import { ChatProvider } from '@/context/ChatContext'
 import AdminWrapper from '@/components/admin/AdminWrapper'
@@ -28,12 +30,16 @@ export default async function AdminLayout({
 }>) {
 	// Dados do usuário autenticado
 	// Se o usuário não estiver autenticado, redireciona para a tela de login
-	const authUser = await getAuthUser()
-	if (!authUser) redirect('/login')
+	const currentUser = await getAuthUser()
+	if (!currentUser) redirect('/login')
+
+	// Busca dados completos do usuário, incluindo a imagem do UploadThing
+	const userData = await db.select().from(authUser).where(eq(authUser.id, currentUser.id)).limit(1)
+	const userImage = userData[0]?.image || '/images/profile.png'
 
 	const user: UserProps = {
-		...authUser,
-		image: getProfileImagePath(authUser.id) ?? '/images/profile.png',
+		...currentUser,
+		image: userImage,
 	}
 
 	// Sessão válida.

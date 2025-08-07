@@ -25,7 +25,7 @@ CREATE TABLE "auth_user" (
 	"email" text NOT NULL,
 	"email_verified" boolean DEFAULT false NOT NULL,
 	"password" text NOT NULL,
-	"is_active" boolean DEFAULT true NOT NULL,
+	"is_active" boolean DEFAULT false NOT NULL,
 	"last_login" timestamp,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "auth_user_email_unique" UNIQUE("email")

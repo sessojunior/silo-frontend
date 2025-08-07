@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import clsx from 'clsx'
 import { toast } from '@/lib/toast'
 import Image from 'next/image'
+import { UploadButton } from '@/lib/uploadthing'
 
 // Tipo customizado para soluções retornadas pela API
 interface SolutionWithDetails {
@@ -125,47 +126,54 @@ export default function SolutionFormModal({ isOpen, onClose, mode, editingSoluti
 						</div>
 					) : (
 						// Se não há imagem associada ou já foi removida, exibe campo de upload normalmente
-						<>
+						<div className='flex justify-start'>
 							{!solutionImagePreview && (
-								<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-zinc-300 rounded-lg cursor-pointer hover:border-blue-400 dark:border-zinc-600 dark:hover:border-blue-500 transition group relative'>
-									<input
-										type='file'
-										accept='image/png, image/jpeg, image/webp'
-										className='absolute inset-0 opacity-0 cursor-pointer z-10'
-										style={{ width: '100%', height: '100%' }}
-										onChange={(e) => {
-											const file = e.target.files?.[0]
-											if (file) {
-												if (file.size > 4 * 1024 * 1024) {
-													setSolutionError('A imagem deve ter no máximo 4MB.')
-													return
-												}
-												setSolutionImage(file)
-												setSolutionImagePreview(URL.createObjectURL(file))
-												setSolutionError(null)
-											}
-										}}
-									/>
-									<span className='icon-[lucide--plus] size-10 text-zinc-400 group-hover:text-blue-500 dark:text-zinc-500 dark:group-hover:text-blue-400' />
-									<span className='text-xs text-zinc-400 dark:text-zinc-500 mt-2'>Adicionar imagem</span>
-								</div>
+								<UploadButton
+									endpoint='problemImageUploader'
+									onClientUploadComplete={(res) => {
+										const url = res?.[0]?.url
+										if (url) {
+											console.log('✅ Imagem carregada via UploadThing:', url)
+											setSolutionImagePreview(url)
+											setSolutionImage(null)
+											setSolutionError(null)
+											toast({ type: 'success', title: 'Imagem carregada' })
+										}
+									}}
+									onUploadError={(error) => setSolutionError(error.message)}
+									appearance={{
+										button: 'flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-zinc-300 rounded-lg hover:border-blue-400 dark:border-zinc-600 dark:hover:border-blue-500 transition',
+										container: '',
+										allowedContent: 'hidden',
+									}}
+									content={{
+										button: (
+											<>
+												<span className='icon-[lucide--plus] size-10 text-zinc-400' />
+												<span className='text-xs text-zinc-400 mt-2'>Adicionar imagem</span>
+											</>
+										),
+										allowedContent: 'Imagens até 4MB',
+									}}
+								/>
 							)}
 							{solutionImagePreview && (
 								<div className='flex flex-col items-center justify-center h-32 w-32 border-2 border-dashed border-blue-400 rounded-lg relative'>
-									<Image src={solutionImagePreview} alt='Preview' className='object-contain h-full w-full rounded-lg' width={128} height={128} style={{ objectFit: 'contain', maxHeight: '8rem', maxWidth: '8rem' }} unoptimized={true} />
+									<Image src={`${solutionImagePreview}?t=${Date.now()}`} alt='Preview' className='object-contain h-full w-full rounded-lg' width={128} height={128} style={{ objectFit: 'contain', maxHeight: '8rem', maxWidth: '8rem' }} unoptimized={true} />
 									<button
 										type='button'
 										className='absolute top-1 right-1 bg-red-100/75 hover:bg-red-100 dark:bg-red-800/30 dark:hover:bg-red-700/40 text-red-500 dark:text-red-400 rounded-full size-8 flex items-center justify-center transition'
 										onClick={() => {
 											setSolutionImage(null)
 											setSolutionImagePreview(null)
+											setSolutionError(null)
 										}}
 									>
 										<span className='icon-[lucide--trash] size-4' />
 									</button>
 								</div>
 							)}
-						</>
+						</div>
 					)}
 				</div>
 

@@ -61,7 +61,7 @@ export default function ProblemsPage() {
 	const [editing, setEditing] = useState<ProductProblem | null>(null)
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 	const [deleteLoading, setDeleteLoading] = useState(false)
-	const [previewFile, setPreviewFile] = useState<File | null>(null)
+	// const [previewFile, setPreviewFile] = useState<File | null>(null) - não mais necessário com UploadThing
 	const [deleteImageId, setDeleteImageId] = useState<string | null>(null)
 	const [solutionModalOpen, setSolutionModalOpen] = useState(false)
 	const [solutionMode, setSolutionMode] = useState<'create' | 'edit' | 'reply'>('create')
@@ -381,7 +381,8 @@ export default function ProblemsPage() {
 			if (solution.image?.image) {
 				console.log('✅ Carregando imagem existente da solução:', solution.image.image)
 				setSolutionImage(null) // Não há arquivo para edição, apenas preview
-				setSolutionImagePreview(solution.image.image)
+				// Adicionar timestamp para evitar cache
+				setSolutionImagePreview(`${solution.image.image}?t=${Date.now()}`)
 			} else {
 				console.log('🔵 Solução não possui imagem associada')
 				setSolutionImage(null)
@@ -437,9 +438,18 @@ export default function ProblemsPage() {
 			if (solutionMode === 'edit' && editingSolution) {
 				formData.append('id', editingSolution.id)
 			}
+
+			// Enviar a URL da imagem do UploadThing
+			if (solutionImagePreview) {
+				console.log('✅ Enviando URL da imagem para API:', solutionImagePreview)
+				formData.append('imageUrl', solutionImagePreview)
+			}
+
+			// Enviar o arquivo (para compatibilidade com código legado)
 			if (solutionImage) {
 				formData.append('file', solutionImage)
 			}
+
 			const method = solutionMode === 'edit' ? 'PUT' : 'POST'
 			const res = await fetch('/api/admin/products/solutions', {
 				method,
@@ -602,8 +612,6 @@ export default function ProblemsPage() {
 				formError={formError}
 				form={form}
 				images={images}
-				previewFile={previewFile}
-				setPreviewFile={setPreviewFile}
 				onDeleteProblem={handleDeleteProblem}
 				deleteDialogOpen={deleteDialogOpen}
 				setDeleteDialogOpen={setDeleteDialogOpen}

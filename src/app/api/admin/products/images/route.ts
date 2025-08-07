@@ -3,8 +3,7 @@ import { db } from '@/lib/db'
 import { productProblemImage } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
-import fs from 'fs'
-import path from 'path'
+import { utapi, getFileKeyFromUrl } from '@/server/uploadthing'
 
 export async function GET(req: NextRequest) {
 	const { searchParams } = new URL(req.url)
@@ -26,37 +25,29 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
 	try {
 		const formData = await req.formData()
-		const file = formData.get('file') as File | null
+		// const file = formData.get('file') as File | null - não mais usado, apenas UploadThing
 		const productProblemId = formData.get('productProblemId') as string | null
 		const description = (formData.get('description') as string | null) || ''
+		const imageUrl = formData.get('imageUrl') as string | null
 
-		if (!file || !productProblemId) {
+		if (!imageUrl || !productProblemId) {
 			return NextResponse.json({ error: 'Arquivo e productProblemId são obrigatórios.' }, { status: 400 })
 		}
 
-		const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-		const allowed = ['jpg', 'jpeg', 'png', 'webp']
-		if (!allowed.includes(ext)) {
-			return NextResponse.json({ error: 'Formato de imagem não suportado.' }, { status: 400 })
+		// Apenas aceita URL do UploadThing
+		if (imageUrl) {
+			const id = randomUUID()
+			await db.insert(productProblemImage).values({
+				id,
+				productProblemId,
+				image: imageUrl,
+				description,
+			})
+			return NextResponse.json({ success: true, image: imageUrl }, { status: 200 })
 		}
 
-		const id = randomUUID()
-		const fileName = `${id}.${ext}`
-		const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products', 'problems')
-		if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
-		const filePath = path.join(uploadDir, fileName)
-		const arrayBuffer = await file.arrayBuffer()
-		fs.writeFileSync(filePath, Buffer.from(arrayBuffer))
-
-		const imagePath = `/uploads/products/problems/${fileName}`
-		await db.insert(productProblemImage).values({
-			id,
-			productProblemId,
-			image: imagePath,
-			description: description || '',
-		})
-
-		return NextResponse.json({ success: true, image: imagePath }, { status: 200 })
+		// Upload de arquivo local não é mais suportado
+		return NextResponse.json({ error: 'Use UploadThing para fazer upload de imagens.' }, { status: 400 })
 	} catch {
 		return NextResponse.json({ error: 'Erro ao fazer upload da imagem.' }, { status: 500 })
 	}
@@ -73,20 +64,27 @@ export async function DELETE(req: NextRequest) {
 		if (!img.length) {
 			return NextResponse.json({ error: 'Imagem não encontrada.' }, { status: 404 })
 		}
-		const imagePath = img[0].image
+
+		// Exclui a imagem do UploadThing se for uma URL do UploadThing
+		const imageUrl = img[0].image
+		const fileKey = getFileKeyFromUrl(imageUrl)
+		if (fileKey) {
+			try {
+				console.log('🔵 Excluindo arquivo do UploadThing:', fileKey)
+				await utapi.deleteFiles([fileKey])
+				console.log('✅ Arquivo excluído do UploadThing com sucesso')
+			} catch (error) {
+				console.error('❌ Erro ao excluir arquivo do UploadThing:', error)
+				// Continua mesmo se falhar a exclusão do arquivo remoto
+			}
+		}
+
 		// Remove do banco
 		await db.delete(productProblemImage).where(eq(productProblemImage.id, id))
-		// Remove arquivo físico
-		try {
-			const filePath = path.join(process.cwd(), 'public', imagePath.startsWith('/') ? imagePath.slice(1) : imagePath)
-			if (fs.existsSync(filePath)) {
-				fs.unlinkSync(filePath)
-			}
-		} catch {
-			// Não interrompe se não conseguir deletar arquivo
-		}
+
 		return NextResponse.json({ success: true }, { status: 200 })
-	} catch {
+	} catch (error) {
+		console.error('❌ Erro ao excluir imagem:', error)
 		return NextResponse.json({ error: 'Erro ao excluir imagem.' }, { status: 500 })
 	}
 }

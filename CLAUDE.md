@@ -46,6 +46,7 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 - **Autenticação**: JWT + OAuth Google (Arctic 3.7.0)
 - **Charts**: ApexCharts 4.7.0 para dashboard
 - **Editor**: @uiw/react-md-editor 4.0.7 para Markdown
+- **Upload de Arquivos**: UploadThing v7 com UPLOADTHING_TOKEN (fallback para local storage)
 
 **Status Atual**: **75% PRODUCTION-READY** com build 100% funcional, zero erros TypeScript/ESLint, segurança institucional rigorosa, 11 de 16 funcionalidades operacionais
 
@@ -252,6 +253,31 @@ Esta implementação estabelece **política de segurança institucional rigorosa
 - Notificações push para mobile
 - Escalação automática de problemas não resolvidos
 - Configuração personalizada de alertas por usuário
+
+### 🚀 **SISTEMA DE UPLOAD COM UPLOADTHING V7 - DEZEMBRO 2024**
+
+**STATUS**: ✅ **COMPLETAMENTE IMPLEMENTADO E FUNCIONAL**
+
+**Funcionalidades Implementadas**:
+
+1. **Integração UploadThing v7** com `UPLOADTHING_TOKEN` (obrigatório - sem flag USE_UPLOADTHING)
+2. **FileRouter configurado** com 3 endpoints:
+   - `avatarUploader`: Avatar de usuário com resize automático (128x128 WebP)
+   - `contactImageUploader`: Imagens de contatos (até 4MB)
+   - `problemImageUploader`: Imagens de problemas/soluções (até 3 imagens, 4MB cada)
+3. **Componentes 100% migrados**:
+   - `PhotoUpload.tsx`: Avatar com UploadButton
+   - `ContactFormOffcanvas.tsx`: Upload de fotos de contatos
+   - `ProblemFormOffcanvas.tsx`: Upload de imagens de problemas
+   - `SolutionFormModal.tsx`: Upload de imagens de soluções
+4. **APIs completamente refatoradas** - apenas aceitam `imageUrl` do UploadThing:
+   - `/api/admin/contacts` - removida lógica de upload local
+   - `/api/admin/products/images` - apenas UploadThing
+   - `/api/admin/products/solutions` - apenas UploadThing
+5. **DELETE via UploadThing**: Rota `/api/(user)/user-profile-image` deleta do UT
+6. **Diretório public/uploads removido**: Todo upload agora é via UploadThing
+7. **Schema atualizado**: Campo `image` adicionado em `authUser` para avatar do usuário
+8. **Seed atualizado**: Removidas referências a arquivos locais de imagens
 
 ### 📊 **PROGRESSO ATUAL: 75%** (11 de 16 funcionalidades completas + Segurança institucional rigorosa)
 

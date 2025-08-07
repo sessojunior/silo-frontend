@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
-import fs from 'fs'
-import path from 'path'
 import { eq, desc } from 'drizzle-orm'
 
 import { db } from '@/lib/db'
 import { contact } from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
+import { utapi, getFileKeyFromUrl } from '@/server/uploadthing'
 
 // GET - Listar contatos com filtros
 export async function GET(req: NextRequest) {
@@ -67,8 +66,9 @@ export async function POST(req: NextRequest) {
 		const team = formData.get('team') as string
 		const email = formData.get('email') as string
 		const phone = formData.get('phone') as string | null
+		const imageUrl = formData.get('imageUrl') as string | null
 		const active = formData.get('active') === 'true'
-		const file = formData.get('file') as File | null
+		// const file = formData.get('file') as File | null - não mais usado, apenas UploadThing
 
 		console.log('🔵 Criando novo contato:', { name, role, team, email, active })
 
@@ -94,33 +94,12 @@ export async function POST(req: NextRequest) {
 
 		let imagePath: string | null = null
 
-		// Upload de imagem (se fornecida)
-		if (file) {
-			if (file.size > 4 * 1024 * 1024) {
-				return NextResponse.json({ success: false, error: 'A imagem deve ter no máximo 4MB' }, { status: 400 })
-			}
-
-			const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-			if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
-				return NextResponse.json({ success: false, error: 'Formato de imagem não suportado' }, { status: 400 })
-			}
-
-			const imageId = randomUUID()
-			const fileName = `${imageId}.${ext}`
-			const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'contacts')
-
-			// Criar diretório se não existir
-			if (!fs.existsSync(uploadDir)) {
-				fs.mkdirSync(uploadDir, { recursive: true })
-			}
-
-			const filePath = path.join(uploadDir, fileName)
-			const arrayBuffer = await file.arrayBuffer()
-			fs.writeFileSync(filePath, Buffer.from(arrayBuffer))
-
-			imagePath = `/uploads/contacts/${fileName}`
-			console.log('✅ Imagem salva:', imagePath)
+		// Definir imagem a partir de URL se fornecida
+		if (imageUrl) {
+			imagePath = imageUrl
 		}
+
+		// Upload de imagem agora é feito via UploadThing no frontend
 
 		// Criar contato
 		const contactId = randomUUID()
@@ -159,8 +138,9 @@ export async function PUT(req: NextRequest) {
 		const team = formData.get('team') as string
 		const email = formData.get('email') as string
 		const phone = formData.get('phone') as string | null
+		const imageUrl = formData.get('imageUrl') as string | null
 		const active = formData.get('active') === 'true'
-		const file = formData.get('file') as File | null
+		// const file = formData.get('file') as File | null - não mais usado, apenas UploadThing
 		const removeImage = formData.get('removeImage') === 'true'
 
 		console.log('🔵 Editando contato:', { id, name, role, team, email, active })
@@ -201,57 +181,29 @@ export async function PUT(req: NextRequest) {
 
 		let imagePath = existingContact.image
 
-		// Remover imagem existente se solicitado
+		// Se nova imagem via URL
+		if (imageUrl) {
+			imagePath = imageUrl
+		}
+
+		// Remover imagem se solicitado
 		if (removeImage && existingContact.image) {
-			try {
-				const filePath = path.join(process.cwd(), 'public', existingContact.image.startsWith('/') ? existingContact.image.slice(1) : existingContact.image)
-				if (fs.existsSync(filePath)) {
-					fs.unlinkSync(filePath)
+			// Exclui a imagem do UploadThing
+			const fileKey = getFileKeyFromUrl(existingContact.image)
+			if (fileKey) {
+				try {
+					console.log('🔵 Excluindo imagem de contato do UploadThing:', fileKey)
+					await utapi.deleteFiles([fileKey])
+					console.log('✅ Imagem de contato excluída do UploadThing com sucesso')
+				} catch (error) {
+					console.error('❌ Erro ao excluir imagem de contato do UploadThing:', error)
+					// Continua mesmo se falhar a exclusão do arquivo remoto
 				}
-			} catch (error) {
-				console.error('⚠️ Erro ao remover imagem:', error)
 			}
 			imagePath = null
 		}
 
-		// Upload de nova imagem
-		if (file) {
-			if (file.size > 4 * 1024 * 1024) {
-				return NextResponse.json({ success: false, error: 'A imagem deve ter no máximo 4MB' }, { status: 400 })
-			}
-
-			const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-			if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
-				return NextResponse.json({ success: false, error: 'Formato de imagem não suportado' }, { status: 400 })
-			}
-
-			// Remover imagem anterior se existir
-			if (existingContact.image) {
-				try {
-					const oldFilePath = path.join(process.cwd(), 'public', existingContact.image.startsWith('/') ? existingContact.image.slice(1) : existingContact.image)
-					if (fs.existsSync(oldFilePath)) {
-						fs.unlinkSync(oldFilePath)
-					}
-				} catch (error) {
-					console.error('⚠️ Erro ao remover imagem anterior:', error)
-				}
-			}
-
-			const imageId = randomUUID()
-			const fileName = `${imageId}.${ext}`
-			const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'contacts')
-
-			if (!fs.existsSync(uploadDir)) {
-				fs.mkdirSync(uploadDir, { recursive: true })
-			}
-
-			const filePath = path.join(uploadDir, fileName)
-			const arrayBuffer = await file.arrayBuffer()
-			fs.writeFileSync(filePath, Buffer.from(arrayBuffer))
-
-			imagePath = `/uploads/contacts/${fileName}`
-			console.log('✅ Nova imagem salva:', imagePath)
-		}
+		// Upload de imagem agora é feito via UploadThing no frontend
 
 		// Atualizar contato
 		await db
@@ -301,16 +253,18 @@ export async function DELETE(req: NextRequest) {
 
 		const existingContact = existingContacts[0]
 
-		// Remover imagem se existir
+		// Exclui a imagem do UploadThing se existir
 		if (existingContact.image) {
-			try {
-				const filePath = path.join(process.cwd(), 'public', existingContact.image.startsWith('/') ? existingContact.image.slice(1) : existingContact.image)
-				if (fs.existsSync(filePath)) {
-					fs.unlinkSync(filePath)
+			const fileKey = getFileKeyFromUrl(existingContact.image)
+			if (fileKey) {
+				try {
+					console.log('🔵 Excluindo imagem de contato do UploadThing:', fileKey)
+					await utapi.deleteFiles([fileKey])
+					console.log('✅ Imagem de contato excluída do UploadThing com sucesso')
+				} catch (error) {
+					console.error('❌ Erro ao excluir imagem de contato do UploadThing:', error)
+					// Continua mesmo se falhar a exclusão do arquivo remoto
 				}
-				console.log('✅ Imagem removida:', existingContact.image)
-			} catch (error) {
-				console.error('⚠️ Erro ao remover imagem:', error)
 			}
 		}
 

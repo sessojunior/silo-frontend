@@ -434,21 +434,7 @@ async function seed() {
 							})
 						}
 
-						// Adicionar imagens exemplo
-						await db.insert(schema.productProblemImage).values([
-							{
-								id: randomUUID(),
-								productProblemId: problem.id,
-								image: '/uploads/products/problems/erro1.jpg',
-								description: 'Imagem demonstrando o erro',
-							},
-							{
-								id: randomUUID(),
-								productProblemId: problem.id,
-								image: '/uploads/products/problems/erro2.jpg',
-								description: 'Outra imagem do erro',
-							},
-						])
+						// Imagens de problemas agora são adicionadas via UploadThing na interface
 					}
 				}
 			}

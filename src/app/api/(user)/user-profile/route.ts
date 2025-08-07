@@ -6,7 +6,6 @@ import { getAuthUser } from '@/lib/auth/token'
 import { isValidName } from '@/lib/auth/validate'
 import { randomUUID } from 'crypto'
 import { getGoogleIdFromUserId } from '@/lib/auth/oauth'
-import { getProfileImagePath } from '@/lib/profileImage'
 
 // Obtém os dados do perfil do usuário logado
 export async function GET() {
@@ -18,8 +17,9 @@ export async function GET() {
 		// Busca os dados do perfil do usuário no banco de dados
 		const findUserProfile = await db.query.userProfile.findFirst({ where: eq(userProfile.userId, user.id) })
 
-		// Imagem de perfil
-		const image = getProfileImagePath(user.id) ?? null
+		// Busca a imagem do usuário diretamente do banco de dados
+		const userData = await db.select({ image: authUser.image }).from(authUser).where(eq(authUser.id, user.id)).limit(1)
+		const image = userData[0]?.image || null
 
 		// ID do usuário no Google
 		const { googleId } = await getGoogleIdFromUserId(user.id)

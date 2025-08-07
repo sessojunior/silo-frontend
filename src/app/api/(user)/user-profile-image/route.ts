@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth/token'
 import { uploadProfileImageFromInput, deleteUserProfileImage } from '@/lib/profileImage'
+import { utapi, getFileKeyFromUrl } from '@/server/uploadthing'
+import { db } from '@/lib/db'
+import { authUser } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 
 // Faz o upload da imagem de perfil do usuário
 export async function POST(req: NextRequest) {
@@ -39,12 +43,33 @@ export async function DELETE() {
 		const user = await getAuthUser()
 		if (!user) return NextResponse.json({ field: null, message: 'Usuário não logado.' }, { status: 400 })
 
-		// Apaga a imagem de perfil do usuário
-		const deleteImage = deleteUserProfileImage(user.id)
-		if ('error' in deleteImage) {
-			console.error('❌ Erro ao apagar a imagem de perfil do usuário:', deleteImage.error)
-			return NextResponse.json({ message: deleteImage.error.message }, { status: 400 })
+		// Busca a imagem atual do usuário
+		const currentUser = await db.select({ image: authUser.image }).from(authUser).where(eq(authUser.id, user.id)).limit(1)
+
+		if (currentUser[0]?.image) {
+			// Se a imagem é do UploadThing, deleta via API
+			const fileKey = getFileKeyFromUrl(currentUser[0].image)
+			if (fileKey) {
+				try {
+					console.log('🔵 Excluindo imagem de perfil do UploadThing:', fileKey)
+					await utapi.deleteFiles([fileKey])
+					console.log('✅ Imagem de perfil excluída do UploadThing com sucesso')
+				} catch (error) {
+					console.error('❌ Erro ao excluir imagem de perfil do UploadThing:', error)
+					// Continua mesmo se falhar a exclusão do arquivo remoto
+				}
+			} else {
+				// Se é imagem local, usa método antigo
+				const deleteImage = deleteUserProfileImage(user.id)
+				if ('error' in deleteImage) {
+					console.error('❌ Erro ao apagar a imagem de perfil local:', deleteImage.error)
+					return NextResponse.json({ message: deleteImage.error.message }, { status: 400 })
+				}
+			}
 		}
+
+		// Limpa a referência no banco
+		await db.update(authUser).set({ image: null }).where(eq(authUser.id, user.id))
 
 		// Retorna a resposta com sucesso
 		return NextResponse.json({ message: 'Imagem apagada com sucesso!' })

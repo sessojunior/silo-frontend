@@ -54,10 +54,10 @@ export default function SettingsPage() {
 	const [email, setEmail] = useState(user?.email || '')
 	const [password, setPassword] = useState('')
 
-	// Load data on component mount
+	// Load data on component mount and when activeTab changes
 	useEffect(() => {
 		fetchAllData()
-	}, [])
+	}, [activeTab])
 
 	// Navigation items
 	const navigationItems = [

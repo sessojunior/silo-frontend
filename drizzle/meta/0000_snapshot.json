@@ -1,5 +1,5 @@
 {
-  "id": "352a0a10-bae8-4d85-9ca0-92af854c8fed",
+  "id": "aeda2049-00f7-4048-9d47-106020c91820",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -197,7 +197,7 @@
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
-          "default": true
+          "default": false
         },
         "last_login": {
           "name": "last_login",
