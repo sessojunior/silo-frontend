@@ -25,10 +25,20 @@ export async function GET(req: NextRequest) {
 	const state = req.nextUrl.searchParams.get('state')
 
 	// 3. Verifica se os parâmetros foram enviados
-	if (!state || !code || !stateCookie || !verifierCookie) return new NextResponse('Parâmetros ausentes ou expirados. Reinicie o login.', { status: 400 })
+	if (!state || !code || !stateCookie || !verifierCookie) {
+		const protocol = req.headers.get('x-forwarded-proto') || 'http'
+		const host = req.headers.get('host') || 'localhost:3000'
+		const baseUrl = `${protocol}://${host}`
+		return NextResponse.redirect(new URL('/error?error=invalid_params&status=400', baseUrl))
+	}
 
 	// 4. Proteção contra CSRF: compara o state original com o retornado
-	if (state !== stateCookie) return new NextResponse('State inválido. Reinicie o login.', { status: 400 })
+	if (state !== stateCookie) {
+		const protocol = req.headers.get('x-forwarded-proto') || 'http'
+		const host = req.headers.get('host') || 'localhost:3000'
+		const baseUrl = `${protocol}://${host}`
+		return NextResponse.redirect(new URL('/error?error=invalid_state&status=400', baseUrl))
+	}
 
 	// 5. Troca o código de autorização por tokens reais com o 'code_verifier'
 	let tokens: OAuth2Tokens
@@ -37,7 +47,10 @@ export async function GET(req: NextRequest) {
 		tokens = await google.validateAuthorizationCode(code, verifierCookie)
 	} catch {
 		// Caso o código de autorização ou o código verificador seja inválido
-		return new NextResponse('Código de autorização inválido. Reinicie o login.', { status: 400 })
+		const protocol = req.headers.get('x-forwarded-proto') || 'http'
+		const host = req.headers.get('host') || 'localhost:3000'
+		const baseUrl = `${protocol}://${host}`
+		return NextResponse.redirect(new URL('/error?error=invalid_code&status=400', baseUrl))
 	}
 
 	// 6. Decodifica o ID do token (JWT) e extrai os dados do usuário
@@ -54,7 +67,10 @@ export async function GET(req: NextRequest) {
 
 	// 7. Verifica se o e-mail pertence ao domínio @inpe.br
 	if (!isValidDomain(email)) {
-		return new NextResponse('Apenas contas Google com e-mail @inpe.br são permitidas para acesso.', { status: 403 })
+		const protocol = req.headers.get('x-forwarded-proto') || 'http'
+		const host = req.headers.get('host') || 'localhost:3000'
+		const baseUrl = `${protocol}://${host}`
+		return NextResponse.redirect(new URL('/error?error=unauthorized&status=403', baseUrl))
 	}
 
 	// 8. Verifica se o usuário já existe
@@ -70,12 +86,20 @@ export async function GET(req: NextRequest) {
 	})
 
 	if (!userWithStatus?.isActive) {
-		return new NextResponse('Sua conta ainda não foi ativada por um administrador. Entre em contato com o suporte.', { status: 403 })
+		const protocol = req.headers.get('x-forwarded-proto') || 'http'
+		const host = req.headers.get('host') || 'localhost:3000'
+		const baseUrl = `${protocol}://${host}`
+		return NextResponse.redirect(new URL('/error?error=account_not_activated&status=403', baseUrl))
 	}
 
 	// 11. Cria a sessão e o cookie de sessão
 	const sessionToken = await createSessionCookie(user.id)
-	if ('error' in sessionToken) return new NextResponse('Ocorreu um erro ao criar a sessão.', { status: 500 })
+	if ('error' in sessionToken) {
+		const protocol = req.headers.get('x-forwarded-proto') || 'http'
+		const host = req.headers.get('host') || 'localhost:3000'
+		const baseUrl = `${protocol}://${host}`
+		return NextResponse.redirect(new URL('/error?error=session_error&status=500', baseUrl))
+	}
 
 	// Redireciona o usuário para a página privada
 	return NextResponse.redirect(new URL('/admin/welcome', req.url))
