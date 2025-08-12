@@ -307,8 +307,8 @@ export default function UsersPage() {
 													<div>
 														<div className='font-medium text-zinc-900 dark:text-zinc-100'>{user.name}</div>
 														<div className='flex items-center gap-2 mt-1'>
-															<span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${user.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>{user.isActive ? '🟢 Ativo' : '🔴 Inativo'}</span>
-															{user.emailVerified && <span className='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'>✅ Verificado</span>}
+															<span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${user.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>{user.isActive ? '🟢 Ativo' : '🔴 Inativo'}</span>
+															{user.emailVerified && <span className='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 whitespace-nowrap'>✅ Verificado</span>}
 														</div>
 													</div>
 												</div>

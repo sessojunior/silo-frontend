@@ -30,6 +30,12 @@
 - [ ] **Ativação por admin**: Toggle na interface administrativa funciona
 - [ ] **Acesso após ativação**: Usuário consegue fazer login normalmente
 
+### **Segurança de Senhas**
+
+- [x] **Campo senha removido**: Formulário de edição de usuário não permite alterar senhas
+- [x] **Validação ajustada**: Não exige senha na edição, apenas na criação
+- [x] **Interface limpa**: Campo de senha removido da interface de edição
+
 ### **Fluxos de Autenticação**
 
 - [ ] **Login com senha**: Credenciais válidas e inválidas

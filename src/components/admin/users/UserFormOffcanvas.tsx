@@ -41,7 +41,6 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 	const [formData, setFormData] = useState({
 		name: '',
 		email: '',
-		password: '',
 		emailVerified: false,
 		isActive: true,
 	})
@@ -55,7 +54,6 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 				setFormData({
 					name: user.name || '',
 					email: user.email || '',
-					password: '',
 					emailVerified: user.emailVerified || false,
 					isActive: user.isActive !== undefined ? user.isActive : true,
 				})
@@ -78,7 +76,6 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 				setFormData({
 					name: '',
 					email: '',
-					password: '',
 					emailVerified: false,
 					isActive: true,
 				})
@@ -99,15 +96,6 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 			return
 		}
 
-		if (!isEditing && !formData.password) {
-			toast({
-				type: 'error',
-				title: 'Senha obrigatória',
-				description: 'Senha é obrigatória para novos usuários.',
-			})
-			return
-		}
-
 		try {
 			setLoading(true)
 			const method = isEditing ? 'PUT' : 'POST'
@@ -124,7 +112,6 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 				? {
 						id: user.id,
 						...bodyData,
-						...(formData.password ? { password: formData.password } : {}),
 					}
 				: bodyData
 
@@ -178,14 +165,6 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 						Email <span className='text-red-500'>*</span>
 					</label>
 					<Input type='email' placeholder='Digite o email do usuário' value={formData.email} setValue={(value) => setFormData((prev) => ({ ...prev, email: value }))} />
-				</div>
-
-				<div>
-					<label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
-						Senha {!isEditing && <span className='text-red-500'>*</span>}
-						{isEditing && <span className='text-zinc-500 text-xs'>(deixe vazio para manter atual)</span>}
-					</label>
-					<Input type='text' placeholder={isEditing ? 'Digite nova senha (opcional)' : 'Digite a senha do usuário'} value={formData.password} setValue={(value) => setFormData((prev) => ({ ...prev, password: value }))} />
 				</div>
 
 				<div>
