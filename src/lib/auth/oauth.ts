@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { authUser, authProvider } from '@/lib/db/schema'
 import { uploadProfileImageFromUrl } from '@/lib/profileImage'
+import { addUserToDefaultGroup } from '@/lib/auth/user-groups'
 
 // Login com o Google
 
@@ -101,6 +102,9 @@ export async function createUserFromGoogleId(googleId: string, email: string, na
 
 	// Salva a imagem de perfil no Google
 	await uploadProfileImageFromUrl(picture, userId)
+
+	// Adiciona automaticamente o usuário ao grupo padrão
+	await addUserToDefaultGroup(userId)
 
 	// Retorna os dados do usuário
 	return { id: userId, name: formatName, email: formatEmail, emailVerified: true, googleId }

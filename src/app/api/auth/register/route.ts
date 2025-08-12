@@ -6,6 +6,7 @@ import { hashPassword } from '@/lib/auth/hash'
 import { generateCode, sendEmailCode } from '@/lib/auth/code'
 import { isValidEmail, isValidPassword, isValidName, isValidDomain } from '@/lib/auth/validate'
 import { randomUUID } from 'crypto'
+import { addUserToDefaultGroup } from '@/lib/auth/user-groups'
 
 // Cadastra um novo usuário
 export async function POST(req: NextRequest) {
@@ -58,6 +59,9 @@ export async function POST(req: NextRequest) {
 			password: hashedPassword,
 			isActive: false, // usuário criado inativo - precisa ativação por administrador
 		})
+
+		// Adiciona automaticamente o usuário ao grupo padrão
+		await addUserToDefaultGroup(userId)
 
 		// Gera e envia código de verificação por e-mail
 		const otp = await generateCode(email)

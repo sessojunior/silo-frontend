@@ -7,6 +7,7 @@ import { isValidDomain } from '@/lib/auth/validate'
 import { db } from '@/lib/db'
 import { authUser } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
+import { updateUserLastLogin } from '@/lib/auth/user-groups'
 
 // Valida o retorno de chamada do Google pelo código de autorização
 // - Verifica se o estado na URL corresponde ao estado armazenado
@@ -100,6 +101,9 @@ export async function GET(req: NextRequest) {
 		const baseUrl = `${protocol}://${host}`
 		return NextResponse.redirect(new URL('/error?error=session_error&status=500', baseUrl))
 	}
+
+	// Atualiza o último acesso do usuário
+	await updateUserLastLogin(user.id)
 
 	// Redireciona o usuário para a página privada
 	return NextResponse.redirect(new URL('/admin/welcome', req.url))

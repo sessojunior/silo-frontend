@@ -36,6 +36,21 @@
 - [x] **Validação ajustada**: Não exige senha na edição, apenas na criação
 - [x] **Interface limpa**: Campo de senha removido da interface de edição
 
+### **Grupo Padrão Automático**
+
+- [x] **Função helper criada**: addUserToDefaultGroup() para associar usuários ao grupo padrão
+- [x] **Registro via email/senha**: Usuários criados por registro são adicionados ao grupo "Meteorologistas"
+- [x] **Registro via Google OAuth**: Usuários criados via Google são adicionados ao grupo padrão
+- [x] **Grupo padrão configurado**: Grupo "Meteorologistas" marcado como isDefault: true
+
+### **Último Acesso dos Usuários**
+
+- [x] **Função helper criada**: updateUserLastLogin() para atualizar timestamp de último acesso
+- [x] **Login com senha**: Último acesso atualizado ao fazer login com email/senha
+- [x] **Login com código OTP**: Último acesso atualizado ao verificar código de verificação
+- [x] **Login Google OAuth**: Último acesso atualizado ao fazer login via Google
+- [x] **Campo lastLogin**: Exibido corretamente na lista de usuários (/admin/groups/users)
+
 ### **Fluxos de Autenticação**
 
 - [ ] **Login com senha**: Credenciais válidas e inválidas

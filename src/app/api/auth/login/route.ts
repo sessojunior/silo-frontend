@@ -6,6 +6,7 @@ import { verifyPassword } from '@/lib/auth/hash'
 import { createSessionCookie } from '@/lib/auth/session'
 import { generateCode, sendEmailCode } from '@/lib/auth/code'
 import { isValidEmail, isValidPassword } from '@/lib/auth/validate'
+import { updateUserLastLogin } from '@/lib/auth/user-groups'
 
 // Faz login do usuário com e-mail e senha
 export async function POST(req: NextRequest) {
@@ -44,6 +45,9 @@ export async function POST(req: NextRequest) {
 		if (!passwordMatch) {
 			return NextResponse.json({ field: 'password', message: 'A senha está incorreta' }, { status: 401 })
 		}
+
+		// Atualiza o último acesso do usuário
+		await updateUserLastLogin(user.id)
 
 		// Se o e-mail do usuário ainda não tiver sido verificado
 		if (user.emailVerified === false) {

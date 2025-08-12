@@ -5,6 +5,7 @@ import { authUser } from '@/lib/db/schema'
 import { createSessionCookie } from '@/lib/auth/session'
 import { validateCode } from '@/lib/auth/code'
 import { isValidCode, isValidEmail } from '@/lib/auth/validate'
+import { updateUserLastLogin } from '@/lib/auth/user-groups'
 
 // Verifica o código OTP enviado por e-mail
 export async function POST(req: NextRequest) {
@@ -38,6 +39,9 @@ export async function POST(req: NextRequest) {
 		if ('error' in isValidateCode) {
 			return NextResponse.json({ field: 'code', message: isValidateCode.error?.message ?? 'O código é inválido ou expirou.' }, { status: 400 })
 		}
+
+		// Atualiza o último acesso do usuário
+		await updateUserLastLogin(user.id)
 
 		// Cria a sessão e o cookie do usuário
 		const sessionToken = await createSessionCookie(user.id)
