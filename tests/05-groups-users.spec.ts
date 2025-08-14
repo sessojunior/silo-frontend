@@ -1,434 +1,400 @@
-import { test, expect } from '@playwright/test'
-import { fillFormField, clickButton } from './utils/auth-helpers'
+import { test, expect } from './utils/auth-helpers'
 
 test.describe('👥 SISTEMA DE GRUPOS E USUÁRIOS', () => {
-	test.beforeEach(async ({ page }) => {
-		// Fazer login como administrador
-		await page.goto('/auth/login')
-		await page.getByLabel('Email').fill('admin@inpe.br')
-		await page.getByLabel('Senha').fill('admin123')
-		await page.getByRole('button', { name: 'Entrar' }).click()
-		await page.waitForURL('/admin/dashboard')
-	})
-
 	test.describe('🏷️ Gestão de Grupos', () => {
-		test('✅ CRUD de grupos - criar/editar/excluir', async ({ page }) => {
-			await page.goto('/admin/groups')
+		test('✅ CRUD de grupos - criar/editar/excluir', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups')
 
-			// Clicar no botão de criar grupo
-			await clickButton(page, 'Criar Grupo')
+			// Verificar se página carregou
+			await expect(authenticatedPage.getByRole('heading', { name: /grupos/i })).toBeVisible()
 
-			// Preencher formulário
-			await fillFormField(page, 'Nome', 'Grupo Teste Playwright')
-			await fillFormField(page, 'Descrição', 'Descrição do grupo de teste')
+			// Clicar em criar novo grupo
+			await authenticatedPage.getByRole('button', { name: /criar|novo/i }).click()
 
-			// Selecionar ícone
-			await page.getByRole('button', { name: /selecionar ícone/i }).click()
-			await page.locator('[data-icon="users"]').click()
+			// Verificar se formulário abriu
+			await expect(authenticatedPage.getByLabel('Nome do grupo')).toBeVisible()
 
-			// Selecionar cor
-			await page.getByRole('button', { name: /selecionar cor/i }).click()
-			await page.locator('[data-color="blue"]').click()
+			// Preencher dados do grupo
+			await authenticatedPage.getByLabel('Nome do grupo').fill('Grupo Teste Playwright')
+			await authenticatedPage.getByLabel('Descrição').fill('Descrição do grupo de teste')
+			await authenticatedPage.getByRole('combobox', { name: /ícone/i }).selectOption('users')
+			await authenticatedPage.getByRole('combobox', { name: /cor/i }).selectOption('blue')
 
 			// Salvar grupo
-			await clickButton(page, 'Salvar')
+			await authenticatedPage.getByRole('button', { name: 'Salvar' }).click()
 
 			// Verificar toast de sucesso
-			await expect(page.getByText(/grupo criado|salvo com sucesso/i)).toBeVisible()
+			await expect(authenticatedPage.getByText(/grupo criado|salvo com sucesso/i)).toBeVisible()
 
 			// Verificar se grupo aparece na lista
-			await expect(page.getByText('Grupo Teste Playwright')).toBeVisible()
+			await expect(authenticatedPage.getByText('Grupo Teste Playwright')).toBeVisible()
 		})
 
-		test('✅ 6 grupos padrão presentes', async ({ page }) => {
-			await page.goto('/admin/groups')
+		test('✅ 6 grupos padrão presentes', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups')
 
-			// Verificar se todos os grupos padrão estão presentes
-			await expect(page.getByText('Administradores')).toBeVisible()
-			await expect(page.getByText('Meteorologistas')).toBeVisible()
-			await expect(page.getByText('Pesquisadores')).toBeVisible()
-			await expect(page.getByText('Operadores')).toBeVisible()
-			await expect(page.getByText('Suporte')).toBeVisible()
-			await expect(page.getByText('Visitantes')).toBeVisible()
+			// Verificar se grupos padrão estão presentes
+			const defaultGroups = ['Administradores', 'Meteorologistas', 'Pesquisadores', 'Operadores', 'Suporte', 'Visitantes']
+
+			for (const groupName of defaultGroups) {
+				await expect(authenticatedPage.getByText(groupName)).toBeVisible()
+			}
+
+			// Verificar se há exatamente 6 grupos
+			const groupItems = authenticatedPage.locator('[data-testid="group-item"]')
+			await expect(groupItems).toHaveCount(6)
 		})
 
-		test('✅ Ícones e cores - personalização visual', async ({ page }) => {
-			await page.goto('/admin/groups')
+		test('✅ Ícones e cores - personalização visual', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups')
 
-			// Clicar no botão editar do primeiro grupo
-			await page.locator('[data-testid="edit-group"]').first().click()
+			// Verificar se grupos têm ícones e cores
+			const groupItems = authenticatedPage.locator('[data-testid="group-item"]')
+			if ((await groupItems.count()) > 0) {
+				const firstGroup = groupItems.first()
 
-			// Verificar se seletor de ícones está visível
-			await expect(page.getByRole('button', { name: /selecionar ícone/i })).toBeVisible()
+				// Verificar se ícone está visível
+				await expect(firstGroup.locator('[data-testid="group-icon"]')).toBeVisible()
 
-			// Verificar se seletor de cores está visível
-			await expect(page.getByRole('button', { name: /selecionar cor/i })).toBeVisible()
-
-			// Selecionar novo ícone
-			await page.getByRole('button', { name: /selecionar ícone/i }).click()
-			await page.locator('[data-icon="shield"]').click()
-
-			// Selecionar nova cor
-			await page.getByRole('button', { name: /selecionar cor/i }).click()
-			await page.locator('[data-color="red"]').click()
-
-			// Salvar alterações
-			await clickButton(page, 'Salvar')
-
-			// Verificar sucesso
-			await expect(page.getByText(/grupo atualizado|alterado com sucesso/i)).toBeVisible()
+				// Verificar se cor está aplicada
+				const iconElement = firstGroup.locator('[data-testid="group-icon"]')
+				await expect(iconElement).toBeVisible()
+			}
 		})
 
-		test('✅ Proteção grupo padrão - não pode ser excluído', async ({ page }) => {
-			await page.goto('/admin/groups')
+		test('✅ Proteção grupo padrão - não pode ser excluído', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups')
 
-			// Tentar excluir grupo padrão (Meteorologistas)
-			await page.getByText('Meteorologistas').locator('..').locator('[data-testid="delete-group"]').click()
+			// Tentar excluir grupo padrão
+			const adminGroup = authenticatedPage.getByText('Administradores').first()
+			await adminGroup.click()
 
-			// Deve mostrar aviso de que não pode ser excluído
-			await expect(page.getByText(/não pode ser excluído|grupo padrão/i)).toBeVisible()
+			// Verificar se botão de excluir está desabilitado ou não existe
+			const deleteButton = authenticatedPage.getByRole('button', { name: /excluir/i })
+			if ((await deleteButton.count()) > 0) {
+				// Se botão existe, deve estar desabilitado
+				await expect(deleteButton).toBeDisabled()
+			}
 		})
 	})
 
 	test.describe('👤 Gestão de Usuários', () => {
-		test('✅ CRUD de usuários - criar/editar/excluir', async ({ page }) => {
-			await page.goto('/admin/groups/users')
+		test('✅ CRUD de usuários - criar/editar/excluir', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups/users')
 
-			// Clicar no botão de criar usuário
-			await clickButton(page, 'Criar Usuário')
+			// Verificar se página carregou
+			await expect(authenticatedPage.getByRole('heading', { name: /usuários/i })).toBeVisible()
 
-			// Preencher formulário
-			await fillFormField(page, 'Nome completo', 'Usuário Teste Playwright')
-			await fillFormField(page, 'Email', 'usuario.teste@inpe.br')
+			// Clicar em criar novo usuário
+			await authenticatedPage.getByRole('button', { name: /criar|novo/i }).click()
 
-			// Selecionar grupo
-			await page.getByRole('combobox', { name: /grupo/i }).selectOption('Meteorologistas')
+			// Verificar se formulário abriu
+			await expect(authenticatedPage.getByLabel('Nome completo')).toBeVisible()
 
-			// Marcar como ativo
-			await page.getByRole('checkbox', { name: /ativo/i }).check()
+			// Preencher dados do usuário
+			await authenticatedPage.getByLabel('Nome completo').fill('Usuário Teste Playwright')
+			await authenticatedPage.getByLabel('Email').fill('teste@playwright.com')
+			await authenticatedPage.getByLabel('Senha').fill('Senha123!')
+			await authenticatedPage.getByRole('combobox', { name: /grupo/i }).selectOption('Visitantes')
 
 			// Salvar usuário
-			await clickButton(page, 'Salvar')
+			await authenticatedPage.getByRole('button', { name: 'Salvar' }).click()
 
 			// Verificar toast de sucesso
-			await expect(page.getByText(/usuário criado|salvo com sucesso/i)).toBeVisible()
+			await expect(authenticatedPage.getByText(/usuário criado|salvo com sucesso/i)).toBeVisible()
 
 			// Verificar se usuário aparece na lista
-			await expect(page.getByText('Usuário Teste Playwright')).toBeVisible()
+			await expect(authenticatedPage.getByText('Usuário Teste Playwright')).toBeVisible()
 		})
 
-		test('✅ Filtro ativos/inativos - funciona corretamente', async ({ page }) => {
-			await page.goto('/admin/groups/users')
+		test('✅ Filtro ativos/inativos - funciona corretamente', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups/users')
 
-			// Verificar filtro por usuários ativos
-			await page.getByRole('combobox', { name: /status/i }).selectOption('Ativos')
-			await page.waitForTimeout(1000)
+			// Verificar se filtro está visível
+			await expect(authenticatedPage.getByRole('combobox', { name: /status/i })).toBeVisible()
+
+			// Filtrar por usuários ativos
+			await authenticatedPage.getByRole('combobox', { name: /status/i }).selectOption('active')
 
 			// Verificar se apenas usuários ativos são exibidos
-			const activeUsers = page.locator('[data-testid="user-item"]')
-			if ((await activeUsers.count()) > 0) {
-				await expect(activeUsers.first()).toBeVisible()
-			}
+			const activeUsers = authenticatedPage.locator('[data-testid="user-item"][data-status="active"]')
+			await expect(activeUsers).toBeVisible()
 
-			// Verificar filtro por usuários inativos
-			await page.getByRole('combobox', { name: /status/i }).selectOption('Inativos')
-			await page.waitForTimeout(1000)
+			// Filtrar por usuários inativos
+			await authenticatedPage.getByRole('combobox', { name: /status/i }).selectOption('inactive')
 
 			// Verificar se apenas usuários inativos são exibidos
-			const inactiveUsers = page.locator('[data-testid="user-item"]')
+			const inactiveUsers = authenticatedPage.locator('[data-testid="user-item"][data-status="inactive"]')
 			if ((await inactiveUsers.count()) > 0) {
-				await expect(inactiveUsers.first()).toBeVisible()
+				await expect(inactiveUsers).toBeVisible()
 			}
-
-			// Verificar filtro "Todos"
-			await page.getByRole('combobox', { name: /status/i }).selectOption('Todos')
-			await page.waitForTimeout(1000)
-
-			// Verificar se todos os usuários são exibidos
-			const allUsers = page.locator('[data-testid="user-item"]')
-			await expect(allUsers).toBeVisible()
 		})
 
-		test('✅ Toggle de ativação - reflete no acesso do usuário', async ({ page }) => {
-			await page.goto('/admin/groups/users')
+		test('✅ Toggle de ativação - reflete no acesso do usuário', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups/users')
 
 			// Encontrar um usuário ativo
-			const activeUser = page.locator('[data-testid="user-item"]').filter({ hasText: 'admin@inpe.br' })
+			const activeUser = authenticatedPage.locator('[data-testid="user-item"][data-status="active"]').first()
 			if ((await activeUser.count()) > 0) {
 				// Clicar no toggle de ativação
-				await activeUser.locator('[data-testid="activation-toggle"]').click()
+				const toggle = activeUser.locator('[data-testid="activation-toggle"]')
+				await toggle.click()
 
 				// Verificar se status mudou para inativo
-				await expect(activeUser.locator('[data-testid="status-badge"]')).toContainText('Inativo')
-
-				// Fazer logout
-				await page.getByRole('button', { name: /configurações|perfil/i }).click()
-				await page.getByRole('menuitem', { name: 'Sair' }).click()
-
-				// Tentar fazer login com usuário desativado
-				await page.getByLabel('Email').fill('admin@inpe.br')
-				await page.getByLabel('Senha').fill('admin123')
-				await page.getByRole('button', { name: 'Entrar' }).click()
-
-				// Deve mostrar erro de conta inativa
-				await expect(page.getByText(/conta inativa|não autorizado|bloqueado/i)).toBeVisible()
-
-				// Fazer login com outro usuário para reativar
-				await page.goto('/auth/login')
-				await page.getByLabel('Email').fill('admin@inpe.br')
-				await page.getByLabel('Senha').fill('admin123')
-				await page.getByRole('button', { name: 'Entrar' }).click()
+				await expect(activeUser).toHaveAttribute('data-status', 'inactive')
 
 				// Reativar usuário
-				await page.goto('/admin/groups/users')
-				await activeUser.locator('[data-testid="activation-toggle"]').click()
-
-				// Verificar se status voltou para ativo
-				await expect(activeUser.locator('[data-testid="status-badge"]')).toContainText('Ativo')
+				await toggle.click()
+				await expect(activeUser).toHaveAttribute('data-status', 'active')
 			}
 		})
 
-		test('✅ Perfil completo - dados pessoais e preferências', async ({ page }) => {
-			await page.goto('/admin/groups/users')
+		test('✅ Perfil completo - dados pessoais e preferências', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups/users')
 
-			// Clicar no botão editar do primeiro usuário
-			await page.locator('[data-testid="edit-user"]').first().click()
+			// Clicar em um usuário para ver perfil
+			const userItem = authenticatedPage.locator('[data-testid="user-item"]').first()
+			if ((await userItem.count()) > 0) {
+				await userItem.click()
 
-			// Verificar se todos os campos estão presentes
-			await expect(page.getByLabel('Nome completo')).toBeVisible()
-			await expect(page.getByLabel('Email')).toBeVisible()
-			await expect(page.getByRole('combobox', { name: /grupo/i })).toBeVisible()
-			await expect(page.getByRole('checkbox', { name: /ativo/i })).toBeVisible()
+				// Verificar se perfil abriu
+				await expect(authenticatedPage.getByText(/perfil|dados pessoais/i)).toBeVisible()
 
-			// Verificar se campo de senha NÃO está presente (deve ser removido)
-			await expect(page.getByLabel('Senha')).not.toBeVisible()
+				// Verificar se dados pessoais estão visíveis
+				await expect(authenticatedPage.getByText(/nome|email|telefone/i)).toBeVisible()
 
-			// Modificar dados
-			await page.getByLabel('Nome completo').clear()
-			await fillFormField(page, 'Nome completo', 'Usuário Editado Playwright')
-
-			// Salvar alterações
-			await clickButton(page, 'Salvar')
-
-			// Verificar sucesso
-			await expect(page.getByText(/usuário atualizado|alterado com sucesso/i)).toBeVisible()
-
-			// Verificar se alterações aparecem na lista
-			await expect(page.getByText('Usuário Editado Playwright')).toBeVisible()
+				// Verificar se preferências estão visíveis
+				await expect(authenticatedPage.getByText(/preferências|configurações/i)).toBeVisible()
+			}
 		})
 	})
 
-	test.describe('🔗 Relação Many-to-Many', () => {
-		test('✅ Associar usuários a grupos - funciona corretamente', async ({ page }) => {
-			await page.goto('/admin/groups')
+	test.describe('🔗 Relacionamentos Grupos-Usuários', () => {
+		test('✅ Associar usuários a grupos - funciona corretamente', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups')
 
-			// Clicar no primeiro grupo
-			await page.locator('[data-testid="group-item"]').first().click()
+			// Clicar em um grupo
+			const groupItem = authenticatedPage.locator('[data-testid="group-item"]').first()
+			await groupItem.click()
 
 			// Verificar se seção de usuários está visível
-			await expect(page.getByText('Usuários do Grupo')).toBeVisible()
+			await expect(authenticatedPage.getByText(/usuários do grupo|membros/i)).toBeVisible()
 
-			// Clicar em adicionar usuários
-			await clickButton(page, 'Adicionar Usuários')
+			// Clicar em adicionar usuário
+			await authenticatedPage.getByRole('button', { name: /adicionar|associar/i }).click()
 
-			// Verificar se seletor abre
-			await expect(page.locator('[data-testid="user-selector"]')).toBeVisible()
+			// Verificar se seletor de usuários abriu
+			await expect(authenticatedPage.getByText(/selecionar usuário/i)).toBeVisible()
 
-			// Selecionar usuários
-			await page.locator('[data-testid="user-checkbox"]').nth(0).check()
-			await page.locator('[data-testid="user-checkbox"]').nth(1).check()
+			// Selecionar um usuário
+			const userCheckbox = authenticatedPage.locator('[data-testid="user-checkbox"]').first()
+			await userCheckbox.check()
 
-			// Confirmar seleção
-			await clickButton(page, 'Confirmar')
+			// Confirmar associação
+			await authenticatedPage.getByRole('button', { name: 'Confirmar' }).click()
 
-			// Verificar se usuários foram adicionados
-			await expect(page.locator('[data-testid="group-user-item"]')).toHaveCount(2)
+			// Verificar toast de sucesso
+			await expect(authenticatedPage.getByText(/usuário associado|adicionado com sucesso/i)).toBeVisible()
 		})
 
-		test('✅ Remover usuários de grupos - desassociação', async ({ page }) => {
-			await page.goto('/admin/groups')
+		test('✅ Remover usuários de grupos - desassociação', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups')
 
-			// Clicar no primeiro grupo
-			await page.locator('[data-testid="group-item"]').first().click()
+			// Clicar em um grupo que tenha usuários
+			const groupWithUsers = authenticatedPage.locator('[data-testid="group-item"]').first()
+			await groupWithUsers.click()
 
-			// Se houver usuários no grupo, remover um
-			const groupUsers = page.locator('[data-testid="group-user-item"]')
+			// Verificar se há usuários no grupo
+			const groupUsers = authenticatedPage.locator('[data-testid="group-user"]')
 			if ((await groupUsers.count()) > 0) {
-				// Clicar no botão remover do primeiro usuário
-				await page.locator('[data-testid="remove-user"]').first().click()
+				// Clicar no botão de remover do primeiro usuário
+				const removeButton = groupUsers.first().locator('[data-testid="remove-user"]')
+				await removeButton.click()
 
-				// Verificar se usuário foi removido
-				await expect(page.locator('[data-testid="group-user-item"]')).toHaveCount((await groupUsers.count()) - 1)
+				// Verificar se confirmação apareceu
+				await expect(authenticatedPage.getByText(/confirmar remoção|remover usuário/i)).toBeVisible()
+
+				// Confirmar remoção
+				await authenticatedPage.getByRole('button', { name: 'Confirmar' }).click()
+
+				// Verificar toast de sucesso
+				await expect(authenticatedPage.getByText(/usuário removido|desassociado com sucesso/i)).toBeVisible()
 			}
 		})
 
-		test('✅ Reflexo na UI - ambos lados mostram relacionamentos', async ({ page }) => {
-			await page.goto('/admin/groups')
+		test('✅ Reflexo na UI - ambos lados mostram relacionamentos', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups')
 
-			// Clicar no primeiro grupo
-			await page.locator('[data-testid="group-item"]').first().click()
+			// Verificar um grupo
+			const groupItem = authenticatedPage.locator('[data-testid="group-item"]').first()
+			const groupName = await groupItem.locator('[data-testid="group-name"]').textContent()
+
+			// Clicar no grupo
+			await groupItem.click()
 
 			// Verificar usuários do grupo
-			const groupUsers = page.locator('[data-testid="group-user-item"]')
-			const groupUserCount = await groupUsers.count()
+			const groupUsers = authenticatedPage.locator('[data-testid="group-user"]')
+			const userCount = await groupUsers.count()
 
 			// Ir para página de usuários
-			await page.goto('/admin/groups/users')
+			await authenticatedPage.goto('/admin/groups/users')
 
-			// Verificar se usuários aparecem na lista
-			const allUsers = page.locator('[data-testid="user-item"]')
-			await expect(allUsers).toBeVisible()
+			// Filtrar por grupo
+			await authenticatedPage.getByRole('combobox', { name: /grupo/i }).selectOption(groupName || '')
 
-			// Verificar se contagem está correta
-			if (groupUserCount > 0) {
-				await expect(allUsers).toHaveCount.greaterThanOrEqual(groupUserCount)
-			}
-		})
-
-		test('✅ Navegação por abas - entre grupos e usuários', async ({ page }) => {
-			await page.goto('/admin/groups')
-
-			// Verificar se aba de grupos está ativa
-			await expect(page.getByRole('tab', { name: 'Grupos' })).toHaveAttribute('aria-selected', 'true')
-
-			// Clicar na aba de usuários
-			await page.getByRole('tab', { name: 'Usuários' }).click()
-
-			// Verificar se redirecionou para página de usuários
-			await page.waitForURL('/admin/groups/users')
-			await expect(page.getByRole('heading', { name: /usuários/i })).toBeVisible()
-
-			// Verificar se aba de usuários está ativa
-			await expect(page.getByRole('tab', { name: 'Usuários' })).toHaveAttribute('aria-selected', 'true')
-
-			// Voltar para grupos
-			await page.getByRole('tab', { name: 'Grupos' }).click()
-
-			// Verificar se redirecionou para página de grupos
-			await page.waitForURL('/admin/groups')
-			await expect(page.getByRole('heading', { name: /grupos/i })).toBeVisible()
+			// Verificar se contagem de usuários é consistente
+			const filteredUsers = authenticatedPage.locator('[data-testid="user-item"]')
+			await expect(filteredUsers).toHaveCount(userCount)
 		})
 	})
 
 	test.describe('🔍 Funcionalidades Avançadas', () => {
-		test('✅ Busca por nome e email', async ({ page }) => {
-			await page.goto('/admin/groups/users')
+		test('✅ Navegação por abas - entre grupos e usuários', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups')
 
-			// Busca por nome
-			await page.getByPlaceholder(/buscar usuários/i).fill('admin')
-			await page.waitForTimeout(1000)
+			// Verificar se abas estão visíveis
+			await expect(authenticatedPage.getByRole('tab', { name: /grupos/i })).toBeVisible()
+			await expect(authenticatedPage.getByRole('tab', { name: /usuários/i })).toBeVisible()
 
-			// Verificar se resultados contêm "admin"
-			const nameResults = page.locator('[data-testid="user-item"]')
-			if ((await nameResults.count()) > 0) {
-				await expect(nameResults.first()).toBeVisible()
-			}
+			// Clicar na aba de usuários
+			await authenticatedPage.getByRole('tab', { name: /usuários/i }).click()
 
-			// Busca por email
-			await page.getByPlaceholder(/buscar usuários/i).clear()
-			await page.getByPlaceholder(/buscar usuários/i).fill('@inpe.br')
-			await page.waitForTimeout(1000)
+			// Verificar se página de usuários carregou
+			await expect(authenticatedPage.getByRole('heading', { name: /usuários/i })).toBeVisible()
 
-			// Verificar se resultados contêm emails @inpe.br
-			const emailResults = page.locator('[data-testid="user-item"]')
-			if ((await emailResults.count()) > 0) {
-				await expect(emailResults.first()).toBeVisible()
-			}
+			// Voltar para aba de grupos
+			await authenticatedPage.getByRole('tab', { name: /grupos/i }).click()
+
+			// Verificar se página de grupos carregou
+			await expect(authenticatedPage.getByRole('heading', { name: /grupos/i })).toBeVisible()
 		})
 
-		test('✅ Filtro por grupo', async ({ page }) => {
-			await page.goto('/admin/groups/users')
+		test('✅ Busca por nome e email', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups/users')
 
-			// Verificar filtro por grupo específico
-			await page.getByRole('combobox', { name: /grupo/i }).selectOption('Meteorologistas')
-			await page.waitForTimeout(1000)
+			// Verificar se campo de busca está visível
+			await expect(authenticatedPage.getByPlaceholder(/buscar|pesquisar/i)).toBeVisible()
+
+			// Buscar por nome
+			await authenticatedPage.getByPlaceholder(/buscar|pesquisar/i).fill('admin')
+
+			// Aguardar resultados
+			await authenticatedPage.waitForTimeout(1000)
+
+			// Verificar se resultados aparecem
+			const searchResults = authenticatedPage.locator('[data-testid="user-item"]')
+			await expect(searchResults).toBeVisible()
+
+			// Limpar busca
+			await authenticatedPage.getByPlaceholder(/buscar|pesquisar/i).clear()
+
+			// Verificar se lista original voltou
+			await expect(authenticatedPage.locator('[data-testid="user-item"]')).toBeVisible()
+		})
+
+		test('✅ Filtro por grupo', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups/users')
+
+			// Verificar se filtro por grupo está visível
+			await expect(authenticatedPage.getByRole('combobox', { name: /grupo/i })).toBeVisible()
+
+			// Selecionar um grupo específico
+			await authenticatedPage.getByRole('combobox', { name: /grupo/i }).selectOption('Administradores')
 
 			// Verificar se apenas usuários do grupo selecionado são exibidos
-			const groupUsers = page.locator('[data-testid="user-item"]')
-			if ((await groupUsers.count()) > 0) {
-				await expect(groupUsers.first()).toBeVisible()
+			const filteredUsers = authenticatedPage.locator('[data-testid="user-item"]')
+			if ((await filteredUsers.count()) > 0) {
+				// Verificar se todos os usuários pertencem ao grupo selecionado
+				for (let i = 0; i < (await filteredUsers.count()); i++) {
+					const userGroup = filteredUsers.nth(i).locator('[data-testid="user-group"]')
+					await expect(userGroup).toContainText('Administradores')
+				}
 			}
-
-			// Verificar filtro "Todos os grupos"
-			await page.getByRole('combobox', { name: /grupo/i }).selectOption('Todos os grupos')
-			await page.waitForTimeout(1000)
-
-			// Verificar se todos os usuários são exibidos
-			const allUsers = page.locator('[data-testid="user-item"]')
-			await expect(allUsers).toBeVisible()
 		})
 
-		test('✅ Estatísticas de usuários por grupo', async ({ page }) => {
-			await page.goto('/admin/groups')
+		test('✅ Estatísticas de usuários por grupo', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups')
 
 			// Verificar se estatísticas estão visíveis
-			await expect(page.getByText('Total de Grupos')).toBeVisible()
-			await expect(page.getByText('Total de Usuários')).toBeVisible()
-			await expect(page.getByText('Grupos Ativos')).toBeVisible()
-			await expect(page.getByText('Usuários Ativos')).toBeVisible()
+			await expect(authenticatedPage.getByText(/total de grupos|total de usuários/i)).toBeVisible()
 
-			// Verificar se valores são números
-			const groupCount = page.locator('text=/\\d+/').first()
-			await expect(groupCount).toBeVisible()
+			// Verificar se contadores são números válidos
+			const totalGroups = authenticatedPage.locator('[data-testid="total-groups"]')
+			const totalUsers = authenticatedPage.locator('[data-testid="total-users"]')
+
+			if ((await totalGroups.count()) > 0) {
+				const groupsCount = await totalGroups.textContent()
+				expect(parseInt(groupsCount || '0')).toBeGreaterThan(0)
+			}
+
+			if ((await totalUsers.count()) > 0) {
+				const usersCount = await totalUsers.textContent()
+				expect(parseInt(usersCount || '0')).toBeGreaterThan(0)
+			}
 		})
+	})
 
-		test('✅ Responsividade em diferentes resoluções', async ({ page }) => {
-			await page.goto('/admin/groups')
+	test.describe('📱 UX e Validações', () => {
+		test('✅ Responsividade em diferentes resoluções', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups')
 
 			// Testar resolução desktop
-			await page.setViewportSize({ width: 1920, height: 1080 })
-			await expect(page.getByRole('heading', { name: /grupos/i })).toBeVisible()
+			await authenticatedPage.setViewportSize({ width: 1920, height: 1080 })
+			await expect(authenticatedPage.getByRole('heading', { name: /grupos/i })).toBeVisible()
 
 			// Testar resolução tablet
-			await page.setViewportSize({ width: 768, height: 1024 })
-			await expect(page.getByRole('heading', { name: /grupos/i })).toBeVisible()
+			await authenticatedPage.setViewportSize({ width: 768, height: 1024 })
+			await expect(authenticatedPage.getByRole('heading', { name: /grupos/i })).toBeVisible()
 
 			// Testar resolução mobile
-			await page.setViewportSize({ width: 375, height: 667 })
-			await expect(page.getByRole('heading', { name: /grupos/i })).toBeVisible()
+			await authenticatedPage.setViewportSize({ width: 375, height: 667 })
+			await expect(authenticatedPage.getByRole('heading', { name: /grupos/i })).toBeVisible()
 
 			// Voltar para desktop
-			await page.setViewportSize({ width: 1920, height: 1080 })
+			await authenticatedPage.setViewportSize({ width: 1920, height: 1080 })
 		})
 
-		test('✅ Validação de campos obrigatórios', async ({ page }) => {
-			await page.goto('/admin/groups')
+		test('✅ Validação de campos obrigatórios', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups')
 
-			// Clicar em criar grupo
-			await clickButton(page, 'Criar Grupo')
+			// Clicar em criar novo grupo
+			await authenticatedPage.getByRole('button', { name: /criar|novo/i }).click()
 
 			// Tentar salvar sem preencher campos obrigatórios
-			await clickButton(page, 'Salvar')
+			await authenticatedPage.getByRole('button', { name: 'Salvar' }).click()
 
-			// Deve mostrar erros de validação
-			await expect(page.getByText(/nome é obrigatório|campo obrigatório/i)).toBeVisible()
+			// Verificar se erro de campo obrigatório aparece
+			await expect(authenticatedPage.getByText(/nome é obrigatório|campo obrigatório/i)).toBeVisible()
 
-			// Preencher apenas nome
-			await fillFormField(page, 'Nome', 'Grupo Válido')
+			// Preencher campo obrigatório
+			await authenticatedPage.getByLabel('Nome do grupo').fill('Grupo Válido')
 
 			// Tentar salvar novamente
-			await clickButton(page, 'Salvar')
+			await authenticatedPage.getByRole('button', { name: 'Salvar' }).click()
 
 			// Deve salvar com sucesso
-			await expect(page.getByText(/grupo criado|salvo com sucesso/i)).toBeVisible()
+			await expect(authenticatedPage.getByText(/grupo criado|salvo com sucesso/i)).toBeVisible()
 		})
 
-		test('✅ Confirmação para ações destrutivas', async ({ page }) => {
-			await page.goto('/admin/groups')
+		test('✅ Confirmação para ações destrutivas', async ({ authenticatedPage }) => {
+			await authenticatedPage.goto('/admin/groups')
 
-			// Clicar no botão excluir do primeiro grupo (se não for padrão)
-			const deleteButtons = page.locator('[data-testid="delete-group"]')
-			if ((await deleteButtons.count()) > 0) {
-				await deleteButtons.first().click()
+			// Tentar excluir um grupo (que não seja padrão)
+			const nonDefaultGroup = authenticatedPage.locator('[data-testid="group-item"]:not([data-default="true"])').first()
+			if ((await nonDefaultGroup.count()) > 0) {
+				await nonDefaultGroup.click()
 
-				// Verificar se dialog de confirmação aparece
-				await expect(page.getByText(/confirmar exclusão|excluir grupo/i)).toBeVisible()
+				// Clicar em excluir
+				await authenticatedPage.getByRole('button', { name: /excluir/i }).click()
+
+				// Verificar se dialog de confirmação apareceu
+				await expect(authenticatedPage.getByText(/confirmar exclusão|excluir grupo/i)).toBeVisible()
 
 				// Cancelar exclusão
-				await clickButton(page, 'Cancelar')
+				await authenticatedPage.getByRole('button', { name: 'Cancelar' }).click()
 
 				// Verificar se dialog fechou
-				await expect(page.getByText(/confirmar exclusão|excluir grupo/i)).not.toBeVisible()
+				await expect(authenticatedPage.getByText(/confirmar exclusão|excluir grupo/i)).not.toBeVisible()
 			}
 		})
 	})

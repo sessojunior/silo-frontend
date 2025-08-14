@@ -39,8 +39,8 @@ test.describe('🔐 AUTENTICAÇÃO E SEGURANÇA', () => {
 	test('✅ Login com credenciais válidas', async ({ page }) => {
 		await page.goto('/auth/login')
 
-		await fillFormField(page, 'Email', 'admin@inpe.br')
-		await fillFormField(page, 'Senha', 'admin123')
+		await fillFormField(page, 'Email', 'mario.junior@inpe.br')
+		await fillFormField(page, 'Senha', '#Admin123')
 
 		await clickButton(page, 'Entrar')
 
@@ -52,7 +52,7 @@ test.describe('🔐 AUTENTICAÇÃO E SEGURANÇA', () => {
 	test('✅ Login com credenciais inválidas', async ({ page }) => {
 		await page.goto('/auth/login')
 
-		await fillFormField(page, 'Email', 'admin@inpe.br')
+		await fillFormField(page, 'Email', 'mario.junior@inpe.br')
 		await fillFormField(page, 'Senha', 'senhaerrada')
 
 		await clickButton(page, 'Entrar')
@@ -67,7 +67,7 @@ test.describe('🔐 AUTENTICAÇÃO E SEGURANÇA', () => {
 		// Clicar na aba de login apenas com email
 		await page.getByRole('tab', { name: 'Apenas Email' }).click()
 
-		await fillFormField(page, 'Email', 'admin@inpe.br')
+		await fillFormField(page, 'Email', 'mario.junior@inpe.br')
 		await clickButton(page, 'Enviar código')
 
 		// Deve mostrar mensagem de código enviado
@@ -80,7 +80,7 @@ test.describe('🔐 AUTENTICAÇÃO E SEGURANÇA', () => {
 
 		// Tentar enviar código 4 vezes (deve bloquear na 4ª)
 		for (let i = 0; i < 4; i++) {
-			await fillFormField(page, 'Email', 'admin@inpe.br')
+			await fillFormField(page, 'Email', 'mario.junior@inpe.br')
 			await clickButton(page, 'Enviar código')
 			await page.waitForTimeout(1000) // Aguardar 1 segundo entre tentativas
 		}
@@ -92,8 +92,8 @@ test.describe('🔐 AUTENTICAÇÃO E SEGURANÇA', () => {
 	test('✅ Logout funcional', async ({ page }) => {
 		// Fazer login primeiro
 		await page.goto('/auth/login')
-		await fillFormField(page, 'Email', 'admin@inpe.br')
-		await fillFormField(page, 'Senha', 'admin123')
+		await fillFormField(page, 'Email', 'mario.junior@inpe.br')
+		await fillFormField(page, 'Senha', '#Admin123')
 		await clickButton(page, 'Entrar')
 
 		await page.waitForURL('/admin/dashboard')
