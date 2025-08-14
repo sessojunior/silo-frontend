@@ -42,3 +42,16 @@ next-env.d.ts
 
 # database
 *.db
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Test fixtures (imagens de teste)
+tests/fixtures/*.jpg
+tests/fixtures/*.png
+tests/fixtures/*.gif
+tests/fixtures/*.webp

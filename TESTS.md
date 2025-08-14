@@ -18,9 +18,9 @@
 
 ### **Validação de Domínio Institucional**
 
-- [ ] **Cadastro com domínio externo**: Bloqueia e-mails que não sejam `@inpe.br`
-- [ ] **Cadastro com @inpe.br**: Permite criação de conta
-- [ ] **Login Google OAuth**: Valida domínio antes de criar usuário
+- [x] **Cadastro com domínio externo**: Bloqueia e-mails que não sejam `@inpe.br`
+- [x] **Cadastro com @inpe.br**: Permite criação de conta
+- [x] **Login Google OAuth**: Valida domínio antes de criar usuário
 
 ### **Sistema de Ativação por Administrador**
 
