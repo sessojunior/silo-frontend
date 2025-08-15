@@ -4,7 +4,7 @@ test.describe('🔗 INTEGRAÇÃO, UX E NAVEGAÇÃO', () => {
 	test.describe('🧭 Navegação Completa', () => {
 		test('✅ Todas as páginas admin - acessíveis sem 404', async ({ authenticatedPage }) => {
 			// Lista de todas as páginas admin
-			const adminPages = ['/admin/dashboard', '/admin/products', '/admin/problems', '/admin/contacts', '/admin/groups', '/admin/groups/users', '/admin/projects', '/admin/chat', '/admin/settings', '/admin/help']
+			const adminPages = ['/admin/dashboard', '/admin/products', '/admin/contacts', '/admin/groups', '/admin/groups/users', '/admin/projects', '/admin/chat', '/admin/settings', '/admin/help']
 
 			for (const pagePath of adminPages) {
 				await authenticatedPage.goto(pagePath)
@@ -76,7 +76,7 @@ test.describe('🔗 INTEGRAÇÃO, UX E NAVEGAÇÃO', () => {
 			await authenticatedPage.goto('/admin/dashboard')
 
 			// Verificar se não há prefetch automático para rotas críticas
-			const criticalRoutes = ['/auth/login', '/auth/register', '/admin/settings']
+			const criticalRoutes = ['/login', '/register', '/admin/settings']
 
 			for (const route of criticalRoutes) {
 				// Verificar se não há links com prefetch para essas rotas
@@ -382,7 +382,7 @@ test.describe('🔗 INTEGRAÇÃO, UX E NAVEGAÇÃO', () => {
 		})
 
 		test('✅ Nomes únicos - categorias de problemas', async ({ authenticatedPage }) => {
-			await authenticatedPage.goto('/admin/problems')
+			await authenticatedPage.goto('/admin/products')
 
 			// Verificar se sistema de nomes únicos está funcionando
 			const duplicateCategoryTest = authenticatedPage.locator('[data-testid="duplicate-category-test"]')

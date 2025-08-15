@@ -407,7 +407,7 @@ test.describe('⚙️ SISTEMA DE CONFIGURAÇÕES', () => {
 			await authenticatedPage.getByRole('button', { name: 'Sair' }).click()
 
 			// Verificar se foi redirecionado para login
-			await authenticatedPage.waitForURL('/auth/login')
+			await authenticatedPage.waitForURL('/login')
 			await expect(authenticatedPage.getByText('Entrar')).toBeVisible()
 		})
 	})

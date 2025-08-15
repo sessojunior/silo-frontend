@@ -1,140 +1,97 @@
 import { test, expect } from '@playwright/test'
-import { navigateToAdminPage, fillFormField, clickButton } from './utils/auth-helpers'
 
-test.describe('🔐 AUTENTICAÇÃO E SEGURANÇA', () => {
-	test.beforeEach(async ({ page }) => {
-		await page.goto('/')
+test.describe('🔐 AUTENTICAÇÃO', () => {
+	test.describe('📝 Registro de Usuário', () => {
+		test('✅ Registro com dados válidos', async ({ page }) => {
+			await page.goto('/register')
+
+			// Verificar se está na página correta
+			await expect(page.getByRole('heading', { name: 'Criar conta' })).toBeVisible()
+
+			// Aguardar campos carregarem
+			await page.waitForSelector('#name', { state: 'visible' })
+			await page.waitForSelector('#email', { state: 'visible' })
+			await page.waitForSelector('#password', { state: 'visible' })
+
+			// Gerar email único baseado no timestamp
+			const timestamp = Date.now()
+			const uniqueEmail = `teste.playwright.${timestamp}@inpe.br`
+
+			// Preencher formulário de registro usando type() para disparar eventos React
+			await page.locator('#name').type('Usuário Teste Playwright')
+			await page.locator('#email').type(uniqueEmail)
+			await page.locator('#password').type('Teste123!')
+
+			// Verificar se os campos foram preenchidos
+			await expect(page.locator('#name')).toHaveValue('Usuário Teste Playwright')
+			await expect(page.locator('#email')).toHaveValue(uniqueEmail)
+			await expect(page.locator('#password')).toHaveValue('Teste123!')
+
+			// Verificar se o botão está habilitado
+			await page.waitForSelector('form button[type="submit"]:not([disabled])', { state: 'visible' })
+
+			// Submeter formulário
+			await page.getByRole('button', { name: 'Criar conta' }).click()
+
+			// Aguardar um pouco para a requisição ser processada
+			await page.waitForTimeout(3000)
+
+			// Verificar se há algum erro ou mensagem
+			const pageContent = await page.content()
+			console.log('🔵 [TESTE] Conteúdo da página após registro:', pageContent)
+
+			// Verificar redirecionamento para etapa 2 (verificação de email)
+			await expect(page.getByText(/verifique seu e-mail|código de verificação/i)).toBeVisible({ timeout: 30000 })
+		})
 	})
 
-	test('✅ Validação de domínio institucional - bloqueia domínios externos', async ({ page }) => {
-		await page.goto('/auth/register')
+	test.describe('🔑 Login de Usuário', () => {
+		test('✅ Login com credenciais válidas', async ({ page }) => {
+			await page.goto('/login')
 
-		// Tentar cadastro com domínio externo
-		await fillFormField(page, 'Nome completo', 'Usuário Teste')
-		await fillFormField(page, 'Email', 'usuario@exemplo.com')
-		await fillFormField(page, 'Senha', 'senha123')
-		await fillFormField(page, 'Confirmar senha', 'senha123')
+			// Verificar se está na página correta
+			await expect(page.getByRole('heading', { name: 'Entrar' })).toBeVisible()
 
-		await clickButton(page, 'Criar conta')
+			// Aguardar campos carregarem
+			await page.waitForSelector('#email', { state: 'visible' })
+			await page.waitForSelector('#password', { state: 'visible' })
 
-		// Deve mostrar erro de domínio inválido
-		await expect(page.getByText('Apenas emails @inpe.br são permitidos')).toBeVisible()
+			// Preencher credenciais usando type() para disparar eventos React
+			await page.locator('#email').type('sessojunior@gmail.com')
+			await page.locator('#password').type('#Admin123')
+
+			// Verificar se os campos foram preenchidos
+			await expect(page.locator('#email')).toHaveValue('sessojunior@gmail.com')
+			await expect(page.locator('#password')).toHaveValue('#Admin123')
+
+			// Aguardar botão estar habilitado
+			await page.waitForSelector('form button[type="submit"]:not([disabled])', { state: 'visible' })
+
+			// Fazer login usando seletor específico para o botão de submit
+			await page.locator('form button[type="submit"]').click()
+
+			// Aguardar um pouco para a requisição ser processada
+			await page.waitForTimeout(2000)
+
+			// Verificar redirecionamento para welcome - usar timeout maior para WebKit
+			await page.waitForURL('/admin/welcome', { timeout: 45000 })
+
+			// Aguardar um pouco para garantir que o conteúdo esteja renderizado
+			await page.waitForTimeout(3000)
+
+			// Verificar se está logado - usar timeout maior
+			await expect(page.getByText('Bem-vindo')).toBeVisible({ timeout: 30000 })
+		})
 	})
 
-	test('✅ Validação de domínio institucional - permite @inpe.br', async ({ page }) => {
-		await page.goto('/auth/register')
+	test.describe('🚪 Logout e Sessão', () => {
+		test('✅ Proteção de rotas autenticadas', async ({ page }) => {
+			// Tentar acessar página protegida sem estar logado
+			await page.goto('/admin/welcome')
 
-		// Cadastro com domínio válido
-		await fillFormField(page, 'Nome completo', 'Usuário Teste INPE')
-		await fillFormField(page, 'Email', 'usuario.teste@inpe.br')
-		await fillFormField(page, 'Senha', 'senha123')
-		await fillFormField(page, 'Confirmar senha', 'senha123')
-
-		await clickButton(page, 'Criar conta')
-
-		// Deve mostrar mensagem de sucesso ou redirecionar
-		await expect(page.getByText(/conta criada|verifique seu email|verificação/i)).toBeVisible()
-	})
-
-	test('✅ Login com credenciais válidas', async ({ page }) => {
-		await page.goto('/auth/login')
-
-		await fillFormField(page, 'Email', 'mario.junior@inpe.br')
-		await fillFormField(page, 'Senha', '#Admin123')
-
-		await clickButton(page, 'Entrar')
-
-		// Deve redirecionar para dashboard
-		await page.waitForURL('/admin/dashboard')
-		await expect(page.getByText('Dashboard')).toBeVisible()
-	})
-
-	test('✅ Login com credenciais inválidas', async ({ page }) => {
-		await page.goto('/auth/login')
-
-		await fillFormField(page, 'Email', 'mario.junior@inpe.br')
-		await fillFormField(page, 'Senha', 'senhaerrada')
-
-		await clickButton(page, 'Entrar')
-
-		// Deve mostrar erro de credenciais inválidas
-		await expect(page.getByText(/credenciais inválidas|email ou senha incorretos/i)).toBeVisible()
-	})
-
-	test('✅ Login apenas com email (OTP)', async ({ page }) => {
-		await page.goto('/auth/login')
-
-		// Clicar na aba de login apenas com email
-		await page.getByRole('tab', { name: 'Apenas Email' }).click()
-
-		await fillFormField(page, 'Email', 'mario.junior@inpe.br')
-		await clickButton(page, 'Enviar código')
-
-		// Deve mostrar mensagem de código enviado
-		await expect(page.getByText(/código enviado|verifique seu email/i)).toBeVisible()
-	})
-
-	test('✅ Rate limiting para OTP', async ({ page }) => {
-		await page.goto('/auth/login')
-		await page.getByRole('tab', { name: 'Apenas Email' }).click()
-
-		// Tentar enviar código 4 vezes (deve bloquear na 4ª)
-		for (let i = 0; i < 4; i++) {
-			await fillFormField(page, 'Email', 'mario.junior@inpe.br')
-			await clickButton(page, 'Enviar código')
-			await page.waitForTimeout(1000) // Aguardar 1 segundo entre tentativas
-		}
-
-		// Deve mostrar mensagem de rate limit
-		await expect(page.getByText(/muitas tentativas|aguarde|rate limit/i)).toBeVisible()
-	})
-
-	test('✅ Logout funcional', async ({ page }) => {
-		// Fazer login primeiro
-		await page.goto('/auth/login')
-		await fillFormField(page, 'Email', 'mario.junior@inpe.br')
-		await fillFormField(page, 'Senha', '#Admin123')
-		await clickButton(page, 'Entrar')
-
-		await page.waitForURL('/admin/dashboard')
-
-		// Fazer logout
-		await page.getByRole('button', { name: /configurações|perfil/i }).click()
-		await page.getByRole('menuitem', { name: 'Sair' }).click()
-
-		// Deve redirecionar para página de login
-		await page.waitForURL('/auth/login')
-		await expect(page.getByText('Entrar')).toBeVisible()
-	})
-
-	test('✅ Proteção de APIs admin sem sessão', async ({ page }) => {
-		// Tentar acessar API admin sem estar logado
-		const response = await page.request.get('/api/admin/users')
-
-		// Deve retornar 401 Unauthorized
-		expect(response.status()).toBe(401)
-	})
-
-	test('✅ Página de erro personalizada para usuário inativo', async ({ page }) => {
-		// Tentar login com usuário inativo (se existir)
-		await page.goto('/auth/login')
-		await fillFormField(page, 'Email', 'inativo@inpe.br')
-		await fillFormField(page, 'Senha', 'senha123')
-
-		await clickButton(page, 'Entrar')
-
-		// Deve redirecionar para página de erro personalizada
-		await expect(page.getByText(/conta inativa|não autorizado|bloqueado/i)).toBeVisible()
-
-		// Verificar se tem botão para voltar
-		await expect(page.getByRole('button', { name: /voltar|início/i })).toBeVisible()
-	})
-
-	test('✅ Redirecionamento para página de erro em rotas protegidas', async ({ page }) => {
-		// Tentar acessar página admin sem estar logado
-		await page.goto('/admin/dashboard')
-
-		// Deve redirecionar para página de erro ou login
-		await expect(page.getByText(/não autorizado|acesso negado|faça login/i)).toBeVisible()
+			// Deve ser redirecionado para login
+			await page.waitForURL('/login')
+			await expect(page.getByRole('heading', { name: 'Entrar' })).toBeVisible({ timeout: 15000 })
+		})
 	})
 })

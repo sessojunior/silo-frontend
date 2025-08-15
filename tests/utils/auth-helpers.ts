@@ -3,21 +3,27 @@ import { test as base, Page, expect } from '@playwright/test'
 // Extensão do test para incluir usuário autenticado
 export const test = base.extend<{ authenticatedPage: Page }>({
 	authenticatedPage: async ({ page }, use) => {
-		// Fazer login como usuário administrador
-		await page.goto('/auth/login')
+		// Usar um contexto isolado para cada teste
+		const context = await page.context()
 
-		// Preencher formulário de login
-		await page.getByLabel('Email').fill('mario.junior@inpe.br')
-		await page.getByLabel('Senha').fill('#Admin123')
+		// Navegar para login
+		await page.goto('/login')
+
+		// Preencher credenciais
+		await page.locator('#email').fill('sessojunior@gmail.com')
+		await page.locator('#password').fill('#Admin123')
 
 		// Clicar no botão de login
-		await page.getByRole('button', { name: 'Entrar' }).click()
+		await page.locator('form button[type="submit"]').click()
 
-		// Aguardar redirecionamento para dashboard
-		await page.waitForURL('/admin/dashboard')
+		// Aguardar redirecionamento para welcome
+		await page.waitForURL('/admin/welcome', { timeout: 60000 })
+
+		// Aguardar um pouco para garantir que o conteúdo esteja renderizado
+		await page.waitForTimeout(3000)
 
 		// Verificar se está logado
-		await expect(page.getByText('Dashboard')).toBeVisible()
+		await expect(page.getByText('Bem-vindo')).toBeVisible({ timeout: 60000 })
 
 		await use(page)
 	},
