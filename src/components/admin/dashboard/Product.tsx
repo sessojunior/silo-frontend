@@ -34,16 +34,28 @@ export default function Product({ id, name, turns, progress, priority, date, las
 	const [activityCtx, setActivityCtx] = useState<{ date: string; turn: number; status: string; description?: string | null; category_id?: string | null } | null>(null)
 	const [activityPanelOpen, setActivityPanelOpen] = useState(false)
 
+	// Debug: verificar dados recebidos
+	console.log('🔍 Debug Product:', {
+		id,
+		name,
+		last28DaysStatusLength: last28DaysStatus.length,
+		last28DaysStatusSample: last28DaysStatus.slice(0, 3),
+		last28DaysStatusDates: last28DaysStatus.map((d) => d.date),
+	})
+
 	// Filtra status conforme turnos configurados do produto
 	const filteredLastDays = lastDaysStatus.filter((d) => turns.includes(String(d.turn)))
-	const filteredTimeline = last28DaysStatus.filter((d) => turns.includes(String(d.turn)))
+	// A timeline de 28 dias é agregada por dia; não deve ser filtrada por turno
+	const filteredTimeline = last28DaysStatus
 	const filteredCalendar = calendarStatus.filter((d) => turns.includes(String(d.turn)))
 
-	const timelineStatuses = filteredTimeline.map((d) => d.status)
+	// Usar status de 28 dias para a timeline (não filtrados por turnos)
+	const timelineStatuses = last28DaysStatus.map((d) => d.status)
 
-	// Build days array for ProductTurn
+	// Build days array for ProductTurn - timeline completa dos últimos turnos
 	const daysMap: Record<string, { date: string; turns: { time: number; status: string; description?: string | null; category_id?: string | null }[] }> = {}
 
+	// Para cada dia dos últimos turnos, garantir que todos os turnos configurados apareçam
 	filteredLastDays.forEach((d) => {
 		if (!daysMap[d.date]) {
 			daysMap[d.date] = { date: d.date, turns: [] }
@@ -61,6 +73,26 @@ export default function Product({ id, name, turns, progress, priority, date, las
 			}
 		}
 	})
+
+	// Garantir que todos os turnos configurados apareçam para cada dia
+	Object.values(daysMap).forEach((day) => {
+		turns.forEach((turnStr) => {
+			const turnNum = parseInt(turnStr)
+			const existingTurn = day.turns.find((t) => t.time === turnNum)
+			if (!existingTurn) {
+				// Adicionar turno com status not_run se não existir
+				day.turns.push({
+					time: turnNum,
+					status: 'not_run',
+					description: null,
+					category_id: null,
+				})
+			}
+		})
+		// Ordenar turnos por horário
+		day.turns.sort((a, b) => a.time - b.time)
+	})
+
 	const days = Object.values(daysMap).sort((a, b) => a.date.localeCompare(b.date))
 
 	/* ----------- Construção de calendários para os últimos 28 dias ----------- */
@@ -83,6 +115,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 			case 'suspended':
 				return 'orange'
 			case 'not_run':
+				return '' // Corrigido: cinza (vazio) ao invés de vermelho
 			case 'with_problems':
 			case 'run_again':
 				return 'red'
@@ -159,7 +192,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 						{/* Linha do tempo */}
 						<ProductTimeline
 							statuses={timelineStatuses}
-							timelineData={filteredTimeline.map((d) => ({
+							timelineData={last28DaysStatus.map((d) => ({
 								date: d.date,
 								turn: d.turn,
 								status: d.status,

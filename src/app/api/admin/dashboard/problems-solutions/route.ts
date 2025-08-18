@@ -4,62 +4,55 @@ import { db } from '@/lib/db'
 import { productProblem, productSolution } from '@/lib/db/schema'
 import { gte } from 'drizzle-orm'
 
-// Agrupa problemas e soluções por semana nas últimas 8 semanas (≈ 2 meses)
+// Agrupa problemas e soluções por dia nos últimos 28 dias (timeline completa)
 export async function GET() {
 	try {
 		const today = new Date()
+		today.setHours(23, 59, 59, 999) // Fim do dia
+
+		// Período de início = 28 dias atrás
+		const TOTAL_DAYS = 28
+
+		// Buscar problemas e soluções dentro do período
+		const problemsRows = await db
+			.select({ date: productProblem.createdAt })
+			.from(productProblem)
+			.where(gte(productProblem.createdAt, new Date(today.getTime() - (TOTAL_DAYS - 1) * 86_400_000)))
+
+		const solutionsRows = await db
+			.select({ date: productSolution.updatedAt })
+			.from(productSolution)
+			.where(gte(productSolution.updatedAt, new Date(today.getTime() - (TOTAL_DAYS - 1) * 86_400_000)))
 
 		// Função para formatar data DD/MM
 		const fmt = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
 
-		// Obter sábado mais recente (ou hoje se sábado)
-		const startOfCurrentWeek = new Date(today)
-		startOfCurrentWeek.setDate(today.getDate() - ((today.getDay() + 1) % 7)) // Sábado = 6 → 0, Domingo=0 → 1 dia atrás
-		startOfCurrentWeek.setHours(0, 0, 0, 0)
-
-		// Período de início = 7 semanas antes do início da semana atual (8 semanas total)
-		const TOTAL_WEEKS = 4
-		const MILLISECONDS_IN_DAY = 86_400_000
-		const MILLISECONDS_IN_WEEK = MILLISECONDS_IN_DAY * 7
-		const startDatePeriod = new Date(startOfCurrentWeek.getTime() - (TOTAL_WEEKS - 1) * MILLISECONDS_IN_WEEK)
-
-		// Buscar problemas e soluções dentro do período
-		const problemsRows = await db.select({ date: productProblem.createdAt }).from(productProblem).where(gte(productProblem.createdAt, startDatePeriod))
-
-		const solutionsRows = await db.select({ date: productSolution.updatedAt }).from(productSolution).where(gte(productSolution.updatedAt, startDatePeriod))
-
-		// Categorias (mais antigo → mais novo)
+		// Gerar timeline completa dos últimos 28 dias (mais antigo → mais recente)
 		const categories: string[] = []
-		const problemsCounts: number[] = Array(TOTAL_WEEKS).fill(0)
-		const solutionsCounts: number[] = Array(TOTAL_WEEKS).fill(0)
+		const problemsCounts: number[] = Array(TOTAL_DAYS).fill(0)
+		const solutionsCounts: number[] = Array(TOTAL_DAYS).fill(0)
 
-		for (let w = TOTAL_WEEKS - 1; w >= 0; w--) {
-			const weekStart = new Date(startOfCurrentWeek.getTime() - w * MILLISECONDS_IN_WEEK)
-			const weekEnd = new Date(weekStart.getTime() + 6 * MILLISECONDS_IN_DAY)
-			categories.push(`${fmt(weekStart)} a ${fmt(weekEnd)}`)
+		for (let i = TOTAL_DAYS - 1; i >= 0; i--) {
+			const currentDate = new Date(today.getTime() - i * 86_400_000) // Corrigido: mais antigo → mais recente
+			categories.push(fmt(currentDate))
 		}
 
-		// Função para obter índice da semana (0 = mais antigo, TOTAL_WEEKS-1 = atual)
-		function getWeekIndex(dateObj: Date): number | null {
-			// Obter sábado da semana da data
-			const weekStart = new Date(dateObj)
-			weekStart.setDate(dateObj.getDate() - ((dateObj.getDay() + 1) % 7))
-			weekStart.setHours(0, 0, 0, 0)
-
-			const diffWeeks = Math.round((startOfCurrentWeek.getTime() - weekStart.getTime()) / MILLISECONDS_IN_WEEK)
-			if (diffWeeks < 0 || diffWeeks >= TOTAL_WEEKS) return null
-			return TOTAL_WEEKS - 1 - diffWeeks // converter para índice (mais antigo → 0)
+		// Função para obter índice do dia (0 = mais antigo, TOTAL_DAYS-1 = mais recente)
+		function getDayIndex(dateObj: Date): number | null {
+			const diffDays = Math.floor((dateObj.getTime() - (today.getTime() - (TOTAL_DAYS - 1) * 86_400_000)) / 86_400_000) // Corrigido: cálculo ajustado
+			if (diffDays < 0 || diffDays >= TOTAL_DAYS) return null
+			return diffDays
 		}
 
 		// Contabilizar problemas
 		for (const row of problemsRows) {
-			const idx = getWeekIndex(new Date(row.date))
+			const idx = getDayIndex(new Date(row.date))
 			if (idx !== null) problemsCounts[idx]++
 		}
 
 		// Contabilizar soluções
 		for (const row of solutionsRows) {
-			const idx = getWeekIndex(new Date(row.date))
+			const idx = getDayIndex(new Date(row.date))
 			if (idx !== null) solutionsCounts[idx]++
 		}
 

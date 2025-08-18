@@ -23,7 +23,7 @@ const COLOR_MAP: Record<string, string> = {
 	pending: 'bg-orange-600 text-white',
 	under_support: 'bg-orange-500 text-white',
 	suspended: 'bg-orange-500 text-white',
-	not_run: 'bg-red-600 text-white',
+	not_run: 'bg-zinc-400 text-white', // Corrigido: cinza ao invés de vermelho
 	with_problems: 'bg-red-600 text-white',
 	run_again: 'bg-red-600 text-white',
 }

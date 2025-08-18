@@ -79,9 +79,8 @@ export default function DashboardPage() {
 	}, [])
 
 	// ===== Estatísticas dinâmicas =====
-	const today = new Date()
 	const cut28 = new Date()
-	cut28.setDate(today.getDate() - 28)
+	cut28.setDate(new Date().getDate() - 28)
 
 	// Mapeamento de status → info visual
 	const STATUS_INFO: Record<string, { label: string; color: string; colorDark: string; severity: number }> = {
@@ -114,7 +113,7 @@ export default function DashboardPage() {
 	const last7Dates: string[] = []
 	for (let i = 6; i >= 0; i--) {
 		const d = new Date()
-		d.setDate(today.getDate() - i)
+		d.setDate(new Date().getDate() - i) // Corrigido: mais antigo → mais recente
 		last7Dates.push(dateYMD(d))
 	}
 
@@ -189,16 +188,38 @@ export default function DashboardPage() {
 											if (p.turns.length === 1) daysCount = 4
 											else if (p.turns.length === 2) daysCount = 3
 
-											const lastDates = uniqueDates.slice(-daysCount)
-											const lastDaysStatus = p.dates.filter((d) => lastDates.includes(d.date))
+											// Definir today aqui para garantir data atual
+											const today = new Date()
 
-											// Últimos 28 dias (timeline)
-											const last28Dates = uniqueDates.slice(-28)
-											const last28DaysStatus = p.dates.filter((d) => last28Dates.includes(d.date))
+											// Últimos dias (timeline completa baseada no número de turnos)
+											const lastDates: string[] = []
+											for (let i = daysCount - 1; i >= 0; i--) {
+												const d = new Date()
+												d.setDate(today.getDate() - i) // Corrigido: mais antigo → mais recente
+												lastDates.push(dateYMD(d))
+											}
 
-											const calendarStatus = p.dates // 3 meses já retornados pela API
+											// Mapear status para cada dia dos últimos turnos (incluindo dias sem atividade)
+											const lastDaysStatus = lastDates.map((date) => {
+												const dayData = p.dates.find((d) => d.date === date)
+												return dayData || { date, turn: 0, user_id: null, status: 'not_run', description: null, alert: false }
+											})
 
-											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={calendarStatus} onSaved={fetchDashboard} />
+											// Últimos 28 dias (timeline completa)
+											const last28Dates: string[] = []
+											for (let i = 27; i >= 0; i--) {
+												const d = new Date()
+												d.setDate(today.getDate() - i) // Corrigido: mais antigo → mais recente
+												last28Dates.push(dateYMD(d))
+											}
+
+											// Mapear status para cada dia (incluindo dias sem atividade)
+											const last28DaysStatus = last28Dates.map((date) => {
+												const dayData = p.dates.find((d) => d.date === date)
+												return dayData || { date, turn: 0, user_id: null, status: 'not_run', description: null, alert: false }
+											})
+
+											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={p.dates} onSaved={fetchDashboard} />
 										})}
 								</div>
 							</div>
