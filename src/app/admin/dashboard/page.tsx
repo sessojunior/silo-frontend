@@ -182,8 +182,6 @@ export default function DashboardPage() {
 									{loading && [1, 2, 3].map((i) => <ProductSkeleton key={i} />)}
 									{!loading &&
 										data.map((p) => {
-											const uniqueDates = Array.from(new Set(p.dates.map((d) => d.date))).sort()
-
 											let daysCount = 2
 											if (p.turns.length === 1) daysCount = 4
 											else if (p.turns.length === 2) daysCount = 3

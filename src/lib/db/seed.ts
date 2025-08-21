@@ -5,6 +5,7 @@ import { eq, inArray } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import * as schema from '@/lib/db/schema'
 import { hashPassword } from '@/lib/auth/hash'
+import { createLocalDate } from '@/lib/utils'
 
 // Importar dados do arquivo separado
 import { products, groups, contacts, testUsers, dependencyStructure, projectsData, helpDocumentation, manualData, generateProblems, generateSolutions, projectActivitiesData } from './seed-data'
@@ -619,93 +620,110 @@ async function seed() {
 		}
 
 		// === 12. CRIAR DADOS DAS TAREFAS DOS PROJETOS (ARQUITETURA SIMPLIFICADA) ===
-		const tasksCheck = await checkTableData('project_task', () => db.select().from(schema.projectTask))
+		// FORÇAR RECRIAÇÃO para corrigir as datas das tarefas
+		console.log('🔵 Recriando dados das tarefas com datas corretas...')
 
-		if (!tasksCheck.hasData && insertedProjects.length > 0) {
-			console.log('🔵 Criando dados das tarefas (arquitetura simplificada)...')
+		// Remover tarefas existentes para recriar com datas corretas
+		await db.delete(schema.projectTask)
+		console.log('✅ Tarefas antigas removidas para recriação')
 
-			// Buscar atividades existentes
-			const allActivities = await db.select().from(schema.projectActivity)
+		// Buscar atividades existentes
+		const allActivities = await db.select().from(schema.projectActivity)
 
-			if (allActivities.length > 0) {
-				let totalTasksCreated = 0
+		if (allActivities.length > 0) {
+			let totalTasksCreated = 0
 
-				for (const project of insertedProjects.slice(0, 3)) {
-					// Apenas primeiros 3 projetos
-					const projectActivities = allActivities.filter((a) => a.projectId === project.id)
+			for (const project of insertedProjects.slice(0, 3)) {
+				// Apenas primeiros 3 projetos
+				const projectActivities = allActivities.filter((a) => a.projectId === project.id)
 
-					if (projectActivities.length > 0) {
-						console.log(`   🔵 Criando tarefas para projeto "${project.name}" (${projectActivities.length} atividades)...`)
+				if (projectActivities.length > 0) {
+					console.log(`   🔵 Criando tarefas para projeto "${project.name}" (${projectActivities.length} atividades)...`)
 
-						// Para cada atividade, criar pelo menos 6 tarefas
-						for (const activity of projectActivities) {
-							console.log(`     🔵 Criando tarefas para atividade "${activity.name}"...`)
+					// Para cada atividade, criar pelo menos 6 tarefas
+					for (const activity of projectActivities) {
+						console.log(`     🔵 Criando tarefas para atividade "${activity.name}"...`)
 
-							// Criar 6+ tarefas de exemplo para esta atividade
-							const tasksToCreate = []
+						// Criar 6+ tarefas de exemplo para esta atividade
+						const tasksToCreate = []
 
-							// Templates de tarefas com distribuição por status
-							const taskTemplates = [
-								{ name: 'Configurar ambiente de desenvolvimento', status: 'todo', category: 'Infraestrutura', priority: 'high' },
-								{ name: 'Implementar funcionalidade principal', status: 'todo', category: 'Desenvolvimento', priority: 'urgent' },
-								{ name: 'Configurar rede interna e externa', status: 'in_progress', category: 'Infraestrutura', priority: 'medium' },
-								{ name: 'Desenvolver interface do usuário', status: 'in_progress', category: 'Desenvolvimento', priority: 'high' },
-								{ name: 'Testes de integração', status: 'review', category: 'Testes', priority: 'medium' },
-								{ name: 'Documentação técnica', status: 'blocked', category: 'Documentação', priority: 'low' },
-								{ name: 'Deploy em ambiente de produção', status: 'done', category: 'Deploy', priority: 'high' },
-								{ name: 'Configuração de monitoramento', status: 'done', category: 'DevOps', priority: 'medium' },
-							]
+						// Templates de tarefas com distribuição por status
+						const taskTemplates = [
+							{ name: 'Configurar ambiente de desenvolvimento', status: 'todo', category: 'Infraestrutura', priority: 'high' },
+							{ name: 'Implementar funcionalidade principal', status: 'todo', category: 'Desenvolvimento', priority: 'urgent' },
+							{ name: 'Configurar rede interna e externa', status: 'in_progress', category: 'Infraestrutura', priority: 'medium' },
+							{ name: 'Desenvolver interface do usuário', status: 'in_progress', category: 'Desenvolvimento', priority: 'high' },
+							{ name: 'Testes de integração', status: 'review', category: 'Testes', priority: 'medium' },
+							{ name: 'Documentação técnica', status: 'blocked', category: 'Documentação', priority: 'low' },
+							{ name: 'Deploy em ambiente de produção', status: 'done', category: 'Deploy', priority: 'high' },
+							{ name: 'Configuração de monitoramento', status: 'done', category: 'DevOps', priority: 'medium' },
+						]
 
-							// Distribuir tarefas por status com sort sequencial
-							const tasksByStatus: Record<string, number> = {
-								todo: 0,
-								in_progress: 0,
-								blocked: 0,
-								review: 0,
-								done: 0,
-							}
-
-							for (let i = 0; i < taskTemplates.length; i++) {
-								const template = taskTemplates[i]
-								const taskId = randomUUID()
-
-								// Incrementar contador para este status
-								tasksByStatus[template.status]++
-
-								tasksToCreate.push({
-									id: taskId,
-									projectId: project.id,
-									projectActivityId: activity.id,
-									name: `${template.name} - ${activity.name}`,
-									description: `Tarefa de ${template.category.toLowerCase()} para atividade: ${activity.description}`,
-									category: template.category,
-									estimatedDays: Math.floor(Math.random() * 15) + 1, // 1-15 dias
-									status: template.status,
-									sort: tasksByStatus[template.status] - 1, // Sort sequencial por status (0, 1, 2...)
-									startDate: activity.startDate,
-									endDate: activity.endDate,
-									priority: template.priority,
-								})
-							}
-
-							// Inserir tarefas desta atividade
-							if (tasksToCreate.length > 0) {
-								await db.insert(schema.projectTask).values(tasksToCreate)
-								totalTasksCreated += tasksToCreate.length
-								console.log(`     ✅ ${tasksToCreate.length} tarefas criadas para "${activity.name}"`)
-							}
+						// Distribuir tarefas por status com sort sequencial
+						const tasksByStatus: Record<string, number> = {
+							todo: 0,
+							in_progress: 0,
+							blocked: 0,
+							review: 0,
+							done: 0,
 						}
 
-						console.log(`   ✅ Projeto "${project.name}" finalizado com ${projectActivities.length} atividades`)
-					}
-				}
+						// Calcular datas específicas para cada tarefa baseadas na atividade
+						const activityStartDate = new Date(activity.startDate || new Date())
+						const currentTaskDate = new Date(activityStartDate)
 
-				console.log(`✅ Sistema de tarefas criado: ${totalTasksCreated} tarefas distribuídas!`)
-			} else {
-				console.log('⚠️ Nenhuma atividade encontrada para criar tarefas')
+						for (let i = 0; i < taskTemplates.length; i++) {
+							const template = taskTemplates[i]
+							const taskId = randomUUID()
+
+							// Incrementar contador para este status
+							tasksByStatus[template.status]++
+
+							// Calcular datas específicas da tarefa
+							const taskEstimatedDays = Math.floor(Math.random() * 15) + 1 // 1-15 dias
+							const taskStartDate = new Date(currentTaskDate)
+							const taskEndDate = new Date(currentTaskDate)
+							taskEndDate.setDate(taskEndDate.getDate() + taskEstimatedDays - 1) // -1 porque o dia inicial conta
+
+							// Avançar para a próxima tarefa (com pequeno gap)
+							currentTaskDate.setDate(currentTaskDate.getDate() + taskEstimatedDays + Math.floor(Math.random() * 3) + 1)
+
+							// CORREÇÃO: Usar fuso horário local de São Paulo (UTC-3)
+							// Criar datas no fuso horário local para evitar problemas de UTC
+							const localStartDate = createLocalDate(taskStartDate.getFullYear(), taskStartDate.getMonth(), taskStartDate.getDate())
+							const localEndDate = createLocalDate(taskEndDate.getFullYear(), taskEndDate.getMonth(), taskEndDate.getDate())
+
+							tasksToCreate.push({
+								id: taskId,
+								projectId: project.id,
+								projectActivityId: activity.id,
+								name: `${template.name} - ${activity.name}`,
+								description: `Tarefa de ${template.category.toLowerCase()} para atividade: ${activity.description}`,
+								category: template.category,
+								estimatedDays: taskEstimatedDays,
+								status: template.status,
+								sort: tasksByStatus[template.status] - 1, // Sort sequencial por status (0, 1, 2...)
+								startDate: localStartDate.toISOString().split('T')[0], // Data no fuso local como string
+								endDate: localEndDate.toISOString().split('T')[0], // Data no fuso local como string
+								priority: template.priority,
+							})
+						}
+
+						// Inserir tarefas desta atividade
+						if (tasksToCreate.length > 0) {
+							await db.insert(schema.projectTask).values(tasksToCreate)
+							totalTasksCreated += tasksToCreate.length
+							console.log(`     ✅ ${tasksToCreate.length} tarefas criadas para "${activity.name}"`)
+						}
+					}
+
+					console.log(`   ✅ Projeto "${project.name}" finalizado com ${projectActivities.length} atividades`)
+				}
 			}
+
+			console.log(`✅ Sistema de tarefas criado: ${totalTasksCreated} tarefas distribuídas!`)
 		} else {
-			console.log('⚠️ Dados das tarefas já existem, pulando...')
+			console.log('⚠️ Nenhuma atividade encontrada para criar tarefas')
 		}
 
 		// === 13. CRIAR ASSOCIAÇÕES TAREFA-USUÁRIO ===

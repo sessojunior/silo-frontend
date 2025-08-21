@@ -46,7 +46,6 @@ export default function Product({ id, name, turns, progress, priority, date, las
 	// Filtra status conforme turnos configurados do produto
 	const filteredLastDays = lastDaysStatus.filter((d) => turns.includes(String(d.turn)))
 	// A timeline de 28 dias é agregada por dia; não deve ser filtrada por turno
-	const filteredTimeline = last28DaysStatus
 	const filteredCalendar = calendarStatus.filter((d) => turns.includes(String(d.turn)))
 
 	// Usar status de 28 dias para a timeline (não filtrados por turnos)

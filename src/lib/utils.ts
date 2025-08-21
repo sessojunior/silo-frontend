@@ -1,3 +1,64 @@
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+	return twMerge(clsx(inputs))
+}
+
+// === FUNÇÕES DE FORMATAÇÃO DE DATAS COM FUSO HORÁRIO LOCAL ===
+
+/**
+ * Formata uma data para exibição no formato brasileiro (DD/MM/AAAA)
+ * Usa fuso horário de São Paulo para evitar problemas de UTC
+ */
+export function formatDateBR(dateString: string | null): string {
+	if (!dateString) return 'Não definida'
+
+	// Forçar meia-noite no fuso horário local para evitar problemas de UTC
+	const date = new Date(dateString + 'T00:00:00')
+
+	return date.toLocaleDateString('pt-BR', {
+		timeZone: 'America/Sao_Paulo', // Fuso horário de São Paulo
+	})
+}
+
+/**
+ * Formata uma data para exibição completa no formato brasileiro
+ * Inclui dia da semana, dia, mês e ano
+ * Usa fuso horário de São Paulo para evitar problemas de UTC
+ */
+export function formatFullDateBR(dateString: string | null): string {
+	if (!dateString) return 'Não definida'
+
+	// Forçar meia-noite no fuso horário local para evitar problemas de UTC
+	const date = new Date(dateString + 'T00:00:00')
+
+	return date.toLocaleDateString('pt-BR', {
+		weekday: 'long',
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+		timeZone: 'America/Sao_Paulo', // Fuso horário de São Paulo
+	})
+}
+
+/**
+ * Cria uma data no fuso horário local de São Paulo
+ * Evita problemas de conversão UTC
+ */
+export function createLocalDate(year: number, month: number, day: number): Date {
+	return new Date(year, month, day) // Construtor local, não UTC
+}
+
+/**
+ * Converte uma string de data para Date no fuso horário local
+ * Garante que a data seja interpretada como local, não UTC
+ */
+export function parseLocalDate(dateString: string): Date {
+	const [year, month, day] = dateString.split('-').map(Number)
+	return new Date(year, month - 1, day) // month - 1 porque Date usa 0-11
+}
+
 /**
  * Transforma uma string em um slug seguro:
  * - Remove acentos (á, à, â, ã, ä, etc)

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, pointerWithin, useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { formatDateBR, formatFullDateBR } from '@/lib/utils'
 
 // Types
 interface Task {
@@ -131,8 +132,14 @@ const categoryColors: Record<string, string> = {
 
 // Componente base reutilizável para conteúdo do card
 function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Task; showEditButton?: boolean; onEditTask?: (task: Task) => void }) {
+	// Usar funções utilitárias para formatação consistente de datas
 	const formatDate = (dateString: string): string => {
-		return new Date(dateString).toLocaleDateString('pt-BR')
+		return formatDateBR(dateString)
+	}
+
+	// Função para formatação de datas completas nos tooltips
+	const formatFullDate = (dateString: string): string => {
+		return formatFullDateBR(dateString)
 	}
 
 	return (
@@ -162,8 +169,19 @@ function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Ta
 
 			{/* Informações de tempo e data */}
 			<div className='flex items-center justify-between text-xs text-gray-500 mb-3'>
-				<span>📅 {task.start_date ? formatDate(task.start_date) : 'N/A'}</span>
-				<span>
+				<div className='flex items-center gap-2'>
+					{/* Data de início */}
+					<span className='cursor-help' title={`Data de início: ${task.start_date ? formatFullDate(task.start_date) : 'Não definida'}`}>
+						📅 {task.start_date ? formatDate(task.start_date) : 'N/A'}
+					</span>
+					{/* Data de fim */}
+					{task.end_date && (
+						<span className='cursor-help' title={`Data de término: ${formatFullDate(task.end_date)}`}>
+							→ {formatDate(task.end_date)}
+						</span>
+					)}
+				</div>
+				<span className='cursor-help' title={`Estimativa: ${task.estimated_days} dia${task.estimated_days !== 1 ? 's' : ''} de trabalho`}>
 					⏱️ {task.estimated_days} dia{task.estimated_days !== 1 ? 's' : ''}
 				</span>
 			</div>

@@ -5,7 +5,7 @@ import { getAuthUser } from '@/lib/auth/token'
 import { eq } from 'drizzle-orm'
 
 // GET /api/admin/tasks/[taskId]/users - Buscar usuários associados a uma tarefa
-export async function GET(request: NextRequest, { params }: { params: { taskId: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ taskId: string }> }) {
 	try {
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: { taskId: 
 			return NextResponse.json({ success: false, error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		const { taskId } = params
+		const { taskId } = await params
 
 		// Buscar usuários associados à tarefa
 		const taskUsers = await db
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest, { params }: { params: { taskId: 
 }
 
 // POST /api/admin/tasks/[taskId]/users - Associar usuários a uma tarefa
-export async function POST(request: NextRequest, { params }: { params: { taskId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ taskId: string }> }) {
 	try {
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest, { params }: { params: { taskId:
 			return NextResponse.json({ success: false, error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		const { taskId } = params
+		const { taskId } = await params
 		const { userIds, role = 'assignee' } = await request.json()
 
 		if (!userIds || !Array.isArray(userIds)) {
