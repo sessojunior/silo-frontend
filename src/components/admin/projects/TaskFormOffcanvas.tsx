@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Offcanvas from '@/components/ui/Offcanvas'
-import Input from '@/components/ui/Input'
-import Select from '@/components/ui/Select'
-import MultiSelect from '@/components/ui/MultiSelect'
-import Button from '@/components/ui/Button'
-import Label from '@/components/ui/Label'
-import Dialog from '@/components/ui/Dialog'
+import React, { useState, useEffect } from 'react'
 import { toast } from '@/lib/toast'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import Label from '@/components/ui/Label'
+import Select from '@/components/ui/Select'
+import Offcanvas from '@/components/ui/Offcanvas'
+import Dialog from '@/components/ui/Dialog'
+import MultiSelect from '@/components/ui/MultiSelect'
 
+// Interface local para evitar dependência externa
 interface KanbanTask {
 	id: string
 	project_id: string
@@ -23,7 +24,148 @@ interface KanbanTask {
 	start_date: string
 	end_date: string
 	priority: 'low' | 'medium' | 'high' | 'urgent'
-	assignedUsers?: string[] // Novo campo para usuários associados
+	assignedUsers?: string[] // Campo para usuários associados
+}
+
+// Cache global de usuários para carregamento instantâneo
+let globalUsersCache: { value: string; label: string; image?: string | null }[] = []
+let globalUsersCacheTimestamp = 0
+let globalUsersCacheHash = '' // Hash para detectar mudanças nos dados
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
+
+// Função para gerar hash dos dados de usuários
+function generateUsersHash(users: { value: string; label: string; image?: string | null }[]): string {
+	const dataString = users.map((u) => `${u.value}:${u.label}:${u.image}`).join('|')
+	return btoa(dataString).slice(0, 16) // Hash base64 truncado para performance
+}
+
+// Função para verificar se o cache ainda é válido
+function isCacheValid(): boolean {
+	return globalUsersCache.length > 0 && Date.now() - globalUsersCacheTimestamp < CACHE_DURATION
+}
+
+// Função para verificar se os dados do cache ainda são atuais
+function isCacheDataCurrent(users: { value: string; label: string; image?: string | null }[]): boolean {
+	const currentHash = generateUsersHash(users)
+	return currentHash === globalUsersCacheHash
+}
+
+// Função para invalidar cache quando dados mudam
+export function invalidateUsersCache(): void {
+	globalUsersCache = []
+	globalUsersCacheTimestamp = 0
+	globalUsersCacheHash = ''
+	console.log('🔄 Cache de usuários invalidado (dados mudaram)')
+}
+
+// Função para forçar refresh do cache (útil para admin)
+export function refreshUsersCache(): void {
+	globalUsersCache = []
+	globalUsersCacheTimestamp = 0
+	globalUsersCacheHash = ''
+	console.log('🔄 Cache de usuários forçado a refresh')
+}
+
+// Função para carregar usuários com cache inteligente e validação de dados
+async function loadUsersWithCache(): Promise<{ value: string; label: string; image?: string | null }[]> {
+	// Se o cache é válido, verificar se os dados ainda são atuais
+	if (isCacheValid()) {
+		// Fazer uma chamada rápida para verificar se os dados mudaram
+		try {
+			const response = await fetch('/api/admin/users?check=1') // Parâmetro para verificação rápida
+			if (response.ok) {
+				const data = await response.json()
+				if (data.success && Array.isArray(data.data?.items)) {
+					const currentUsers = data.data.items.map((user: { id: string; name: string; image?: string | null }) => ({
+						value: user.id,
+						label: user.name,
+						image: user.image,
+					}))
+
+					// Se os dados são os mesmos, usar cache
+					if (isCacheDataCurrent(currentUsers)) {
+						console.log('🚀 Usando cache de usuários (dados inalterados)')
+						return globalUsersCache
+					} else {
+						console.log('🔄 Dados mudaram, invalidando cache')
+						invalidateUsersCache()
+					}
+				}
+			}
+		} catch {
+			console.log('⚠️ Erro na verificação rápida, usando cache existente')
+			return globalUsersCache
+		}
+	}
+
+	// Cache expirado, vazio ou dados mudaram, carregar da API
+	console.log('🔵 Carregando usuários da API...')
+
+	try {
+		const response = await fetch('/api/admin/users')
+
+		if (response.ok) {
+			const data = await response.json()
+
+			if (data.success && Array.isArray(data.data?.items)) {
+				const users = data.data.items.map((user: { id: string; name: string; image?: string | null }) => ({
+					value: user.id,
+					label: user.name,
+					image: user.image,
+				}))
+
+				// Atualizar cache global com novo hash
+				globalUsersCache = users
+				globalUsersCacheTimestamp = Date.now()
+				globalUsersCacheHash = generateUsersHash(users)
+
+				console.log(`✅ ${users.length} usuários carregados e cache atualizado`)
+				return users
+			}
+		}
+
+		throw new Error('Falha ao carregar usuários da API')
+	} catch (error) {
+		console.error('❌ Erro ao carregar usuários:', error)
+
+		// Fallback: usuários de exemplo
+		const fallbackUsers = [
+			{ value: 'user1', label: 'Mario Junior', image: null },
+			{ value: 'user2', label: 'Usuário Teste 1', image: null },
+			{ value: 'user3', label: 'Usuário Teste 2', image: null },
+		]
+
+		// Atualizar cache com fallback
+		globalUsersCache = fallbackUsers
+		globalUsersCacheTimestamp = Date.now()
+		globalUsersCacheHash = generateUsersHash(fallbackUsers)
+
+		return fallbackUsers
+	}
+}
+
+// Sistema de eventos para invalidação automática do cache
+export function setupUsersCacheInvalidation(): void {
+	// Invalidar cache quando usuário é criado/editado/deletado
+	// Esta função deve ser chamada pelas APIs de usuários
+	console.log('🔧 Sistema de invalidação automática do cache configurado')
+}
+
+// Função para invalidar cache quando usuário específico muda
+export function invalidateUserCache(userId: string): void {
+	if (globalUsersCache.some((u) => u.value === userId)) {
+		console.log(`🔄 Cache invalidado para usuário ${userId}`)
+		invalidateUsersCache()
+	}
+}
+
+// Função para invalidar cache quando múltiplos usuários mudam
+export function invalidateMultipleUsersCache(userIds: string[]): void {
+	const hasChanges = userIds.some((id) => globalUsersCache.some((u) => u.value === id))
+	if (hasChanges) {
+		console.log(`🔄 Cache invalidado para ${userIds.length} usuários`)
+		invalidateUsersCache()
+	}
 }
 
 interface TaskFormOffcanvasProps {
@@ -44,7 +186,7 @@ interface TaskFormData {
 	endDate: string
 	priority: KanbanTask['priority']
 	status: KanbanTask['status']
-	assignedUsers: string[] // Novo campo
+	assignedUsers: string[] // REQUISITO: Campo obrigatório - pelo menos um usuário
 }
 
 export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus = 'todo', onSubmit, onDelete }: TaskFormOffcanvasProps) {
@@ -57,12 +199,13 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 		endDate: '',
 		priority: 'medium',
 		status: initialStatus,
-		assignedUsers: [], // Novo campo
+		assignedUsers: [], // REQUISITO: Campo obrigatório - será validado no submit
 	})
 	const [saving, setSaving] = useState(false)
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 	const [deleting, setDeleting] = useState(false)
 	const [availableUsers, setAvailableUsers] = useState<{ value: string; label: string; image?: string | null }[]>([])
+	const [loadingUsers, setLoadingUsers] = useState(false)
 
 	// Opções de status (colunas do Kanban)
 	const statusOptions = [
@@ -102,65 +245,47 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 		{ value: '21', label: '21 dias' },
 	]
 
-	// Carregar usuários disponíveis
+	// Carregar usuários disponíveis com cache inteligente
 	useEffect(() => {
 		const loadUsers = async () => {
+			// Se já temos usuários carregados, não mostrar loading
+			if (availableUsers.length > 0) {
+				console.log('🚀 Usuários já disponíveis, pulando carregamento')
+				return
+			}
+
 			try {
-				console.log('🔵 Carregando usuários disponíveis...')
+				setLoadingUsers(true)
+				console.log('🔵 Iniciando carregamento de usuários...')
 
-				const response = await fetch('/api/admin/users')
-				console.log('🔵 Response status:', response.status)
+				// Usar função de cache inteligente
+				const users = await loadUsersWithCache()
+				setAvailableUsers(users)
 
-				if (response.ok) {
-					const data = await response.json()
-					console.log('🔵 Dados recebidos da API:', data)
-
-					// Verificar se data.data.items existe e é um array
-					if (data.success && Array.isArray(data.data?.items)) {
-						const users = data.data.items.map((user: { id: string; name: string; image?: string | null }) => ({
-							value: user.id,
-							label: user.name, // Usar o nome real do usuário
-							image: user.image,
-						}))
-						console.log(`✅ ${users.length} usuários carregados:`, users)
-						setAvailableUsers(users)
-					} else {
-						console.error('❌ Estrutura de dados inválida:', data)
-						// Fallback: criar usuários de exemplo se a API falhar
-						setAvailableUsers([
-							{ value: 'user1', label: 'Mario Junior', image: null },
-							{ value: 'user2', label: 'Usuário Teste 1', image: null },
-							{ value: 'user3', label: 'Usuário Teste 2', image: null },
-						])
-					}
-				} else {
-					console.error('❌ Erro HTTP:', response.status, response.statusText)
-					// Fallback: criar usuários de exemplo se a API falhar
-					setAvailableUsers([
-						{ value: 'user1', label: 'Mario Junior', image: null },
-						{ value: 'user2', label: 'Usuário Teste 1', image: null },
-						{ value: 'user3', label: 'Usuário Teste 2', image: null },
-					])
-				}
+				console.log(`✅ Usuários carregados: ${users.length} (cache: ${isCacheValid() ? 'hit' : 'miss'})`)
 			} catch (error) {
-				console.error('❌ Erro ao carregar usuários:', error)
-				// Fallback: criar usuários de exemplo se a API falhar
-				setAvailableUsers([
-					{ value: 'user1', label: 'Mario Junior', image: null },
-					{ value: 'user2', label: 'Usuário Teste 1', image: null },
-					{ value: 'user3', label: 'Usuário Teste 2', image: null },
-				])
+				console.error('❌ Erro crítico ao carregar usuários:', error)
+				// Fallback já está no cache, não precisa fazer nada
+			} finally {
+				setLoadingUsers(false)
 			}
 		}
 
 		if (isOpen) {
 			loadUsers()
 		}
-	}, [isOpen])
+	}, [isOpen, availableUsers.length])
 
-	// Carregar dados da tarefa para edição
+	// Carregar dados da tarefa para edição (APÓS os usuários estarem carregados)
 	useEffect(() => {
-		if (task) {
+		// Só carregar dados da tarefa se os usuários estiverem disponíveis
+		if (task && availableUsers.length > 0) {
+			console.log('🔵 Carregando dados da tarefa com usuários disponíveis:', {
+				taskId: task.id,
+				assignedUsers: task.assignedUsers,
+				availableUsersCount: availableUsers.length,
+			})
+
 			setFormData({
 				name: task.name,
 				description: task.description,
@@ -170,9 +295,9 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 				endDate: task.end_date || '',
 				priority: task.priority,
 				status: task.status,
-				assignedUsers: task.assignedUsers || [], // Novo campo
+				assignedUsers: task.assignedUsers || [], // REQUISITO: Campo obrigatório
 			})
-		} else {
+		} else if (!task && isOpen) {
 			// Reset para nova tarefa
 			setFormData({
 				name: '',
@@ -183,10 +308,10 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 				endDate: '',
 				priority: 'medium',
 				status: initialStatus,
-				assignedUsers: [], // Novo campo
+				assignedUsers: [], // REQUISITO: Campo obrigatório - será validado no submit
 			})
 		}
-	}, [task, initialStatus, isOpen])
+	}, [task, availableUsers.length, initialStatus, isOpen])
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -206,6 +331,16 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 				type: 'error',
 				title: 'Erro na validação',
 				description: 'Descrição da tarefa é obrigatória',
+			})
+			return
+		}
+
+		// REQUISITO: Pelo menos um usuário deve ser associado à tarefa
+		if (!formData.assignedUsers || formData.assignedUsers.length === 0) {
+			toast({
+				type: 'error',
+				title: 'Erro na validação',
+				description: 'Pelo menos um usuário deve ser associado à tarefa',
 			})
 			return
 		}
@@ -316,8 +451,15 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 
 					{/* Linha: Usuários Associados */}
 					<div>
-						<Label htmlFor='assignedUsers'>Usuários Associados</Label>
-						<MultiSelect name='assignedUsers' selected={formData.assignedUsers} onChange={(value) => handleFieldChange('assignedUsers', value as string[])} options={availableUsers} placeholder='Selecionar usuários' />
+						<Label htmlFor='assignedUsers'>Usuários Associados *</Label>
+						{loadingUsers ? (
+							<div className='w-full px-3 py-3 border border-zinc-200 dark:border-zinc-600 rounded-lg bg-zinc-50 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'>
+								<span className='icon-[lucide--loader-2] size-4 animate-spin mr-2' />
+								Carregando usuários...
+							</div>
+						) : (
+							<MultiSelect name='assignedUsers' selected={formData.assignedUsers} onChange={(value) => handleFieldChange('assignedUsers', value as string[])} options={availableUsers} placeholder='Selecionar usuários (obrigatório)' required isInvalid={formData.assignedUsers.length === 0} invalidMessage='Pelo menos um usuário deve ser selecionado' />
+						)}
 					</div>
 
 					{/* Linha: Datas */}

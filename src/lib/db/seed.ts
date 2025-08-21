@@ -709,8 +709,8 @@ async function seed() {
 		}
 
 		// === 13. CRIAR ASSOCIAÇÕES TAREFA-USUÁRIO ===
-		// Forçar recriação das associações para teste
-		console.log('🔵 Forçando recriação das associações tarefa-usuário...')
+		// REQUISITO: TODA tarefa deve estar associada a pelo menos um usuário
+		console.log('🔵 Criando associações tarefa-usuário (REQUISITO: toda tarefa deve ter pelo menos um usuário)...')
 
 		// Remover associações existentes
 		await db.delete(schema.projectTaskUser)
@@ -723,10 +723,9 @@ async function seed() {
 		if (allTasks.length > 0 && allUsers.length > 0) {
 			const taskUsersToCreate = []
 
-			// Para cada tarefa, associar 1-3 usuários aleatoriamente
-			for (const task of allTasks.slice(0, 30)) {
-				// Aumentar para 30 tarefas
-				// Limitar a 30 tarefas para não sobrecarregar
+			// REQUISITO: Para CADA tarefa, associar pelo menos 1 usuário
+			for (const task of allTasks) {
+				// Garantir que cada tarefa tenha pelo menos 1 usuário
 				const numUsers = Math.floor(Math.random() * 3) + 1 // 1-3 usuários por tarefa
 				const selectedUsers = allUsers.sort(() => 0.5 - Math.random()).slice(0, numUsers)
 
@@ -746,6 +745,7 @@ async function seed() {
 			if (taskUsersToCreate.length > 0) {
 				await db.insert(schema.projectTaskUser).values(taskUsersToCreate)
 				console.log(`✅ ${taskUsersToCreate.length} associações tarefa-usuário criadas!`)
+				console.log(`✅ REQUISITO ATENDIDO: Todas as ${allTasks.length} tarefas têm pelo menos um usuário associado`)
 			}
 		} else {
 			console.log('⚠️ Nenhuma tarefa ou usuário encontrado para criar associações')

@@ -152,6 +152,19 @@ Este projeto usa o arquivo `/CLAUDE.md` na raiz como única fonte de verdade de 
 - **Chat WhatsApp-like Finalizado**: Sistema profissional com presença real-time 100% funcional
 - **Dashboard com Categorias**: Donut chart causas de problemas + CRUD categorias completo
 
+### 🎯 **REQUISITO OBRIGATÓRIO - ASSOCIAÇÃO DE USUÁRIOS ÀS TAREFAS**
+
+**Sistema de Projetos com Validação de Usuários**:
+
+- **TODA tarefa DEVE estar associada a pelo menos um usuário**
+- Validação obrigatória no formulário de criação/edição
+- Campo "Usuários Associados" marcado como obrigatório (\*)
+- Seed garante que todas as tarefas tenham pelo menos 1 usuário
+- Suporte a múltiplos usuários por tarefa (1-3 usuários)
+- Papéis: assignee (70%) e reviewer (30%)
+- Exibição de avatares com iniciais corretas no rodapé das tarefas
+- MultiSelect funcional com nomes reais dos usuários (não IDs)
+
 ## 📁 Estrutura Real do Projeto
 
 ```

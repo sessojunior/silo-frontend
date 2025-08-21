@@ -451,6 +451,16 @@ PROJETO → ATIVIDADES → TAREFAS → KANBAN (um por atividade)
 - Integração project_task.status como fonte verdade
 - Contagem tarefas por atividade correta
 
+**REQUISITO OBRIGATÓRIO - ASSOCIAÇÃO DE USUÁRIOS**:
+
+- **TODA tarefa DEVE estar associada a pelo menos um usuário**
+- Validação obrigatória no formulário (TaskFormOffcanvas)
+- Campo "Usuários Associados" marcado como obrigatório (\*)
+- Seed garante que todas as tarefas tenham pelo menos 1 usuário
+- Suporte a múltiplos usuários por tarefa (1-3 usuários)
+- Papéis: assignee (70%) e reviewer (30%)
+- Exibição de avatares com iniciais corretas no rodapé das tarefas
+
 ---
 
 ## 🗄️ BANCO DE DADOS POSTGRESQL
