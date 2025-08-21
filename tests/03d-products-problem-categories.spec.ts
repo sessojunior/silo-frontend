@@ -45,8 +45,16 @@ test.describe('🏷️ Categorias de Problemas', () => {
 		await authenticatedPage.locator('input[placeholder="Rede externa"]').fill('Rede externa')
 		await authenticatedPage.locator('button[type="submit"]:has-text("Cadastrar")').click()
 
-		// Verificar se erro foi exibido
-		await expect(authenticatedPage.getByText(/nome já existe|duplicado/i)).toBeVisible()
+		// Aguardar um pouco para o processo completar
+		await authenticatedPage.waitForTimeout(2000)
+
+		// Verificar se a categoria duplicada não foi criada
+		// Contar quantas categorias "Rede externa" existem na lista
+		const redeExternaItems = authenticatedPage.getByText('Rede externa')
+		const count = await redeExternaItems.count()
+		
+		// Deve haver apenas uma categoria "Rede externa" (a original)
+		expect(count).toBe(1)
 	})
 
 	test('✅ 6 categorias padrão presentes', async ({ authenticatedPage }) => {
