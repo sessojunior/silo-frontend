@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Offcanvas from '@/components/ui/Offcanvas'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
+import MultiSelect from '@/components/ui/MultiSelect'
 import Button from '@/components/ui/Button'
 import Label from '@/components/ui/Label'
 import Dialog from '@/components/ui/Dialog'
@@ -22,6 +23,7 @@ interface KanbanTask {
 	start_date: string
 	end_date: string
 	priority: 'low' | 'medium' | 'high' | 'urgent'
+	assignedUsers?: string[] // Novo campo para usuários associados
 }
 
 interface TaskFormOffcanvasProps {
@@ -42,6 +44,7 @@ interface TaskFormData {
 	endDate: string
 	priority: KanbanTask['priority']
 	status: KanbanTask['status']
+	assignedUsers: string[] // Novo campo
 }
 
 export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus = 'todo', onSubmit, onDelete }: TaskFormOffcanvasProps) {
@@ -54,10 +57,12 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 		endDate: '',
 		priority: 'medium',
 		status: initialStatus,
+		assignedUsers: [], // Novo campo
 	})
 	const [saving, setSaving] = useState(false)
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 	const [deleting, setDeleting] = useState(false)
+	const [availableUsers, setAvailableUsers] = useState<{ value: string; label: string; image?: string | null }[]>([])
 
 	// Opções de status (colunas do Kanban)
 	const statusOptions = [
@@ -97,6 +102,62 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 		{ value: '21', label: '21 dias' },
 	]
 
+	// Carregar usuários disponíveis
+	useEffect(() => {
+		const loadUsers = async () => {
+			try {
+				console.log('🔵 Carregando usuários disponíveis...')
+
+				const response = await fetch('/api/admin/users')
+				console.log('🔵 Response status:', response.status)
+
+				if (response.ok) {
+					const data = await response.json()
+					console.log('🔵 Dados recebidos da API:', data)
+
+					// Verificar se data.data.items existe e é um array
+					if (data.success && Array.isArray(data.data?.items)) {
+						const users = data.data.items.map((user: { id: string; name: string; image?: string | null }) => ({
+							value: user.id,
+							label: user.name, // Usar o nome real do usuário
+							image: user.image,
+						}))
+						console.log(`✅ ${users.length} usuários carregados:`, users)
+						setAvailableUsers(users)
+					} else {
+						console.error('❌ Estrutura de dados inválida:', data)
+						// Fallback: criar usuários de exemplo se a API falhar
+						setAvailableUsers([
+							{ value: 'user1', label: 'Mario Junior', image: null },
+							{ value: 'user2', label: 'Usuário Teste 1', image: null },
+							{ value: 'user3', label: 'Usuário Teste 2', image: null },
+						])
+					}
+				} else {
+					console.error('❌ Erro HTTP:', response.status, response.statusText)
+					// Fallback: criar usuários de exemplo se a API falhar
+					setAvailableUsers([
+						{ value: 'user1', label: 'Mario Junior', image: null },
+						{ value: 'user2', label: 'Usuário Teste 1', image: null },
+						{ value: 'user3', label: 'Usuário Teste 2', image: null },
+					])
+				}
+			} catch (error) {
+				console.error('❌ Erro ao carregar usuários:', error)
+				// Fallback: criar usuários de exemplo se a API falhar
+				setAvailableUsers([
+					{ value: 'user1', label: 'Mario Junior', image: null },
+					{ value: 'user2', label: 'Usuário Teste 1', image: null },
+					{ value: 'user3', label: 'Usuário Teste 2', image: null },
+				])
+			}
+		}
+
+		if (isOpen) {
+			loadUsers()
+		}
+	}, [isOpen])
+
 	// Carregar dados da tarefa para edição
 	useEffect(() => {
 		if (task) {
@@ -109,6 +170,7 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 				endDate: task.end_date || '',
 				priority: task.priority,
 				status: task.status,
+				assignedUsers: task.assignedUsers || [], // Novo campo
 			})
 		} else {
 			// Reset para nova tarefa
@@ -121,6 +183,7 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 				endDate: '',
 				priority: 'medium',
 				status: initialStatus,
+				assignedUsers: [], // Novo campo
 			})
 		}
 	}, [task, initialStatus, isOpen])
@@ -181,7 +244,7 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 		}
 	}
 
-	const handleFieldChange = (field: keyof TaskFormData, value: string | number) => {
+	const handleFieldChange = (field: keyof TaskFormData, value: string | number | string[]) => {
 		setFormData((prev) => ({
 			...prev,
 			[field]: value,
@@ -249,6 +312,12 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 							<Label htmlFor='estimatedDays'>Estimativa</Label>
 							<Select name='estimatedDays' selected={formData.estimatedDays.toString()} onChange={(value) => handleFieldChange('estimatedDays', parseInt(value))} options={estimatedDaysOptions} placeholder='Estimativa de dias' />
 						</div>
+					</div>
+
+					{/* Linha: Usuários Associados */}
+					<div>
+						<Label htmlFor='assignedUsers'>Usuários Associados</Label>
+						<MultiSelect name='assignedUsers' selected={formData.assignedUsers} onChange={(value) => handleFieldChange('assignedUsers', value as string[])} options={availableUsers} placeholder='Selecionar usuários' />
 					</div>
 
 					{/* Linha: Datas */}

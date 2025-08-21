@@ -24,9 +24,40 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			.orderBy(asc(schema.projectTask.status), asc(schema.projectTask.sort))
 
 		console.log('🔵 [API] Tasks encontradas:', tasks.length)
+
+		// Buscar usuários associados a cada tarefa
+		const tasksWithUsers = await Promise.all(
+			tasks.map(async (task) => {
+				console.log(`🔵 [API] Buscando usuários para tarefa ${task.id}: ${task.name}`)
+
+				const taskUsers = await db
+					.select({
+						id: schema.projectTaskUser.userId,
+						role: schema.projectTaskUser.role,
+						name: schema.authUser.name,
+						email: schema.authUser.email,
+						image: schema.authUser.image,
+					})
+					.from(schema.projectTaskUser)
+					.innerJoin(schema.authUser, eq(schema.projectTaskUser.userId, schema.authUser.id))
+					.where(eq(schema.projectTaskUser.taskId, task.id))
+
+				console.log(
+					`🔵 [API] Tarefa ${task.id} - ${taskUsers.length} usuários encontrados:`,
+					taskUsers.map((u) => ({ id: u.id, name: u.name, role: u.role })),
+				)
+
+				return {
+					...task,
+					assignedUsers: taskUsers.map((user) => user.id), // IDs dos usuários para compatibilidade
+					assignedUsersDetails: taskUsers, // Detalhes completos dos usuários
+				}
+			}),
+		)
+
 		console.log(
 			'🔵 [API] Tasks por status:',
-			tasks.reduce(
+			tasksWithUsers.reduce(
 				(acc, task) => {
 					acc[task.status] = (acc[task.status] || 0) + 1
 					return acc
@@ -36,7 +67,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 		)
 
 		// Agrupar tarefas por status
-		const groupedTasks = tasks.reduce(
+		const groupedTasks = tasksWithUsers.reduce(
 			(acc, task) => {
 				if (!acc[task.status]) {
 					acc[task.status] = []
@@ -44,7 +75,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 				acc[task.status].push(task)
 				return acc
 			},
-			{} as Record<string, typeof tasks>,
+			{} as Record<string, typeof tasksWithUsers>,
 		)
 
 		console.log(
@@ -52,7 +83,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			Object.keys(groupedTasks).map((status) => ({
 				status,
 				count: groupedTasks[status].length,
-				tasks: groupedTasks[status].map((t) => ({ id: t.id, name: t.name, sort: t.sort })),
+				tasks: groupedTasks[status].map((t) => ({
+					id: t.id,
+					name: t.name,
+					sort: t.sort,
+					assignedUsers: t.assignedUsers,
+					assignedUsersCount: t.assignedUsers?.length || 0,
+				})),
 			})),
 		)
 

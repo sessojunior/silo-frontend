@@ -6,24 +6,24 @@ test.describe('🚨 Sistema de Problemas', () => {
 			await authenticatedPage.goto('/admin/products/bam/problems')
 			await authenticatedPage.waitForLoadState('networkidle')
 
-			// Verificar se botão de criar está presente
-			await expect(authenticatedPage.getByRole('button', { name: /criar|novo/i })).toBeVisible()
+			// Verificar se botão de adicionar problema está presente (usar seletor mais específico)
+			await expect(authenticatedPage.locator('button[title="Adicionar problema"]').first()).toBeVisible()
 		})
 
 		test('✅ Lista de problemas - estrutura básica', async ({ authenticatedPage }) => {
 			await authenticatedPage.goto('/admin/products/bam/problems')
 			await authenticatedPage.waitForLoadState('networkidle')
 
-			// Verificar se página carregou
-			await expect(authenticatedPage.getByRole('heading', { name: /problemas/i })).toBeVisible()
+			// Verificar se campo de busca está presente (estrutura da coluna esquerda)
+			await expect(authenticatedPage.getByPlaceholder('Procurar problema...')).toBeVisible()
 		})
 
 		test('✅ Filtros e busca - funcionalidades básicas', async ({ authenticatedPage }) => {
 			await authenticatedPage.goto('/admin/products/bam/problems')
 			await authenticatedPage.waitForLoadState('networkidle')
 
-			// Verificar se área de filtros está presente
-			await expect(authenticatedPage.locator('div.flex.flex-col.gap-4')).toBeVisible()
+			// Verificar se área de busca está presente (coluna esquerda)
+			await expect(authenticatedPage.locator('div.border-b.border-zinc-200.p-4.flex.items-center.gap-2')).toBeVisible()
 		})
 	})
 
@@ -32,14 +32,8 @@ test.describe('🚨 Sistema de Problemas', () => {
 			await authenticatedPage.goto('/admin/products/bam/problems')
 			await authenticatedPage.waitForLoadState('networkidle')
 
-			// Verificar se área de upload está presente (se existir)
-			const uploadArea = authenticatedPage.locator('[data-ut-element="upload-button"]')
-			if ((await uploadArea.count()) > 0) {
-				await expect(uploadArea).toBeVisible()
-			} else {
-				// Se não houver upload, apenas verificar se página carregou
-				await expect(authenticatedPage.getByRole('heading', { name: /problemas/i })).toBeVisible()
-			}
+			// Verificar se página carregou com estrutura básica
+			await expect(authenticatedPage.getByPlaceholder('Procurar problema...')).toBeVisible()
 		})
 	})
 
@@ -49,10 +43,10 @@ test.describe('🚨 Sistema de Problemas', () => {
 			await authenticatedPage.waitForLoadState('networkidle')
 
 			// Verificar se estrutura básica está presente
-			await expect(authenticatedPage.getByRole('heading', { name: /problemas/i })).toBeVisible()
+			await expect(authenticatedPage.getByPlaceholder('Procurar problema...')).toBeVisible()
 
-			// Verificar se há área para problemas
-			const problemsArea = authenticatedPage.locator('div.space-y-4')
+			// Verificar se há área para problemas (coluna esquerda)
+			const problemsArea = authenticatedPage.locator('div.flex.w-full.flex-shrink-0.flex-col.border-r.border-zinc-200.sm\\:w-\\[480px\\]')
 			if ((await problemsArea.count()) > 0) {
 				await expect(problemsArea.first()).toBeVisible()
 			}

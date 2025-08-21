@@ -67,6 +67,7 @@ export async function GET(request: NextRequest) {
 				id: authUser.id,
 				name: authUser.name,
 				email: authUser.email,
+				image: authUser.image,
 				emailVerified: authUser.emailVerified,
 				isActive: authUser.isActive,
 				lastLogin: authUser.lastLogin,

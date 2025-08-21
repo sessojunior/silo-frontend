@@ -6,19 +6,17 @@ test.describe('💡 Sistema de Soluções', () => {
 			await authenticatedPage.goto('/admin/products/bam/problems')
 			await authenticatedPage.waitForLoadState('networkidle')
 
-			// Verificar se página carregou
-			await expect(authenticatedPage.getByRole('heading', { name: /problemas/i })).toBeVisible()
+			// Verificar se página carregou com estrutura básica
+			await expect(authenticatedPage.getByPlaceholder('Procurar problema...')).toBeVisible()
 		})
 
 		test('✅ Interface de soluções - elementos básicos', async ({ authenticatedPage }) => {
 			await authenticatedPage.goto('/admin/products/bam/problems')
 			await authenticatedPage.waitForLoadState('networkidle')
 
-			// Verificar se área de problemas está presente
-			const problemsArea = authenticatedPage.locator('div.space-y-4')
-			if ((await problemsArea.count()) > 0) {
-				await expect(problemsArea.first()).toBeVisible()
-			}
+			// Verificar se estrutura de duas colunas está presente
+			const leftColumn = authenticatedPage.locator('div.flex.w-full.flex-shrink-0.flex-col.border-r.border-zinc-200.sm\\:w-\\[480px\\]')
+			await expect(leftColumn).toBeVisible()
 		})
 	})
 
@@ -27,14 +25,8 @@ test.describe('💡 Sistema de Soluções', () => {
 			await authenticatedPage.goto('/admin/products/bam/problems')
 			await authenticatedPage.waitForLoadState('networkidle')
 
-			// Verificar se área de upload está presente (se existir)
-			const uploadArea = authenticatedPage.locator('[data-ut-element="upload-button"]')
-			if ((await uploadArea.count()) > 0) {
-				await expect(uploadArea).toBeVisible()
-			} else {
-				// Se não houver upload, apenas verificar se página carregou
-				await expect(authenticatedPage.getByRole('heading', { name: /problemas/i })).toBeVisible()
-			}
+			// Verificar se página carregou com estrutura básica
+			await expect(authenticatedPage.getByPlaceholder('Procurar problema...')).toBeVisible()
 		})
 	})
 
@@ -43,8 +35,8 @@ test.describe('💡 Sistema de Soluções', () => {
 			await authenticatedPage.goto('/admin/products/bam/problems')
 			await authenticatedPage.waitForLoadState('networkidle')
 
-			// Verificar se página carregou
-			await expect(authenticatedPage.getByRole('heading', { name: /problemas/i })).toBeVisible()
+			// Verificar se página carregou com estrutura básica
+			await expect(authenticatedPage.getByPlaceholder('Procurar problema...')).toBeVisible()
 		})
 	})
 })

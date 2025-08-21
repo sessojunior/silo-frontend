@@ -7,6 +7,12 @@ import KanbanBoard from '@/components/admin/projects/KanbanBoard'
 import TaskFormOffcanvas from '@/components/admin/projects/TaskFormOffcanvas'
 import { ProjectTask } from '@/lib/db/schema'
 
+// Interface estendida para ProjectTask com campos da API
+interface ProjectTaskWithUsers extends ProjectTask {
+	assignedUsers?: string[]
+	assignedUsersDetails?: { id: string; name: string; role: string; email: string; image: string | null }[]
+}
+
 // Interface Task do KanbanBoard
 interface KanbanTask {
 	id: string
@@ -21,10 +27,12 @@ interface KanbanTask {
 	start_date: string
 	end_date: string
 	priority: 'low' | 'medium' | 'high' | 'urgent'
+	assignedUsers?: string[] // 🆕 Campo para usuários associados
+	assignedUsersDetails?: { id: string; name: string; role: string; email: string; image: string | null }[] // 🆕 Campo para detalhes dos usuários
 }
 
 // Função para converter ProjectTask para KanbanTask
-const convertToKanbanTask = (projectTask: ProjectTask): KanbanTask => {
+const convertToKanbanTask = (projectTask: ProjectTaskWithUsers): KanbanTask => {
 	return {
 		id: projectTask.id,
 		project_id: projectTask.projectId,
@@ -38,6 +46,8 @@ const convertToKanbanTask = (projectTask: ProjectTask): KanbanTask => {
 		start_date: projectTask.startDate || new Date().toISOString().split('T')[0],
 		end_date: projectTask.endDate || new Date().toISOString().split('T')[0],
 		priority: projectTask.priority as KanbanTask['priority'],
+		assignedUsers: projectTask.assignedUsers || [], // Preservar usuários associados
+		assignedUsersDetails: projectTask.assignedUsersDetails || [], // Preservar detalhes dos usuários
 	}
 }
 
@@ -60,7 +70,7 @@ export default function TaskKanbanPage() {
 	// Estados principais
 	const [project, setProject] = useState<Project | null>(null)
 	const [activity, setActivity] = useState<Activity | null>(null)
-	const [tasks, setTasks] = useState<ProjectTask[]>([]) // eslint-disable-line @typescript-eslint/no-unused-vars
+	const [tasks, setTasks] = useState<ProjectTaskWithUsers[]>([]) // eslint-disable-line @typescript-eslint/no-unused-vars
 	const [kanbanTasks, setKanbanTasks] = useState<KanbanTask[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
@@ -134,9 +144,9 @@ export default function TaskKanbanPage() {
 			}
 
 			// Converter tasksByStatus para array simples
-			const allTasks: ProjectTask[] = []
+			const allTasks: ProjectTaskWithUsers[] = []
 			Object.entries(result.tasks).forEach(([, tasksInStatus]) => {
-				;(tasksInStatus as ProjectTask[]).forEach((task) => {
+				;(tasksInStatus as ProjectTaskWithUsers[]).forEach((task) => {
 					allTasks.push(task)
 				})
 			})
@@ -196,7 +206,7 @@ export default function TaskKanbanPage() {
 
 	// Função para processar envio do formulário de tarefa
 	const handleTaskSubmit = useCallback(
-		async (formData: { name: string; description: string; category: string; estimatedDays: number; startDate: string; endDate: string; priority: string; status: string }) => {
+		async (formData: { name: string; description: string; category: string; estimatedDays: number; startDate: string; endDate: string; priority: string; status: string; assignedUsers: string[] }) => {
 			try {
 				const taskData = {
 					...formData,
@@ -230,6 +240,32 @@ export default function TaskKanbanPage() {
 				const result = await response.json()
 				if (!result.success) {
 					throw new Error(result.error || 'Erro desconhecido')
+				}
+
+				// 🆕 SALVAR ASSOCIAÇÕES DE USUÁRIOS
+				if (formData.assignedUsers && formData.assignedUsers.length > 0) {
+					console.log('🔵 [FRONTEND] Salvando associações de usuários:', formData.assignedUsers)
+
+					const taskId = taskToEdit ? taskToEdit.id : result.task?.id
+
+					if (taskId) {
+						const usersResponse = await fetch(`/api/admin/tasks/${taskId}/users`, {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								userIds: formData.assignedUsers,
+								role: 'assignee',
+							}),
+						})
+
+						if (!usersResponse.ok) {
+							console.error('❌ Erro ao salvar usuários associados:', usersResponse.status)
+						} else {
+							console.log('✅ Usuários associados salvos com sucesso')
+						}
+					} else {
+						console.error('❌ ID da tarefa não encontrado para salvar usuários')
+					}
 				}
 
 				// Recarregar as tarefas

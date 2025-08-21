@@ -708,6 +708,49 @@ async function seed() {
 			console.log('⚠️ Dados das tarefas já existem, pulando...')
 		}
 
+		// === 13. CRIAR ASSOCIAÇÕES TAREFA-USUÁRIO ===
+		// Forçar recriação das associações para teste
+		console.log('🔵 Forçando recriação das associações tarefa-usuário...')
+
+		// Remover associações existentes
+		await db.delete(schema.projectTaskUser)
+		console.log('✅ Associações antigas removidas')
+
+		// Buscar tarefas e usuários existentes
+		const allTasks = await db.select().from(schema.projectTask)
+		const allUsers = await db.select().from(schema.authUser).where(eq(schema.authUser.isActive, true))
+
+		if (allTasks.length > 0 && allUsers.length > 0) {
+			const taskUsersToCreate = []
+
+			// Para cada tarefa, associar 1-3 usuários aleatoriamente
+			for (const task of allTasks.slice(0, 30)) {
+				// Aumentar para 30 tarefas
+				// Limitar a 30 tarefas para não sobrecarregar
+				const numUsers = Math.floor(Math.random() * 3) + 1 // 1-3 usuários por tarefa
+				const selectedUsers = allUsers.sort(() => 0.5 - Math.random()).slice(0, numUsers)
+
+				for (const user of selectedUsers) {
+					const role = Math.random() > 0.7 ? 'reviewer' : 'assignee' // 70% assignee, 30% reviewer
+
+					taskUsersToCreate.push({
+						id: randomUUID(),
+						taskId: task.id,
+						userId: user.id,
+						role,
+						assignedAt: new Date(),
+					})
+				}
+			}
+
+			if (taskUsersToCreate.length > 0) {
+				await db.insert(schema.projectTaskUser).values(taskUsersToCreate)
+				console.log(`✅ ${taskUsersToCreate.length} associações tarefa-usuário criadas!`)
+			}
+		} else {
+			console.log('⚠️ Nenhuma tarefa ou usuário encontrado para criar associações')
+		}
+
 		console.log('✅ Seed finalizado com sucesso!')
 		console.log('📊 Resumo do seed:')
 		console.log(`   - Sistema completamente configurado`)

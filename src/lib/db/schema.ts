@@ -389,6 +389,31 @@ export const projectTask = pgTable('project_task', {
 })
 export type ProjectTask = typeof projectTask.$inferSelect
 
+// Tabela de associação many-to-many entre tarefas e usuários
+export const projectTaskUser = pgTable(
+	'project_task_user',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		taskId: uuid('task_id')
+			.notNull()
+			.references(() => projectTask.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => authUser.id, { onDelete: 'cascade' }),
+		role: text('role').notNull().default('assignee'), // 'assignee' | 'reviewer' | 'watcher'
+		assignedAt: timestamp('assigned_at').notNull().defaultNow(),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+	},
+	(table) => ({
+		// Constraint único para evitar usuário duplicado na mesma tarefa
+		uniqueTaskUser: unique('unique_task_user').on(table.taskId, table.userId),
+		// Índices para performance
+		taskIdIdx: index('idx_project_task_user_task_id').on(table.taskId),
+		userIdIdx: index('idx_project_task_user_user_id').on(table.userId),
+	}),
+)
+export type ProjectTaskUser = typeof projectTaskUser.$inferSelect
+
 // Tabela de atividades/rodadas de produtos
 export const productActivity = pgTable(
 	'product_activity',

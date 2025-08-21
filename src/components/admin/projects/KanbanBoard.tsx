@@ -19,6 +19,8 @@ interface Task {
 	start_date: string
 	end_date: string
 	priority: 'low' | 'medium' | 'high' | 'urgent'
+	assignedUsers?: string[] // IDs dos usuários associados
+	assignedUsersDetails?: { id: string; name: string; role: string; email: string; image: string | null }[] // Detalhes completos dos usuários
 }
 
 interface Column {
@@ -142,30 +144,56 @@ function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Ta
 				</div>
 				{showEditButton && (
 					<button
+						onClick={(e) => {
+							e.stopPropagation()
+							onEditTask?.(task)
+						}}
 						className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 transition group'
 						title='Editar tarefa'
 						type='button'
-						onClick={(e) => {
-							e.stopPropagation()
-							if (onEditTask) onEditTask(task)
-						}}
 					>
 						<span className='icon-[lucide--pencil] size-4 text-zinc-400 group-hover:text-zinc-600' />
 					</button>
 				)}
 			</div>
+
 			<h3 className='font-medium text-gray-900 mb-1'>{task.name}</h3>
 			<p className='text-sm text-gray-600 mb-3'>{task.description}</p>
-			<div className='flex items-center justify-between text-xs text-gray-500'>
-				<div className='flex items-center space-x-1' title={`Estimativa de ${task.estimated_days} dias`}>
-					<div className='icon-[lucide--clock] w-3 h-3' />
-					<span>{task.estimated_days} dias</span>
-				</div>
-				<div className='flex items-center space-x-1' title={`De ${formatDate(task.start_date)} até ${formatDate(task.end_date)}`}>
-					<div className='icon-[lucide--calendar] w-3 h-3' />
-					<span>{formatDate(task.start_date)}</span>
-				</div>
+
+			{/* Informações de tempo e data */}
+			<div className='flex items-center justify-between text-xs text-gray-500 mb-3'>
+				<span>📅 {task.start_date ? formatDate(task.start_date) : 'N/A'}</span>
+				<span>
+					⏱️ {task.estimated_days} dia{task.estimated_days !== 1 ? 's' : ''}
+				</span>
 			</div>
+
+			{/* Usuários associados */}
+			{task.assignedUsers && task.assignedUsers.length > 0 && (
+				<div className='flex items-center justify-between'>
+					<span className='text-xs text-gray-500'>👥 Usuários:</span>
+					<div className='flex -space-x-2'>
+						{task.assignedUsers.slice(0, 3).map((userId, index) => {
+							// Buscar o nome real do usuário dos detalhes
+							const userDetails = task.assignedUsersDetails?.find((u) => u.id === userId)
+							const userName = userDetails?.name || `Usuário ${index + 1}` // Fallback se não encontrar nome
+							const userInitial = userName.charAt(0).toUpperCase() // Primeira letra do nome real
+							const userRole = userDetails?.role || 'assignee'
+
+							return (
+								<div key={userId} className='w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 border-2 border-white dark:border-zinc-800 flex items-center justify-center text-xs font-medium text-white cursor-help' title={`${userName} (${userRole})`}>
+									{userInitial}
+								</div>
+							)
+						})}
+						{task.assignedUsers.length > 3 && (
+							<div className='w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600 border-2 border-white dark:border-zinc-800 flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-300 cursor-help' title={`+${task.assignedUsers.length - 3} usuários adicionais`}>
+								+{task.assignedUsers.length - 3}
+							</div>
+						)}
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }
@@ -279,11 +307,6 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder,
 				})
 
 			if (houveMudanca) {
-				console.log('🟠 [KANBAN] Detectada mudança no estado - enviando PATCH', {
-					tasksBeforeMove: before.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
-					tasksAfterMove: after.map((t) => ({ id: t.id, status: t.status, sort: t.sort })),
-				})
-
 				// Toast de feedback imediato
 				// toast({
 				// 	type: 'info',
@@ -370,11 +393,6 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder,
 	}
 
 	const handleDragStart = (event: DragStartEvent) => {
-		console.log('🟡 [KANBAN] Drag Start:', {
-			taskId: event.active.id,
-			isDragBlocked,
-		})
-
 		const task = tasks.find((t) => t.id === event.active.id)
 		setActiveTask(task || null)
 		setTasksBeforeMove(tasks.map((t) => ({ ...t })))
@@ -450,14 +468,11 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder,
 		)
 	}
 
-	console.log('🔍 [KANBAN] Renderizando:', { isDragBlocked, activeTask: !!activeTask })
-
 	return (
 		<div className='flex-1 bg-zinc-50 dark:bg-zinc-900'>
 			<div className={`min-w-max h-full p-6 relative ${isDragBlocked ? 'pointer-events-none select-none' : ''}`}>
 				{(() => {
 					if (isDragBlocked) {
-						console.log('🚫 [KANBAN] RENDERIZANDO VERSÃO ESTÁTICA - DndContext NÃO renderizado')
 						return (
 							<div className='flex gap-6 items-start overflow-x-auto'>
 								{columns.map((column) => (
@@ -466,7 +481,6 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder,
 							</div>
 						)
 					} else {
-						console.log('✅ [KANBAN] RENDERIZANDO DNDCONTEXT - Drag & drop ATIVO')
 						return (
 							<DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
 								<div className='flex gap-6 items-start overflow-x-auto'>
