@@ -248,7 +248,7 @@ export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project,
 				{/* Lista de Usuários */}
 				<div>
 					<Label>Usuários Disponíveis</Label>
-					<div className='mt-2 max-h-80 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg'>
+					<div className='mt-2 max-h-80 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg pb-2'>
 						{loading ? (
 							<div className='flex items-center justify-center py-8'>
 								<span className='icon-[lucide--loader-circle] size-5 animate-spin text-zinc-400' />

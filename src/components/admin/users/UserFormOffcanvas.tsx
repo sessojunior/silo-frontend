@@ -171,7 +171,7 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 					<label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
 						Grupos <span className='text-red-500'>*</span>
 					</label>
-					<div className='max-h-48 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-1'>
+					<div className='max-h-64 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-1 pb-2'>
 						{groups.map((group) => {
 							const isSelected = selectedGroups.some((sg) => sg.groupId === group.id)
 

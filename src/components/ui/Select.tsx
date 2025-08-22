@@ -115,7 +115,7 @@ export default function Select({ placeholder = 'Selecione...', id, name, selecte
 
 			{/* Dropdown */}
 			{isOpen && (
-				<div ref={dropdownRef} className={twMerge(clsx('absolute z-50 w-full max-h-60 overflow-hidden rounded-lg bg-white shadow-lg dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700', openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'))}>
+				<div ref={dropdownRef} className={twMerge(clsx('absolute z-50 w-full max-h-80 overflow-hidden rounded-lg bg-white shadow-lg dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700', openUpwards ? 'bottom-full mb-1' : 'top-full mt-1'))}>
 					{/* Search */}
 					<div className='px-3 py-2'>
 						<input
@@ -132,7 +132,7 @@ export default function Select({ placeholder = 'Selecione...', id, name, selecte
 						/>
 					</div>
 
-					<ul role='listbox' className='max-h-48 overflow-y-auto'>
+					<ul role='listbox' className='max-h-64 overflow-y-auto pb-1'>
 						{filtered.length > 0 ? (
 							filtered.map((opt, idx) => (
 								<li

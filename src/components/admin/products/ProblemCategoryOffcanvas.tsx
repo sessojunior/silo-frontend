@@ -77,7 +77,7 @@ export default function ProblemCategoryOffcanvas({ open, onClose }: Props) {
 					)}
 
 					{/* Lista */}
-					<div className='flex flex-col gap-2 max-h-[50vh] overflow-y-auto'>
+					<div className='flex flex-col gap-2 max-h-[50vh] overflow-y-auto pb-2'>
 						{loading && <div>Carregando...</div>}
 						{!loading && categories.length === 0 && (
 							<div className='flex flex-col items-center justify-center gap-3 text-zinc-500 py-12'>
