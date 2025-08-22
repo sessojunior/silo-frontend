@@ -54,11 +54,14 @@ export default function Product({ id, name, turns, progress, priority, date, las
 	// Build days array for ProductTurn - timeline completa dos últimos turnos
 	const daysMap: Record<string, { date: string; turns: { time: number; status: string; description?: string | null; category_id?: string | null }[] }> = {}
 
+	// Primeiro, criar entradas para todos os dias dos últimos turnos
+	const lastDaysDates = [...new Set(lastDaysStatus.map((d) => d.date))]
+	lastDaysDates.forEach((date) => {
+		daysMap[date] = { date, turns: [] }
+	})
+
 	// Para cada dia dos últimos turnos, garantir que todos os turnos configurados apareçam
 	filteredLastDays.forEach((d) => {
-		if (!daysMap[d.date]) {
-			daysMap[d.date] = { date: d.date, turns: [] }
-		}
 		const existingTurn = daysMap[d.date].turns.find((t) => t.time === d.turn)
 		if (!existingTurn) {
 			daysMap[d.date].turns.push({ time: d.turn, status: d.status, description: d.description, category_id: d.category_id })
@@ -243,11 +246,30 @@ export default function Product({ id, name, turns, progress, priority, date, las
 						key={idx}
 						calendar={cal}
 						onDotClick={({ date: d, turn }) => {
+							// Buscar dados reais do turno, se existirem
 							const target = filteredCalendar.find((ds) => ds.date === d && ds.turn === turn)
+
+							// Se não encontrou dados reais, criar contexto com status padrão
 							if (target) {
-								setActivityCtx({ date: target.date, turn: target.turn, status: target.status, description: target.description, category_id: target.category_id })
-								setActivityPanelOpen(true)
+								setActivityCtx({
+									date: target.date,
+									turn: target.turn,
+									status: target.status,
+									description: target.description,
+									category_id: target.category_id,
+								})
+							} else {
+								// Turno sem registro - usar status padrão 'not_run'
+								setActivityCtx({
+									date: d,
+									turn: turn,
+									status: 'not_run',
+									description: null,
+									category_id: null,
+								})
 							}
+
+							setActivityPanelOpen(true)
 						}}
 					/>
 				))}

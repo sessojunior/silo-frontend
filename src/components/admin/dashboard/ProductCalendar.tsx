@@ -69,14 +69,12 @@ export default function ProductCalendar({ calendar, onDotClick }: ProductCalenda
 						<div key={index} className={dayTurn}>
 							<button
 								type='button'
-								disabled={turn.dateStatus === ''}
 								onClick={() => {
-									if (turn.dateStatus !== '') {
-										const fullDate = `${calendar.year}-${String(calendar.month).padStart(2, '0')}-${String(date.dateDay).padStart(2, '0')}`
-										onDotClick?.({ date: fullDate, turn: turn.dateTurn })
-									}
+									const fullDate = `${calendar.year}-${String(calendar.month).padStart(2, '0')}-${String(date.dateDay).padStart(2, '0')}`
+									onDotClick?.({ date: fullDate, turn: turn.dateTurn })
 								}}
 								className={dayButton}
+								title={`Turno ${turn.dateTurn}h - ${turn.dateStatus === 'green' ? 'Concluído' : turn.dateStatus === 'orange' ? 'Pendente' : turn.dateStatus === 'red' ? 'Com problemas' : 'Sem execução'}`}
 							>
 								<div className={turn.dateStatus === 'green' ? dayGreen : turn.dateStatus === 'orange' ? dayOrange : turn.dateStatus === 'red' ? dayRed : dayNone}></div>
 							</button>
