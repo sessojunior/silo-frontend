@@ -172,11 +172,8 @@ export default function GroupUsersSection({ group, isExpanded, onUserAdded }: Gr
 										<div className='flex items-center gap-2'>
 											{/* Status do usuário */}
 											<span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${user.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>{user.isActive ? '🟢 Ativo' : '🔴 Inativo'}</span>
-											{/* Ações */}
-											<Button className='size-7 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20'>
-												<span className='icon-[lucide--edit] size-3.5 text-blue-600 dark:text-blue-400' />
-											</Button>
-											<Button onClick={() => handleRemoveUser(user.id, user.name)} className='size-7 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20'>
+											{/* Ação: Remover usuário do grupo */}
+											<Button onClick={() => handleRemoveUser(user.id, user.name)} className='size-7 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20' title={`Remover ${user.name} do grupo ${group.name}`}>
 												<span className='icon-[lucide--user-minus] size-3.5 text-red-600 dark:text-red-400' />
 											</Button>
 										</div>
