@@ -153,13 +153,20 @@ export default function Sidebar() {
 					},
 					{
 						id: '1.4',
+						title: 'Relatórios',
+						icon: 'icon-[lucide--bar-chart-3]',
+						url: '/admin/reports',
+						items: null,
+					},
+					{
+						id: '1.5',
 						title: 'Grupos & usuários',
 						icon: 'icon-[lucide--users-round]',
 						url: '/admin/groups',
 						items: null,
 					},
 					{
-						id: '1.5',
+						id: '1.6',
 						title: 'Contatos',
 						icon: 'icon-[lucide--contact]',
 						url: '/admin/contacts',
