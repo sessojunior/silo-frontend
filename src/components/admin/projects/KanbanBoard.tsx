@@ -53,58 +53,58 @@ type TaskPriority = Task['priority']
 const columnTheme = {
 	todo: {
 		icon: 'icon-[lucide--list-todo]',
-		iconClass: 'size-6 text-stone-500',
-		bg: 'bg-stone-50',
-		border: 'border-stone-100',
-		header: 'bg-stone-100',
-		headerHover: 'hover:bg-stone-200',
-		countBg: 'bg-stone-200',
-		countText: 'text-stone-600',
-		button: 'text-stone-600',
+		iconClass: 'size-6 text-stone-500 dark:text-stone-400',
+		bg: 'bg-stone-50 dark:bg-stone-900',
+		border: 'border-stone-100 dark:border-stone-700',
+		header: 'bg-stone-100 dark:bg-stone-800',
+		headerHover: 'hover:bg-stone-200 dark:hover:bg-stone-700',
+		countBg: 'bg-stone-200 dark:bg-stone-700',
+		countText: 'text-stone-600 dark:text-stone-300',
+		button: 'text-stone-600 dark:text-stone-300',
 	},
 	in_progress: {
 		icon: 'icon-[lucide--refresh-cw]',
-		iconClass: 'size-6 text-blue-500',
-		bg: 'bg-blue-50',
-		border: 'border-blue-100',
-		header: 'bg-blue-100',
-		headerHover: 'hover:bg-blue-200',
-		countBg: 'bg-blue-200',
-		countText: 'text-blue-600',
-		button: 'text-blue-600',
+		iconClass: 'size-6 text-blue-500 dark:text-blue-400',
+		bg: 'bg-blue-50 dark:bg-blue-950',
+		border: 'border-blue-100 dark:border-blue-800',
+		header: 'bg-blue-100 dark:bg-blue-900',
+		headerHover: 'hover:bg-blue-200 dark:hover:bg-blue-800',
+		countBg: 'bg-blue-200 dark:bg-blue-800',
+		countText: 'text-blue-600 dark:text-blue-300',
+		button: 'text-blue-600 dark:text-blue-300',
 	},
 	blocked: {
 		icon: 'icon-[lucide--ban]',
-		iconClass: 'size-6 text-red-500',
-		bg: 'bg-red-50',
-		border: 'border-red-100',
-		header: 'bg-red-100',
-		headerHover: 'hover:bg-red-200',
-		countBg: 'bg-red-200',
-		countText: 'text-red-600',
-		button: 'text-red-600',
+		iconClass: 'size-6 text-red-500 dark:text-red-400',
+		bg: 'bg-red-50 dark:bg-red-950',
+		border: 'border-red-100 dark:border-red-800',
+		header: 'bg-red-100 dark:bg-red-900',
+		headerHover: 'hover:bg-red-200 dark:hover:bg-red-800',
+		countBg: 'bg-red-200 dark:bg-red-800',
+		countText: 'text-red-600 dark:text-red-300',
+		button: 'text-red-600 dark:text-red-300',
 	},
 	review: {
 		icon: 'icon-[lucide--eye]',
-		iconClass: 'size-6 text-amber-500',
-		bg: 'bg-amber-50',
-		border: 'border-amber-100',
-		header: 'bg-amber-100',
-		headerHover: 'hover:bg-amber-200',
-		countBg: 'bg-amber-200',
-		countText: 'text-amber-600',
-		button: 'text-amber-600',
+		iconClass: 'size-6 text-amber-500 dark:text-amber-400',
+		bg: 'bg-amber-50 dark:bg-amber-950',
+		border: 'border-amber-100 dark:border-amber-800',
+		header: 'bg-amber-100 dark:bg-amber-900',
+		headerHover: 'hover:bg-amber-200 dark:hover:bg-amber-800',
+		countBg: 'bg-amber-200 dark:bg-amber-800',
+		countText: 'text-amber-600 dark:text-amber-300',
+		button: 'text-amber-600 dark:text-amber-300',
 	},
 	done: {
 		icon: 'icon-[lucide--trophy]',
-		iconClass: 'size-6 text-emerald-500',
-		bg: 'bg-emerald-50',
-		border: 'border-emerald-100',
-		header: 'bg-emerald-100',
-		headerHover: 'hover:bg-emerald-200',
-		countBg: 'bg-emerald-200',
-		countText: 'text-emerald-600',
-		button: 'text-emerald-600',
+		iconClass: 'size-6 text-emerald-500 dark:text-emerald-400',
+		bg: 'bg-emerald-50 dark:bg-emerald-950',
+		border: 'border-emerald-100 dark:border-emerald-800',
+		header: 'bg-emerald-100 dark:bg-emerald-900',
+		headerHover: 'hover:bg-emerald-200 dark:hover:bg-emerald-800',
+		countBg: 'bg-emerald-200 dark:bg-emerald-800',
+		countText: 'text-emerald-600 dark:text-emerald-300',
+		button: 'text-emerald-600 dark:text-emerald-300',
 	},
 }
 
@@ -125,9 +125,9 @@ const priorityColors: Record<TaskPriority, string> = {
 }
 
 const categoryColors: Record<string, string> = {
-	Desenvolvimento: 'bg-blue-100 text-blue-800',
-	Infraestrutura: 'bg-purple-100 text-purple-800',
-	Planejamento: 'bg-gray-100 text-gray-800',
+	Desenvolvimento: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200',
+	Infraestrutura: 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200',
+	Planejamento: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200',
 }
 
 // Componente base reutilizável para conteúdo do card
@@ -147,7 +147,7 @@ function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Ta
 			<div className='flex items-start justify-between mb-2'>
 				<div className='flex items-center space-x-2'>
 					<div className={`w-3 h-3 rounded-full ${priorityColors[task.priority]}`} />
-					<span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 text-gray-800'}`}>{task.category}</span>
+					<span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'}`}>{task.category}</span>
 				</div>
 				{showEditButton && (
 					<button
@@ -155,20 +155,20 @@ function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Ta
 							e.stopPropagation()
 							onEditTask?.(task)
 						}}
-						className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 transition group'
+						className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition group'
 						title='Editar tarefa'
 						type='button'
 					>
-						<span className='icon-[lucide--pencil] size-4 text-zinc-400 group-hover:text-zinc-600' />
+						<span className='icon-[lucide--pencil] size-4 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-600 dark:group-hover:text-zinc-300' />
 					</button>
 				)}
 			</div>
 
-			<h3 className='font-medium text-gray-900 mb-1'>{task.name}</h3>
-			<p className='text-sm text-gray-600 mb-3'>{task.description}</p>
+			<h3 className='font-medium text-gray-900 dark:text-gray-100 mb-1'>{task.name}</h3>
+			<p className='text-sm text-gray-600 dark:text-gray-400 mb-3'>{task.description}</p>
 
 			{/* Informações de tempo e data */}
-			<div className='flex items-center justify-between text-xs text-gray-500 mb-3'>
+			<div className='flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3'>
 				<div className='flex items-center gap-2'>
 					{/* Data de início */}
 					<span className='cursor-help' title={`Data de início: ${task.start_date ? formatFullDate(task.start_date) : 'Não definida'}`}>
@@ -189,7 +189,7 @@ function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Ta
 			{/* Usuários associados */}
 			{task.assignedUsers && task.assignedUsers.length > 0 && (
 				<div className='flex items-center justify-between'>
-					<span className='text-xs text-gray-500'>👥 Usuários:</span>
+					<span className='text-xs text-gray-500 dark:text-gray-400'>👥 Usuários:</span>
 					<div className='flex -space-x-2'>
 						{task.assignedUsers.slice(0, 3).map((userId, index) => {
 							// Buscar o nome real do usuário dos detalhes
@@ -233,14 +233,14 @@ function SortableTaskCard({ task, activeTask, onEditTask }: { task: Task; active
 
 	if (isBeingDragged) {
 		return (
-			<div ref={setNodeRef} style={style} className={`bg-white rounded-xl border-2 ${theme.border} p-4 opacity-50`}>
+			<div ref={setNodeRef} style={style} className={`bg-white dark:bg-zinc-800 rounded-xl border-2 ${theme.border} p-4 opacity-50`}>
 				<TaskCardContent task={task} onEditTask={onEditTask} />
 			</div>
 		)
 	}
 
 	return (
-		<div ref={setNodeRef} style={style} {...attributes} {...listeners} className={`bg-white rounded-xl border-2 ${theme.border} p-4 cursor-move transition-shadow hover:shadow-md`}>
+		<div ref={setNodeRef} style={style} {...attributes} {...listeners} className={`bg-white dark:bg-zinc-800 rounded-xl border-2 ${theme.border} p-4 cursor-move transition-shadow hover:shadow-md dark:hover:shadow-zinc-900/50`}>
 			<TaskCardContent task={task} onEditTask={onEditTask} />
 		</div>
 	)
@@ -248,7 +248,7 @@ function SortableTaskCard({ task, activeTask, onEditTask }: { task: Task; active
 
 function TaskCard({ task }: { task: Task }) {
 	return (
-		<div className='bg-white rounded-lg shadow-lg border border-gray-200 p-4 rotate-3 transform'>
+		<div className='bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-gray-200 dark:border-zinc-700 p-4 rotate-3 transform'>
 			<TaskCardContent task={task} showEditButton={false} />
 		</div>
 	)
@@ -284,8 +284,8 @@ function DroppableColumn({ column, tasks, activeTask, onCreateTask, onEditTask }
 						<SortableTaskCard key={task.id} task={task} activeTask={activeTask} onEditTask={onEditTask} />
 					))}
 					{tasks.length === 0 && (
-						<div className='h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-zinc-50'>
-							<span className='text-gray-500 text-sm'>Arraste e solte aqui</span>
+						<div className='h-24 border-2 border-dashed border-gray-300 dark:border-zinc-600 rounded-lg flex items-center justify-center bg-zinc-50 dark:bg-zinc-800'>
+							<span className='text-gray-500 dark:text-zinc-400 text-sm'>Arraste e solte aqui</span>
 						</div>
 					)}
 				</div>
@@ -480,8 +480,8 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder,
 
 	if (!isClient) {
 		return (
-			<div className='p-6 bg-gray-50 min-h-screen'>
-				<h1 className='text-2xl font-bold text-gray-900 mb-6'>Carregando Kanban...</h1>
+			<div className='p-6 bg-gray-50 dark:bg-zinc-900 min-h-screen'>
+				<h1 className='text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6'>Carregando Kanban...</h1>
 			</div>
 		)
 	}
