@@ -1,9 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { ReportFilters as ReportFiltersType } from './ReportsPage'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
+
+interface ReportFiltersType {
+	dateRange: string
+	startDate?: Date
+	endDate?: Date
+	productId?: string
+	problemCategory?: string
+	problemStatus?: string
+	priority?: string
+}
 
 interface ReportFiltersProps {
 	filters: ReportFiltersType

@@ -1,29 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { ReportCard } from './ReportCard'
-import { ReportFilters } from './ReportFilters'
-
-export interface ReportFilters {
-	dateRange: '7d' | '30d' | '90d' | 'custom'
-	startDate?: Date
-	endDate?: Date
-	productId?: string
-	productCategory?: string
-	problemCategory?: string
-	problemStatus?: string
-	userId?: string
-	userGroup?: string
-	priority?: 'low' | 'medium' | 'high' | 'critical'
-}
-
-const defaultFilters: ReportFilters = {
-	dateRange: '30d',
-}
 
 export function ReportsPage() {
-	const [filters, setFilters] = useState<ReportFilters>(defaultFilters)
-
 	const reports = [
 		{
 			id: 'availability',
@@ -49,14 +28,6 @@ export function ReportsPage() {
 			color: 'green',
 			metrics: ['Problemas Resolvidos', 'Tempo Médio', 'Satisfação'],
 		},
-		{
-			id: 'executive',
-			title: '🎯 Relatório Executivo',
-			description: 'Visão consolidada de todos os sistemas e KPIs principais',
-			icon: '📈',
-			color: 'purple',
-			metrics: ['KPIs Principais', 'Visão Geral', 'Tendências'],
-		},
 	]
 
 	return (
@@ -70,13 +41,10 @@ export function ReportsPage() {
 			{/* Conteúdo com scroll natural */}
 			<div className='p-6'>
 				<div className='max-w-7xl mx-auto space-y-6'>
-					{/* Filtros Globais */}
-					<ReportFilters filters={filters} onFiltersChange={setFilters} />
-
 					{/* Cards de Relatórios Disponíveis */}
-					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+					<div className='grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto'>
 						{reports.map((report) => (
-							<ReportCard key={report.id} report={report} filters={filters} />
+							<ReportCard key={report.id} report={report} />
 						))}
 					</div>
 				</div>

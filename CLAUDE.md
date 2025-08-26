@@ -82,10 +82,34 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 9. **✅ Padrão de Design Admin**: Template padronizado para todas páginas administrativas
 10. **✅ Sistema de Categorias de Problemas**: Dashboard donut + CRUD categorias + offcanvas atribuição
 11. **✅ Sistema de Relatórios Avançados**: Interface responsiva + gráficos ApexCharts + APIs funcionais + exportação dados + dark mode
+12. **✅ Correção APIs Relatórios**: APIs de performance e executive corrigidas e funcionais
 
 ### 🎯 **CONQUISTA MAIS RECENTE - DEZEMBRO 2024**
 
-**STATUS**: ✅ **SISTEMA DE TESTES AUTOMATIZADOS COMPLETAMENTE FINALIZADO!**
+**STATUS**: ✅ **CORREÇÃO CRÍTICA DAS APIS DE RELATÓRIOS IMPLEMENTADA!**
+
+**PROBLEMA RESOLVIDO**:
+
+- Páginas `/admin/reports/performance` e `/admin/reports/executive` retornavam erro "Unexpected token '<', "<!DOCTYPE "... is not valid JSON"
+- Causa: APIs `/api/admin/reports/performance` e `/api/admin/reports/executive` não existiam
+- Resultado: Next.js retornava página HTML de erro ao invés de dados JSON
+
+**SOLUÇÃO IMPLEMENTADA**:
+
+1. **API Performance**: `/api/admin/reports/performance/route.ts` criada com métricas de equipe
+2. **API Executive**: `/api/admin/reports/executive/route.ts` criada com KPIs consolidados
+3. **Correções Schema**: Imports corrigidos para usar nomes corretos das tabelas (productProblem, productSolution, authUser, projectTask, etc.)
+4. **Campos Corrigidos**: Removidos campos inexistentes (resolvedAt, rating, status) e substituídos por campos reais do schema
+5. **Build Limpo**: Zero erros TypeScript/ESLint, sistema 100% funcional
+
+**FUNCIONALIDADES DAS APIS**:
+
+- **Performance**: Métricas por usuário (problemas criados, soluções fornecidas, produtividade)
+- **Executive**: KPIs gerais (produtos, problemas, soluções, projetos, tarefas, tendências)
+- **Filtros**: Por período, produto, usuário, grupo
+- **Autenticação**: Protegidas com getAuthUser() seguindo padrão de segurança
+
+**STATUS ANTERIOR**: ✅ **SISTEMA DE TESTES AUTOMATIZADOS COMPLETAMENTE FINALIZADO!**
 
 **RESULTADOS EXTRAORDINÁRIOS DOS TESTES**:
 

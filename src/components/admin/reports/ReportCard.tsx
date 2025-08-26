@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ReportFilters } from './ReportsPage'
 
 interface Report {
 	id: string
@@ -15,7 +14,6 @@ interface Report {
 
 interface ReportCardProps {
 	report: Report
-	filters: ReportFilters
 }
 
 const colorClasses = {
@@ -32,7 +30,7 @@ const iconColors = {
 	purple: 'text-purple-600 dark:text-purple-400',
 }
 
-export function ReportCard({ report, filters }: ReportCardProps) {
+export function ReportCard({ report }: ReportCardProps) {
 	const router = useRouter()
 	const [isGenerating, setIsGenerating] = useState(false)
 
@@ -40,7 +38,7 @@ export function ReportCard({ report, filters }: ReportCardProps) {
 		setIsGenerating(true)
 		try {
 			// Simular geração do relatório
-			console.log('🔵 Gerando relatório:', report.id, 'com filtros:', filters)
+			console.log('🔵 Gerando relatório:', report.id)
 			await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulação reduzida
 			console.log('✅ Relatório gerado com sucesso')
 
@@ -94,7 +92,7 @@ export function ReportCard({ report, filters }: ReportCardProps) {
 						Gerando...
 					</span>
 				) : (
-					'Gerar Relatório'
+					'Abrir Relatório'
 				)}
 			</button>
 
