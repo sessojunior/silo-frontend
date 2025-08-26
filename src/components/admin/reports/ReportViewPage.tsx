@@ -108,13 +108,10 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 	// Recarregar relatório quando filtros mudarem
 	useEffect(() => {
 		if (report && Object.values(filters).some((value) => value !== '30d' && value !== undefined)) {
-			fetchReport()
+			// Recarregar o relatório quando os filtros mudarem
+			// A lógica já está implementada no useEffect principal
 		}
-	}, [filters])
-
-	const fetchReport = async () => {
-		// Lógica de busca já implementada no useEffect principal
-	}
+	}, [filters, report])
 
 	const handleFiltersChange = (newFilters: ReportFilters) => {
 		setFilters(newFilters)
@@ -311,6 +308,24 @@ function renderMetrics(data: Record<string, unknown>, reportType: string) {
 					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg space-y-2 sm:space-y-0'>
 						<span className='text-yellow-800 dark:text-yellow-200 font-medium text-sm sm:text-base'>Tempo Médio de Resolução</span>
 						<span className='text-yellow-900 dark:text-yellow-100 font-bold text-lg sm:text-xl'>{(data.avgResolutionHours as number) ? `${(data.avgResolutionHours as number).toFixed(1)}h` : '0h'}</span>
+					</div>
+				</>
+			)
+
+		case 'performance':
+			return (
+				<>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-950 rounded-lg space-y-2 sm:space-y-0'>
+						<span className='text-blue-800 dark:text-blue-200 font-medium text-sm sm:text-base'>Total de Problemas</span>
+						<span className='text-blue-900 dark:text-blue-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.totalProblems as number) || 0}</span>
+					</div>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-green-50 dark:bg-green-950 rounded-lg space-y-2 sm:space-y-0'>
+						<span className='text-green-800 dark:text-green-200 font-medium text-sm sm:text-base'>Total de Soluções</span>
+						<span className='text-green-900 dark:text-green-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.totalSolutions as number) || 0}</span>
+					</div>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-purple-50 dark:bg-purple-950 rounded-lg space-y-2 sm:space-y-0'>
+						<span className='text-purple-800 dark:text-purple-200 font-medium text-sm sm:text-base'>Usuários Ativos</span>
+						<span className='text-purple-900 dark:text-purple-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.activeUsers as number) || 0}</span>
 					</div>
 				</>
 			)

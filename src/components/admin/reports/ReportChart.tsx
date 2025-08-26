@@ -31,6 +31,9 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 		)
 	}
 
+	// Logs de debug
+	console.log('🔵 ReportChart renderizando:', { type, reportType, dataKeys: Object.keys(data || {}) })
+
 	const getChartTitle = () => {
 		if (!reportType) return 'Gráfico'
 
@@ -54,22 +57,82 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 		switch (reportType) {
 			case 'availability':
 				if (data.products && Array.isArray(data.products)) {
-					return [
-						{
-							name: 'Disponibilidade (%)',
-							data: data.products.map((item: Record<string, unknown>) => parseFloat(item.availabilityPercentage as string) || 0),
-						},
-					]
+					// Para gráficos donut, categorizar produtos por nível de disponibilidade
+					if (type === 'donut') {
+						const availableProducts = data.products.filter((item: Record<string, unknown>) => (parseFloat(item.availabilityPercentage as string) || 0) >= 90).length
+						const warningProducts = data.products.filter((item: Record<string, unknown>) => {
+							const availability = parseFloat(item.availabilityPercentage as string) || 0
+							return availability >= 70 && availability < 90
+						}).length
+						const criticalProducts = data.products.filter((item: Record<string, unknown>) => (parseFloat(item.availabilityPercentage as string) || 0) < 70).length
+
+						// Calcular porcentagens baseadas nas contagens
+						const totalProducts = data.products.length
+						const availablePercentage = totalProducts > 0 ? Math.round((availableProducts / totalProducts) * 1000) / 10 : 0
+						const warningPercentage = totalProducts > 0 ? Math.round((warningProducts / totalProducts) * 1000) / 10 : 0
+						const criticalPercentage = totalProducts > 0 ? Math.round((criticalProducts / totalProducts) * 1000) / 10 : 0
+
+						return [availablePercentage, warningPercentage, criticalPercentage]
+					} else {
+						// Para gráficos de barra e linha, usar dados individuais
+						return [
+							{
+								name: 'Disponibilidade (%)',
+								data: data.products.map((item: Record<string, unknown>) => parseFloat(item.availabilityPercentage as string) || 0),
+							},
+						]
+					}
 				}
 				break
 			case 'problems':
 				if (data.problemsByCategory && Array.isArray(data.problemsByCategory)) {
-					return [
-						{
-							name: 'Quantidade de Problemas',
-							data: data.problemsByCategory.map((item: Record<string, unknown>) => parseInt(item.problemsCount as string) || 0),
-						},
-					]
+					// Para gráficos donut, calcular porcentagens baseadas nas contagens
+					if (type === 'donut') {
+						const totalProblems = data.problemsByCategory.reduce((sum: number, item: Record<string, unknown>) => sum + (parseInt(item.problemsCount as string) || 0), 0)
+
+						// Calcular porcentagens para cada categoria
+						return data.problemsByCategory.map((item: Record<string, unknown>) => {
+							const count = parseInt(item.problemsCount as string) || 0
+							const percentage = totalProblems > 0 ? Math.round((count / totalProblems) * 1000) / 10 : 0
+							return percentage
+						})
+					} else {
+						// Para gráficos de barra e linha, usar formato de série
+						return [
+							{
+								name: 'Quantidade de Problemas',
+								data: data.problemsByCategory.map((item: Record<string, unknown>) => parseInt(item.problemsCount as string) || 0),
+							},
+						]
+					}
+				}
+				break
+			case 'performance':
+				if (data.userPerformance && Array.isArray(data.userPerformance)) {
+					// Para gráficos de barra e linha, usar múltiplas séries
+					if (type !== 'donut') {
+						return [
+							{
+								name: 'Problemas Criados',
+								data: data.userPerformance.map((user: Record<string, unknown>) => parseInt(user.problemsCreated as string) || 0),
+							},
+							{
+								name: 'Soluções Fornecidas',
+								data: data.userPerformance.map((user: Record<string, unknown>) => parseInt(user.solutionsProvided as string) || 0),
+							},
+						]
+					} else {
+						// Para gráfico donut, calcular porcentagens baseadas nos totais
+						const totalProblems = data.userPerformance.reduce((sum: number, user: Record<string, unknown>) => sum + (parseInt(user.problemsCreated as string) || 0), 0)
+						const totalSolutions = data.userPerformance.reduce((sum: number, user: Record<string, unknown>) => sum + (parseInt(user.solutionsProvided as string) || 0), 0)
+						const total = totalProblems + totalSolutions
+
+						// Calcular porcentagens para problemas e soluções
+						const problemsPercentage = total > 0 ? Math.round((totalProblems / total) * 1000) / 10 : 0
+						const solutionsPercentage = total > 0 ? Math.round((totalSolutions / total) * 1000) / 10 : 0
+
+						return [problemsPercentage, solutionsPercentage]
+					}
 				}
 				break
 		}
@@ -83,12 +146,28 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 		switch (reportType) {
 			case 'availability':
 				if (data.products && Array.isArray(data.products)) {
-					return data.products.map((item: Record<string, unknown>) => (item.name as string) || 'Produto')
+					// Para gráficos donut, usar categorias de disponibilidade
+					if (type === 'donut') {
+						return ['Disponível (≥90%)', 'Atenção (70-89%)', 'Crítico (<70%)']
+					} else {
+						// Para gráficos de barra e linha, usar nomes dos produtos
+						return data.products.map((item: Record<string, unknown>) => (item.name as string) || 'Produto')
+					}
 				}
 				break
 			case 'problems':
 				if (data.problemsByCategory && Array.isArray(data.problemsByCategory)) {
 					return data.problemsByCategory.map((item: Record<string, unknown>) => (item.name as string) || 'Categoria')
+				}
+				break
+			case 'performance':
+				if (data.userPerformance && Array.isArray(data.userPerformance)) {
+					// Para gráficos donut, usar labels específicos para problemas e soluções
+					if (type === 'donut') {
+						return ['Problemas Criados', 'Soluções Fornecidas']
+					} else {
+						return data.userPerformance.map((user: Record<string, unknown>) => (user.name as string) || 'Usuário')
+					}
 				}
 				break
 		}
@@ -156,7 +235,8 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 				y: {
 					formatter: (value: number) => {
 						if (type === 'donut') {
-							return `${value}%`
+							// Para gráficos donut, exibir com uma casa decimal e símbolo %
+							return `${value.toFixed(1)}%`
 						}
 						return value.toLocaleString('pt-BR')
 					},
@@ -212,10 +292,28 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 										fontSize: '16px',
 										fontWeight: 700,
 										color: '#374151',
+										formatter: (val: string) => {
+											const value = parseFloat(val)
+											return `${value.toFixed(1)}%`
+										},
 									},
 								},
 							},
 						},
+					},
+					// Para gráficos donut, configurar legendas das séries
+					labels: getChartLabels(),
+					// Configurar cores específicas baseadas no tipo de relatório
+					colors:
+						reportType === 'availability'
+							? ['#10b981', '#f59e0b', '#ef4444'] // Verde para disponível, amarelo para atenção, vermelho para crítico
+							: reportType === 'problems'
+								? data.problemsByCategory && Array.isArray(data.problemsByCategory)
+									? data.problemsByCategory.map((item: Record<string, unknown>) => (item.color as string) || '#6b7280')
+									: ['#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'] // Cores padrão para problemas
+								: ['#ef4444', '#10b981'], // Vermelho para problemas, verde para soluções (performance)
+					legend: {
+						...baseOptions.legend,
 					},
 				}
 
@@ -245,6 +343,10 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 	const chartOptions = getChartOptions()
 	const chartSeries = getChartSeries()
 	const chartLabels = getChartLabels()
+
+	console.log('📊 Chart Series:', chartSeries)
+	console.log('🏷️ Chart Labels:', chartLabels)
+	console.log('📈 Chart Type:', type)
 
 	// Atualizar as opções do gráfico com os labels
 	if (chartLabels.length > 0) {
