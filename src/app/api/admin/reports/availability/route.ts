@@ -55,21 +55,33 @@ export async function GET() {
 					availabilityPercentage = Math.round(successRate * 10) / 10
 				}
 
-				console.log(`📈 ${prod.name}: ${availabilityPercentage}% disponibilidade`)
+				// Determinar status do produto baseado na disponibilidade
+				let productStatus = 'active'
+				if (availabilityPercentage < 50) productStatus = 'critical'
+				else if (availabilityPercentage < 70) productStatus = 'warning'
+				else if (availabilityPercentage < 90) productStatus = 'stable'
 
-				// Calcular tempo médio de resolução (mockado por enquanto)
-				const avgResolutionHours = 2.5
+				// Encontrar data da última atividade
+				let lastActivityDate = null
+				if (activities.length > 0) {
+					const sortedActivities = activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+					lastActivityDate = sortedActivities[0].date
+				}
+
+				console.log(`📈 ${prod.name}: ${availabilityPercentage}% disponibilidade, status: ${productStatus}`)
 
 				return {
 					id: prod.id,
 					name: prod.name,
 					slug: prod.slug,
+					description: prod.description,
+					status: productStatus,
 					totalActivities,
 					completedActivities,
 					activeActivities,
 					failedActivities,
 					availabilityPercentage,
-					avgResolutionHours,
+					lastActivityDate,
 				}
 			}),
 		)

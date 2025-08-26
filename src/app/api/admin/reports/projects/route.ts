@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { project, projectActivity, projectTask, authUser } from '@/lib/db/schema'
+import { project, projectActivity, projectTask, authUser, projectTaskUser } from '@/lib/db/schema'
 import { eq, gte, lte, and } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
@@ -48,12 +48,7 @@ export async function GET(request: NextRequest) {
 				createdAt: project.createdAt,
 			})
 			.from(project)
-			.where(
-				and(
-					gte(project.createdAt, start),
-					lte(project.createdAt, end)
-				)
-			)
+			.where(and(gte(project.createdAt, start), lte(project.createdAt, end)))
 
 		// Buscar atividades dos projetos
 		const activitiesInPeriod = await db
@@ -65,12 +60,7 @@ export async function GET(request: NextRequest) {
 				createdAt: projectActivity.createdAt,
 			})
 			.from(projectActivity)
-			.where(
-				and(
-					gte(projectActivity.createdAt, start),
-					lte(projectActivity.createdAt, end)
-				)
-			)
+			.where(and(gte(projectActivity.createdAt, start), lte(projectActivity.createdAt, end)))
 
 		// Buscar tarefas dos projetos
 		const tasksInPeriod = await db
@@ -84,12 +74,7 @@ export async function GET(request: NextRequest) {
 				createdAt: projectTask.createdAt,
 			})
 			.from(projectTask)
-			.where(
-				and(
-					gte(projectTask.createdAt, start),
-					lte(projectTask.createdAt, end)
-				)
-			)
+			.where(and(gte(projectTask.createdAt, start), lte(projectTask.createdAt, end)))
 
 		// Buscar usuários ativos
 		const activeUsers = await db
@@ -108,37 +93,49 @@ export async function GET(request: NextRequest) {
 		const activeUsersCount = activeUsers.length
 
 		// Projetos por status
-		const projectsByStatus = projectsInPeriod.reduce((acc, p) => {
-			const status = p.status || 'unknown'
-			acc[status] = (acc[status] || 0) + 1
-			return acc
-		}, {} as Record<string, number>)
+		const projectsByStatus = projectsInPeriod.reduce(
+			(acc, p) => {
+				const status = p.status || 'unknown'
+				acc[status] = (acc[status] || 0) + 1
+				return acc
+			},
+			{} as Record<string, number>,
+		)
 
 		// Projetos por prioridade
-		const projectsByPriority = projectsInPeriod.reduce((acc, p) => {
-			const priority = p.priority || 'unknown'
-			acc[priority] = (acc[priority] || 0) + 1
-			return acc
-		}, {} as Record<string, number>)
+		const projectsByPriority = projectsInPeriod.reduce(
+			(acc, p) => {
+				const priority = p.priority || 'unknown'
+				acc[priority] = (acc[priority] || 0) + 1
+				return acc
+			},
+			{} as Record<string, number>,
+		)
 
 		// Tarefas por status
-		const tasksByStatus = tasksInPeriod.reduce((acc, t) => {
-			const status = t.status || 'unknown'
-			acc[status] = (acc[status] || 0) + 1
-			return acc
-		}, {} as Record<string, number>)
+		const tasksByStatus = tasksInPeriod.reduce(
+			(acc, t) => {
+				const status = t.status || 'unknown'
+				acc[status] = (acc[status] || 0) + 1
+				return acc
+			},
+			{} as Record<string, number>,
+		)
 
 		// Projetos mais ativos (por número de atividades)
-		const projectActivityCounts = activitiesInPeriod.reduce((acc, a) => {
-			acc[a.projectId] = (acc[a.projectId] || 0) + 1
-			return acc
-		}, {} as Record<string, number>)
+		const projectActivityCounts = activitiesInPeriod.reduce(
+			(acc, a) => {
+				acc[a.projectId] = (acc[a.projectId] || 0) + 1
+				return acc
+			},
+			{} as Record<string, number>,
+		)
 
 		const mostActiveProjects = Object.entries(projectActivityCounts)
 			.sort(([, a], [, b]) => b - a)
 			.slice(0, 5)
 			.map(([projectId, count]) => {
-				const project = projectsInPeriod.find(p => p.id === projectId)
+				const project = projectsInPeriod.find((p) => p.id === projectId)
 				return {
 					projectId,
 					name: project?.name || 'Projeto Desconhecido',
@@ -146,25 +143,86 @@ export async function GET(request: NextRequest) {
 				}
 			})
 
+		// Buscar usuários de cada projeto através das tarefas
+		const projectUsers = await db
+			.select({
+				projectId: projectTask.projectId,
+				userId: projectTaskUser.userId,
+				userName: authUser.name,
+				userEmail: authUser.email,
+			})
+			.from(projectTaskUser)
+			.innerJoin(projectTask, eq(projectTaskUser.taskId, projectTask.id))
+			.innerJoin(authUser, eq(projectTaskUser.userId, authUser.id))
+			.where(eq(authUser.isActive, true))
+
+		// Log para debug - verificar dados brutos retornados
+		console.log('🔍 Dados brutos de projectUsers:', projectUsers.slice(0, 10)) // Primeiros 10 para debug
+
+		// Agrupar usuários por projeto usando Map para garantir unicidade
+		const usersByProject = projectUsers.reduce(
+			(acc, user) => {
+				if (!acc[user.projectId]) {
+					acc[user.projectId] = new Map()
+				}
+
+				// Log para debug - verificar cada usuário sendo processado
+				console.log(`🔍 Processando usuário: projectId=${user.projectId}, userId=${user.userId}, name=${user.userName}`)
+
+				// Usar Map para garantir que cada userId apareça apenas uma vez
+				acc[user.projectId].set(user.userId, {
+					id: user.userId,
+					name: user.userName,
+					email: user.userEmail,
+				})
+
+				// Log para debug - verificar tamanho do Map após inserção
+				console.log(`🔍 Map para projeto ${user.projectId} agora tem ${acc[user.projectId].size} usuários`)
+
+				return acc
+			},
+			{} as Record<string, Map<string, { id: string; name: string; email: string }>>,
+		)
+
+		// Converter Map para Array para compatibilidade
+		const usersByProjectArray = Object.entries(usersByProject).reduce(
+			(acc, [projectId, usersMap]) => {
+				acc[projectId] = Array.from(usersMap.values())
+				return acc
+			},
+			{} as Record<string, Array<{ id: string; name: string; email: string }>>,
+		)
+
+		// Log para debug - verificar resultado final
+		console.log(
+			'🔍 usersByProjectArray final:',
+			Object.entries(usersByProjectArray).map(([projectId, users]) => ({
+				projectId,
+				userCount: users.length,
+				userIds: users.map((u) => u.id),
+				userNames: users.map((u) => u.name),
+			})),
+		)
+
 		// Calcular progresso médio dos projetos
-		const projectsWithProgress = projectsInPeriod.map(p => {
-			const projectTasks = tasksInPeriod.filter(t => t.projectId === p.id)
-			const completedTasks = projectTasks.filter(t => t.status === 'done').length
+		const projectsWithProgress = projectsInPeriod.map((p) => {
+			const projectTasks = tasksInPeriod.filter((t) => t.projectId === p.id)
+			const completedTasks = projectTasks.filter((t) => t.status === 'done').length
 			const totalProjectTasks = projectTasks.length
 			const progress = totalProjectTasks > 0 ? (completedTasks / totalProjectTasks) * 100 : 0
 
 			return {
 				id: p.id,
 				name: p.name,
+				description: p.description,
 				progress: Math.round(progress),
 				status: p.status,
 				priority: p.priority,
+				users: usersByProjectArray[p.id] || [],
 			}
 		})
 
-		const avgProgress = projectsWithProgress.length > 0
-			? projectsWithProgress.reduce((sum, p) => sum + p.progress, 0) / projectsWithProgress.length
-			: 0
+		const avgProgress = projectsWithProgress.length > 0 ? projectsWithProgress.reduce((sum, p) => sum + p.progress, 0) / projectsWithProgress.length : 0
 
 		const response = {
 			summary: {
@@ -186,6 +244,16 @@ export async function GET(request: NextRequest) {
 			},
 		}
 
+		// Log para debug dos usuários por projeto
+		console.log(
+			'🔵 Usuários por projeto:',
+			Object.entries(usersByProjectArray).map(([projectId, users]) => ({
+				projectId,
+				userCount: users.length,
+				users: users.map((u) => ({ id: u.id, name: u.name })),
+			})),
+		)
+
 		console.log('✅ Relatório de projetos gerado:', {
 			totalProjects,
 			totalActivities,
@@ -197,9 +265,6 @@ export async function GET(request: NextRequest) {
 		return NextResponse.json(response)
 	} catch (error) {
 		console.error('❌ Erro ao gerar relatório de projetos:', error)
-		return NextResponse.json(
-			{ error: 'Erro interno do servidor' },
-			{ status: 500 }
-		)
+		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

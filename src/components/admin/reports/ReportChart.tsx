@@ -203,15 +203,13 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 					if (type === 'donut') {
 						if (data.projectsByStatus) {
 							const statusTranslations: Record<string, string> = {
-								'active': 'Ativo',
-								'completed': 'Concluído',
-								'paused': 'Pausado',
-								'cancelled': 'Cancelado',
-								'unknown': 'Desconhecido'
+								active: 'Ativo',
+								completed: 'Concluído',
+								paused: 'Pausado',
+								cancelled: 'Cancelado',
+								unknown: 'Desconhecido',
 							}
-							return Object.keys(data.projectsByStatus as Record<string, number>).map(status => 
-								statusTranslations[status] || status
-							)
+							return Object.keys(data.projectsByStatus as Record<string, number>).map((status) => statusTranslations[status] || status)
 						}
 						return []
 					} else {
