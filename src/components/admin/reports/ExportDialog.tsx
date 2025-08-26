@@ -8,7 +8,7 @@ import Select from '@/components/ui/Select'
 interface ExportDialogProps {
 	isOpen: boolean
 	onClose: () => void
-	reportType?: 'availability' | 'problems' | 'performance' | 'executive'
+	reportType?: 'availability' | 'problems' | 'performance' | 'projects' | 'executive'
 	reportData?: Record<string, unknown>
 }
 
@@ -39,6 +39,8 @@ export function ExportDialog({ isOpen, onClose, reportType, reportData }: Export
 				return 'Relatório de Problemas Mais Frequentes'
 			case 'performance':
 				return 'Relatório de Performance da Equipe'
+			case 'projects':
+				return 'Relatório de Projetos e Atividades'
 			case 'executive':
 				return 'Relatório Executivo'
 			default:

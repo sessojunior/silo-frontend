@@ -28,6 +28,14 @@ export function ReportsPage() {
 			color: 'green',
 			metrics: ['Problemas Resolvidos', 'Tempo Médio', 'Satisfação'],
 		},
+		{
+			id: 'projects',
+			title: '📋 Projetos e Atividades',
+			description: 'Análise de projetos, progresso e distribuição de tarefas',
+			icon: '📁',
+			color: 'purple',
+			metrics: ['Total de Projetos', 'Atividades', 'Progresso Médio'],
+		},
 	]
 
 	return (
@@ -42,7 +50,7 @@ export function ReportsPage() {
 			<div className='p-6'>
 				<div className='max-w-7xl mx-auto space-y-6'>
 					{/* Cards de Relatórios Disponíveis */}
-					<div className='grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto'>
+					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto'>
 						{reports.map((report) => (
 							<ReportCard key={report.id} report={report} />
 						))}

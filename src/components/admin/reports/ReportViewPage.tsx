@@ -15,17 +15,13 @@ interface ReportFilters {
 	dateRange: string
 	startDate?: Date
 	endDate?: Date
-	productId?: string
-	problemCategory?: string
-	problemStatus?: string
-	priority?: string
 }
 
 interface ReportData {
 	id: string
 	title: string
 	description: string
-	type: 'availability' | 'problems' | 'performance'
+	type: 'availability' | 'problems' | 'performance' | 'projects'
 	data: Record<string, unknown>
 	filters: ReportFilters
 }
@@ -57,6 +53,9 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 					case 'performance':
 						apiUrl = '/api/admin/reports/performance'
 						break
+					case 'projects':
+						apiUrl = '/api/admin/reports/projects'
+						break
 					default:
 						throw new Error('Tipo de relatório não reconhecido')
 				}
@@ -66,10 +65,6 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 				if (filters.dateRange !== '30d') queryParams.append('dateRange', filters.dateRange)
 				if (filters.startDate) queryParams.append('startDate', filters.startDate.toISOString())
 				if (filters.endDate) queryParams.append('endDate', filters.endDate.toISOString())
-				if (filters.productId) queryParams.append('productId', filters.productId)
-				if (filters.problemCategory) queryParams.append('problemCategory', filters.problemCategory)
-				if (filters.problemStatus) queryParams.append('problemStatus', filters.problemStatus)
-				if (filters.priority) queryParams.append('priority', filters.priority)
 
 				const response = await fetch(`${apiUrl}?${queryParams.toString()}`)
 				console.log('🔵 Status da resposta:', response.status)
@@ -88,7 +83,7 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 					id: reportId,
 					title: getReportTitle(reportId),
 					description: getReportDescription(reportId),
-					type: reportId as 'availability' | 'problems' | 'performance',
+					type: reportId as 'availability' | 'problems' | 'performance' | 'projects',
 					data: data,
 					filters: filters,
 				}
@@ -125,6 +120,8 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 				return 'Relatório de Problemas Mais Frequentes'
 			case 'performance':
 				return 'Relatório de Performance da Equipe'
+			case 'projects':
+				return 'Relatório de Projetos e Atividades'
 			case 'executive':
 				return 'Relatório Executivo'
 			default:
@@ -140,6 +137,8 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 				return 'Visão geral dos problemas mais frequentes e suas categorias'
 			case 'performance':
 				return 'Métricas de performance e produtividade da equipe'
+			case 'projects':
+				return 'Análise completa de projetos, atividades e progresso'
 			case 'executive':
 				return 'Resumo executivo com indicadores-chave de performance'
 			default:
@@ -225,27 +224,8 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 			{/* Filtros do Relatório - AQUI ESTÃO OS FILTROS EM CADA PÁGINA ESPECÍFICA */}
 
 			<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8'>
-				<ReportFilters filters={filters} onFiltersChange={handleFiltersChange} />
+				<ReportFilters filters={filters} onFiltersChange={handleFiltersChange} reportType={reportId as 'availability' | 'problems' | 'performance' | 'projects'} />
 			</div>
-
-			{/* Indicador de Período Selecionado */}
-			{filters.dateRange !== '30d' && (
-				<div className='bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800'>
-					<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3'>
-						<div className='flex items-center text-sm text-blue-800 dark:text-blue-200'>
-							<svg className='h-4 w-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-								<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-							</svg>
-							Período selecionado:{' '}
-							<strong className='ml-1'>
-								{filters.dateRange === '7d' && 'Últimos 7 dias'}
-								{filters.dateRange === '90d' && 'Últimos 90 dias'}
-								{filters.dateRange === 'custom' && filters.startDate && filters.endDate && `${filters.startDate.toLocaleDateString()} até ${filters.endDate.toLocaleDateString()}`}
-							</strong>
-						</div>
-					</div>
-				</div>
-			)}
 
 			{/* Content */}
 			<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8'>
@@ -326,6 +306,24 @@ function renderMetrics(data: Record<string, unknown>, reportType: string) {
 					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-purple-50 dark:bg-purple-950 rounded-lg space-y-2 sm:space-y-0'>
 						<span className='text-purple-800 dark:text-purple-200 font-medium text-sm sm:text-base'>Usuários Ativos</span>
 						<span className='text-purple-900 dark:text-purple-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.activeUsers as number) || 0}</span>
+					</div>
+				</>
+			)
+
+		case 'projects':
+			return (
+				<>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-950 rounded-lg space-y-2 sm:space-y-0'>
+						<span className='text-blue-800 dark:text-blue-200 font-medium text-sm sm:text-base'>Total de Projetos</span>
+						<span className='text-blue-900 dark:text-blue-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.totalProjects as number) || 0}</span>
+					</div>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-green-50 dark:bg-green-950 rounded-lg space-y-2 sm:space-y-0'>
+						<span className='text-green-800 dark:text-green-200 font-medium text-sm sm:text-base'>Total de Atividades</span>
+						<span className='text-green-900 dark:text-green-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.totalActivities as number) || 0}</span>
+					</div>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-purple-50 dark:bg-purple-950 rounded-lg space-y-2 sm:space-y-0'>
+						<span className='text-purple-800 dark:text-purple-200 font-medium text-sm sm:text-base'>Progresso Médio</span>
+						<span className='text-purple-900 dark:text-purple-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.avgProgress as number) || 0}%</span>
 					</div>
 				</>
 			)

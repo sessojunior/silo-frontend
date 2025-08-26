@@ -9,7 +9,7 @@ const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
 interface ReportChartProps {
 	type: 'line' | 'bar' | 'donut' | 'area'
 	data: Record<string, unknown>
-	reportType?: 'availability' | 'problems' | 'performance' | 'executive'
+	reportType?: 'availability' | 'problems' | 'performance' | 'projects' | 'executive'
 	height?: number
 	className?: string
 }
@@ -44,6 +44,8 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 				return 'Problemas por Categoria'
 			case 'performance':
 				return 'Performance da Equipe'
+			case 'projects':
+				return 'Projetos e Atividades'
 			case 'executive':
 				return 'Resumo Executivo'
 			default:
@@ -135,6 +137,31 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 					}
 				}
 				break
+			case 'projects':
+				if (data.projectsWithProgress && Array.isArray(data.projectsWithProgress)) {
+					// Para gráficos de barra e linha, usar progresso dos projetos
+					if (type !== 'donut') {
+						return [
+							{
+								name: 'Progresso (%)',
+								data: data.projectsWithProgress.map((project: Record<string, unknown>) => parseInt(project.progress as string) || 0),
+							},
+						]
+					} else {
+						// Para gráfico donut, usar distribuição por status
+						if (data.projectsByStatus) {
+							const statusCounts = Object.values(data.projectsByStatus as Record<string, number>)
+							const total = statusCounts.reduce((sum, count) => sum + count, 0)
+
+							return statusCounts.map((count) => {
+								const percentage = total > 0 ? Math.round((count / total) * 1000) / 10 : 0
+								return percentage
+							})
+						}
+						return []
+					}
+				}
+				break
 		}
 
 		return []
@@ -167,6 +194,28 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 						return ['Problemas Criados', 'Soluções Fornecidas']
 					} else {
 						return data.userPerformance.map((user: Record<string, unknown>) => (user.name as string) || 'Usuário')
+					}
+				}
+				break
+			case 'projects':
+				if (data.projectsWithProgress && Array.isArray(data.projectsWithProgress)) {
+					// Para gráficos donut, usar labels de status traduzidos
+					if (type === 'donut') {
+						if (data.projectsByStatus) {
+							const statusTranslations: Record<string, string> = {
+								'active': 'Ativo',
+								'completed': 'Concluído',
+								'paused': 'Pausado',
+								'cancelled': 'Cancelado',
+								'unknown': 'Desconhecido'
+							}
+							return Object.keys(data.projectsByStatus as Record<string, number>).map(status => 
+								statusTranslations[status] || status
+							)
+						}
+						return []
+					} else {
+						return data.projectsWithProgress.map((project: Record<string, unknown>) => (project.name as string) || 'Projeto')
 					}
 				}
 				break
@@ -311,7 +360,9 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 								? data.problemsByCategory && Array.isArray(data.problemsByCategory)
 									? data.problemsByCategory.map((item: Record<string, unknown>) => (item.color as string) || '#6b7280')
 									: ['#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'] // Cores padrão para problemas
-								: ['#ef4444', '#10b981'], // Vermelho para problemas, verde para soluções (performance)
+								: reportType === 'projects'
+									? ['#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444', '#10b981', '#f97316'] // Cores variadas para projetos
+									: ['#ef4444', '#10b981'], // Vermelho para problemas, verde para soluções (performance)
 					legend: {
 						...baseOptions.legend,
 					},
