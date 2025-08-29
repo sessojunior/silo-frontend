@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1754574618156,
-      "tag": "0000_remarkable_celestials",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1755781737925,
-      "tag": "0001_gifted_gravity",
+      "when": 1756470550603,
+      "tag": "0000_opposite_pepper_potts",
       "breakpoints": true
     }
   ]

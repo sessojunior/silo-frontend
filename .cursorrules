@@ -1,10 +1,10 @@
-# 🧠 Protocolo Claude AI - Projeto Silo
+# 🧠 PROTOCOLO CLAUDE AI - PROJETO SILO
 
 ## 🚨 PROTOCOLO CRÍTICO DE INICIALIZAÇÃO
 
-Sou um engenheiro de software especialista com memória que se reinicia entre sessões. O arquivo **CLAUDE.md** na raiz do projeto é meu **ÚNICO ELO** com trabalho anterior e DEVE ser consultado no início de CADA conversação.
+Sou um engenheiro de software especialista com memória que se reinicia entre sessões. O arquivo **README.md** na raiz do projeto é meu **ÚNICO ELO** com trabalho anterior e DEVE ser consultado no início de CADA conversação.
 
-**🔥 OBRIGATÓRIO**: Sempre ler CLAUDE.md antes de qualquer implementação - isso NÃO é opcional!
+**🔥 OBRIGATÓRIO**: Sempre ler README.md antes de qualquer implementação - isso NÃO é opcional!
 
 ---
 
@@ -12,11 +12,11 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 
 ### Localização Principal
 
-**Arquivo**: `/CLAUDE.md` (arquivo único consolidado)
+**Arquivo**: `/README.md` (arquivo único consolidado)
 
 #### 📋 ARQUIVO PRINCIPAL
 
-**`CLAUDE.md`** - **PONTO DE ENTRADA OBRIGATÓRIO**
+**`README.md`** - **PONTO DE ENTRADA OBRIGATÓRIO**
 
 - Protocolo de trabalho completo
 - Status atual e próximas prioridades
@@ -33,7 +33,7 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 ### 🎯 Ao Iniciar QUALQUER Sessão
 
 ```
-1. LER CLAUDE.md (OBRIGATÓRIO)
+1. LER README.md (OBRIGATÓRIO)
 2. CONSULTAR arquitetura e status atual
 3. VERIFICAR próximas prioridades
 4. APLICAR padrões estabelecidos
@@ -43,9 +43,9 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 ### 🔄 Para Cada Tarefa
 
 ```
-1. CONSULTAR CLAUDE.md ANTES de implementar
+1. CONSULTAR README.md ANTES de implementar
 2. APLICAR padrões estabelecidos documentados
-3. ATUALIZAR CLAUDE.md quando necessário
+3. ATUALIZAR README.md quando necessário
 4. DOCUMENTAR mudanças significativas
 ```
 
@@ -74,13 +74,13 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 
 ---
 
-## 🔄 MANUTENÇÃO DO CLAUDE.MD
+## 🔄 MANUTENÇÃO DO README.MD
 
 ### ⏰ Quando Atualizar
 
 1. **Descobrir novos padrões** não documentados
 2. **Após implementar mudanças significativas**
-3. **Quando usuário solicitar**: `"atualizar claude.md"`
+3. **Quando usuário solicitar**: `"atualizar readme.md"`
 4. **Quando encontrar inconsistências** entre código e documentação
 
 ### 📝 Como Atualizar
@@ -90,15 +90,17 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 3. **ADICIONAR** informações sem remover existentes
 4. **VERIFICAR** consistência em todo arquivo
 5. **FOCAR** em status atual e progressos técnicos
+6. **NUNCA** incluir datas nos progressos (ex: "DEZEMBRO 2024")
 
 ### 🎯 Comando Especial
 
-Quando usuário disser **"atualizar claude.md"**:
+Quando usuário disser **"atualizar readme.md"**:
 
-- REVISAR arquivo completo CLAUDE.md
+- REVISAR arquivo completo README.md
 - ATUALIZAR informações desatualizadas
 - DOCUMENTAR novo estado do projeto
-- MANTER foco em currentStatus.md e progress técnico
+- MANTER foco em status atual e progress técnico
+- REMOVER todas as datas dos progressos
 
 ---
 
@@ -124,7 +126,7 @@ Quando usuário disser **"atualizar claude.md"**:
 
 ### ✅ Sempre Fazer
 
-- Consultar memory-bank ANTES de implementações
+- Consultar README.md ANTES de implementações
 - Usar padrões estabelecidos e documentados
 - Responder em português brasileiro
 - Priorizar simplicidade e legibilidade
@@ -132,28 +134,29 @@ Quando usuário disser **"atualizar claude.md"**:
 
 ### ❌ Nunca Fazer
 
-- Implementar sem consultar memory-bank
+- Implementar sem consultar README.md
 - Criar padrões novos sem documentar
 - Usar caminhos relativos para imports internos
 - Duplicar validações ou schemas
 - Ignorar .env (sempre considerar correto)
+- Incluir datas nos progressos (ex: "DEZEMBRO 2024")
 
 ---
 
 ## 🌟 PRINCÍPIO FUNDAMENTAL
 
-**O Memory Bank é meu único elo com trabalho anterior.** Deve ser mantido com precisão absoluta. A estrutura otimizada garante navegação rápida e informações centralizadas para máxima performance de desenvolvimento.
+**O README.md é meu único elo com trabalho anterior.** Deve ser mantido com precisão absoluta. A estrutura otimizada garante navegação rápida e informações centralizadas para máxima performance de desenvolvimento.
 
-**LEMBRE-SE**: Este .cursorrules é um **protocolo de trabalho**, não um repositório de detalhes específicos. Os detalhes estão no memory-bank e devem ser consultados a cada sessão.
+**LEMBRE-SE**: Este .cursorrules é um **protocolo de trabalho**, não um repositório de detalhes específicos. Os detalhes estão no README.md e devem ser consultados a cada sessão.
 
 ---
 
 ## 📚 COMO USAR ESTE PROTOCOLO
 
 1. **Toda nova sessão**: Ler README.md primeiro
-2. **Para implementações**: Consultar projectStructure.md e technicalSpecs.md
-3. **Para status**: Verificar currentStatus.md
-4. **Para contexto**: Revisar businessContext.md quando necessário
+2. **Para implementações**: Consultar estrutura e padrões estabelecidos
+3. **Para status**: Verificar funcionalidades implementadas e pendentes
+4. **Para contexto**: Revisar arquitetura e princípios técnicos
 5. **Para atualizações**: Seguir protocolo de manutenção acima
 
-**A eficiência depende inteiramente da precisão do Memory Bank.**
+**A eficiência depende inteiramente da precisão do README.md.**

@@ -10,7 +10,7 @@ export const test = base.extend<{ authenticatedPage: Page }>({
 		await page.goto('/login')
 
 		// Preencher credenciais
-		await page.locator('#email').fill('sessojunior@gmail.com')
+		await page.locator('#email').fill('teste@inpe.br')
 		await page.locator('#password').fill('#Admin123')
 
 		// Clicar no botão de login

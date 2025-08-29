@@ -57,11 +57,11 @@ test.describe('🔐 AUTENTICAÇÃO', () => {
 			await page.waitForSelector('#password', { state: 'visible' })
 
 			// Preencher credenciais usando type() para disparar eventos React
-			await page.locator('#email').type('sessojunior@gmail.com')
+			await page.locator('#email').type('teste@inpe.br')
 			await page.locator('#password').type('#Admin123')
 
 			// Verificar se os campos foram preenchidos
-			await expect(page.locator('#email')).toHaveValue('sessojunior@gmail.com')
+			await expect(page.locator('#email')).toHaveValue('teste@inpe.br')
 			await expect(page.locator('#password')).toHaveValue('#Admin123')
 
 			// Aguardar botão estar habilitado

@@ -124,7 +124,7 @@ async function seed() {
 			await db.insert(schema.authUser).values({
 				id: userId,
 				name: 'Mario Junior',
-				email: 'sessojunior@gmail.com',
+				email: 'teste@inpe.br',
 				emailVerified: true,
 				password: hashedPassword,
 				isActive: true,
@@ -165,7 +165,7 @@ async function seed() {
 			console.log('✅ Usuário Mario Junior criado com sucesso!')
 		} else {
 			console.log('⚠️ Usuários já existem, pulando criação do usuário principal...')
-			const existingUser = await db.select().from(schema.authUser).where(eq(schema.authUser.email, 'sessojunior@gmail.com')).limit(1)
+			const existingUser = await db.select().from(schema.authUser).where(eq(schema.authUser.email, 'teste@inpe.br')).limit(1)
 			if (existingUser.length > 0) {
 				userId = existingUser[0].id
 			}
@@ -244,7 +244,7 @@ async function seed() {
 					await db.insert(schema.userGroup).values({
 						userId: user.id,
 						groupId: group.id,
-						role: group.name === 'Administradores' && user.email === 'sessojunior@gmail.com' ? 'admin' : 'member',
+						role: group.name === 'Administradores' && user.email === 'teste@inpe.br' ? 'admin' : 'member',
 					})
 					missingAssociations++
 				}
