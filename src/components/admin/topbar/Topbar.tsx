@@ -44,7 +44,7 @@ export default function Topbar() {
 
 							{/* Título fixo do sistema */}
 							<div className='flex items-center p-2'>
-								<h1 className='text-xl font-semibold text-zinc-900 dark:text-zinc-100'>Sistema de gestão de produtos e projetos metereológicos</h1>
+								<h1 className='text-xl font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px] lg:max-w-[500px] xl:max-w-[600px] 2xl:max-w-none'>Sistema de gestão de produtos e projetos metereológicos</h1>
 							</div>
 						</div>
 
