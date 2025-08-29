@@ -316,9 +316,9 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 	}
 
 	return (
-		<div className='relative flex flex-col h-full bg-zinc-50 dark:bg-zinc-900'>
+		<div className='relative flex flex-col h-full min-h-0 bg-zinc-50 dark:bg-zinc-900'>
 			{/* Header do Chat */}
-			<div className='bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 px-4 py-3'>
+			<div className='bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 px-4 py-3 flex-shrink-0'>
 				<div className='flex items-center gap-3'>
 					{/* Botão de toggle sidebar */}
 					<button onClick={onToggleSidebar} className='lg:hidden p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors'>
@@ -336,7 +336,7 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 
 					<div className='flex-1 min-w-0'>
 						<h1 className='font-semibold text-zinc-900 dark:text-zinc-100 truncate'>{targetInfo.name}</h1>
-						<p className='text-sm text-zinc-500 dark:text-zinc-400 truncate'>{targetInfo.description}</p>
+						<p className='text-sm text-zinc-500 dark:text-zinc-400 break-words leading-tight'>{targetInfo.description}</p>
 					</div>
 
 					{/* Informações adicionais */}
@@ -352,23 +352,19 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 			</div>
 
 			{/* Área de Mensagens */}
-			<div ref={messagesContainerRef} onScroll={handleScroll} className='flex-1 overflow-y-auto px-4 py-4 space-y-4'>
+			<div ref={messagesContainerRef} onScroll={handleScroll} className={`px-4 py-4 space-y-4 ${targetMessages.length > 0 ? 'flex-1 overflow-y-auto min-h-0' : 'flex-1 flex items-center justify-center'}`}>
 				{isLoading ? (
-					<div className='flex-1 h-full flex items-center justify-center'>
-						<div className='text-center text-zinc-500 dark:text-zinc-400'>
-							<div className='flex items-center justify-center gap-3 mb-4'>
-								<div className='h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600'></div>
-								<span className='text-sm'>Carregando mensagens...</span>
-							</div>
+					<div className='text-center text-zinc-500 dark:text-zinc-400'>
+						<div className='flex items-center justify-center gap-3 mb-4'>
+							<div className='h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600'></div>
+							<span className='text-sm'>Carregando mensagens...</span>
 						</div>
 					</div>
 				) : targetMessages.length === 0 ? (
-					<div className='flex-1 h-full flex items-center justify-center'>
-						<div className='text-center text-zinc-500 dark:text-zinc-400'>
-							<span className={`${targetInfo.icon} w-12 h-12 mx-auto mb-3 opacity-30`} />
-							<h3 className='font-medium mb-1'>{activeTargetType === 'group' ? `Este é o início do grupo ${targetInfo.name}` : `Este é o início da conversa com ${targetInfo.name}`}</h3>
-							<p className='text-sm'>Seja o primeiro a enviar uma mensagem!</p>
-						</div>
+					<div className='text-center text-zinc-500 dark:text-zinc-400'>
+						<span className={`${targetInfo.icon} w-12 h-12 mx-auto mb-3 opacity-30`} />
+						<h3 className='font-medium mb-1'>{activeTargetType === 'group' ? `Este é o início do grupo ${targetInfo.name}` : `Este é o início da conversa com ${targetInfo.name}`}</h3>
+						<p className='text-sm'>Seja o primeiro a enviar uma mensagem!</p>
 					</div>
 				) : (
 					<>
@@ -419,7 +415,7 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 			)}
 
 			{/* Input de Mensagem */}
-			<div className='bg-white dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700 p-4'>
+			<div className='bg-white dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700 p-4 flex-shrink-0'>
 				<div className='flex items-end gap-3'>
 					{/* Botão emoji com dropdown */}
 					<div className='relative'>

@@ -16,7 +16,7 @@ export default function AdminWrapper({ children }: { children: React.ReactNode }
 
 				{/* Conteúdo */}
 				<div className='w-full transition-all duration-300 lg:pl-[260px]'>
-					<div className='min-h-[calc(100svh-64px)] flex bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100'>
+					<div className='h-[calc(100vh-64px)] flex bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100'>
 						{/* Contéudo da página */}
 						{children}
 					</div>

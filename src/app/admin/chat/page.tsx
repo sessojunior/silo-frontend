@@ -84,7 +84,7 @@ export default function ChatPage() {
 	const activeTarget = activeTargetType === 'group' ? groups.find((g) => g.id === activeTargetId) : users.find((u) => u.id === activeTargetId)
 
 	return (
-		<div className='flex h-full w-full bg-zinc-50 dark:bg-zinc-900'>
+		<div className='flex flex-1 min-h-0 bg-zinc-50 dark:bg-zinc-900 overflow-hidden'>
 			{/* Sidebar de Chat - 384px (w-96) */}
 			<div
 				className={`
@@ -97,7 +97,7 @@ export default function ChatPage() {
 			</div>
 
 			{/* Área Principal de Chat */}
-			<div className='flex-1 flex flex-col min-w-0'>
+			<div className='flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden'>
 				<ChatArea activeTargetId={activeTargetId} activeTargetType={activeTargetType} activeTarget={activeTarget} onToggleSidebar={() => setShowSidebar(!showSidebar)} />
 			</div>
 		</div>

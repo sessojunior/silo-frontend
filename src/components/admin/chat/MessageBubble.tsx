@@ -90,12 +90,12 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 			{/* Conteúdo da mensagem */}
 			<div className={`flex flex-col max-w-xs lg:max-w-md ${isOwnMessage ? 'items-end' : 'items-start'}`}>
 				{/* Nome do remetente (apenas para mensagens de outros usuários) */}
-				{!isOwnMessage && showAvatar && <span className='text-xs text-zinc-500 dark:text-zinc-400 mb-1 px-1'>{message.senderName}</span>}
+				{!isOwnMessage && showAvatar && <span className='text-xs text-zinc-500 dark:text-zinc-400 mb-1 px-1 truncate'>{message.senderName}</span>}
 
 				{/* Bubble da mensagem */}
 				<div
 					className={`
-						px-4 py-2 rounded-2xl max-w-full break-words
+						px-4 py-2 rounded-2xl max-w-full break-words overflow-hidden
 						${isOwnMessage ? 'bg-blue-500 text-white rounded-br-md' : 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-600 rounded-bl-md'}
 					`}
 				>
@@ -107,7 +107,7 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 					)}
 
 					{/* Conteúdo da mensagem */}
-					{message.messageType === 'text' && message.content && <p className='text-sm whitespace-pre-wrap'>{message.content}</p>}
+					{message.messageType === 'text' && message.content && <p className='text-sm whitespace-pre-wrap break-words overflow-hidden'>{message.content}</p>}
 
 					{/* Mensagem de arquivo */}
 					{message.messageType === 'file' && message.fileUrl && (
