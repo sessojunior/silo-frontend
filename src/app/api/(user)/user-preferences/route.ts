@@ -34,8 +34,6 @@ export async function PUT(req: NextRequest) {
 
 		// Obtem os dados recebidos
 		const body = await req.json()
-		const notifyUpdates = body.notifyUpdates
-		const sendNewsletters = body.sendNewsletters
 		const chatEnabled = body.chatEnabled
 
 		// Verifica se as preferências do usuário já existem no banco de dados pelo ID do usuário
@@ -51,8 +49,6 @@ export async function PUT(req: NextRequest) {
 				.values({
 					id: randomUUID(),
 					userId: user.id,
-					notifyUpdates,
-					sendNewsletters,
 					chatEnabled,
 				})
 				.returning()
@@ -70,7 +66,7 @@ export async function PUT(req: NextRequest) {
 		}
 
 		// Se as preferências do usuário já existirem, atualiza os dados
-		const [updateUserPreferences] = await db.update(userPreferences).set({ notifyUpdates, sendNewsletters, chatEnabled }).where(eq(userPreferences.userId, user.id)).returning()
+		const [updateUserPreferences] = await db.update(userPreferences).set({ chatEnabled }).where(eq(userPreferences.userId, user.id)).returning()
 		if (!updateUserPreferences) {
 			return NextResponse.json(
 				{

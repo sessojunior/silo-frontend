@@ -41,8 +41,6 @@ export default function SettingsPage() {
 	const [image, setImage] = useState(user?.image || '')
 
 	// Preferences tab state
-	const [notifyUpdates, setNotifyUpdates] = useState(false)
-	const [sendNewsletters, setSendNewsletters] = useState(false)
 	const [chatEnabled, setChatEnabled] = useState(true)
 	const [showWelcome, setShowWelcome] = useState<boolean>(true)
 
@@ -111,8 +109,6 @@ export default function SettingsPage() {
 
 			if (preferencesRes.ok) {
 				const { userPreferences } = preferencesData
-				setNotifyUpdates(userPreferences?.notifyUpdates || false)
-				setSendNewsletters(userPreferences?.sendNewsletters || false)
 				// Lógica mais clara para chatEnabled: se não existir, usar true como padrão
 				setChatEnabled(userPreferences?.chatEnabled ?? true)
 			}
@@ -201,7 +197,7 @@ export default function SettingsPage() {
 			const res = await fetch('/api/user-preferences', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ notifyUpdates, sendNewsletters, chatEnabled }),
+				body: JSON.stringify({ chatEnabled }),
 			})
 
 			const data = await res.json()
@@ -490,10 +486,6 @@ export default function SettingsPage() {
 
 			<form onSubmit={handleUpdatePreferences} className='space-y-6'>
 				<fieldset className='space-y-6' disabled={loadingPreferences}>
-					<Switch id='notify-updates' name='notifyUpdates' checked={notifyUpdates} onChange={setNotifyUpdates} size='lg' title='Notificar quando houver novas atualizações' description='Notifique-me quando houver novas atualizações no sistema ou novas versões.' isInvalid={form?.field === 'notifyUpdates'} invalidMessage={form?.message} />
-
-					<Switch id='send-newsletters' name='sendNewsletters' checked={sendNewsletters} onChange={setSendNewsletters} size='lg' title='Enviar e-mails semanalmente' description='Enviar e-mails semanalmente com novidades e atualizações.' isInvalid={form?.field === 'sendNewsletters'} invalidMessage={form?.message} />
-
 					<Switch id='show-welcome' name='showWelcome' checked={showWelcome} onChange={setShowWelcome} size='lg' title='Exibir página de boas-vindas' description='Mostrar a página de boas-vindas na próxima vez que você acessar o sistema.' />
 
 					<Switch id='chat-enabled' name='chatEnabled' checked={chatEnabled} onChange={setChatEnabled} size='lg' title='Ativar sistema de chat' description='Permitir o uso do sistema de chat e notificações em tempo real. Desativar reduz o consumo de banco de dados.' />

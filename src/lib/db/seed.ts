@@ -158,8 +158,6 @@ async function seed() {
 			await db.insert(schema.userPreferences).values({
 				id: randomUUID(),
 				userId: userId,
-				notifyUpdates: true,
-				sendNewsletters: false,
 				chatEnabled: true, // Chat ativado por padrão
 			})
 
@@ -206,8 +204,6 @@ async function seed() {
 				await db.insert(schema.userPreferences).values({
 					id: randomUUID(),
 					userId: newUserId,
-					notifyUpdates: false,
-					sendNewsletters: false,
 					chatEnabled: true, // Chat ativado por padrão
 				})
 
