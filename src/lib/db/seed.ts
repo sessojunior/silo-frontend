@@ -160,6 +160,7 @@ async function seed() {
 				userId: userId,
 				notifyUpdates: true,
 				sendNewsletters: false,
+				chatEnabled: true, // Chat ativado por padrão
 			})
 
 			console.log('✅ Usuário Mario Junior criado com sucesso!')
@@ -199,6 +200,15 @@ async function seed() {
 					password: user.password,
 					emailVerified: user.emailVerified,
 					isActive: user.isActive,
+				})
+
+				// Criar preferências padrão para o usuário
+				await db.insert(schema.userPreferences).values({
+					id: randomUUID(),
+					userId: newUserId,
+					notifyUpdates: false,
+					sendNewsletters: false,
+					chatEnabled: true, // Chat ativado por padrão
 				})
 
 				createdUserIds.push(newUserId)

@@ -1,5 +1,5 @@
 {
-  "id": "b3a94df0-f770-4775-94f1-1e5ee8928953",
+  "id": "c7fd743a-14c5-4806-beda-26e687fd6550",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -2214,6 +2214,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "chat_enabled": {
+          "name": "chat_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
         }
       },
       "indexes": {},

@@ -114,6 +114,7 @@ export const userPreferences = pgTable('user_preferences', {
 		.references(() => authUser.id),
 	notifyUpdates: boolean('notify_updates').notNull().default(false),
 	sendNewsletters: boolean('send_newsletters').notNull().default(false),
+	chatEnabled: boolean('chat_enabled').notNull().default(true), // Controle para ativar/desativar chat
 })
 export type UserPreferences = typeof userPreferences.$inferSelect
 

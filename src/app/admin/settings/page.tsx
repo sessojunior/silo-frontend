@@ -24,7 +24,10 @@ interface FormState {
 export default function SettingsPage() {
 	const user = useUser()
 	const [activeTab, setActiveTab] = useState<TabType>('profile')
-	const [loading, setLoading] = useState(false)
+	const [loadingProfile, setLoadingProfile] = useState(false)
+	const [loadingPreferences, setLoadingPreferences] = useState(false)
+	const [loadingEmail, setLoadingEmail] = useState(false)
+	const [loadingPassword, setLoadingPassword] = useState(false)
 	const [form, setForm] = useState<FormState>({ field: null, message: '' })
 
 	// Profile tab state
@@ -40,6 +43,7 @@ export default function SettingsPage() {
 	// Preferences tab state
 	const [notifyUpdates, setNotifyUpdates] = useState(false)
 	const [sendNewsletters, setSendNewsletters] = useState(false)
+	const [chatEnabled, setChatEnabled] = useState(true)
 	const [showWelcome, setShowWelcome] = useState<boolean>(true)
 
 	// Leitura rápida do localStorage na montagem
@@ -56,8 +60,9 @@ export default function SettingsPage() {
 
 	// Load data on component mount and when activeTab changes
 	useEffect(() => {
+		// Carregar dados apenas na montagem inicial para evitar sobrescrever estado local
 		fetchAllData()
-	}, [activeTab])
+	}, []) // Remover activeTab da dependência para evitar recarregar preferências
 
 	// Navigation items
 	const navigationItems = [
@@ -82,7 +87,7 @@ export default function SettingsPage() {
 	]
 
 	const fetchAllData = async () => {
-		setLoading(true)
+		setLoadingProfile(true)
 		try {
 			// Fetch user profile
 			const profileRes = await fetch('/api/user-profile')
@@ -108,6 +113,8 @@ export default function SettingsPage() {
 				const { userPreferences } = preferencesData
 				setNotifyUpdates(userPreferences?.notifyUpdates || false)
 				setSendNewsletters(userPreferences?.sendNewsletters || false)
+				// Lógica mais clara para chatEnabled: se não existir, usar true como padrão
+				setChatEnabled(userPreferences?.chatEnabled ?? true)
 			}
 		} catch (error) {
 			console.error('❌ Erro ao carregar dados do usuário:', error)
@@ -116,7 +123,7 @@ export default function SettingsPage() {
 				title: 'Erro inesperado ao carregar dados do usuário.',
 			})
 		} finally {
-			setLoading(false)
+			setLoadingProfile(false)
 		}
 	}
 
@@ -149,7 +156,7 @@ export default function SettingsPage() {
 			return
 		}
 
-		setLoading(true)
+		setLoadingProfile(true)
 		setForm({ field: null, message: '' })
 
 		try {
@@ -180,21 +187,21 @@ export default function SettingsPage() {
 				title: 'Erro inesperado. Tente novamente.',
 			})
 		} finally {
-			setLoading(false)
+			setLoadingProfile(false)
 		}
 	}
 
 	const handleUpdatePreferences = async (e: React.FormEvent) => {
 		e.preventDefault()
 
-		setLoading(true)
+		setLoadingPreferences(true)
 		setForm({ field: null, message: '' })
 
 		try {
 			const res = await fetch('/api/user-preferences', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ notifyUpdates, sendNewsletters }),
+				body: JSON.stringify({ notifyUpdates, sendNewsletters, chatEnabled }),
 			})
 
 			const data = await res.json()
@@ -215,6 +222,16 @@ export default function SettingsPage() {
 				if (typeof window !== 'undefined') {
 					localStorage.setItem('hideWelcome', showWelcome ? 'false' : 'true')
 				}
+
+				// Se a preferência de chat foi alterada, atualiza o sidebar e topbar
+				if (data.userPreferences?.chatEnabled !== chatEnabled) {
+					// Força a atualização dos componentes que dependem do chat
+					window.dispatchEvent(
+						new CustomEvent('chatPreferenceChanged', {
+							detail: { chatEnabled },
+						}),
+					)
+				}
 			}
 		} catch (error) {
 			console.error('❌ Erro ao atualizar preferências:', error)
@@ -223,7 +240,7 @@ export default function SettingsPage() {
 				title: 'Erro inesperado. Tente novamente.',
 			})
 		} finally {
-			setLoading(false)
+			setLoadingPreferences(false)
 		}
 	}
 
@@ -237,7 +254,7 @@ export default function SettingsPage() {
 			return
 		}
 
-		setLoading(true)
+		setLoadingEmail(true)
 		setForm({ field: null, message: '' })
 
 		try {
@@ -268,7 +285,7 @@ export default function SettingsPage() {
 				title: 'Erro inesperado. Tente novamente.',
 			})
 		} finally {
-			setLoading(false)
+			setLoadingEmail(false)
 		}
 	}
 
@@ -280,7 +297,7 @@ export default function SettingsPage() {
 			return
 		}
 
-		setLoading(true)
+		setLoadingPassword(true)
 		setForm({ field: null, message: '' })
 
 		try {
@@ -312,7 +329,7 @@ export default function SettingsPage() {
 				title: 'Erro inesperado. Tente novamente.',
 			})
 		} finally {
-			setLoading(false)
+			setLoadingPassword(false)
 		}
 	}
 
@@ -332,7 +349,7 @@ export default function SettingsPage() {
 					</div>
 				</div>
 
-				<fieldset className='grid gap-6' disabled={loading}>
+				<fieldset className='grid gap-6' disabled={loadingProfile}>
 					{/* Name */}
 					<div>
 						<Label htmlFor='name' isInvalid={form?.field === 'name'} required>
@@ -445,8 +462,8 @@ export default function SettingsPage() {
 
 					{/* Submit Button */}
 					<div className='flex justify-end pt-4'>
-						<Button type='submit' disabled={loading}>
-							{loading ? (
+						<Button type='submit' disabled={loadingProfile}>
+							{loadingProfile ? (
 								<>
 									<span className='icon-[lucide--loader-circle] animate-spin size-4' />
 									Salvando...
@@ -472,17 +489,19 @@ export default function SettingsPage() {
 			</div>
 
 			<form onSubmit={handleUpdatePreferences} className='space-y-6'>
-				<fieldset className='space-y-6' disabled={loading}>
+				<fieldset className='space-y-6' disabled={loadingPreferences}>
 					<Switch id='notify-updates' name='notifyUpdates' checked={notifyUpdates} onChange={setNotifyUpdates} size='lg' title='Notificar quando houver novas atualizações' description='Notifique-me quando houver novas atualizações no sistema ou novas versões.' isInvalid={form?.field === 'notifyUpdates'} invalidMessage={form?.message} />
 
 					<Switch id='send-newsletters' name='sendNewsletters' checked={sendNewsletters} onChange={setSendNewsletters} size='lg' title='Enviar e-mails semanalmente' description='Enviar e-mails semanalmente com novidades e atualizações.' isInvalid={form?.field === 'sendNewsletters'} invalidMessage={form?.message} />
 
 					<Switch id='show-welcome' name='showWelcome' checked={showWelcome} onChange={setShowWelcome} size='lg' title='Exibir página de boas-vindas' description='Mostrar a página de boas-vindas na próxima vez que você acessar o sistema.' />
 
+					<Switch id='chat-enabled' name='chatEnabled' checked={chatEnabled} onChange={setChatEnabled} size='lg' title='Ativar sistema de chat' description='Permitir o uso do sistema de chat e notificações em tempo real. Desativar reduz o consumo de banco de dados.' />
+
 					{/* Submit Button */}
 					<div className='flex justify-end pt-4'>
-						<Button type='submit' disabled={loading}>
-							{loading ? (
+						<Button type='submit' disabled={loadingPreferences}>
+							{loadingPreferences ? (
 								<>
 									<span className='icon-[lucide--loader-circle] animate-spin size-4' />
 									Salvando...
@@ -510,7 +529,7 @@ export default function SettingsPage() {
 				</div>
 
 				<form onSubmit={handleUpdateEmail} className='space-y-4'>
-					<fieldset className='space-y-4' disabled={loading}>
+					<fieldset className='space-y-4' disabled={loadingEmail}>
 						<div>
 							<Label htmlFor='email' isInvalid={form?.field === 'email'} required>
 								Novo e-mail
@@ -519,8 +538,8 @@ export default function SettingsPage() {
 						</div>
 
 						<div className='flex justify-end'>
-							<Button type='submit' disabled={loading} style='bordered'>
-								{loading ? (
+							<Button type='submit' disabled={loadingEmail} style='bordered'>
+								{loadingEmail ? (
 									<>
 										<span className='icon-[lucide--loader-circle] animate-spin size-4' />
 										Aguarde...
@@ -548,7 +567,7 @@ export default function SettingsPage() {
 				</div>
 
 				<form onSubmit={handleUpdatePassword} className='space-y-4'>
-					<fieldset className='space-y-4' disabled={loading}>
+					<fieldset className='space-y-4' disabled={loadingPassword}>
 						<div>
 							<Label htmlFor='password' isInvalid={form?.field === 'password'} required>
 								Nova senha
@@ -557,8 +576,8 @@ export default function SettingsPage() {
 						</div>
 
 						<div className='flex justify-end'>
-							<Button type='submit' disabled={loading} style='bordered'>
-								{loading ? (
+							<Button type='submit' disabled={loadingPassword} style='bordered'>
+								{loadingPassword ? (
 									<>
 										<span className='icon-[lucide--loader-circle] animate-spin size-4' />
 										Aguarde...

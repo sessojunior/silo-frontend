@@ -1,7 +1,10 @@
+'use client'
+
 import TopbarDropdown from '@/components/admin/topbar/TopbarDropdown'
 import TopbarButton from '@/components/admin/topbar/TopbarButton'
 import TopbarDivider from '@/components/admin/topbar/TopbarDivider'
 import ChatNotificationButton from '@/components/admin/topbar/ChatNotificationButton'
+import { useState, useEffect } from 'react'
 
 export type AccountLinkProps = {
 	id: string
@@ -13,6 +16,38 @@ export type AccountLinkProps = {
 export type AccountProps = AccountLinkProps[]
 
 export default function Topbar() {
+	const [chatEnabled, setChatEnabled] = useState(true)
+
+	// Verificar se o chat está habilitado para o usuário
+	useEffect(() => {
+		const checkChatEnabled = async () => {
+			try {
+				const response = await fetch('/api/user-preferences')
+				if (response.ok) {
+					const data = await response.json()
+					const enabled = data.userPreferences?.chatEnabled !== false
+					setChatEnabled(enabled)
+				}
+			} catch (error) {
+				console.error('❌ [Topbar] Erro ao verificar preferências do chat:', error)
+			}
+		}
+
+		checkChatEnabled()
+
+		// Listener para atualização automática quando preferência de chat mudar
+		const handleChatPreferenceChange = (event: CustomEvent) => {
+			setChatEnabled(event.detail.chatEnabled)
+		}
+
+		window.addEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
+
+		// Cleanup do listener
+		return () => {
+			window.removeEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
+		}
+	}, [])
+
 	// Dados da conta para o dropdown da barra do topo
 	const account: AccountProps = [
 		{
@@ -59,9 +94,13 @@ export default function Topbar() {
 							<TopbarButton href='/admin/settings' icon='icon-[lucide--settings]'>
 								Configurações
 							</TopbarButton>
-							<TopbarDivider />
-							<ChatNotificationButton />
-							<TopbarDivider />
+							{chatEnabled && (
+								<>
+									<TopbarDivider />
+									<ChatNotificationButton />
+									<TopbarDivider />
+								</>
+							)}
 							<TopbarDropdown account={account} />
 						</div>
 					</div>

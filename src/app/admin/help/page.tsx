@@ -215,7 +215,7 @@ export default function HelpPage() {
 									<span className='icon-[lucide--book-open] size-10 text-blue-600 dark:text-blue-400' />
 								</div>
 								<h2 className='text-xl font-semibold text-zinc-900 dark:text-white mb-3'>Documentação vazia</h2>
-								<p className='text-zinc-600 dark:text-zinc-400 mb-6'>Clique em "Editar documentação" para criar o conteúdo.</p>
+								<p className='text-zinc-600 dark:text-zinc-400 mb-6'>Clique em &ldquo;Editar documentação&rdquo; para criar o conteúdo.</p>
 								<Button onClick={() => setEditorOpen(true)}>
 									<span className='icon-[lucide--edit-3] size-4 mr-2' />
 									Criar documentação

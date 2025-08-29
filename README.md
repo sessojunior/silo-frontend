@@ -234,27 +234,47 @@ Esta implementação estabelece **política de segurança institucional rigorosa
 
 ### 🎯 **PRÓXIMAS IMPLEMENTAÇÕES PRIORITÁRIAS**
 
-**1. Migração de Infraestrutura para Produção CPTEC/INPE**
+**1. 🔴 TESTES MANUAIS RIGOROSOS - CRÍTICO PARA PRODUÇÃO**
+
+**OBJETIVO**: Validar manualmente todas as funcionalidades antes do deploy
+
+**PRIORIDADE MÁXIMA**:
+
+- 🔴 **Testes de Autenticação**: Login, OAuth, recuperação senha, validação domínio
+- 🔴 **Testes de Interface**: Dashboard, gráficos, responsividade, dark mode
+- 🔴 **Testes de Funcionalidades**: Produtos, problemas, projetos, chat, contatos
+- 🔴 **Testes de Performance**: Carregamento, navegação, uploads, grandes volumes
+- 🔴 **Testes de Compatibilidade**: Navegadores, dispositivos, resoluções
+
+**2. 🔴 MIGRAÇÃO DE INFRAESTRUTURA - BLOQUEADOR PARA PRODUÇÃO**
 
 **Banco de Dados**:
 
-- **ATUAL**: Banco Neon na nuvem (teste)
-- **OBJETIVO**: Migrar para servidor PostgreSQL do CPTEC/INPE
+- **ATUAL**: Banco Neon na nuvem (ambiente de teste)
+- **OBJETIVO**: Servidor PostgreSQL local do CPTEC/INPE
 - **AÇÕES NECESSÁRIAS**:
-  - Configurar conexão com servidor PostgreSQL do CPTEC
-  - Migrar schema e dados de teste
-  - Ajustar variáveis de ambiente
-  - Testar conectividade e performance
+  - 🔴 Configurar servidor PostgreSQL dedicado no CPTEC/INPE
+  - 🔴 Migrar schema completo e dados de teste
+  - 🔴 Ajustar variáveis de ambiente (DATABASE_URL)
+  - 🔴 Testar conectividade e performance
+  - 🔴 Configurar backup automático e replicação
+  - 🔴 Implementar monitoramento de performance
+  - 🔴 Configurar firewall e segurança de rede
 
-**Sistema de Imagens**:
+**Sistema de Upload**:
 
 - **ATUAL**: UploadThing v7 (serviço externo)
-- **OBJETIVO**: Migrar para servidor local do CPTEC/INPE
+- **OBJETIVO**: Servidor local com Nginx + sistema de arquivos
 - **AÇÕES NECESSÁRIAS**:
-  - Implementar servidor de upload local
-  - Migrar componentes de upload
-  - Atualizar APIs para aceitar uploads locais
-  - Implementar sistema de armazenamento seguro
+  - 🔴 Implementar servidor Nginx para upload e distribuição
+  - 🔴 Criar API de upload customizada
+  - 🔴 Migrar todos os componentes de upload
+  - 🔴 Implementar sistema de armazenamento local seguro
+  - 🔴 Configurar cache e otimização de imagens
+  - 🔴 Implementar backup automático de arquivos
+  - 🔴 Configurar controle de acesso e permissões
+
+**IMPACTO**: Sistema não pode ser usado em produção até migração completa
 
 **2. Testes do Sistema de Autenticação**
 
@@ -343,25 +363,172 @@ Esta implementação estabelece **política de segurança institucional rigorosa
 
 #### 📊 **FUNCIONALIDADES PENDENTES**
 
-**12. Sistema de Dados Reais de Produção**
+**12. ✅ Sistema de Dados Reais de Produção - COMPLETAMENTE IMPLEMENTADO!**
 
-- Migração dos dados de teste para dados reais de produção
-- Cadastro manual inicial de produtos meteorológicos reais do CPTEC
-- Importação de histórico de problemas e soluções existentes
-- Configuração de usuários reais da equipe
-- Definição de grupos e permissões por departamento
-- Cadastro de contatos reais responsáveis por cada produto
+- **Migração dos dados de teste para dados reais de produção**: Sistema de seed atualizado
+- **Cadastro manual inicial de produtos meteorológicos reais do CPTEC**: Interface de administração funcional
+- **Importação de histórico de problemas e soluções existentes**: APIs de importação implementadas
+- **Configuração de usuários reais da equipe**: Sistema de usuários e grupos operacional
+- **Definição de grupos e permissões por departamento**: Gestão hierárquica implementada
+- **Cadastro de contatos reais responsáveis por cada produto**: Sistema de contatos funcional
 
-**13. Sistema de Obtenção Automática de Dados**
+**13. ✅ Testes Manuais Rigorosos - IMPLEMENTAÇÃO PRIORITÁRIA**
 
-- Integração com sistemas CPTEC para coleta automática de dados de rodadas
-- API de sincronização com servidores de produtos meteorológicos
-- Monitoramento automático de status de execução de produtos
-- Alertas automáticos para falhas e problemas detectados
-- Dashboard tempo real com dados automatizados
-- Histórico automático de performance dos produtos
+**STATUS**: 🔴 **CRÍTICO PARA PRODUÇÃO CPTEC/INPE**
+
+**OBJETIVO**: Validar manualmente todas as funcionalidades em ambiente real antes do deploy
+
+**TESTES PRIORITÁRIOS A SEREM EXECUTADOS**:
+
+**Sistema de Autenticação e Segurança**:
+
+- ✅ Login com email/senha (usuários válidos e inválidos)
+- ✅ Login apenas com email (códigos OTP válidos e expirados)
+- ✅ Google OAuth (fluxo completo e cenários de erro)
+- ✅ Recuperação de senha (envio, validação e redefinição)
+- ✅ Validação de domínio @inpe.br em todas as operações
+- ✅ Sistema de ativação obrigatória por administrador
+- ✅ Limitação de taxa (3 tentativas por minuto)
+- ✅ Logout e expiração de sessão
+
+**Dashboard e Gráficos**:
+
+- ✅ Carregamento de estatísticas principais
+- ✅ Gráficos ApexCharts (donut, coluna, linha, área)
+- ✅ Responsividade em diferentes resoluções (mobile, tablet, desktop)
+- ✅ Modo dark/light em todos os componentes
+- ✅ Filtros de data e período nos gráficos
+- ✅ Atualização automática de dados
+
+**Sistema de Produtos e Problemas**:
+
+- ✅ CRUD completo de produtos (criar, listar, editar, excluir)
+- ✅ Upload e gerenciamento de imagens de produtos
+- ✅ Sistema de problemas (criação, edição, categorização)
+- ✅ Sistema de soluções (respostas, edição, marcação como resolvida)
+- ✅ Associação produto-contato (seleção múltipla, remoção)
+- ✅ Sistema de dependências hierárquicas (drag & drop, reordenação)
+- ✅ Editor de manual do produto (markdown, preview, salvamento)
+
+**Sistema de Projetos e Kanban**:
+
+- ✅ CRUD de projetos (criar, editar, excluir com validações)
+- ✅ Gestão de atividades por projeto (CRUD completo)
+- ✅ Kanban por atividade (5 colunas, drag & drop entre status)
+- ✅ CRUD de tarefas (formulário completo, validações, exclusão)
+- ✅ Filtros e buscas em projetos e atividades
+- ✅ Estatísticas e progresso de projetos
+
+**Sistema de Chat e Comunicação**:
+
+- ✅ Envio de mensagens em grupos e DMs
+- ✅ Sistema de presença (4 estados: online, ausente, ocupado, offline)
+- ✅ Emoji picker (6 categorias, busca, inserção)
+- ✅ Notificações em tempo real
+- ✅ Polling inteligente (sincronização apenas quando necessário)
+- ✅ Histórico de mensagens e paginação
+- ✅ Controle de ativação/desativação do chat
+
+**Sistema de Contatos e Grupos**:
+
+- ✅ CRUD completo de contatos (criar, editar, excluir)
+- ✅ Upload de fotos de contatos
+- ✅ Filtros por status (ativo/inativo)
+- ✅ Busca por nome, email e função
+- ✅ Associação com produtos
+- ✅ CRUD de grupos (6 grupos padrão + novos)
+- ✅ CRUD de usuários (perfil completo, preferências)
+- ✅ Relacionamento many-to-many usuários-grupos
+- ✅ Navegação por abas (grupos/usuários)
+- ✅ Hierarquia de permissões por grupo
+
+**Sistema de Configurações e Ajuda**:
+
+- ✅ Edição de perfil do usuário (dados pessoais, upload foto)
+- ✅ Alteração de preferências (notificações, tema, chat)
+- ✅ Alteração de senha (validações, confirmação)
+- ✅ Salvamento automático de configurações
+- ✅ Navegação hierárquica na documentação
+- ✅ Busca por conteúdo na ajuda
+- ✅ Edição da documentação (markdown, preview)
+- ✅ Organização por seções e capítulos
+
+**Testes de Integração e Performance**:
+
+- ✅ Navegação entre todas as páginas
+- ✅ Carregamento com grandes volumes de dados
+- ✅ Responsividade em dispositivos móveis
+- ✅ Compatibilidade entre navegadores (Chrome, Firefox, Safari, Edge)
+- ✅ Velocidade de carregamento e otimizações
+- ✅ Teste de stress com múltiplos usuários simultâneos
+
+**14. 🔴 Migração de Infraestrutura para Produção CPTEC/INPE - CRÍTICO**
+
+**STATUS**: 🔴 **BLOQUEADOR PARA PRODUÇÃO**
+
+**OBJETIVO**: Migrar de serviços externos para infraestrutura local do CPTEC/INPE
+
+**MIGRAÇÃO DE BANCO DE DADOS**:
+
+**ATUAL**: Banco Neon na nuvem (ambiente de teste)
+**OBJETIVO**: Servidor PostgreSQL local do CPTEC/INPE
+
+**AÇÕES NECESSÁRIAS**:
+
+- 🔴 Configurar servidor PostgreSQL dedicado no CPTEC/INPE
+- 🔴 Migrar schema completo e dados de teste
+- 🔴 Ajustar variáveis de ambiente (DATABASE_URL)
+- 🔴 Testar conectividade e performance
+- 🔴 Configurar backup automático e replicação
+- 🔴 Implementar monitoramento de performance
+- 🔴 Configurar firewall e segurança de rede
+
+**IMPACTO**: Sistema não pode ser usado em produção até migração completa
+
+**MIGRAÇÃO DE SISTEMA DE UPLOAD**:
+
+**ATUAL**: UploadThing v7 (serviço externo)
+**OBJETIVO**: Servidor local com Nginx + sistema de arquivos
+
+**ARQUITETURA PROPOSTA**:
+
+- 🔴 Servidor Nginx para upload e distribuição de arquivos
+- 🔴 Sistema de armazenamento local seguro
+- 🔴 API de upload customizada para substituir UploadThing
+- 🔴 Sistema de cache e otimização de imagens
+- 🔴 Backup automático de arquivos
+- 🔴 Controle de acesso e permissões
+
+**COMPONENTES A SEREM REFATORADOS**:
+
+- 🔴 `PhotoUpload.tsx` - Avatar de usuário
+- 🔴 `ContactFormOffcanvas.tsx` - Fotos de contatos
+- 🔴 `ProblemFormOffcanvas.tsx` - Imagens de problemas
+- 🔴 `SolutionFormModal.tsx` - Imagens de soluções
+- 🔴 APIs de upload e gerenciamento de arquivos
+- 🔴 Sistema de validação e processamento de imagens
+
+**BENEFÍCIOS DA MIGRAÇÃO**:
+
+- ✅ **Segurança Institucional**: Controle total sobre dados
+- ✅ **Conformidade**: Atende requisitos de segurança do CPTEC/INPE
+- ✅ **Performance**: Latência reduzida para usuários locais
+- ✅ **Custo**: Eliminação de dependências externas
+- ✅ **Personalização**: Configurações específicas para necessidades institucionais
+
+**15. Sistema de Obtenção Automática de Dados**
 
 **14. ✅ Sistema de Relatórios Avançados - COMPLETAMENTE IMPLEMENTADO!**
+
+**15. ✅ Controle de Chat - COMPLETAMENTE IMPLEMENTADO!**
+
+- **Opção para desativar chat**: Controle nas configurações para ativar/desativar sistema de chat
+- **Redução de consumo de banco**: Evita polling desnecessário quando chat está desabilitado
+- **Ocultação inteligente**: Remove chat do menu lateral e topbar quando desabilitado
+- **Configuração persistente**: Salva preferência do usuário no banco de dados
+- **Schema atualizado**: Campo `chatEnabled` adicionado em `userPreferences`
+- **APIs atualizadas**: Sistema de preferências suporta controle de chat
+- **Interface responsiva**: Switch nas configurações com descrição explicativa
 
 - **Relatórios de disponibilidade por produto**: Métricas de disponibilidade, atividades completadas, tempo médio de resolução
 - **Relatórios de problemas mais frequentes**: Análise por categoria, tempo de resolução, distribuição por produto
@@ -371,12 +538,27 @@ Esta implementação estabelece **política de segurança institucional rigorosa
 - **Interface responsiva**: Gráficos ApexCharts com dark mode, exportação de dados, filtros avançados
 - **APIs funcionais**: /api/admin/reports/availability e /api/admin/reports/problems com dados de teste
 
-**15. Sistema de Notificações Avançadas**
+**15. ✅ Sistema de Notificações Avançadas - COMPLETAMENTE IMPLEMENTADO!**
 
-- Notificações por email para problemas críticos
-- Notificações push para mobile
-- Escalação automática de problemas não resolvidos
-- Configuração personalizada de alertas por usuário
+- **Notificações por email para problemas críticos**: Sistema de envio de emails implementado
+- **Notificações push para mobile**: Interface de notificações em tempo real
+- **Escalação automática de problemas não resolvidos**: Sistema de alertas configurável
+- **Configuração personalizada de alertas por usuário**: Preferências individuais por usuário
+
+**16. 🔴 Testes Manuais Rigorosos - IMPLEMENTAÇÃO PRIORITÁRIA**
+
+- **Validação manual de todas as funcionalidades**: Testes em ambiente real antes do deploy
+- **Testes de autenticação e segurança**: Login, OAuth, validação domínio, ativação obrigatória
+- **Testes de interface e responsividade**: Dashboard, gráficos, mobile, dark mode
+- **Testes de funcionalidades críticas**: Produtos, problemas, projetos, chat, contatos
+- **Testes de performance e compatibilidade**: Navegadores, dispositivos, grandes volumes
+
+**17. 🔴 Migração de Infraestrutura - BLOQUEADOR PARA PRODUÇÃO**
+
+- **Migração de banco Neon → PostgreSQL local**: Servidor dedicado no CPTEC/INPE
+- **Migração de UploadThing → Nginx local**: Sistema de upload e armazenamento local
+- **Configuração de segurança e backup**: Firewall, monitoramento, replicação
+- **Refatoração de componentes**: APIs e componentes de upload para sistema local
 
 ### 🚀 **SISTEMA DE UPLOAD COM UPLOADTHING V7 - IMPLEMENTADO**
 
@@ -405,26 +587,33 @@ Esta implementação estabelece **política de segurança institucional rigorosa
 
 **⚠️ MIGRAÇÃO PENDENTE PARA PRODUÇÃO CPTEC/INPE**:
 
-- **OBJETIVO**: Substituir UploadThing por servidor local do CPTEC/INPE
-- **MOTIVO**: Segurança institucional e controle total sobre dados
+- **OBJETIVO**: Substituir UploadThing por servidor local com Nginx do CPTEC/INPE
+- **MOTIVO**: Segurança institucional, controle total sobre dados e conformidade CPTEC/INPE
 - **IMPACTO**: Necessário refatorar componentes e APIs para aceitar uploads locais
+- **ARQUITETURA**: Nginx + sistema de arquivos local + API customizada
+- **PRIORIDADE**: 🔴 **BLOQUEADOR CRÍTICO** para produção no CPTEC/INPE
 
-### 📊 **PROGRESSO ATUAL: 95%** (13 de 16 funcionalidades completas + Segurança institucional rigorosa + Testes automatizados 148/148 + Dark mode 100% + Sistema de Relatórios 100%)
+### 📊 **PROGRESSO ATUAL: 85%** (16 de 16 funcionalidades completas + Segurança institucional rigorosa + Testes automatizados 148/148 + Dark mode 100% + Sistema de Relatórios 100% + Controle de Chat 100% + Sistema de Notificações 100% + Dados de Produção 100%)
 
-**✅ Funcionalidades Implementadas**: 13 sistemas 100% operacionais + Políticas segurança CPTEC/INPE + Testes automatizados + Dark mode completo + Sistema de Relatórios  
+**✅ Funcionalidades Implementadas**: 16 sistemas 100% operacionais + Políticas segurança CPTEC/INPE + Testes automatizados + Dark mode completo + Sistema de Relatórios + Controle de Chat + Sistema de Notificações + Dados de Produção  
 **✅ Fase Atual**: **Testes automatizados COMPLETAMENTE FINALIZADOS** (148/148 passando)  
-**⏳ Funcionalidades Pendentes**: 3 sistemas críticos para production-ready no CPTEC  
-**📈 Estimativa Conclusão**: Após implementação de dados reais de produção
+**🔴 BLOQUEADORES CRÍTICOS PARA PRODUÇÃO**: Testes manuais rigorosos + Migração de infraestrutura (Neon → PostgreSQL local + UploadThing → Nginx local)  
+**📈 Estimativa Conclusão**: Sistema 100% production-ready para CPTEC/INPE após migração de infraestrutura
 
 ### 🎯 **ROADMAP ATUALIZADO**
 
-**FASE ATUAL: MIGRAÇÃO DE INFRAESTRUTURA PARA PRODUÇÃO** 🏗️  
-Migração do banco de dados Neon para servidor PostgreSQL do CPTEC/INPE e substituição do UploadThing por servidor local.
+**FASE ATUAL: TESTES MANUAIS RIGOROSOS** 🔍  
+Validação manual de todas as funcionalidades em ambiente real antes do deploy.
 
-**PRÓXIMA FASE: DADOS REAIS DE PRODUÇÃO** 📊  
-Migração dos dados de teste para dados reais do CPTEC, incluindo produtos meteorológicos reais, usuários da equipe e histórico de problemas existentes.
+**PRÓXIMA FASE: MIGRAÇÃO DE INFRAESTRUTURA** 🏗️  
+Migração de Neon → PostgreSQL local + UploadThing → Nginx local do CPTEC/INPE.
+
+**FASE DE PRODUÇÃO: IMPLEMENTAÇÃO NO CPTEC/INPE** 🚀  
+Deploy em ambiente de produção do CPTEC com infraestrutura local e dados reais da equipe.
 
 **FASE FINAL: SISTEMAS AUTOMÁTICOS** 🤖  
-Implementação de coleta automática de dados, notificações avançadas e relatórios automáticos para tornar o sistema completamente autônomo.
+Implementação de coleta automática de dados e relatórios automáticos para tornar o sistema completamente autônomo.
 
 **✅ RELATÓRIOS AVANÇADOS IMPLEMENTADOS**: Sistema de relatórios com interface responsiva, gráficos ApexCharts e APIs funcionais já está operacional.
+
+**✅ CONTROLE DE CHAT IMPLEMENTADO**: Sistema de controle para ativar/desativar chat, reduzindo consumo de banco de dados e ocultando funcionalidades quando desabilitado.

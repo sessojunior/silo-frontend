@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-
 import { useSidebar } from '@/context/SidebarContext'
 import SidebarHeader from '@/components/admin/sidebar/SidebarHeader'
 import SidebarFooter from '@/components/admin/sidebar/SidebarFooter'
 import SidebarMenu from '@/components/admin/sidebar/SidebarMenu'
 import type { Product } from '@/lib/db/schema'
 import type { Project } from '@/types/projects'
+import { useState, useEffect } from 'react'
 
 export type SidebarMenuProps = {
 	id: string
@@ -23,8 +22,39 @@ export type SidebarProps = {
 
 export default function Sidebar() {
 	const { isOpenSidebar, closeSidebar } = useSidebar()
+	const [chatEnabled, setChatEnabled] = useState(true)
 	const [products, setProducts] = useState<Product[]>([])
 	const [projects, setProjects] = useState<Project[]>([])
+
+	// Verificar se o chat está habilitado para o usuário
+	useEffect(() => {
+		const checkChatEnabled = async () => {
+			try {
+				const response = await fetch('/api/user-preferences')
+				if (response.ok) {
+					const data = await response.json()
+					const enabled = data.userPreferences?.chatEnabled !== false
+					setChatEnabled(enabled)
+				}
+			} catch (error) {
+				console.error('❌ [Sidebar] Erro ao verificar preferências do chat:', error)
+			}
+		}
+
+		checkChatEnabled()
+
+		// Listener para atualização automática quando preferência de chat mudar
+		const handleChatPreferenceChange = (event: CustomEvent) => {
+			setChatEnabled(event.detail.chatEnabled)
+		}
+
+		window.addEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
+
+		// Cleanup do listener
+		return () => {
+			window.removeEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
+		}
+	}, [])
 
 	// Obter dados dos produtos
 	useEffect(() => {
@@ -178,13 +208,17 @@ export default function Sidebar() {
 				id: '2',
 				title: 'Outros',
 				items: [
-					{
-						id: '2.2',
-						title: 'Bate-papo',
-						icon: 'icon-[lucide--messages-square]',
-						url: '/admin/chat',
-						items: null,
-					},
+					...(chatEnabled
+						? [
+								{
+									id: '2.2',
+									title: 'Bate-papo',
+									icon: 'icon-[lucide--messages-square]',
+									url: '/admin/chat',
+									items: null,
+								},
+							]
+						: []),
 					{
 						id: '2.3',
 						title: 'Configurações',

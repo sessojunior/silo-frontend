@@ -3,11 +3,15 @@ import { SidebarProvider } from '@/context/SidebarContext'
 import Sidebar from '@/components/admin/sidebar/Sidebar'
 import Topbar from '@/components/admin/topbar/Topbar'
 import Toast from '@/components/ui/Toast'
+import ChatPollingController from '@/components/admin/ChatPollingController'
 
 export default function AdminWrapper({ children }: { children: React.ReactNode }) {
 	return (
 		<>
 			<SidebarProvider>
+				{/* Controlador de polling do chat */}
+				<ChatPollingController />
+
 				{/* Barra lateral */}
 				<Sidebar />
 
