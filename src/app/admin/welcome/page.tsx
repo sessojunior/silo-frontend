@@ -25,47 +25,94 @@ export default function WelcomePage() {
 
 	useEffect(() => {
 		async function loadData() {
-			// === 1. Verificar Perfil ===
+			// === 1. Verificar Perfil do Usuário Logado ===
 			let profileCompleted = false
 			try {
 				const res = await fetch('/api/user-profile')
 				if (res.ok) {
 					const data = await res.json()
-					profileCompleted = Boolean(data?.user?.image)
+					const profile = data?.userProfile || {}
+
+					// Verificar se o perfil está completo (todos os campos obrigatórios preenchidos)
+					// NOTA: Foto NÃO faz parte dos requisitos de perfil
+					const hasName = Boolean(data?.user?.name && data.user.name.trim().length > 0)
+					const hasGenre = Boolean(profile?.genre && profile.genre.trim().length > 0)
+					const hasRole = Boolean(profile?.role && profile.role.trim().length > 0)
+					const hasPhone = Boolean(profile?.phone && profile.phone.trim().length > 0)
+					const hasCompany = Boolean(profile?.company && profile.company.trim().length > 0)
+					const hasLocation = Boolean(profile?.location && profile.location.trim().length > 0)
+					const hasTeam = Boolean(profile?.team && profile.team.trim().length > 0)
+
+					// Perfil completo se tiver: nome, gênero, função, telefone, empresa, localização e equipe
+					profileCompleted = hasName && hasGenre && hasRole && hasPhone && hasCompany && hasLocation && hasTeam
+
+					console.log('🔵 [WelcomePage] Perfil do usuário:', {
+						hasName,
+						hasGenre,
+						hasRole,
+						hasPhone,
+						hasCompany,
+						hasLocation,
+						hasTeam,
+						profileCompleted,
+					})
 				}
-			} catch {
+			} catch (error) {
+				console.error('❌ [WelcomePage] Erro ao carregar perfil:', error)
 				profileCompleted = false
 			}
 
-			// === 2. Verificar Produtos ===
+			// === 2. Verificar Produtos (qualquer usuário) ===
 			let productsConfigured = false
 			try {
 				const res = await fetch('/api/admin/products')
 				if (res.ok) {
 					const data = await res.json()
-					productsConfigured = Array.isArray(data?.products) && data.products.length > 0
+					// Verificar se há produtos cadastrados (qualquer usuário)
+					productsConfigured = Array.isArray(data?.items) && data.items.length > 0
+					console.log('🔵 [WelcomePage] Produtos encontrados:', data.items?.length || 0)
 				}
-			} catch {
+			} catch (error) {
+				console.error('❌ [WelcomePage] Erro ao carregar produtos:', error)
 				productsConfigured = false
 			}
 
-			// === 3. Verificar Projetos ===
+			// === 3. Verificar Projetos (qualquer usuário) ===
 			let projectsConfigured = false
 			try {
 				const res = await fetch('/api/admin/projects')
 				if (res.ok) {
 					const data = await res.json()
-					projectsConfigured = Array.isArray(data?.projects) && data.projects.length > 0
+					// Verificar se há projetos cadastrados (qualquer usuário)
+					projectsConfigured = Array.isArray(data) && data.length > 0
+					console.log('🔵 [WelcomePage] Projetos encontrados:', data?.length || 0)
 				}
-			} catch {
+			} catch (error) {
+				console.error('❌ [WelcomePage] Erro ao carregar projetos:', error)
 				projectsConfigured = false
+			}
+
+			// === 4. Verificar Contatos (qualquer usuário) ===
+			let contactsConfigured = false
+			try {
+				const res = await fetch('/api/admin/contacts')
+				if (res.ok) {
+					const data = await res.json()
+					// Verificar se há contatos cadastrados (qualquer usuário)
+					// A API retorna: { success: true, data: { items: filteredContacts, total: filteredContacts.length } }
+					contactsConfigured = data?.success && Array.isArray(data?.data?.items) && data.data.items.length > 0
+					console.log('🔵 [WelcomePage] Contatos encontrados:', data?.data?.items?.length || 0)
+				}
+			} catch (error) {
+				console.error('❌ [WelcomePage] Erro ao carregar contatos:', error)
+				contactsConfigured = false
 			}
 
 			setSteps([
 				{
 					icon: 'icon-[lucide--user-round-pen]',
 					title: 'Complete seu perfil de usuário',
-					description: 'Adicione sua foto, função e demais informações pessoais.',
+					description: 'Adicione sua função, equipe e demais informações pessoais.',
 					link: '/admin/settings',
 					completed: profileCompleted,
 				},
@@ -83,8 +130,23 @@ export default function WelcomePage() {
 					link: '/admin/projects',
 					completed: projectsConfigured,
 				},
+				{
+					icon: 'icon-[lucide--users]',
+					title: 'Crie contatos',
+					description: 'Cadastre contatos para comunicação e suporte.',
+					link: '/admin/contacts',
+					completed: contactsConfigured,
+				},
 			])
-			console.log('ℹ️ [WelcomePage] Passos carregados', { profileCompleted, productsConfigured, projectsConfigured })
+
+			console.log('✅ [WelcomePage] Passos carregados', {
+				profileCompleted,
+				productsConfigured,
+				projectsConfigured,
+				contactsConfigured,
+				totalSteps: 4,
+				completedSteps: [profileCompleted, productsConfigured, projectsConfigured, contactsConfigured].filter(Boolean).length,
+			})
 			setLoading(false)
 		}
 
@@ -122,7 +184,7 @@ export default function WelcomePage() {
 
 	return (
 		<div className='w-full flex min-h-full flex-col items-center justify-center p-8 text-zinc-600 dark:text-zinc-200'>
-			<div className='mb-4 max-w-2xl'>
+			<div className='mb-8 max-w-2xl'>
 				<h1 className='text-center text-3xl font-bold tracking-tight'>
 					Bem-vindo <span className='text-blue-600'>{user?.name?.split(' ')[0] || 'Usuário'}</span> 👋
 				</h1>
