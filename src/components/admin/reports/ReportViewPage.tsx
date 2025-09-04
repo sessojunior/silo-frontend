@@ -115,7 +115,7 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 			case 'problems':
 				return 'Relatório de Problemas Mais Frequentes'
 			case 'performance':
-				return 'Relatório de Performance da Equipe'
+				return 'Relatório de Performance da Equipe - Sistema Justo e Transparente'
 			case 'projects':
 				return 'Relatório de Projetos e Atividades'
 			case 'executive':
@@ -132,7 +132,7 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 			case 'problems':
 				return 'Visão geral dos problemas mais frequentes e suas categorias'
 			case 'performance':
-				return 'Métricas de performance e produtividade da equipe'
+				return 'Sistema de pontuação justo que reconhece problemas, soluções e participação em projetos'
 			case 'projects':
 				return 'Análise completa de projetos, atividades e progresso'
 			case 'executive':
@@ -307,17 +307,25 @@ function renderMetrics(data: Record<string, unknown>, reportType: string) {
 		case 'performance':
 			return (
 				<>
-					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-950 rounded-lg space-y-2 sm:space-y-0'>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-950 rounded-lg space-y-2 sm:space-y-0' title='Total de problemas identificados no sistema (1 ponto cada)'>
 						<span className='text-blue-800 dark:text-blue-200 font-medium text-sm sm:text-base'>Total de Problemas</span>
 						<span className='text-blue-900 dark:text-blue-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.totalProblems as number) || 0}</span>
 					</div>
-					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-green-50 dark:bg-green-950 rounded-lg space-y-2 sm:space-y-0'>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-green-50 dark:bg-green-950 rounded-lg space-y-2 sm:space-y-0' title='Total de soluções fornecidas para problemas (2 pontos cada)'>
 						<span className='text-green-800 dark:text-green-200 font-medium text-sm sm:text-base'>Total de Soluções</span>
 						<span className='text-green-900 dark:text-green-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.totalSolutions as number) || 0}</span>
 					</div>
-					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-purple-50 dark:bg-purple-950 rounded-lg space-y-2 sm:space-y-0'>
-						<span className='text-purple-800 dark:text-purple-200 font-medium text-sm sm:text-base'>Usuários Ativos</span>
-						<span className='text-purple-900 dark:text-purple-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.activeUsers as number) || 0}</span>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-purple-50 dark:bg-purple-950 rounded-lg space-y-2 sm:space-y-0' title='Total de tarefas atribuídas em projetos (1-3 pontos dependendo do papel e status)'>
+						<span className='text-purple-800 dark:text-purple-200 font-medium text-sm sm:text-base'>Tarefas de Projetos</span>
+						<span className='text-purple-900 dark:text-purple-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.totalTasks as number) || 0}</span>
+					</div>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-orange-50 dark:bg-orange-950 rounded-lg space-y-2 sm:space-y-0' title='Usuários que participam ativamente de projetos (têm tarefas atribuídas)'>
+						<span className='text-orange-800 dark:text-orange-200 font-medium text-sm sm:text-base'>Participantes de Projetos</span>
+						<span className='text-orange-900 dark:text-orange-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.projectParticipants as number) || 0}</span>
+					</div>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-indigo-50 dark:bg-indigo-950 rounded-lg space-y-2 sm:space-y-0' title='Taxa média de conclusão de tarefas por todos os usuários (bônus de +5 pontos se > 80%)'>
+						<span className='text-indigo-800 dark:text-indigo-200 font-medium text-sm sm:text-base'>Taxa Média de Conclusão</span>
+						<span className='text-indigo-900 dark:text-indigo-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.avgCompletionRate as number) || 0}%</span>
 					</div>
 				</>
 			)
@@ -676,69 +684,195 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 		)
 	}
 
-	const getProductivityColor = (productivity: number) => {
-		if (productivity >= 10) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-		if (productivity >= 5) return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-		if (productivity >= 2) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+	const getScoreColor = (score: number) => {
+		if (score >= 20) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+		if (score >= 10) return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+		if (score >= 5) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
 		return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
 	}
 
-	const getProductivityLabel = (productivity: number) => {
-		if (productivity >= 10) return 'Excelente'
-		if (productivity >= 5) return 'Bom'
-		if (productivity >= 2) return 'Regular'
+	const getScoreLabel = (score: number) => {
+		if (score >= 20) return 'Excelente'
+		if (score >= 10) return 'Bom'
+		if (score >= 5) return 'Regular'
 		return 'Baixo'
 	}
 
+	const getBadges = (user: Record<string, unknown>) => {
+		const badges = []
+		if (user.isProjectParticipant) badges.push({ text: 'Projetista', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' })
+		if (user.hasHighCompletionRate) badges.push({ text: 'Eficiente', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' })
+		if (user.isActiveReviewer) badges.push({ text: 'Mentor', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' })
+		return badges
+	}
+
 	return (
-		<div className='overflow-x-auto'>
-			<table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
-				<thead className='bg-gray-50 dark:bg-gray-700'>
-					<tr>
-						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Usuário</th>
-						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Performance</th>
-						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Problemas Criados</th>
-						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Soluções Fornecidas</th>
-						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Produtividade</th>
-						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Última Atividade</th>
-					</tr>
-				</thead>
-				<tbody className='bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700'>
-					{userPerformance.map((user, index) => (
-						<tr key={user.userId as string} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}>
-							<td className='px-6 py-4 whitespace-nowrap'>
-								<div className='flex items-center'>
-									<div className='flex-shrink-0 h-10 w-10'>
-										<div className='h-10 w-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center'>
-											<span className='text-sm font-medium text-white'>{(user.name as string)?.charAt(0)?.toUpperCase() || 'U'}</span>
-										</div>
-									</div>
-									<div className='ml-4 min-w-0 flex-1'>
-										<div className='text-sm font-medium text-gray-900 dark:text-gray-100 truncate'>{user.name as string}</div>
-										<div className='text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs' title={user.email as string}>
-											{user.email as string}
-										</div>
-									</div>
-								</div>
-							</td>
-							<td className='px-6 py-4 whitespace-nowrap'>
-								<span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getProductivityColor((user.productivity as number) || 0)}`}>{getProductivityLabel((user.productivity as number) || 0)}</span>
-							</td>
-							<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>{(user.problemsCreated as number) || 0}</td>
-							<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>{(user.solutionsProvided as number) || 0}</td>
-							<td className='px-6 py-4 whitespace-nowrap'>
-								<div className='flex items-center'>
-									<div className='w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2'>
-										<div className='bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300' style={{ width: `${Math.min(((user.productivity as number) || 0) * 10, 100)}%` }}></div>
-									</div>
-									<span className='text-sm font-semibold text-gray-900 dark:text-gray-100'>{(user.productivity as number) || 0}</span>
-								</div>
-							</td>
-							<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>{(user.lastActivity as number) ? new Date(user.lastActivity as number).toLocaleDateString('pt-BR') : 'Nunca'}</td>
+		<div className='space-y-6'>
+			{/* Seção de Regras de Pontuação */}
+			<div className='bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg p-6 border border-blue-200 dark:border-blue-800'>
+				<h3 className='text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4'>📊 Sistema de Pontuação Justo e Transparente</h3>
+				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+					<div className='space-y-2'>
+						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Problemas e Soluções</h4>
+						<div className='text-sm text-blue-700 dark:text-blue-300'>
+							<div>• Problema criado: <span className='font-semibold'>1 ponto</span></div>
+							<div>• Solução fornecida: <span className='font-semibold'>2 pontos</span></div>
+						</div>
+					</div>
+					<div className='space-y-2'>
+						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Tarefas de Projetos</h4>
+						<div className='text-sm text-blue-700 dark:text-blue-300'>
+							<div>• Tarefa concluída: <span className='font-semibold'>3 pontos</span></div>
+							<div>• Tarefa como reviewer: <span className='font-semibold'>2 pontos</span></div>
+							<div>• Tarefa como assignee: <span className='font-semibold'>1 ponto</span></div>
+						</div>
+					</div>
+					<div className='space-y-2'>
+						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Bônus e Participação</h4>
+						<div className='text-sm text-blue-700 dark:text-blue-300'>
+							<div>• Projeto participado: <span className='font-semibold'>1 ponto</span></div>
+							<div>• Taxa > 80%: <span className='font-semibold'>+5 pontos</span></div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Seção de Funcionalidades e Filtros */}
+			<div className='bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg p-6 border border-green-200 dark:border-green-800'>
+				<h3 className='text-lg font-semibold text-green-900 dark:text-green-100 mb-4'>🎯 Funcionalidades e Filtros Disponíveis</h3>
+				<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+					<div className='space-y-3'>
+						<h4 className='font-medium text-green-800 dark:text-green-200'>Filtros Específicos</h4>
+						<div className='text-sm text-green-700 dark:text-green-300 space-y-1'>
+							<div>• <span className='font-semibold'>Apenas Usuários de Projetos:</span> Focar em quem tem tarefas atribuídas</div>
+							<div>• <span className='font-semibold'>Por Papel:</span> Assignee vs Reviewer</div>
+							<div>• <span className='font-semibold'>Por Projeto:</span> Performance em projeto específico</div>
+							<div>• <span className='font-semibold'>Por Status de Tarefa:</span> Usuários com tarefas pendentes vs concluídas</div>
+						</div>
+					</div>
+					<div className='space-y-3'>
+						<h4 className='font-medium text-green-800 dark:text-green-200'>Destaques Visuais</h4>
+						<div className='text-sm text-green-700 dark:text-green-300 space-y-1'>
+							<div>• <span className='font-semibold'>Badge "Projetista Ativo":</span> Para usuários com tarefas em projetos</div>
+							<div>• <span className='font-semibold'>Badge "Alta Produtividade":</span> Para alta taxa de conclusão (>80%)</div>
+							<div>• <span className='font-semibold'>Badge "Mentor":</span> Para usuários que são reviewers</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Seção de Métricas Específicas */}
+			<div className='bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950 dark:to-violet-950 rounded-lg p-6 border border-purple-200 dark:border-purple-800'>
+				<h3 className='text-lg font-semibold text-purple-900 dark:text-purple-100 mb-4'>📈 Métricas Específicas para Projetos</h3>
+				<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+					<div className='space-y-3'>
+						<h4 className='font-medium text-purple-800 dark:text-purple-200'>Participação em Projetos</h4>
+						<div className='text-sm text-purple-700 dark:text-purple-300 space-y-1'>
+							<div>• <span className='font-semibold'>Projetos Ativos:</span> Quantos projetos o usuário participa</div>
+							<div>• <span className='font-semibold'>Tarefas Pendentes:</span> Tarefas não concluídas</div>
+							<div>• <span className='font-semibold'>Tarefas Concluídas:</span> Tarefas finalizadas</div>
+							<div>• <span className='font-semibold'>Taxa de Conclusão:</span> % de eficiência</div>
+							<div>• <span className='font-semibold'>Última Atividade:</span> Quando foi a última tarefa concluída</div>
+						</div>
+					</div>
+					<div className='space-y-3'>
+						<h4 className='font-medium text-purple-800 dark:text-purple-200'>Liderança em Projetos</h4>
+						<div className='text-sm text-purple-700 dark:text-purple-300 space-y-1'>
+							<div>• <span className='font-semibold'>Tarefas como Reviewer:</span> Quantas tarefas o usuário revisa</div>
+							<div>• <span className='font-semibold'>Projetos Múltiplos:</span> Participação em vários projetos</div>
+							<div>• <span className='font-semibold'>Tempo Médio de Resolução:</span> Eficiência nas tarefas</div>
+							<div>• <span className='font-semibold'>Badges de Reconhecimento:</span> Sistema de conquistas</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Tabela de Performance */}
+			<div className='overflow-x-auto'>
+				<table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
+					<thead className='bg-gray-50 dark:bg-gray-700'>
+						<tr>
+							<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider' title='Informações básicas do usuário (nome e email)'>Usuário</th>
+							<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider' title='Pontuação total baseada no sistema justo de pontuação (problemas + soluções + tarefas + projetos + bônus)'>Pontuação</th>
+							<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider' title='Problemas criados pelo usuário (1 ponto cada)'>Problemas</th>
+							<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider' title='Soluções fornecidas pelo usuário (2 pontos cada)'>Soluções</th>
+							<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider' title='Tarefas de projetos: Atribuídas (1pt), Concluídas (3pts), Como Reviewer (2pts)'>Tarefas</th>
+							<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider' title='Quantos projetos únicos o usuário participa (1 ponto por projeto)'>Projetos</th>
+							<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider' title='Taxa de conclusão de tarefas (bônus de +5 pontos se > 80%)'>Taxa</th>
+							<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider' title='Badges de reconhecimento: Projetista (tem tarefas), Eficiente (>80%), Mentor (reviewer)'>Badges</th>
 						</tr>
-					))}
-				</tbody>
-			</table>
+					</thead>
+					<tbody className='bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700'>
+						{userPerformance.map((user, index) => {
+							const badges = getBadges(user)
+							return (
+								<tr key={user.userId as string} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}>
+									<td className='px-6 py-4 whitespace-nowrap'>
+										<div className='flex items-center'>
+											<div className='flex-shrink-0 h-10 w-10'>
+												<div className='h-10 w-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center'>
+													<span className='text-sm font-medium text-white'>{(user.name as string)?.charAt(0)?.toUpperCase() || 'U'}</span>
+												</div>
+											</div>
+											<div className='ml-4 min-w-0 flex-1'>
+												<div className='text-sm font-medium text-gray-900 dark:text-gray-100 truncate'>{user.name as string}</div>
+												<div className='text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs' title={user.email as string}>
+													{user.email as string}
+												</div>
+											</div>
+										</div>
+									</td>
+									<td className='px-6 py-4 whitespace-nowrap' title={`Pontuação total: ${(user.totalScore as number) || 0} pontos | Base: ${(user.baseScore as number) || 0} | Bônus: ${(user.completionBonus as number) || 0} | Classificação: ${getScoreLabel((user.totalScore as number) || 0)}`}>
+										<div className='flex items-center space-x-2'>
+											<span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getScoreColor((user.totalScore as number) || 0)}`}>
+												{(user.totalScore as number) || 0} pts
+											</span>
+											<span className='text-xs text-gray-500 dark:text-gray-400'>
+												{getScoreLabel((user.totalScore as number) || 0)}
+											</span>
+										</div>
+									</td>
+									<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100' title={`Problemas criados: ${(user.problemsCreated as number) || 0} | Pontos: ${((user.problemsCreated as number) || 0) * 1} | Contribuição para identificação de issues do sistema`}>
+										{(user.problemsCreated as number) || 0}
+									</td>
+									<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100' title={`Soluções fornecidas: ${(user.solutionsProvided as number) || 0} | Pontos: ${((user.solutionsProvided as number) || 0) * 2} | Contribuição para resolução de problemas`}>
+										{(user.solutionsProvided as number) || 0}
+									</td>
+									<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100' title={`Participação em Projetos: Atribuídas: ${(user.tasksAssigned as number) || 0} (${((user.tasksAssigned as number) || 0) * 1}pts) | Concluídas: ${(user.tasksCompleted as number) || 0} (${((user.tasksCompleted as number) || 0) * 3}pts) | Como Reviewer: ${(user.tasksAsReviewer as number) || 0} (${((user.tasksAsReviewer as number) || 0) * 2}pts) | Total: ${((user.tasksAssigned as number) || 0) * 1 + ((user.tasksCompleted as number) || 0) * 3 + ((user.tasksAsReviewer as number) || 0) * 2} pontos`}>
+										<div className='space-y-1'>
+											<div>Atribuídas: {(user.tasksAssigned as number) || 0}</div>
+											<div>Concluídas: {(user.tasksCompleted as number) || 0}</div>
+											<div className='text-xs text-gray-500'>
+												Reviewer: {(user.tasksAsReviewer as number) || 0}
+											</div>
+										</div>
+									</td>
+									<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100' title={`Projetos Ativos: ${(user.projectsParticipated as number) || 0} projetos únicos | Pontos: ${(user.projectsParticipated as number) || 0} | Diversidade de participação em diferentes projetos`}>
+										{(user.projectsParticipated as number) || 0}
+									</td>
+									<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100' title={`Taxa de Conclusão: ${(user.completionRate as number) || 0}% | Bônus: ${(user.completionRate as number) >= 80 ? '+5 pontos' : '0 pontos'} | Eficiência na finalização de tarefas | ${(user.completionRate as number) >= 80 ? 'Badge "Eficiente" desbloqueado!' : 'Meta: 80% para bônus'}`}>
+										<div className='flex items-center'>
+											<div className='w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2'>
+												<div className='bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300' style={{ width: `${(user.completionRate as number) || 0}%` }}></div>
+											</div>
+											<span className='text-xs font-semibold'>{(user.completionRate as number) || 0}%</span>
+										</div>
+									</td>
+									<td className='px-6 py-4 whitespace-nowrap' title={`Badges de Reconhecimento: ${badges.length > 0 ? badges.map(b => b.text).join(', ') : 'Nenhum badge ainda'} | Projetista: tem tarefas em projetos | Eficiente: taxa > 80% | Mentor: atua como reviewer`}>
+										<div className='flex flex-wrap gap-1'>
+											{badges.map((badge, idx) => (
+												<span key={idx} className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${badge.color}`} title={`Badge "${badge.text}": ${badge.text === 'Projetista' ? 'Usuário participa de projetos com tarefas atribuídas' : badge.text === 'Eficiente' ? 'Taxa de conclusão superior a 80%' : 'Usuário atua como reviewer em tarefas'}`}>
+													{badge.text}
+												</span>
+											))}
+										</div>
+									</td>
+								</tr>
+							)
+						})}
+					</tbody>
+				</table>
+			</div>
 		</div>
 	)
 }

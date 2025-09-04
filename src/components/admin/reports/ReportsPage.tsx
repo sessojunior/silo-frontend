@@ -23,10 +23,10 @@ export function ReportsPage() {
 		{
 			id: 'performance',
 			title: '👥 Performance da Equipe',
-			description: 'Métricas de resolução, satisfação e ranking por usuário',
+			description: 'Sistema justo que reconhece problemas, soluções e participação em projetos',
 			icon: '🏆',
 			color: 'green',
-			metrics: ['Problemas Resolvidos', 'Tempo Médio', 'Satisfação'],
+			metrics: ['Sistema de Pontuação', 'Participação em Projetos', 'Taxa de Conclusão'],
 		},
 		{
 			id: 'projects',

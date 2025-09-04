@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth/token'
 import { db } from '@/lib/db'
-import { productProblem, productSolution, authUser, group } from '@/lib/db/schema'
-import { eq, and, gte, lte } from 'drizzle-orm'
+import { productProblem, productSolution, authUser, group, projectTask, projectTaskUser, project } from '@/lib/db/schema'
+import { eq, and, gte, lte, sql } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
 	try {
@@ -82,22 +82,93 @@ export async function GET(request: NextRequest) {
 
 		const groups = await groupsQuery
 
+		// Buscar dados de projetos para cada usuário
+		const projectData = await db
+			.select({
+				userId: projectTaskUser.userId,
+				taskId: projectTaskUser.taskId,
+				role: projectTaskUser.role,
+				taskStatus: projectTask.status,
+				taskCreatedAt: projectTask.createdAt,
+				taskUpdatedAt: projectTask.updatedAt,
+				projectId: projectTask.projectId,
+				projectName: project.name,
+			})
+			.from(projectTaskUser)
+			.innerJoin(projectTask, eq(projectTaskUser.taskId, projectTask.id))
+			.innerJoin(project, eq(projectTask.projectId, project.id))
+			.where(and(gte(projectTask.createdAt, start), lte(projectTask.createdAt, end)))
+
 		// Calcular métricas de performance por usuário
 		const userPerformance = users.map((user) => {
 			const userProblems = problems.filter((p) => p.userId === user.userId)
 			const userSolutions = solutions.filter((s) => s.userId === user.userId)
+			const userProjectData = projectData.filter((p) => p.userId === user.userId)
 
-			// Calcular produtividade baseada em problemas criados e soluções fornecidas
-			const productivity = userProblems.length + userSolutions.length
+			// Métricas de problemas e soluções
+			const problemsCreated = userProblems.length
+			const solutionsProvided = userSolutions.length
+
+			// Métricas de projetos
+			const tasksAssigned = userProjectData.length
+			const tasksCompleted = userProjectData.filter((t) => t.taskStatus === 'done').length
+			const tasksAsReviewer = userProjectData.filter((t) => t.role === 'reviewer').length
+			const tasksAsAssignee = userProjectData.filter((t) => t.role === 'assignee').length
+			const projectsParticipated = new Set(userProjectData.map((t) => t.projectId)).size
+			const completionRate = tasksAssigned > 0 ? (tasksCompleted / tasksAssigned) * 100 : 0
+
+			// Sistema de pontuação justo e transparente
+			const scoringRules = {
+				problemCreated: 1, // 1 ponto por problema criado
+				solutionProvided: 2, // 2 pontos por solução fornecida
+				taskCompleted: 3, // 3 pontos por tarefa concluída
+				taskAsReviewer: 2, // 2 pontos por tarefa como reviewer
+				taskAsAssignee: 1, // 1 ponto por tarefa como assignee
+				projectParticipated: 1, // 1 ponto por projeto participado
+				completionRateBonus: 5, // 5 pontos bônus se taxa > 80%
+			}
+
+			// Calcular pontuação total
+			const baseScore = problemsCreated * scoringRules.problemCreated + solutionsProvided * scoringRules.solutionProvided + tasksCompleted * scoringRules.taskCompleted + tasksAsReviewer * scoringRules.taskAsReviewer + tasksAsAssignee * scoringRules.taskAsAssignee + projectsParticipated * scoringRules.projectParticipated
+
+			const completionBonus = completionRate >= 80 ? scoringRules.completionRateBonus : 0
+			const totalScore = baseScore + completionBonus
+
+			// Calcular última atividade
+			const allActivities = [...userProblems.map((p) => new Date(p.createdAt).getTime()), ...userSolutions.map((s) => new Date(s.createdAt).getTime()), ...userProjectData.map((t) => new Date(t.taskUpdatedAt).getTime())]
+			const lastActivity = allActivities.length > 0 ? Math.max(...allActivities) : 0
 
 			return {
 				userId: user.userId,
 				name: user.name,
 				email: user.email,
-				problemsCreated: userProblems.length,
-				solutionsProvided: userSolutions.length,
-				productivity: productivity,
-				lastActivity: userProblems.length > 0 || userSolutions.length > 0 ? Math.max(...userProblems.map((p) => new Date(p.createdAt).getTime()), ...userSolutions.map((s) => new Date(s.createdAt).getTime())) : 0,
+
+				// Métricas básicas
+				problemsCreated,
+				solutionsProvided,
+
+				// Métricas de projetos
+				tasksAssigned,
+				tasksCompleted,
+				tasksAsReviewer,
+				tasksAsAssignee,
+				projectsParticipated,
+				completionRate: Math.round(completionRate * 10) / 10,
+
+				// Sistema de pontuação
+				scoringRules,
+				baseScore,
+				completionBonus,
+				totalScore,
+
+				// Classificação
+				productivity: totalScore,
+				lastActivity,
+
+				// Flags para destaque
+				isProjectParticipant: tasksAssigned > 0,
+				hasHighCompletionRate: completionRate >= 80,
+				isActiveReviewer: tasksAsReviewer > 0,
 			}
 		})
 
@@ -107,8 +178,13 @@ export async function GET(request: NextRequest) {
 		// Calcular métricas gerais
 		const totalProblems = problems.length
 		const totalSolutions = solutions.length
+		const totalTasks = projectData.length
+		const totalCompletedTasks = projectData.filter((t) => t.taskStatus === 'done').length
+		const projectParticipants = userPerformance.filter((u) => u.isProjectParticipant).length
 		const avgProblemsPerUser = users.length > 0 ? totalProblems / users.length : 0
 		const avgSolutionsPerUser = users.length > 0 ? totalSolutions / users.length : 0
+		const avgTasksPerUser = users.length > 0 ? totalTasks / users.length : 0
+		const avgCompletionRate = userPerformance.length > 0 ? userPerformance.reduce((sum, u) => sum + u.completionRate, 0) / userPerformance.length : 0
 
 		// Agrupar por grupo se especificado
 		let groupPerformance = null
@@ -144,8 +220,13 @@ export async function GET(request: NextRequest) {
 			summary: {
 				totalProblems,
 				totalSolutions,
+				totalTasks,
+				totalCompletedTasks,
+				projectParticipants,
 				avgProblemsPerUser: Math.round(avgProblemsPerUser * 10) / 10,
 				avgSolutionsPerUser: Math.round(avgSolutionsPerUser * 10) / 10,
+				avgTasksPerUser: Math.round(avgTasksPerUser * 10) / 10,
+				avgCompletionRate: Math.round(avgCompletionRate * 10) / 10,
 				activeUsers: users.length,
 				totalGroups: groups.length,
 			},
