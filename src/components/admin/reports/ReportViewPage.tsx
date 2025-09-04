@@ -783,7 +783,7 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 									<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100' title={`Projetos Ativos: ${(user.projectsParticipated as number) || 0} projetos únicos | Pontos: ${(user.projectsParticipated as number) || 0} | Diversidade de participação em diferentes projetos`}>
 										{(user.projectsParticipated as number) || 0}
 									</td>
-									<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100' title={`Taxa de Conclusão: ${(user.completionRate as number) || 0}% | Bônus: ${(user.completionRate as number) >= 80 ? '+5 pontos' : '0 pontos'} | Eficiência na finalização de tarefas | ${(user.completionRate as number) >= 80 ? 'Badge "Eficiente" desbloqueado!' : 'Meta: 80% para bônus'}`}>
+									<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100' title={`Taxa de Conclusão: ${(user.completionRate as number) || 0}% | Bônus: ${(user.completionRate as number) >= 80 ? '+5 pontos' : '0 pontos'} | Eficiência na finalização de tarefas | ${(user.completionRate as number) >= 80 ? 'Badge &quot;Eficiente&quot; desbloqueado!' : 'Meta: 80% para bônus'}`}>
 										<div className='flex items-center'>
 											<div className='w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2'>
 												<div className='bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300' style={{ width: `${(user.completionRate as number) || 0}%` }}></div>
@@ -794,7 +794,7 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 									<td className='px-6 py-4 whitespace-nowrap' title={`Badges de Reconhecimento: ${badges.length > 0 ? badges.map((b) => b.text).join(', ') : 'Nenhum badge ainda'} | Projetista: tem tarefas em projetos | Eficiente: taxa > 80% | Mentor: atua como reviewer`}>
 										<div className='flex flex-wrap gap-1'>
 											{badges.map((badge, idx) => (
-												<span key={idx} className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${badge.color}`} title={`Badge "${badge.text}": ${badge.text === 'Projetista' ? 'Usuário participa de projetos com tarefas atribuídas' : badge.text === 'Eficiente' ? 'Taxa de conclusão superior a 80%' : 'Usuário atua como reviewer em tarefas'}`}>
+												<span key={idx} className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${badge.color}`} title={`Badge &quot;${badge.text}&quot;: ${badge.text === 'Projetista' ? 'Usuário participa de projetos com tarefas atribuídas' : badge.text === 'Eficiente' ? 'Taxa de conclusão superior a 80%' : 'Usuário atua como reviewer em tarefas'}`}>
 													{badge.text}
 												</span>
 											))}
@@ -875,13 +875,13 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 						<h4 className='font-medium text-green-800 dark:text-green-200'>Destaques Visuais</h4>
 						<div className='text-sm text-green-700 dark:text-green-300 space-y-1'>
 							<div>
-								• <span className='font-semibold'>Badge "Projetista Ativo":</span> Para usuários com tarefas em projetos
+								• <span className='font-semibold'>Badge &quot;Projetista Ativo&quot;:</span> Para usuários com tarefas em projetos
 							</div>
 							<div>
-								• <span className='font-semibold'>Badge "Alta Produtividade":</span> Para alta taxa de conclusão (&gt;80%)
+								• <span className='font-semibold'>Badge &quot;Alta Produtividade&quot;:</span> Para alta taxa de conclusão (&gt;80%)
 							</div>
 							<div>
-								• <span className='font-semibold'>Badge "Mentor":</span> Para usuários que são reviewers
+								• <span className='font-semibold'>Badge &quot;Mentor&quot;:</span> Para usuários que são reviewers
 							</div>
 						</div>
 					</div>

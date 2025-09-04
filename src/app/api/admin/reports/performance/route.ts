@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth/token'
 import { db } from '@/lib/db'
 import { productProblem, productSolution, authUser, group, projectTask, projectTaskUser, project } from '@/lib/db/schema'
-import { eq, and, gte, lte, sql } from 'drizzle-orm'
+import { eq, and, gte, lte } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
 	try {
