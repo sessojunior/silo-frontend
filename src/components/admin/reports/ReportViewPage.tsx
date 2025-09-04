@@ -799,7 +799,7 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 
 			{/* Seção de Regras de Pontuação */}
 			<div className='bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg p-6 border border-blue-200 dark:border-blue-800'>
-				<h3 className='text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4'>📊 Sistema de Pontuação Justo e Transparente</h3>
+				<h3 className='text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4'>📊 Sistema de Pontuação</h3>
 				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
 					<div className='space-y-2'>
 						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Problemas e Soluções</h4>
