@@ -221,11 +221,13 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 				{/* Gráficos Adicionais */}
 				<div className='mt-6 sm:mt-8 grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8'>
 					<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
-						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>Tendências</h3>
+						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>Tendências de Performance</h3>
+						<p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>Evolução da pontuação, problemas, soluções e tarefas concluídas por usuário</p>
 						<ReportChart type='line' data={report.data} reportType={report.type} />
 					</div>
 					<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
-						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>Distribuição</h3>
+						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>Distribuição de Atividades</h3>
+						<p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>Proporção entre tarefas atribuídas e concluídas na equipe</p>
 						<ReportChart type='donut' data={report.data} reportType={report.type} />
 					</div>
 				</div>

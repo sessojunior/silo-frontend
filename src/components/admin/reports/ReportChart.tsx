@@ -111,9 +111,13 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 				break
 			case 'performance':
 				if (data.userPerformance && Array.isArray(data.userPerformance)) {
-					// Para gráficos de barra e linha, usar múltiplas séries
+					// Para gráficos de barra e linha, usar múltiplas séries incluindo pontuação
 					if (type !== 'donut') {
 						return [
+							{
+								name: 'Pontuação Total',
+								data: data.userPerformance.map((user: Record<string, unknown>) => parseInt(user.totalScore as string) || 0),
+							},
 							{
 								name: 'Problemas Criados',
 								data: data.userPerformance.map((user: Record<string, unknown>) => parseInt(user.problemsCreated as string) || 0),
@@ -122,18 +126,22 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 								name: 'Soluções Fornecidas',
 								data: data.userPerformance.map((user: Record<string, unknown>) => parseInt(user.solutionsProvided as string) || 0),
 							},
+							{
+								name: 'Tarefas Concluídas',
+								data: data.userPerformance.map((user: Record<string, unknown>) => parseInt(user.tasksCompleted as string) || 0),
+							},
 						]
 					} else {
-						// Para gráfico donut, calcular porcentagens baseadas nos totais
-						const totalProblems = data.userPerformance.reduce((sum: number, user: Record<string, unknown>) => sum + (parseInt(user.problemsCreated as string) || 0), 0)
-						const totalSolutions = data.userPerformance.reduce((sum: number, user: Record<string, unknown>) => sum + (parseInt(user.solutionsProvided as string) || 0), 0)
-						const total = totalProblems + totalSolutions
+						// Para gráfico donut, calcular porcentagens baseadas nas atividades
+						const totalTasksAssigned = data.userPerformance.reduce((sum: number, user: Record<string, unknown>) => sum + (parseInt(user.tasksAssigned as string) || 0), 0)
+						const totalTasksCompleted = data.userPerformance.reduce((sum: number, user: Record<string, unknown>) => sum + (parseInt(user.tasksCompleted as string) || 0), 0)
+						const total = totalTasksAssigned + totalTasksCompleted
 
-						// Calcular porcentagens para problemas e soluções
-						const problemsPercentage = total > 0 ? Math.round((totalProblems / total) * 1000) / 10 : 0
-						const solutionsPercentage = total > 0 ? Math.round((totalSolutions / total) * 1000) / 10 : 0
+						// Calcular porcentagens para atividades atribuídas e concluídas
+						const assignedPercentage = total > 0 ? Math.round((totalTasksAssigned / total) * 1000) / 10 : 0
+						const completedPercentage = total > 0 ? Math.round((totalTasksCompleted / total) * 1000) / 10 : 0
 
-						return [problemsPercentage, solutionsPercentage]
+						return [assignedPercentage, completedPercentage]
 					}
 				}
 				break
@@ -189,9 +197,9 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 				break
 			case 'performance':
 				if (data.userPerformance && Array.isArray(data.userPerformance)) {
-					// Para gráficos donut, usar labels específicos para problemas e soluções
+					// Para gráficos donut, usar labels específicos para atividades
 					if (type === 'donut') {
-						return ['Problemas Criados', 'Soluções Fornecidas']
+						return ['Tarefas Atribuídas', 'Tarefas Concluídas']
 					} else {
 						return data.userPerformance.map((user: Record<string, unknown>) => (user.name as string) || 'Usuário')
 					}
@@ -360,7 +368,7 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 									: ['#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'] // Cores padrão para problemas
 								: reportType === 'projects'
 									? ['#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444', '#10b981', '#f97316'] // Cores variadas para projetos
-									: ['#ef4444', '#10b981'], // Vermelho para problemas, verde para soluções (performance)
+									: ['#3b82f6', '#10b981'], // Azul para tarefas atribuídas, verde para concluídas (performance)
 					legend: {
 						...baseOptions.legend,
 					},
