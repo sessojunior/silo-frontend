@@ -708,85 +708,6 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 
 	return (
 		<div className='space-y-6'>
-			{/* Seção de Regras de Pontuação */}
-			<div className='bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg p-6 border border-blue-200 dark:border-blue-800'>
-				<h3 className='text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4'>📊 Sistema de Pontuação Justo e Transparente</h3>
-				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-					<div className='space-y-2'>
-						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Problemas e Soluções</h4>
-						<div className='text-sm text-blue-700 dark:text-blue-300'>
-							<div>• Problema criado: <span className='font-semibold'>1 ponto</span></div>
-							<div>• Solução fornecida: <span className='font-semibold'>2 pontos</span></div>
-						</div>
-					</div>
-					<div className='space-y-2'>
-						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Tarefas de Projetos</h4>
-						<div className='text-sm text-blue-700 dark:text-blue-300'>
-							<div>• Tarefa concluída: <span className='font-semibold'>3 pontos</span></div>
-							<div>• Tarefa como reviewer: <span className='font-semibold'>2 pontos</span></div>
-							<div>• Tarefa como assignee: <span className='font-semibold'>1 ponto</span></div>
-						</div>
-					</div>
-					<div className='space-y-2'>
-						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Bônus e Participação</h4>
-						<div className='text-sm text-blue-700 dark:text-blue-300'>
-							<div>• Projeto participado: <span className='font-semibold'>1 ponto</span></div>
-							<div>• Taxa > 80%: <span className='font-semibold'>+5 pontos</span></div>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			{/* Seção de Funcionalidades e Filtros */}
-			<div className='bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg p-6 border border-green-200 dark:border-green-800'>
-				<h3 className='text-lg font-semibold text-green-900 dark:text-green-100 mb-4'>🎯 Funcionalidades e Filtros Disponíveis</h3>
-				<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-					<div className='space-y-3'>
-						<h4 className='font-medium text-green-800 dark:text-green-200'>Filtros Específicos</h4>
-						<div className='text-sm text-green-700 dark:text-green-300 space-y-1'>
-							<div>• <span className='font-semibold'>Apenas Usuários de Projetos:</span> Focar em quem tem tarefas atribuídas</div>
-							<div>• <span className='font-semibold'>Por Papel:</span> Assignee vs Reviewer</div>
-							<div>• <span className='font-semibold'>Por Projeto:</span> Performance em projeto específico</div>
-							<div>• <span className='font-semibold'>Por Status de Tarefa:</span> Usuários com tarefas pendentes vs concluídas</div>
-						</div>
-					</div>
-					<div className='space-y-3'>
-						<h4 className='font-medium text-green-800 dark:text-green-200'>Destaques Visuais</h4>
-						<div className='text-sm text-green-700 dark:text-green-300 space-y-1'>
-							<div>• <span className='font-semibold'>Badge "Projetista Ativo":</span> Para usuários com tarefas em projetos</div>
-							<div>• <span className='font-semibold'>Badge "Alta Produtividade":</span> Para alta taxa de conclusão (>80%)</div>
-							<div>• <span className='font-semibold'>Badge "Mentor":</span> Para usuários que são reviewers</div>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			{/* Seção de Métricas Específicas */}
-			<div className='bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950 dark:to-violet-950 rounded-lg p-6 border border-purple-200 dark:border-purple-800'>
-				<h3 className='text-lg font-semibold text-purple-900 dark:text-purple-100 mb-4'>📈 Métricas Específicas para Projetos</h3>
-				<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-					<div className='space-y-3'>
-						<h4 className='font-medium text-purple-800 dark:text-purple-200'>Participação em Projetos</h4>
-						<div className='text-sm text-purple-700 dark:text-purple-300 space-y-1'>
-							<div>• <span className='font-semibold'>Projetos Ativos:</span> Quantos projetos o usuário participa</div>
-							<div>• <span className='font-semibold'>Tarefas Pendentes:</span> Tarefas não concluídas</div>
-							<div>• <span className='font-semibold'>Tarefas Concluídas:</span> Tarefas finalizadas</div>
-							<div>• <span className='font-semibold'>Taxa de Conclusão:</span> % de eficiência</div>
-							<div>• <span className='font-semibold'>Última Atividade:</span> Quando foi a última tarefa concluída</div>
-						</div>
-					</div>
-					<div className='space-y-3'>
-						<h4 className='font-medium text-purple-800 dark:text-purple-200'>Liderança em Projetos</h4>
-						<div className='text-sm text-purple-700 dark:text-purple-300 space-y-1'>
-							<div>• <span className='font-semibold'>Tarefas como Reviewer:</span> Quantas tarefas o usuário revisa</div>
-							<div>• <span className='font-semibold'>Projetos Múltiplos:</span> Participação em vários projetos</div>
-							<div>• <span className='font-semibold'>Tempo Médio de Resolução:</span> Eficiência nas tarefas</div>
-							<div>• <span className='font-semibold'>Badges de Reconhecimento:</span> Sistema de conquistas</div>
-						</div>
-					</div>
-				</div>
-			</div>
-
 			{/* Tabela de Performance */}
 			<div className='overflow-x-auto'>
 				<table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
@@ -872,6 +793,85 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 						})}
 					</tbody>
 				</table>
+			</div>
+
+			{/* Seção de Regras de Pontuação */}
+			<div className='bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg p-6 border border-blue-200 dark:border-blue-800'>
+				<h3 className='text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4'>📊 Sistema de Pontuação Justo e Transparente</h3>
+				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+					<div className='space-y-2'>
+						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Problemas e Soluções</h4>
+						<div className='text-sm text-blue-700 dark:text-blue-300'>
+							<div>• Problema criado: <span className='font-semibold'>1 ponto</span></div>
+							<div>• Solução fornecida: <span className='font-semibold'>2 pontos</span></div>
+						</div>
+					</div>
+					<div className='space-y-2'>
+						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Tarefas de Projetos</h4>
+						<div className='text-sm text-blue-700 dark:text-blue-300'>
+							<div>• Tarefa concluída: <span className='font-semibold'>3 pontos</span></div>
+							<div>• Tarefa como reviewer: <span className='font-semibold'>2 pontos</span></div>
+							<div>• Tarefa como assignee: <span className='font-semibold'>1 ponto</span></div>
+						</div>
+					</div>
+					<div className='space-y-2'>
+						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Bônus e Participação</h4>
+						<div className='text-sm text-blue-700 dark:text-blue-300'>
+							<div>• Projeto participado: <span className='font-semibold'>1 ponto</span></div>
+							<div>• Taxa > 80%: <span className='font-semibold'>+5 pontos</span></div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Seção de Funcionalidades e Filtros */}
+			<div className='bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg p-6 border border-green-200 dark:border-green-800'>
+				<h3 className='text-lg font-semibold text-green-900 dark:text-green-100 mb-4'>🎯 Funcionalidades e Filtros Disponíveis</h3>
+				<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+					<div className='space-y-3'>
+						<h4 className='font-medium text-green-800 dark:text-green-200'>Filtros Específicos</h4>
+						<div className='text-sm text-green-700 dark:text-green-300 space-y-1'>
+							<div>• <span className='font-semibold'>Apenas Usuários de Projetos:</span> Focar em quem tem tarefas atribuídas</div>
+							<div>• <span className='font-semibold'>Por Papel:</span> Assignee vs Reviewer</div>
+							<div>• <span className='font-semibold'>Por Projeto:</span> Performance em projeto específico</div>
+							<div>• <span className='font-semibold'>Por Status de Tarefa:</span> Usuários com tarefas pendentes vs concluídas</div>
+						</div>
+					</div>
+					<div className='space-y-3'>
+						<h4 className='font-medium text-green-800 dark:text-green-200'>Destaques Visuais</h4>
+						<div className='text-sm text-green-700 dark:text-green-300 space-y-1'>
+							<div>• <span className='font-semibold'>Badge "Projetista Ativo":</span> Para usuários com tarefas em projetos</div>
+							<div>• <span className='font-semibold'>Badge "Alta Produtividade":</span> Para alta taxa de conclusão (>80%)</div>
+							<div>• <span className='font-semibold'>Badge "Mentor":</span> Para usuários que são reviewers</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Seção de Métricas Específicas */}
+			<div className='bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950 dark:to-violet-950 rounded-lg p-6 border border-purple-200 dark:border-purple-800'>
+				<h3 className='text-lg font-semibold text-purple-900 dark:text-purple-100 mb-4'>📈 Métricas Específicas para Projetos</h3>
+				<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+					<div className='space-y-3'>
+						<h4 className='font-medium text-purple-800 dark:text-purple-200'>Participação em Projetos</h4>
+						<div className='text-sm text-purple-700 dark:text-purple-300 space-y-1'>
+							<div>• <span className='font-semibold'>Projetos Ativos:</span> Quantos projetos o usuário participa</div>
+							<div>• <span className='font-semibold'>Tarefas Pendentes:</span> Tarefas não concluídas</div>
+							<div>• <span className='font-semibold'>Tarefas Concluídas:</span> Tarefas finalizadas</div>
+							<div>• <span className='font-semibold'>Taxa de Conclusão:</span> % de eficiência</div>
+							<div>• <span className='font-semibold'>Última Atividade:</span> Quando foi a última tarefa concluída</div>
+						</div>
+					</div>
+					<div className='space-y-3'>
+						<h4 className='font-medium text-purple-800 dark:text-purple-200'>Liderança em Projetos</h4>
+						<div className='text-sm text-purple-700 dark:text-purple-300 space-y-1'>
+							<div>• <span className='font-semibold'>Tarefas como Reviewer:</span> Quantas tarefas o usuário revisa</div>
+							<div>• <span className='font-semibold'>Projetos Múltiplos:</span> Participação em vários projetos</div>
+							<div>• <span className='font-semibold'>Tempo Médio de Resolução:</span> Eficiência nas tarefas</div>
+							<div>• <span className='font-semibold'>Badges de Reconhecimento:</span> Sistema de conquistas</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	)
