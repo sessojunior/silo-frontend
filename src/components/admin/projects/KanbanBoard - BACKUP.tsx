@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, pointerWithin, useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { formatDateBR } from '@/lib/dateUtils'
 
 // Types
 interface Task {
@@ -130,7 +131,7 @@ const categoryColors: Record<string, string> = {
 // Componente base reutilizável para conteúdo do card
 function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Task; showEditButton?: boolean; onEditTask?: (task: Task) => void }) {
 	const formatDate = (dateString: string): string => {
-		return new Date(dateString).toLocaleDateString('pt-BR')
+		return formatDateBR(dateString)
 	}
 
 	return (

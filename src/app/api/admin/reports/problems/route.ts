@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { productProblem, productProblemCategory, product } from '@/lib/db/schema'
 import { eq, and, gte, lte } from 'drizzle-orm'
+import { getToday, getDaysAgo, formatDate } from '@/lib/dateUtils'
 
 export async function GET(request: Request) {
 	try {
@@ -14,26 +15,22 @@ export async function GET(request: Request) {
 		const productId = searchParams.get('productId')
 		const problemCategory = searchParams.get('problemCategory')
 
-		// Calcular período baseado no dateRange
-		const end = endDate ? new Date(endDate) : new Date()
+		// Calcular período baseado no dateRange - timezone São Paulo
+		const end = endDate ? formatDate(endDate) : getToday()
 		const start = startDate
-			? new Date(startDate)
+			? formatDate(startDate)
 			: (() => {
-					const date = new Date()
 					switch (dateRange) {
 						case '7d':
-							date.setDate(date.getDate() - 7)
-							break
+							return getDaysAgo(7)
 						case '90d':
-							date.setDate(date.getDate() - 90)
-							break
+							return getDaysAgo(90)
 						default: // 30d
-							date.setDate(date.getDate() - 30)
+							return getDaysAgo(30)
 					}
-					return date
 				})()
 
-		console.log('📅 Período de análise:', { start: start.toISOString(), end: end.toISOString() })
+		console.log('📅 Período de análise:', { start, end })
 
 		// Buscar problemas no período
 		const problemsQuery = db
@@ -48,7 +45,7 @@ export async function GET(request: Request) {
 				problemCategoryId: productProblem.problemCategoryId,
 			})
 			.from(productProblem)
-			.where(and(gte(productProblem.createdAt, start), lte(productProblem.createdAt, end), productId ? eq(productProblem.productId, productId) : undefined, problemCategory ? eq(productProblem.problemCategoryId, problemCategory) : undefined))
+			.where(and(gte(productProblem.createdAt, new Date(start + 'T00:00:00')), lte(productProblem.createdAt, new Date(end + 'T23:59:59')), productId ? eq(productProblem.productId, productId) : undefined, problemCategory ? eq(productProblem.problemCategoryId, problemCategory) : undefined))
 
 		const problems = await problemsQuery
 		console.log('✅ Problemas encontrados:', problems.length)

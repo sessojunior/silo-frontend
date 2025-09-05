@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from '@/lib/toast'
 import { useParams, useRouter } from 'next/navigation'
+import { formatDateBR } from '@/lib/dateUtils'
 
 import ActivityStatsCards from '@/components/admin/projects/ActivityStatsCards'
 import ActivityMiniKanban from '@/components/admin/projects/ActivityMiniKanban'
@@ -218,7 +219,7 @@ export default function ProjectDetailsPage() {
 	// Formatar data
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return 'Não definida'
-		return new Date(dateString).toLocaleDateString('pt-BR')
+		return formatDateBR(dateString)
 	}
 
 	function handleCreateActivity() {

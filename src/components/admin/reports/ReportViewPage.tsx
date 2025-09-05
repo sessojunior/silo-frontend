@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { ReportChart } from './ReportChart'
 import { ReportFilters } from './ReportFilters'
+import { formatDate, formatDateBR } from '@/lib/dateUtils'
 
 interface ReportViewPageProps {
 	reportId: string
@@ -56,11 +57,11 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 						throw new Error('Tipo de relatório não reconhecido')
 				}
 
-				// Construir query string com filtros
+				// Construir query string com filtros - timezone São Paulo
 				const queryParams = new URLSearchParams()
 				if (filters.dateRange !== '30d') queryParams.append('dateRange', filters.dateRange)
-				if (filters.startDate) queryParams.append('startDate', filters.startDate.toISOString())
-				if (filters.endDate) queryParams.append('endDate', filters.endDate.toISOString())
+				if (filters.startDate) queryParams.append('startDate', formatDate(filters.startDate))
+				if (filters.endDate) queryParams.append('endDate', formatDate(filters.endDate))
 
 				const response = await fetch(`${apiUrl}?${queryParams.toString()}`)
 				console.log('🔵 Status da resposta:', response.status)
@@ -575,7 +576,7 @@ function renderAvailabilityTable(data: Record<string, unknown>) {
 							</td>
 							<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>{(product.totalActivities as number) || 0}</td>
 							<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>{(product.failedActivities as number) || 0}</td>
-							<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>{(product.lastActivityDate as string) ? new Date(product.lastActivityDate as string).toLocaleDateString('pt-BR') : 'Nunca'}</td>
+							<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>{(product.lastActivityDate as string) ? formatDateBR(product.lastActivityDate as string) : 'Nunca'}</td>
 						</tr>
 					))}
 				</tbody>
@@ -665,8 +666,8 @@ function renderProblemsTable(data: Record<string, unknown>) {
 								<span className='text-sm text-gray-500 dark:text-gray-400'>N/A</span>
 							</td>
 							<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>{(problem.solutionsCount as number) || 0}</td>
-							<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>{(problem.createdAt as string) ? new Date(problem.createdAt as string).toLocaleDateString('pt-BR') : 'N/A'}</td>
-							<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>{(problem.updatedAt as string) ? new Date(problem.updatedAt as string).toLocaleDateString('pt-BR') : 'N/A'}</td>
+							<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>{(problem.createdAt as string) ? formatDateBR(problem.createdAt as string) : 'N/A'}</td>
+							<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400'>{(problem.updatedAt as string) ? formatDateBR(problem.updatedAt as string) : 'N/A'}</td>
 						</tr>
 					))}
 				</tbody>

@@ -2,6 +2,7 @@
 
 import { Project } from '@/types/projects'
 import Button from '@/components/ui/Button'
+import { formatDateBR } from '@/lib/dateUtils'
 
 interface ProjectMainRowProps {
 	project: Project
@@ -54,7 +55,7 @@ export default function ProjectMainRow({ project, isExpanded, onToggleExpansion,
 	// Função para formatar data
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return 'Não definida'
-		return new Date(dateString).toLocaleDateString('pt-BR')
+		return formatDateBR(dateString)
 	}
 
 	return (

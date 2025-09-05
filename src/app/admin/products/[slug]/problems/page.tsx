@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useUser } from '@/context/UserContext'
 import { toast } from '@/lib/toast'
+import { formatDateBR } from '@/lib/dateUtils'
 import { ProductProblem, ProductProblemImage } from '@/lib/db/schema'
 import Lightbox from '@/components/ui/Lightbox'
 import ProblemFormOffcanvas from '@/components/admin/products/ProblemFormOffcanvas'
@@ -650,9 +651,5 @@ export default function ProblemsPage() {
 }
 
 function formatDate(date: Date) {
-	return new Date(date).toLocaleDateString('pt-BR', {
-		day: 'numeric',
-		month: 'short',
-		year: 'numeric',
-	})
+	return formatDateBR(new Date(date).toISOString().split('T')[0])
 }

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { productProblem, productSolution } from '@/lib/db/schema'
 import { gte } from 'drizzle-orm'
+import { formatDateBR } from '@/lib/dateUtils'
 
 // Agrupa problemas e soluções por dia nos últimos 28 dias (timeline completa)
 export async function GET() {
@@ -25,7 +26,7 @@ export async function GET() {
 			.where(gte(productSolution.updatedAt, new Date(today.getTime() - (TOTAL_DAYS - 1) * 86_400_000)))
 
 		// Função para formatar data DD/MM
-		const fmt = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+		const fmt = (d: Date) => formatDateBR(d.toISOString().split('T')[0]).replace(/\d{4}/, '').trim()
 
 		// Gerar timeline completa dos últimos 28 dias (mais antigo → mais recente)
 		const categories: string[] = []

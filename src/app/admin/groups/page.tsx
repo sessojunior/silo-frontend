@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { toast } from '@/lib/toast'
+import { formatDateBR } from '@/lib/dateUtils'
 
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -272,7 +273,7 @@ export default function GroupsPage() {
 														<div className='text-sm text-zinc-600 dark:text-zinc-400'>{group.maxUsers ? `${group.maxUsers} usuários` : 'Ilimitado'}</div>
 													</td>
 													<td className='px-4 py-4 cursor-pointer' onClick={() => toggleGroupExpansion(group.id)}>
-														<div className='text-xs text-zinc-500 dark:text-zinc-400'>{new Date(group.createdAt).toLocaleDateString('pt-BR')}</div>
+														<div className='text-xs text-zinc-500 dark:text-zinc-400'>{formatDateBR(new Date(group.createdAt).toISOString().split('T')[0])}</div>
 													</td>
 													<td className='px-4 py-4'>
 														<div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>

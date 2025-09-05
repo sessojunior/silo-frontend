@@ -89,7 +89,7 @@ export default function ProductForm({ initialData, onSubmit, onCancel, loading }
 						</div>
 						<div>
 							<p className='text-sm font-medium text-zinc-900 dark:text-zinc-100'>Visibilidade no Sistema</p>
-							<p className='text-xs text-zinc-500 dark:text-zinc-400'>{available ? 'Produto visível e ativo no dashboard' : 'Produto oculto e inativo no sistema'}</p>
+							<p className='text-xs text-zinc-500 dark:text-zinc-400'>{available ? 'Produto visível e ativo no dashboard' : 'Produto oculto na visão geral do sistema'}</p>
 						</div>
 					</div>
 					<Switch id='product-available' name='available' checked={available} onChange={setAvailable} disabled={loading} size='md' />

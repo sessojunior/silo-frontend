@@ -1,4 +1,5 @@
 import Popover from '@/components/ui/Popover'
+import { formatDateBR } from '@/lib/dateUtils'
 
 interface TurnCell {
 	id?: string
@@ -30,13 +31,6 @@ const COLOR_MAP: Record<string, string> = {
 }
 
 export default function ProductTurn({ productName, days, onTurnClick }: Props) {
-	console.log('🔍 Debug ProductTurn:', {
-		productName,
-		daysLength: days.length,
-		daysSample: days.slice(0, 2),
-		firstDayTurns: days[0]?.turns?.map((t) => ({ id: t.id, time: t.time, status: t.status })),
-	})
-
 	return (
 		<div className='relative h-8'>
 			<div className='flex gap-1'>
@@ -83,7 +77,7 @@ export default function ProductTurn({ productName, days, onTurnClick }: Props) {
 
 									{/* Rodapé */}
 									<div className='flex items-center justify-between rounded-b-xl border-t border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400'>
-										<span>{new Date(day.date).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</span>
+										<span>{formatDateBR(day.date)}</span>
 										{totalIncidents > 0 && (
 											<span className='flex items-center gap-1'>
 												<span className='icon-[lucide--flag] size-4 shrink-0 text-zinc-400'></span>

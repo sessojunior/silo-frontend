@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 
 import ProductTimeline from '@/components/admin/dashboard/ProductTimeline'
 import ProductTurn from '@/components/admin/dashboard/ProductTurn'
@@ -28,115 +28,88 @@ interface ProductProps {
 	last28DaysStatus: ProductDateStatus[] // para timeline
 	calendarStatus: ProductDateStatus[] // para calendário 3 meses
 	onSaved?: () => void
+	onAddSaveLog?: (step: string, details: unknown, success?: boolean, error?: string) => void
 }
 
-export default function Product({ id, name, turns, progress, priority, date, lastDaysStatus, last28DaysStatus, calendarStatus, onSaved }: ProductProps) {
+export default function Product({ id, name, turns, progress, priority, date, lastDaysStatus, last28DaysStatus, calendarStatus, onSaved, onAddSaveLog }: ProductProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [activityCtx, setActivityCtx] = useState<{ id?: string; date: string; turn: number; status: string; description?: string | null; category_id?: string | null } | null>(null)
 	const [activityPanelOpen, setActivityPanelOpen] = useState(false)
 
-	// Debug: verificar dados recebidos
-	console.log('🔍 Debug Product:', {
-		id,
-		name,
-		lastDaysStatusLength: lastDaysStatus.length,
-		lastDaysStatusSample: lastDaysStatus.slice(0, 3),
-		last28DaysStatusLength: last28DaysStatus.length,
-		last28DaysStatusSample: last28DaysStatus.slice(0, 3),
-		last28DaysStatusDates: last28DaysStatus.map((d) => d.date),
-	})
-
 	// Filtra status conforme turnos configurados do produto
-	const filteredLastDays = lastDaysStatus.filter((d) => turns.includes(String(d.turn)))
+	const filteredLastDays = useMemo(() => {
+		const result = lastDaysStatus.filter((d) => turns.includes(String(d.turn)))
+		return result
+	}, [lastDaysStatus, turns])
 	// A timeline de 28 dias é agregada por dia; não deve ser filtrada por turno
-	const filteredCalendar = calendarStatus.filter((d) => turns.includes(String(d.turn)))
-
-	console.log('🔍 Debug Product: Dados filtrados:', {
-		filteredLastDaysLength: filteredLastDays.length,
-		filteredLastDaysSample: filteredLastDays.slice(0, 2),
-		filteredCalendarLength: filteredCalendar.length,
-		filteredCalendarSample: filteredCalendar.slice(0, 2),
-		lastDaysStatusSample: lastDaysStatus.slice(0, 2),
-		turns: turns,
-	})
+	const filteredCalendar = useMemo(() => calendarStatus.filter((d) => turns.includes(String(d.turn))), [calendarStatus, turns])
 
 	// Usar status de 28 dias para a timeline (não filtrados por turnos)
 	const timelineStatuses = last28DaysStatus.map((d) => d.status)
 
 	// Build days array for ProductTurn - timeline completa dos últimos turnos
-	const daysMap: Record<string, { date: string; turns: { id?: string; time: number; status: string; description?: string | null; category_id?: string | null }[] }> = {}
+	const days = useMemo(() => {
+		const daysMap: Record<string, { date: string; turns: { id?: string; time: number; status: string; description?: string | null; category_id?: string | null }[] }> = {}
 
-	// Primeiro, criar entradas para todos os dias dos últimos turnos
-	const lastDaysDates = [...new Set(lastDaysStatus.map((d) => d.date))]
-	lastDaysDates.forEach((date) => {
-		daysMap[date] = { date, turns: [] }
-	})
+		// Primeiro, criar entradas para todos os dias dos últimos turnos
+		const lastDaysDates = [...new Set(lastDaysStatus.map((d) => d.date))]
+		lastDaysDates.forEach((date) => {
+			daysMap[date] = { date, turns: [] }
+		})
 
-	// Para cada dia dos últimos turnos, garantir que todos os turnos configurados apareçam
-	filteredLastDays.forEach((d) => {
-		console.log('🔍 Debug Product: Processando turno:', { id: d.id, date: d.date, turn: d.turn, status: d.status })
-		const existingTurn = daysMap[d.date].turns.find((t) => t.time === d.turn)
-		if (!existingTurn) {
-			daysMap[d.date].turns.push({ id: d.id, time: d.turn, status: d.status, description: d.description, category_id: d.category_id })
-			console.log('🔍 Debug Product: Adicionado novo turno:', { id: d.id, time: d.turn, status: d.status })
-		} else {
-			// Se já existe, escolher status mais severo (orange/red substitui green) – simples prioridade
-			const severityOrder: Record<string, number> = { completed: 0, waiting: 1, in_progress: 2, pending: 3, under_support: 3, suspended: 3, not_run: 4, with_problems: 4, run_again: 4, off: 5 }
-			if ((severityOrder[d.status] ?? 0) > (severityOrder[existingTurn.status] ?? 0)) {
-				existingTurn.status = d.status
-				existingTurn.description = d.description
-				existingTurn.category_id = d.category_id
-				existingTurn.id = d.id
-				console.log('🔍 Debug Product: Atualizado turno existente:', { id: d.id, time: d.turn, status: d.status })
-			}
-		}
-	})
-
-	// Garantir que todos os turnos configurados apareçam para cada dia
-	Object.values(daysMap).forEach((day) => {
-		turns.forEach((turnStr) => {
-			const turnNum = parseInt(turnStr)
-			const existingTurn = day.turns.find((t) => t.time === turnNum)
+		// Para cada dia dos últimos turnos, garantir que todos os turnos configurados apareçam
+		filteredLastDays.forEach((d) => {
+			const existingTurn = daysMap[d.date].turns.find((t) => t.time === d.turn)
 			if (!existingTurn) {
-				// Verificar se existe um registro no banco para este turno
-				const dbRecord = lastDaysStatus.find((d) => d.date === day.date && d.turn === turnNum)
-				if (dbRecord) {
-					// Se existe no banco, usar os dados reais
-					day.turns.push({
-						id: dbRecord.id,
-						time: turnNum,
-						status: dbRecord.status,
-						description: dbRecord.description,
-						category_id: dbRecord.category_id,
-					})
-					console.log('🔍 Debug Product: Adicionado turno do banco:', { id: dbRecord.id, time: turnNum, status: dbRecord.status })
-				} else {
-					// Se não existe no banco, criar como not_run sem ID
-					day.turns.push({
-						time: turnNum,
-						status: 'not_run',
-						description: null,
-						category_id: null,
-					})
-					console.log('🔍 Debug Product: Adicionado turno padrão (sem ID):', { time: turnNum, status: 'not_run' })
+				daysMap[d.date].turns.push({ id: d.id, time: d.turn, status: d.status, description: d.description, category_id: d.category_id })
+			} else {
+				// Se já existe, escolher status mais severo (orange/red substitui green) – simples prioridade
+				const severityOrder: Record<string, number> = { completed: 0, waiting: 1, in_progress: 2, pending: 3, under_support: 3, suspended: 3, not_run: 4, with_problems: 4, run_again: 4, off: 5 }
+				if ((severityOrder[d.status] ?? 0) > (severityOrder[existingTurn.status] ?? 0)) {
+					existingTurn.status = d.status
+					existingTurn.description = d.description
+					existingTurn.category_id = d.category_id
+					existingTurn.id = d.id
 				}
 			}
 		})
-		// Ordenar turnos por horário
-		day.turns.sort((a, b) => a.time - b.time)
-	})
 
-	const days = Object.values(daysMap).sort((a, b) => a.date.localeCompare(b.date))
+		// Garantir que todos os turnos configurados apareçam para cada dia
+		Object.values(daysMap).forEach((day) => {
+			turns.forEach((turnStr) => {
+				const turnNum = parseInt(turnStr)
+				const existingTurn = day.turns.find((t) => t.time === turnNum)
+				if (!existingTurn) {
+					// Verificar se existe um registro no banco para este turno
+					const dbRecord = lastDaysStatus.find((d) => d.date === day.date && d.turn === turnNum)
+					if (dbRecord) {
+						// Se existe no banco, usar os dados reais
+						day.turns.push({
+							id: dbRecord.id,
+							time: turnNum,
+							status: dbRecord.status,
+							description: dbRecord.description,
+							category_id: dbRecord.category_id,
+						})
+					} else {
+						// Se não existe no banco, criar como not_run sem ID
+						day.turns.push({
+							time: turnNum,
+							status: 'not_run',
+							description: null,
+							category_id: null,
+						})
+					}
+				}
+			})
+			// Ordenar turnos por horário
+			day.turns.sort((a, b) => a.time - b.time)
+		})
 
-	console.log('🔍 Debug Product: Days construídos:', {
-		daysLength: days.length,
-		daysSample: days.slice(0, 2),
-		firstDayTurns: days[0]?.turns?.map((t) => ({ id: t.id, time: t.time, status: t.status })),
-		allDaysTurns: days.map((day) => ({
-			date: day.date,
-			turns: day.turns.map((t) => ({ id: t.id, time: t.time, status: t.status })),
-		})),
-	})
+		const result = Object.values(daysMap).sort((a, b) => a.date.localeCompare(b.date))
+
+		return result
+	}, [lastDaysStatus, filteredLastDays, turns])
 
 	/* ----------- Construção de calendários para os últimos 28 dias ----------- */
 	type CalendarDate = {
@@ -223,7 +196,6 @@ export default function Product({ id, name, turns, progress, priority, date, las
 							productName={name}
 							days={days}
 							onTurnClick={(ctx) => {
-								console.log('🔍 Debug Product: onTurnClick chamado com:', ctx)
 								setActivityCtx({ id: ctx.id, date: ctx.date, turn: ctx.turn, status: ctx.status, description: ctx.description, category_id: ctx.category_id })
 								setActivityPanelOpen(true)
 							}}
@@ -244,7 +216,6 @@ export default function Product({ id, name, turns, progress, priority, date, las
 								category_id: d.category_id,
 							}))}
 							onTimelineClick={(item) => {
-								console.log('🔍 Debug Product: onTimelineClick chamado com:', item)
 								setActivityCtx({
 									id: item.id,
 									date: item.date,
@@ -358,9 +329,9 @@ export default function Product({ id, name, turns, progress, priority, date, las
 					initialDescription={activityCtx.description || ''}
 					initialCategoryId={activityCtx.category_id || null}
 					onSaved={() => {
-						console.log('🔍 Debug Product: onSaved chamado, recarregando dados...')
 						onSaved?.()
 					}}
+					onAddSaveLog={onAddSaveLog}
 				/>
 			)}
 		</>

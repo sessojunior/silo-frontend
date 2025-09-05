@@ -3,6 +3,7 @@ import { getAuthUser } from '@/lib/auth/token'
 import { db } from '@/lib/db'
 import { productProblem, productSolution, product, authUser, group, projectTask, projectActivity, project } from '@/lib/db/schema'
 import { eq, and, gte, lte } from 'drizzle-orm'
+import { getToday, getDaysAgo, formatDate } from '@/lib/dateUtils'
 
 export async function GET(request: NextRequest) {
 	try {
@@ -19,11 +20,11 @@ export async function GET(request: NextRequest) {
 		const productId = searchParams.get('productId')
 		const groupId = searchParams.get('groupId')
 
-		// Construir filtros de data
-		const now = new Date()
-		const defaultStartDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) // 30 dias atrás
-		const start = startDate ? new Date(startDate) : defaultStartDate
-		const end = endDate ? new Date(endDate) : now
+		// Construir filtros de data - timezone São Paulo
+		const today = getToday()
+		const defaultStartDate = getDaysAgo(30) // 30 dias atrás
+		const start = startDate ? formatDate(startDate) : defaultStartDate
+		const end = endDate ? formatDate(endDate) : today
 
 		console.log('🔵 Buscando relatório executivo:', { start, end, productId, groupId })
 
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
 				userId: productProblem.userId,
 			})
 			.from(productProblem)
-			.where(and(gte(productProblem.createdAt, start), lte(productProblem.createdAt, end), productId ? eq(productProblem.productId, productId) : undefined))
+			.where(and(gte(productProblem.createdAt, new Date(start + 'T00:00:00')), lte(productProblem.createdAt, new Date(end + 'T23:59:59')), productId ? eq(productProblem.productId, productId) : undefined))
 
 		const problems = await problemsQuery
 
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
 				userId: productSolution.userId,
 			})
 			.from(productSolution)
-			.where(and(gte(productSolution.createdAt, start), lte(productSolution.createdAt, end)))
+			.where(and(gte(productSolution.createdAt, new Date(start + 'T00:00:00')), lte(productSolution.createdAt, new Date(end + 'T23:59:59'))))
 
 		const solutions = await solutionsQuery
 
@@ -183,15 +184,15 @@ export async function GET(request: NextRequest) {
 			}
 		})
 
-		// Calcular tendências (últimos 7 dias vs período anterior)
-		const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-		const previous7Days = new Date(last7Days.getTime() - 7 * 24 * 60 * 60 * 1000)
+		// Calcular tendências (últimos 7 dias vs período anterior) - timezone São Paulo
+		const last7Days = getDaysAgo(7)
+		const previous7Days = getDaysAgo(14)
 
-		const recentProblems = problems.filter((p) => p.createdAt >= last7Days)
-		const previousProblems = problems.filter((p) => p.createdAt >= previous7Days && p.createdAt < last7Days)
+		const recentProblems = problems.filter((p) => p.createdAt >= new Date(last7Days + 'T00:00:00'))
+		const previousProblems = problems.filter((p) => p.createdAt >= new Date(previous7Days + 'T00:00:00') && p.createdAt < new Date(last7Days + 'T00:00:00'))
 
-		const recentSolutions = solutions.filter((s) => s.createdAt >= last7Days)
-		const previousSolutions = solutions.filter((s) => s.createdAt >= previous7Days && s.createdAt < last7Days)
+		const recentSolutions = solutions.filter((s) => s.createdAt >= new Date(last7Days + 'T00:00:00'))
+		const previousSolutions = solutions.filter((s) => s.createdAt >= new Date(previous7Days + 'T00:00:00') && s.createdAt < new Date(last7Days + 'T00:00:00'))
 
 		const trends = {
 			problems: {
@@ -224,9 +225,9 @@ export async function GET(request: NextRequest) {
 
 		const reportData = {
 			period: {
-				start: start.toISOString(),
-				end: end.toISOString(),
-				days: Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)),
+				start: start,
+				end: end,
+				days: Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)),
 			},
 			filters: {
 				productId,

@@ -3,6 +3,7 @@ import { getAuthUser } from '@/lib/auth/token'
 import { db } from '@/lib/db'
 import { productProblem, productSolution, authUser, group, projectTask, projectTaskUser, project } from '@/lib/db/schema'
 import { eq, and, gte, lte } from 'drizzle-orm'
+import { getToday, getDaysAgo, formatDate } from '@/lib/dateUtils'
 
 export async function GET(request: NextRequest) {
 	try {
@@ -20,11 +21,11 @@ export async function GET(request: NextRequest) {
 		const userId = searchParams.get('userId')
 		const groupId = searchParams.get('groupId')
 
-		// Construir filtros de data
-		const now = new Date()
-		const defaultStartDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) // 30 dias atrás
-		const start = startDate ? new Date(startDate) : defaultStartDate
-		const end = endDate ? new Date(endDate) : now
+		// Construir filtros de data - timezone São Paulo
+		const today = getToday()
+		const defaultStartDate = getDaysAgo(30) // 30 dias atrás
+		const start = startDate ? formatDate(startDate) : defaultStartDate
+		const end = endDate ? formatDate(endDate) : today
 
 		console.log('🔵 Buscando relatório de performance:', { start, end, productId, userId, groupId })
 
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
 				userId: productProblem.userId,
 			})
 			.from(productProblem)
-			.where(and(gte(productProblem.createdAt, start), lte(productProblem.createdAt, end), productId ? eq(productProblem.productId, productId) : undefined, userId ? eq(productProblem.userId, userId) : undefined))
+			.where(and(gte(productProblem.createdAt, new Date(start + 'T00:00:00')), lte(productProblem.createdAt, new Date(end + 'T23:59:59')), productId ? eq(productProblem.productId, productId) : undefined, userId ? eq(productProblem.userId, userId) : undefined))
 
 		const problems = await problemsQuery
 
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
 				userId: productSolution.userId,
 			})
 			.from(productSolution)
-			.where(and(gte(productSolution.createdAt, start), lte(productSolution.createdAt, end), userId ? eq(productSolution.userId, userId) : undefined))
+			.where(and(gte(productSolution.createdAt, new Date(start + 'T00:00:00')), lte(productSolution.createdAt, new Date(end + 'T23:59:59')), userId ? eq(productSolution.userId, userId) : undefined))
 
 		const solutions = await solutionsQuery
 
@@ -97,7 +98,7 @@ export async function GET(request: NextRequest) {
 			.from(projectTaskUser)
 			.innerJoin(projectTask, eq(projectTaskUser.taskId, projectTask.id))
 			.innerJoin(project, eq(projectTask.projectId, project.id))
-			.where(and(gte(projectTask.createdAt, start), lte(projectTask.createdAt, end)))
+			.where(and(gte(projectTask.createdAt, new Date(start + 'T00:00:00')), lte(projectTask.createdAt, new Date(end + 'T23:59:59'))))
 
 		// Calcular métricas de performance por usuário
 		const userPerformance = users.map((user) => {
@@ -208,9 +209,9 @@ export async function GET(request: NextRequest) {
 
 		const reportData = {
 			period: {
-				start: start.toISOString(),
-				end: end.toISOString(),
-				days: Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)),
+				start: start,
+				end: end,
+				days: Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)),
 			},
 			filters: {
 				productId,

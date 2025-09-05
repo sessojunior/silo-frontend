@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { useUser } from '@/context/UserContext'
 import { useChat, ChatGroup, ChatUser } from '@/context/ChatContext'
+import { formatDateBR } from '@/lib/dateUtils'
 
 type ChatSidebarProps = {
 	activeTargetId: string | null
@@ -229,7 +230,7 @@ function UserItem({ user, isActive, onClick }: { user: ChatUser; isActive: boole
 		if (minutes < 60) return `${minutes}m`
 		if (hours < 24) return `${hours}h`
 		if (days < 7) return `${days}d`
-		return new Date(lastMessageAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+		return formatDateBR(new Date(lastMessageAt).toISOString().split('T')[0]).replace(/\d{4}/, '').trim()
 	}
 
 	return (

@@ -4,6 +4,7 @@ import Label from '@/components/ui/Label'
 import Select, { SelectOption } from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { toast } from '@/lib/toast'
+import { formatDateBR } from '@/lib/dateUtils'
 
 interface Props {
 	open: boolean
@@ -17,6 +18,7 @@ interface Props {
 	initialDescription?: string | null
 	initialCategoryId?: string | null
 	onSaved?: () => void
+	onAddSaveLog?: (step: string, details: unknown, success?: boolean, error?: string) => void
 }
 
 const STATUS_OPTIONS: SelectOption[] = [
@@ -33,7 +35,7 @@ const STATUS_OPTIONS: SelectOption[] = [
 
 const INCIDENT_STATUS = new Set(['pending', 'under_support', 'suspended', 'not_run', 'with_problems', 'run_again'])
 
-export default function ProductActivityOffcanvas({ open, onClose, productId, productName, date, turn, existingId = null, initialStatus = 'completed', initialDescription = '', initialCategoryId = null, onSaved }: Props) {
+export default function ProductActivityOffcanvas({ open, onClose, productId, productName, date, turn, existingId = null, initialStatus = 'completed', initialDescription = '', initialCategoryId = null, onSaved, onAddSaveLog }: Props) {
 	const [status, setStatus] = useState<string>(initialStatus)
 	const [description, setDescription] = useState<string>(initialDescription || '')
 	const [categoryId, setCategoryId] = useState<string | null>(initialCategoryId || null)
@@ -46,8 +48,12 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 			setStatus(initialStatus)
 			setDescription(initialDescription || '')
 			setCategoryId(initialCategoryId || null)
+		}
+	}, [open, initialStatus, initialDescription, initialCategoryId])
 
-			// Carregar categorias da API
+	// Carregar categorias apenas uma vez
+	useEffect(() => {
+		if (open && categories.length === 0) {
 			fetch('/api/admin/products/problems/categories', {
 				credentials: 'include', // Incluir cookies de autenticação
 				headers: {
@@ -75,15 +81,27 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 					// Mantém categorias padrão já definidas
 				})
 		}
-	}, [open, initialStatus, initialDescription, initialCategoryId])
+	}, [open, categories.length])
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
+
+		onAddSaveLog?.('Iniciando salvamento', {
+			productId,
+			date,
+			turn,
+			status,
+			description,
+			categoryId,
+			existingId,
+		})
+
 		// validate
 		if (INCIDENT_STATUS.has(status) && !categoryId) {
 			toast({ type: 'error', title: 'Selecione a categoria' })
 			return
 		}
+
 		setLoading(true)
 		try {
 			const payload: { productId: string; date: string; turn: number; status: string; description: string; problemCategoryId: string | null; id?: string } = {
@@ -101,19 +119,16 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 				payload.id = existingId
 			}
 
-			console.log('🔍 Debug ProductActivityOffcanvas:', {
-				existingId,
+			onAddSaveLog?.('Enviando requisição', {
 				method,
-				payload,
 				url,
-				hasExistingId: !!existingId,
-				willCreateNew: !existingId,
+				payload,
 			})
 
 			const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
 			const json = await res.json()
 
-			console.log('🔍 Debug API Response:', {
+			onAddSaveLog?.('Resposta da API', {
 				status: res.status,
 				ok: res.ok,
 				json,
@@ -121,15 +136,38 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 
 			if (res.ok && json.success) {
 				const action = json.action ?? (existingId ? 'updated' : 'created')
-				console.log('✅ Debug ProductActivityOffcanvas: Salvamento bem-sucedido:', { action, existingId, newRecord: json.data })
+				onAddSaveLog?.(
+					'Salvamento bem-sucedido',
+					{
+						action,
+					},
+					true,
+				)
 				toast({ type: 'success', title: action === 'updated' ? 'Acontecimento atualizado' : 'Acontecimento criado' })
 				onClose()
-				console.log('🔍 Debug ProductActivityOffcanvas: Chamando onSaved...')
 				onSaved?.()
 			} else {
-				console.error('❌ Debug ProductActivityOffcanvas: Erro no salvamento:', { status: res.status, json })
+				onAddSaveLog?.(
+					'Erro no salvamento',
+					{
+						message: json.message,
+					},
+					false,
+					json.message,
+				)
 				toast({ type: 'error', title: json.message || 'Erro' })
 			}
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+			onAddSaveLog?.(
+				'Erro na requisição',
+				{
+					error: errorMessage,
+				},
+				false,
+				errorMessage,
+			)
+			toast({ type: 'error', title: 'Erro na requisição' })
 		} finally {
 			setLoading(false)
 		}
@@ -149,7 +187,7 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 					<div className='flex items-center gap-3 text-sm text-blue-700 dark:text-blue-300'>
 						<span className='flex items-center gap-1'>
 							<span className='icon-[lucide--calendar-days] size-4'></span>
-							{new Date(date).toLocaleDateString('pt-BR')}
+							{formatDateBR(date)}
 						</span>
 						<span className='flex items-center gap-1'>
 							<span className='icon-[lucide--clock] size-4'></span>

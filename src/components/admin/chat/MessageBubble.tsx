@@ -1,7 +1,6 @@
 'use client'
 
-import { format, isToday, isYesterday } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { formatDateTimeBR } from '@/lib/dateUtils'
 
 type MessageBubbleProps = {
 	message: {
@@ -35,16 +34,8 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 	const messageDate = new Date(message.createdAt)
 
 	const formatMessageTime = (date: Date) => {
-		if (isToday(date)) {
-			// Hoje: apenas hora (14:30)
-			return format(date, 'HH:mm', { locale: ptBR })
-		} else if (isYesterday(date)) {
-			// Ontem: "Ontem 14:30"
-			return `Ontem ${format(date, 'HH:mm', { locale: ptBR })}`
-		} else {
-			// Outros dias: "24/12 14:30"
-			return format(date, 'dd/MM HH:mm', { locale: ptBR })
-		}
+		// Usar função centralizada do dateUtils
+		return formatDateTimeBR(date.toISOString().split('T')[0], date.toISOString().split('T')[1]?.split('.')[0])
 	}
 
 	const timeDisplay = formatMessageTime(messageDate)

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, pointerWithin, useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { formatDateBR } from '@/lib/dateUtils'
 
 // Types
 interface Task {
@@ -178,7 +179,7 @@ function SortableTaskCard({ task, activeTask }: { task: Task; activeTask: Task |
 	const isBeingDragged = activeTask?.id === task.id
 
 	const formatDate = (dateString: string): string => {
-		return new Date(dateString).toLocaleDateString('pt-BR')
+		return formatDateBR(dateString)
 	}
 
 	// O conteúdo do card foi movido para uma constante para evitar repetição.
@@ -239,7 +240,7 @@ function SortableTaskCard({ task, activeTask }: { task: Task; activeTask: Task |
 // Task Card for Drag Overlay
 function TaskCard({ task }: { task: Task }) {
 	const formatDate = (dateString: string): string => {
-		return new Date(dateString).toLocaleDateString('pt-BR')
+		return formatDateBR(dateString)
 	}
 
 	return (

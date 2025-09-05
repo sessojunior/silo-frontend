@@ -1,6 +1,7 @@
 'use client'
 
 import Select from '@/components/ui/Select'
+import { formatDate, formatDateBR } from '@/lib/dateUtils'
 
 interface ReportFiltersType {
 	dateRange: string
@@ -16,6 +17,14 @@ interface ReportFiltersProps {
 
 export function ReportFilters({ filters, onFiltersChange, reportType }: ReportFiltersProps) {
 	const handleFilterChange = (key: keyof ReportFiltersType, value: string | Date | undefined) => {
+		// Normalizar datas para timezone de São Paulo
+		if (key === 'startDate' && value instanceof Date) {
+			value = new Date(formatDate(value) + 'T00:00:00')
+		}
+		if (key === 'endDate' && value instanceof Date) {
+			value = new Date(formatDate(value) + 'T23:59:59')
+		}
+
 		onFiltersChange({
 			...filters,
 			[key]: value,
@@ -108,7 +117,7 @@ export function ReportFilters({ filters, onFiltersChange, reportType }: ReportFi
 										<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
 									</svg>
 									<span>
-										Período selecionado: <strong>{filters.startDate.toLocaleDateString('pt-BR')}</strong> até <strong>{filters.endDate.toLocaleDateString('pt-BR')}</strong>
+										Período selecionado: <strong>{formatDateBR(filters.startDate.toISOString().split('T')[0])}</strong> até <strong>{formatDateBR(filters.endDate.toISOString().split('T')[0])}</strong>
 									</span>
 								</div>
 							</div>

@@ -4,6 +4,7 @@ import { productActivity } from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
 import { randomUUID } from 'crypto'
 import { eq, and } from 'drizzle-orm'
+import { formatDate } from '@/lib/dateUtils'
 
 // Helper para resposta padronizada
 function jsonResponse(body: Record<string, unknown>, status = 200) {
@@ -20,13 +21,16 @@ export async function POST(req: NextRequest) {
 		const data = await req.json()
 		const { productId, date, turn, status, description, problemCategoryId } = data || {}
 
-		if (!productId || !date || turn === undefined || !status) {
+		// Normalizar data para timezone de São Paulo
+		const normalizedDate = formatDate(date)
+
+		if (!productId || !normalizedDate || turn === undefined || !status) {
 			return jsonResponse({ success: false, error: 'Parâmetros obrigatórios ausentes.' }, 400)
 		}
 
 		// Verificar se já existe registro para productId+date+turn
 		const existing = await db.query.productActivity.findFirst({
-			where: and(eq(productActivity.productId, productId), eq(productActivity.date, date), eq(productActivity.turn, turn)),
+			where: and(eq(productActivity.productId, productId), eq(productActivity.date, normalizedDate), eq(productActivity.turn, turn)),
 		})
 
 		let action: 'created' | 'updated' = 'created'
@@ -40,13 +44,14 @@ export async function POST(req: NextRequest) {
 				.returning()
 			action = 'updated'
 		} else {
+			// Criar novo registro
 			;[record] = await db
 				.insert(productActivity)
 				.values({
 					id: randomUUID(),
 					productId,
 					userId: user.id,
-					date,
+					date: normalizedDate,
 					turn,
 					status,
 					description: description || null,
@@ -70,18 +75,14 @@ export async function PUT(req: NextRequest) {
 		const data = await req.json()
 		const { id, status, description, problemCategoryId } = data || {}
 
-		console.log('🔍 Debug API PUT:', {
-			id,
-			status,
-			description,
-			problemCategoryId,
-			userId: user.id,
-		})
-
 		if (!id || !status) {
-			console.log('❌ Parâmetros obrigatórios ausentes:', { id, status })
 			return jsonResponse({ success: false, error: 'Parâmetros obrigatórios ausentes.' }, 400)
 		}
+
+		// Verificar se o registro existe antes de atualizar
+		await db.query.productActivity.findFirst({
+			where: eq(productActivity.id, id),
+		})
 
 		const [updated] = await db
 			.update(productActivity)
@@ -89,7 +90,6 @@ export async function PUT(req: NextRequest) {
 			.where(eq(productActivity.id, id))
 			.returning()
 
-		console.log('✅ Registro atualizado:', updated)
 		return jsonResponse({ success: true, data: updated })
 	} catch (error) {
 		console.error('❌ Erro ao atualizar product_activity', error)

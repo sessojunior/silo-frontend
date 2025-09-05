@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { product, productActivity } from '@/lib/db/schema'
 import { eq, and, gte } from 'drizzle-orm'
+import { getDaysAgo } from '@/lib/dateUtils'
 
 // Status considerados incidentes (mesmos do dashboard)
 const INCIDENT_STATUS = ['pending', 'under_support', 'suspended', 'not_run', 'with_problems', 'run_again'] as const
@@ -29,10 +30,9 @@ export async function GET() {
 			products.map(async (prod) => {
 				console.log(`🔵 Processando produto: ${prod.name}`)
 
-				// Buscar atividades dos últimos 30 dias
-				const thirtyDaysAgo = new Date()
-				thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-				const dateStr = thirtyDaysAgo.toISOString().slice(0, 10)
+				// Buscar atividades dos últimos 30 dias - timezone São Paulo
+				const thirtyDaysAgo = getDaysAgo(30)
+				const dateStr = thirtyDaysAgo
 
 				// Buscar todas as atividades do produto
 				const activities = await db

@@ -6,6 +6,7 @@ import { Project, Activity } from '@/types/projects'
 import Button from '@/components/ui/Button'
 import ActivityFormOffcanvas from '@/components/admin/projects/ActivityFormOffcanvas'
 import { toast } from '@/lib/toast'
+import { formatDateBR } from '@/lib/dateUtils'
 
 interface ProjectActivitiesSectionProps {
 	project: Project
@@ -93,7 +94,7 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 	// Função para formatar data
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return 'Não definida'
-		return new Date(dateString).toLocaleDateString('pt-BR')
+		return formatDateBR(dateString)
 	}
 
 	const handleViewDetails = () => {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { product, productActivity } from '@/lib/db/schema'
 import { eq, gte } from 'drizzle-orm'
+import { getMonthsAgo, getDaysAgo } from '@/lib/dateUtils'
 
 // Utilidades
 const ALERT_STATUSES = ['pending', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended'] as const
@@ -53,10 +54,8 @@ export async function GET() {
 		const products = await db.select().from(product).where(eq(product.available, true))
 		if (products.length === 0) return NextResponse.json([])
 
-		// Data cutoff: 3 últimos meses (do dia 1º do mês menos 2 até hoje)
-		const today = new Date()
-		const startDate = new Date(today.getFullYear(), today.getMonth() - 2, 1) // primeiro dia do mês há 2 meses
-		const cutoff = startDate.toISOString().slice(0, 10)
+		// Data cutoff: 3 últimos meses (do dia 1º do mês menos 2 até hoje) - timezone São Paulo
+		const cutoff = getMonthsAgo(2) // primeiro dia do mês há 2 meses
 
 		const activityRows = await db.select().from(productActivity).where(gte(productActivity.date, cutoff)).orderBy(productActivity.date, productActivity.turn)
 
@@ -100,12 +99,11 @@ export async function GET() {
 			}
 		}
 
-		// Calcula percent_completed (últimos 28 dias)
-		const cut28 = new Date()
-		cut28.setDate(cut28.getDate() - 28)
+		// Calcula percent_completed (últimos 28 dias) - timezone São Paulo
+		const cut28 = getDaysAgo(28)
 
 		for (const g of grouped.values()) {
-			const last28 = g.dates.filter((d) => new Date(d.date) >= cut28)
+			const last28 = g.dates.filter((d) => d.date >= cut28)
 			const completed = last28.filter((d) => d.status === 'completed').length
 			g.percent_completed = last28.length ? Math.round((completed / last28.length) * 100) : 0
 		}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/lib/toast'
+import { formatDateBR } from '@/lib/dateUtils'
 import ReactMarkdown from 'react-markdown'
 import { getMarkdownClasses } from '@/lib/markdown'
 
@@ -291,7 +292,7 @@ export default function ProjectsPage() {
 	// Formatar data
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return 'Não definida'
-		return new Date(dateString).toLocaleDateString('pt-BR')
+		return formatDateBR(dateString)
 	}
 
 	// Função para controlar dropdown

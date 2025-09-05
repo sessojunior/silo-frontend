@@ -1,5 +1,6 @@
 'use client'
 
+import { formatDateBR } from '@/lib/dateUtils'
 import ChartColumn from '@/components/admin/dashboard/ChartColumn'
 import ChartLine from '@/components/admin/dashboard/ChartLine'
 import ChartDonut from '@/components/admin/dashboard/ChartDonut'
@@ -48,36 +49,19 @@ export default function DashboardPage() {
 	}, [])
 
 	const fetchDashboard = useCallback(async () => {
-		console.log('🔍 Debug fetchDashboard: Iniciando busca de dados...')
 		const res = await fetch('/api/admin/dashboard')
 		if (res.ok) {
 			const newData = await res.json()
-			console.log('🔍 Debug fetchDashboard: Dados recebidos:', newData)
-
-			// Verificar especificamente o produto SMEC e seus turnos
-			const smecProduct = newData.find((p: { name: string; productId: string; dates?: Array<{ turn: number }> }) => p.name === 'SMEC')
-			if (smecProduct) {
-				console.log('🔍 Debug fetchDashboard: Produto SMEC encontrado:', {
-					productId: smecProduct.productId,
-					name: smecProduct.name,
-					datesLength: smecProduct.dates?.length || 0,
-					datesSample: smecProduct.dates?.slice(0, 5) || [],
-					turn12Records: smecProduct.dates?.filter((d: { turn: number }) => d.turn === 12) || [],
-				})
-			}
-
 			setData(newData)
-		} else {
-			console.error('❌ Debug fetchDashboard: Erro na requisição:', res.status)
 		}
 		setLoading(false)
 		setChartRefresh((c) => c + 1)
-		fetchSummary()
-	}, [fetchSummary])
+	}, [])
 
 	useEffect(() => {
 		fetchDashboard()
-	}, [fetchDashboard])
+		fetchSummary()
+	}, [fetchDashboard, fetchSummary])
 
 	// Carregar projetos em andamento
 	useEffect(() => {
@@ -215,18 +199,13 @@ export default function DashboardPage() {
 												lastDates.push(dateYMD(d))
 											}
 
-											console.log('🔍 Debug Dashboard: Produto', p.name, {
-												daysCount,
-												lastDates,
-												productDates: p.dates.map((d) => d.date).slice(0, 10),
-												today: dateYMD(today),
-												turn12Records: p.dates.filter((d) => d.turn === 12).slice(0, 5),
-											})
-
 											// Mapear status para cada dia dos últimos turnos (incluindo dias sem atividade)
-											const lastDaysStatus = lastDates.map((date) => {
-												const dayData = p.dates.find((d) => d.date === date)
-												return dayData || { date, turn: 0, user_id: null, status: 'not_run', description: null, alert: false }
+											const lastDaysStatus = lastDates.flatMap((date) => {
+												const dayData = p.dates.filter((d) => d.date === date)
+												if (dayData.length === 0) {
+													return [{ date, turn: 0, user_id: '', status: 'not_run', description: null, alert: false }]
+												}
+												return dayData
 											})
 
 											// Últimos 28 dias (timeline completa)
@@ -243,7 +222,7 @@ export default function DashboardPage() {
 												return dayData || { date, turn: 0, user_id: null, status: 'not_run', description: null, alert: false }
 											})
 
-											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? new Date(p.last_run).toLocaleDateString('pt-BR') : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={p.dates} onSaved={fetchDashboard} />
+											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? formatDateBR(p.last_run) : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={p.dates} onSaved={fetchDashboard} />
 										})}
 								</div>
 							</div>

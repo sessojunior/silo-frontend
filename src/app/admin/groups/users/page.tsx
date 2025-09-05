@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from '@/lib/toast'
+import { formatDateBR } from '@/lib/dateUtils'
 
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -137,11 +138,7 @@ export default function UsersPage() {
 
 	function formatLastLogin(lastLogin: Date | null): string {
 		if (!lastLogin) return 'Nunca'
-		return new Date(lastLogin).toLocaleDateString('pt-BR', {
-			day: '2-digit',
-			month: '2-digit',
-			year: 'numeric',
-		})
+		return formatDateBR(new Date(lastLogin).toISOString().split('T')[0])
 	}
 
 	async function toggleUserStatus(user: UserWithGroup) {

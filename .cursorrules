@@ -72,6 +72,39 @@ Sou um engenheiro de software especialista com memória que se reinicia entre se
 - **SEMPRE** retornar `{ success: boolean, error?: string }`
 - **SEMPRE** usar try/catch com logs padronizados
 
+### 🐛 PROBLEMAS CRÍTICOS RESOLVIDOS
+
+#### **PROBLEMA: Turnos Múltiplos Não Aparecendo no Dashboard**
+
+**Sintoma**: Produtos com múltiplos turnos (ex: SMEC com turnos 0h e 12h) só exibiam o primeiro turno no `lastDaysStatus`, mesmo quando o turno 12h estava salvo corretamente no banco.
+
+**Causa Raiz**: No arquivo `src/app/admin/dashboard/page.tsx`, a construção do `lastDaysStatus` usava `p.dates.find((d) => d.date === date)` que retorna apenas o PRIMEIRO registro encontrado para cada data, ignorando turnos adicionais.
+
+**Solução Implementada**:
+
+```typescript
+// ❌ ANTES (só retornava primeiro turno)
+const lastDaysStatus = lastDates.map((date) => {
+	const dayData = p.dates.find((d) => d.date === date)
+	return dayData || { date, turn: 0, user_id: null, status: 'not_run', description: null, alert: false }
+})
+
+// ✅ DEPOIS (retorna TODOS os turnos)
+const lastDaysStatus = lastDates.flatMap((date) => {
+	const dayData = p.dates.filter((d) => d.date === date)
+	if (dayData.length === 0) {
+		return [{ date, turn: 0, user_id: '', status: 'not_run', description: null, alert: false }]
+	}
+	return dayData
+})
+```
+
+**Lição Aprendida**:
+
+- **SEMPRE** usar `filter()` quando precisar de múltiplos registros
+- **NUNCA** usar `find()` para dados que podem ter múltiplas ocorrências
+- **SEMPRE** verificar se a API retorna dados corretos antes de debugar o frontend
+
 ---
 
 ## 🔄 MANUTENÇÃO DO README.MD

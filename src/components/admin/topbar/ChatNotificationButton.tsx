@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useChat, ChatUser } from '@/context/ChatContext'
+import { formatDateTimeBR } from '@/lib/dateUtils'
 
 export default function ChatNotificationButton() {
 	const [isOpen, setIsOpen] = useState(false)
@@ -181,13 +182,7 @@ export default function ChatNotificationButton() {
 														<div className='flex items-center justify-between'>
 															<p className='text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate'>{user.name}</p>
 															<div className='flex items-center gap-1'>
-																<span className='text-xs text-zinc-500 dark:text-zinc-400'>
-																	{user.lastMessageAt &&
-																		new Date(user.lastMessageAt).toLocaleTimeString('pt-BR', {
-																			hour: '2-digit',
-																			minute: '2-digit',
-																		})}
-																</span>
+																<span className='text-xs text-zinc-500 dark:text-zinc-400'>{user.lastMessageAt && formatDateTimeBR(new Date(user.lastMessageAt).toISOString().split('T')[0], new Date(user.lastMessageAt).toISOString().split('T')[1]?.split('.')[0]).split(' ')[1]}</span>
 																<span className='flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white'>{user.unreadCount > 99 ? '99+' : user.unreadCount}</span>
 															</div>
 														</div>

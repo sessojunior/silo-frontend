@@ -51,14 +51,6 @@ function STATUS_LABEL(status: string) {
 }
 
 export default function ProductTimeline({ statuses, timelineData, onTimelineClick }: Props) {
-	// Debug: verificar dados recebidos
-	console.log('🔍 Debug ProductTimeline:', {
-		statusesLength: statuses.length,
-		timelineDataLength: timelineData?.length || 0,
-		timelineDataSample: timelineData?.slice(0, 3),
-		hasCompleteData: timelineData && timelineData.length > 0,
-	})
-
 	// Se timelineData está disponível, usar dados completos; senão usar statuses simples
 	const hasCompleteData = timelineData && timelineData.length > 0
 

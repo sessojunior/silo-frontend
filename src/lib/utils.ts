@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { formatDateBR as formatDateBRFromUtils } from './dateUtils'
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs))
@@ -14,12 +15,8 @@ export function cn(...inputs: ClassValue[]) {
 export function formatDateBR(dateString: string | null): string {
 	if (!dateString) return 'Não definida'
 
-	// Forçar meia-noite no fuso horário local para evitar problemas de UTC
-	const date = new Date(dateString + 'T00:00:00')
-
-	return date.toLocaleDateString('pt-BR', {
-		timeZone: 'America/Sao_Paulo', // Fuso horário de São Paulo
-	})
+	// Usar função centralizada do dateUtils
+	return formatDateBRFromUtils(dateString)
 }
 
 /**
@@ -30,16 +27,8 @@ export function formatDateBR(dateString: string | null): string {
 export function formatFullDateBR(dateString: string | null): string {
 	if (!dateString) return 'Não definida'
 
-	// Forçar meia-noite no fuso horário local para evitar problemas de UTC
-	const date = new Date(dateString + 'T00:00:00')
-
-	return date.toLocaleDateString('pt-BR', {
-		weekday: 'long',
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric',
-		timeZone: 'America/Sao_Paulo', // Fuso horário de São Paulo
-	})
+	// Usar função centralizada do dateUtils
+	return formatDateBRFromUtils(dateString)
 }
 
 /**

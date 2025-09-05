@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth/token'
+import { getNowTimestamp } from '@/lib/dateUtils'
 
 /**
  * API endpoint para receber notificações sobre mudanças no status do chat
@@ -22,8 +23,8 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ success: false, error: 'Status inválido. Deve ser "enabled" ou "disabled"' }, { status: 400 })
 		}
 
-		// Log no servidor sobre mudança de status
-		const timestamp = new Date().toISOString()
+		// Log no servidor sobre mudança de status - timezone São Paulo
+		const timestamp = getNowTimestamp()
 		const statusText = status === 'enabled' ? 'ATIVADO' : 'DESATIVADO'
 
 		console.log(`🔵 [SERVER] ${timestamp} - Sistema de chat ${statusText} para usuário: ${user.email} (${user.id})`)

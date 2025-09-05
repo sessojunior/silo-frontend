@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { project, projectActivity, projectTask, authUser, projectTaskUser } from '@/lib/db/schema'
 import { eq, gte, lte, and } from 'drizzle-orm'
+import { getToday, getDaysAgo, formatDate } from '@/lib/dateUtils'
 
 export async function GET(request: NextRequest) {
 	try {
@@ -10,27 +11,27 @@ export async function GET(request: NextRequest) {
 		const startDate = searchParams.get('startDate')
 		const endDate = searchParams.get('endDate')
 
-		// Calcular datas baseado no período
-		let start: Date
-		let end: Date = new Date()
+		// Calcular datas baseado no período - timezone São Paulo
+		let start: string
+		let end: string = getToday()
 
 		switch (dateRange) {
 			case '7d':
-				start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000)
+				start = getDaysAgo(7)
 				break
 			case '90d':
-				start = new Date(end.getTime() - 90 * 24 * 60 * 60 * 1000)
+				start = getDaysAgo(90)
 				break
 			case 'custom':
 				if (startDate && endDate) {
-					start = new Date(startDate)
-					end = new Date(endDate)
+					start = formatDate(startDate)
+					end = formatDate(endDate)
 				} else {
-					start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000)
+					start = getDaysAgo(30)
 				}
 				break
 			default: // 30d
-				start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000)
+				start = getDaysAgo(30)
 		}
 
 		console.log('🔵 Buscando relatório de projetos:', { start, end, dateRange })
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
 				createdAt: project.createdAt,
 			})
 			.from(project)
-			.where(and(gte(project.createdAt, start), lte(project.createdAt, end)))
+			.where(and(gte(project.createdAt, new Date(start + 'T00:00:00')), lte(project.createdAt, new Date(end + 'T23:59:59'))))
 
 		// Buscar atividades dos projetos
 		const activitiesInPeriod = await db
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
 				createdAt: projectActivity.createdAt,
 			})
 			.from(projectActivity)
-			.where(and(gte(projectActivity.createdAt, start), lte(projectActivity.createdAt, end)))
+			.where(and(gte(projectActivity.createdAt, new Date(start + 'T00:00:00')), lte(projectActivity.createdAt, new Date(end + 'T23:59:59'))))
 
 		// Buscar tarefas dos projetos
 		const tasksInPeriod = await db
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
 				createdAt: projectTask.createdAt,
 			})
 			.from(projectTask)
-			.where(and(gte(projectTask.createdAt, start), lte(projectTask.createdAt, end)))
+			.where(and(gte(projectTask.createdAt, new Date(start + 'T00:00:00')), lte(projectTask.createdAt, new Date(end + 'T23:59:59'))))
 
 		// Buscar usuários ativos
 		const activeUsers = await db
@@ -238,8 +239,8 @@ export async function GET(request: NextRequest) {
 			mostActiveProjects,
 			projectsWithProgress,
 			period: {
-				start: start.toISOString(),
-				end: end.toISOString(),
+				start: start,
+				end: end,
 				dateRange,
 			},
 		}

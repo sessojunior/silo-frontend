@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { toast } from '@/lib/toast'
 import { notFound, useParams } from 'next/navigation'
+import { getToday } from '@/lib/dateUtils'
 import KanbanBoard from '@/components/admin/projects/KanbanBoard'
 import TaskFormOffcanvas from '@/components/admin/projects/TaskFormOffcanvas'
 import { ProjectTask } from '@/lib/db/schema'
@@ -43,8 +44,8 @@ const convertToKanbanTask = (projectTask: ProjectTaskWithUsers): KanbanTask => {
 		estimated_days: projectTask.estimatedDays || 1,
 		status: projectTask.status as KanbanTask['status'],
 		sort: projectTask.sort,
-		start_date: projectTask.startDate || new Date().toISOString().split('T')[0],
-		end_date: projectTask.endDate || new Date().toISOString().split('T')[0],
+		start_date: projectTask.startDate || getToday(),
+		end_date: projectTask.endDate || getToday(),
 		priority: projectTask.priority as KanbanTask['priority'],
 		assignedUsers: projectTask.assignedUsers || [], // Preservar usuários associados
 		assignedUsersDetails: projectTask.assignedUsersDetails || [], // Preservar detalhes dos usuários
