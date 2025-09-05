@@ -1,5 +1,5 @@
 {
-  "id": "c7fd743a-14c5-4806-beda-26e687fd6550",
+  "id": "e6d8825e-a331-43e4-8e70-1de423581f6a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -2200,20 +2200,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "notify_updates": {
-          "name": "notify_updates",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "send_newsletters": {
-          "name": "send_newsletters",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         },
         "chat_enabled": {
           "name": "chat_enabled",

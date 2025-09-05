@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1756472912822,
-      "tag": "0000_gorgeous_chronomancer",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1756483963932,
-      "tag": "0001_wooden_doctor_octopus",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1756484364209,
-      "tag": "0002_icy_dagger",
+      "when": 1757076943121,
+      "tag": "0000_long_ken_ellis",
       "breakpoints": true
     }
   ]

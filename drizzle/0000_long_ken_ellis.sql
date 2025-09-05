@@ -278,8 +278,6 @@ CREATE TABLE "user_group" (
 CREATE TABLE "user_preferences" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
-	"notify_updates" boolean DEFAULT false NOT NULL,
-	"send_newsletters" boolean DEFAULT false NOT NULL,
 	"chat_enabled" boolean DEFAULT true NOT NULL
 );
 --> statement-breakpoint
