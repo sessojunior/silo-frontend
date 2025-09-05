@@ -69,7 +69,17 @@ export async function PUT(req: NextRequest) {
 
 		const data = await req.json()
 		const { id, status, description, problemCategoryId } = data || {}
+
+		console.log('🔍 Debug API PUT:', {
+			id,
+			status,
+			description,
+			problemCategoryId,
+			userId: user.id,
+		})
+
 		if (!id || !status) {
+			console.log('❌ Parâmetros obrigatórios ausentes:', { id, status })
 			return jsonResponse({ success: false, error: 'Parâmetros obrigatórios ausentes.' }, 400)
 		}
 
@@ -79,6 +89,7 @@ export async function PUT(req: NextRequest) {
 			.where(eq(productActivity.id, id))
 			.returning()
 
+		console.log('✅ Registro atualizado:', updated)
 		return jsonResponse({ success: true, data: updated })
 	} catch (error) {
 		console.error('❌ Erro ao atualizar product_activity', error)

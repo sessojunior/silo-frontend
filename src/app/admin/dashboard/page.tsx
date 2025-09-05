@@ -48,9 +48,27 @@ export default function DashboardPage() {
 	}, [])
 
 	const fetchDashboard = useCallback(async () => {
+		console.log('🔍 Debug fetchDashboard: Iniciando busca de dados...')
 		const res = await fetch('/api/admin/dashboard')
 		if (res.ok) {
-			setData(await res.json())
+			const newData = await res.json()
+			console.log('🔍 Debug fetchDashboard: Dados recebidos:', newData)
+
+			// Verificar especificamente o produto SMEC e seus turnos
+			const smecProduct = newData.find((p: { name: string; productId: string; dates?: Array<{ turn: number }> }) => p.name === 'SMEC')
+			if (smecProduct) {
+				console.log('🔍 Debug fetchDashboard: Produto SMEC encontrado:', {
+					productId: smecProduct.productId,
+					name: smecProduct.name,
+					datesLength: smecProduct.dates?.length || 0,
+					datesSample: smecProduct.dates?.slice(0, 5) || [],
+					turn12Records: smecProduct.dates?.filter((d: { turn: number }) => d.turn === 12) || [],
+				})
+			}
+
+			setData(newData)
+		} else {
+			console.error('❌ Debug fetchDashboard: Erro na requisição:', res.status)
 		}
 		setLoading(false)
 		setChartRefresh((c) => c + 1)
@@ -196,6 +214,14 @@ export default function DashboardPage() {
 												d.setDate(today.getDate() - i) // Corrigido: mais antigo → mais recente
 												lastDates.push(dateYMD(d))
 											}
+
+											console.log('🔍 Debug Dashboard: Produto', p.name, {
+												daysCount,
+												lastDates,
+												productDates: p.dates.map((d) => d.date).slice(0, 10),
+												today: dateYMD(today),
+												turn12Records: p.dates.filter((d) => d.turn === 12).slice(0, 5),
+											})
 
 											// Mapear status para cada dia dos últimos turnos (incluindo dias sem atividade)
 											const lastDaysStatus = lastDates.map((date) => {

@@ -43,6 +43,7 @@ export async function POST(request: Request) {
 	const name = (body.name || '').trim()
 	const slug = formatSlug(body.slug) || ''
 	const available = typeof body.available === 'boolean' ? body.available : false
+	const turns = Array.isArray(body.turns) ? body.turns : ['0', '6', '12', '18']
 
 	if (name.length < 2) {
 		return NextResponse.json({ field: 'name', message: 'O nome deve possuir ao menos dois caracteres.' }, { status: 400 })
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
 			name,
 			slug,
 			available,
+			turns,
 		})
 		return NextResponse.json({ success: true }, { status: 200 })
 	} catch {
@@ -74,6 +76,7 @@ export async function PUT(request: Request) {
 	const name = (body.name || '').trim()
 	const slug = formatSlug(body.slug) || ''
 	const available = typeof body.available === 'boolean' ? body.available : false
+	const turns = Array.isArray(body.turns) ? body.turns : ['0', '6', '12', '18']
 
 	if (!id) {
 		return NextResponse.json({ field: 'id', message: 'ID do produto é obrigatório.' }, { status: 400 })
@@ -90,7 +93,7 @@ export async function PUT(request: Request) {
 	}
 
 	try {
-		const result = await db.update(product).set({ name, slug, available }).where(eq(product.id, id))
+		const result = await db.update(product).set({ name, slug, available, turns }).where(eq(product.id, id))
 		if (!result.rowCount) {
 			return NextResponse.json({ field: 'id', message: 'Produto não encontrado.' }, { status: 404 })
 		}

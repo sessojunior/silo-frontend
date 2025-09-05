@@ -15,6 +15,7 @@ type DashboardProduct = {
 	last_run: string | null
 	percent_completed: number
 	dates: {
+		id: string
 		date: string
 		turn: number
 		user_id: string
@@ -83,6 +84,7 @@ export async function GET() {
 			const dateTimeStr = `${dateStr} ${turnHour}:00:00`
 
 			g.dates.push({
+				id: row.id,
 				date: dateStr,
 				turn: row.turn,
 				user_id: row.userId,

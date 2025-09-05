@@ -100,14 +100,34 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 				method = 'PUT'
 				payload.id = existingId
 			}
+
+			console.log('🔍 Debug ProductActivityOffcanvas:', {
+				existingId,
+				method,
+				payload,
+				url,
+				hasExistingId: !!existingId,
+				willCreateNew: !existingId,
+			})
+
 			const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
 			const json = await res.json()
+
+			console.log('🔍 Debug API Response:', {
+				status: res.status,
+				ok: res.ok,
+				json,
+			})
+
 			if (res.ok && json.success) {
 				const action = json.action ?? (existingId ? 'updated' : 'created')
-				toast({ type: 'success', title: action === 'updated' ? 'Atividade atualizada' : 'Atividade criada' })
+				console.log('✅ Debug ProductActivityOffcanvas: Salvamento bem-sucedido:', { action, existingId, newRecord: json.data })
+				toast({ type: 'success', title: action === 'updated' ? 'Acontecimento atualizado' : 'Acontecimento criado' })
 				onClose()
+				console.log('🔍 Debug ProductActivityOffcanvas: Chamando onSaved...')
 				onSaved?.()
 			} else {
+				console.error('❌ Debug ProductActivityOffcanvas: Erro no salvamento:', { status: res.status, json })
 				toast({ type: 'error', title: json.message || 'Erro' })
 			}
 		} finally {

@@ -1,6 +1,7 @@
 import Popover from '@/components/ui/Popover'
 
 interface TurnCell {
+	id?: string
 	time: number
 	status: string
 	description?: string | null
@@ -13,7 +14,7 @@ interface DayItem {
 interface Props {
 	productName: string
 	days: DayItem[]
-	onTurnClick?: (ctx: { date: string; turn: number; status: string; description?: string | null; category_id?: string | null }) => void
+	onTurnClick?: (ctx: { id?: string; date: string; turn: number; status: string; description?: string | null; category_id?: string | null }) => void
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -29,6 +30,13 @@ const COLOR_MAP: Record<string, string> = {
 }
 
 export default function ProductTurn({ productName, days, onTurnClick }: Props) {
+	console.log('🔍 Debug ProductTurn:', {
+		productName,
+		daysLength: days.length,
+		daysSample: days.slice(0, 2),
+		firstDayTurns: days[0]?.turns?.map((t) => ({ id: t.id, time: t.time, status: t.status })),
+	})
+
 	return (
 		<div className='relative h-8'>
 			<div className='flex gap-1'>
@@ -56,7 +64,7 @@ export default function ProductTurn({ productName, days, onTurnClick }: Props) {
 											<li
 												key={index}
 												onClick={() => {
-													onTurnClick?.({ date: day.date, turn: turn.time, status: turn.status, description: turn.description, category_id: turn.category_id })
+													onTurnClick?.({ id: turn.id, date: day.date, turn: turn.time, status: turn.status, description: turn.description, category_id: turn.category_id })
 												}}
 												className='flex cursor-pointer items-start gap-2 rounded-lg p-2 hover:bg-zinc-50 dark:hover:bg-zinc-900'
 											>
