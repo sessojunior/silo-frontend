@@ -196,7 +196,7 @@ export default function IncidentManagementOffcanvas({ open, onClose, onIncidentU
 							<span className='icon-[lucide--info] size-6 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0' />
 							<div className='text-sm text-blue-800 dark:text-blue-200'>
 								<p className='font-medium mb-1'>Sobre os incidentes:</p>
-								<p className='text-blue-700 dark:text-blue-300'>Incidentes são usados para categorizar problemas nos turnos. Apenas incidentes reais aparecem nas estatísticas. "Não houve incidentes" não pode ser editado ou excluído. Incidentes em uso não podem ser excluídos.</p>
+								<p className='text-blue-700 dark:text-blue-300'>Incidentes são usados para categorizar problemas nos turnos. Apenas incidentes reais aparecem nas estatísticas. &quot;Não houve incidentes&quot; não pode ser editado ou excluído. Incidentes em uso não podem ser excluídos.</p>
 							</div>
 						</div>
 					</div>

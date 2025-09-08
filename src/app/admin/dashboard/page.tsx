@@ -19,6 +19,7 @@ type ProductDateStatus = {
 	user_id: string
 	status: string
 	description: string | null
+	category_id: string | null
 	alert: boolean
 }
 
@@ -205,7 +206,7 @@ export default function DashboardPage() {
 											const lastDaysStatus = lastDates.flatMap((date) => {
 												const dayData = p.dates.filter((d) => d.date === date)
 												if (dayData.length === 0) {
-													return [{ date, turn: 0, user_id: '', status: 'not_run', description: null, alert: false }]
+													return [{ date, turn: 0, user_id: '', status: 'not_run', description: null, category_id: null, alert: false }]
 												}
 												return dayData
 											})
@@ -221,7 +222,7 @@ export default function DashboardPage() {
 											// Mapear status para cada dia (incluindo dias sem atividade)
 											const last28DaysStatus = last28Dates.map((date) => {
 												const dayData = p.dates.find((d) => d.date === date)
-												return dayData || { date, turn: 0, user_id: null, status: 'not_run', description: null, alert: false }
+												return dayData || { date, turn: 0, user_id: null, status: 'not_run', description: null, category_id: null, alert: false }
 											})
 
 											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? formatDateBR(p.last_run) : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={p.dates} onSaved={fetchDashboard} />

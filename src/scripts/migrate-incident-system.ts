@@ -11,7 +11,7 @@
 import 'dotenv/config'
 import { db } from '@/lib/db'
 import { productActivity, productProblemCategory } from '@/lib/db/schema'
-import { eq, isNull, ne } from 'drizzle-orm'
+import { eq, isNull } from 'drizzle-orm'
 import { NO_INCIDENTS_CATEGORY_ID, NO_INCIDENTS_CATEGORY_NAME } from '@/lib/constants'
 
 async function migrateIncidentSystem() {
@@ -120,7 +120,7 @@ async function verifyAutomaticFiltering() {
 		console.log('✅ Filtros automáticos verificados com sucesso!')
 		console.log(`📊 Estatísticas mostram ${data.labels?.length || 0} categorias de incidentes reais`)
 	} catch (error) {
-		console.warn('⚠️ Não foi possível verificar filtros automáticos (servidor pode não estar rodando):', error.message)
+		console.warn('⚠️ Não foi possível verificar filtros automáticos (servidor pode não estar rodando):', error instanceof Error ? error.message : String(error))
 		console.log('💡 Execute o servidor e teste manualmente as APIs de estatísticas')
 	}
 }

@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Offcanvas from '@/components/ui/Offcanvas'
 import Label from '@/components/ui/Label'
 import Select, { SelectOption } from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
+import Markdown from '@/components/ui/Markdown'
 import { toast } from '@/lib/toast'
 import { formatDateBR } from '@/lib/dateUtils'
 import { NO_INCIDENTS_CATEGORY_ID, isRealIncident } from '@/lib/constants'
@@ -55,27 +56,7 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 		}
 	}, [open, initialStatus, initialDescription, initialCategoryId])
 
-	// Carregar incidentes quando o offcanvas abre
-	useEffect(() => {
-		if (open) {
-			loadIncidents()
-		}
-	}, [open])
-
-	// Atualizar opções de incidentes quando o status mudar
-	useEffect(() => {
-		if (allIncidents.length > 0) {
-			updateIncidentsForStatus(allIncidents, status)
-
-			// Se o status não for "Concluído" e o incidente selecionado for "Não houve incidentes",
-			// limpar a seleção
-			if (status !== 'completed' && incidentId === NO_INCIDENTS_CATEGORY_ID) {
-				setIncidentId(null)
-			}
-		}
-	}, [status, allIncidents])
-
-	const loadIncidents = async () => {
+	const loadIncidents = useCallback(async () => {
 		try {
 			const response = await fetch('/api/admin/incidents', {
 				credentials: 'include',
@@ -112,7 +93,7 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 			setAllIncidents(defaultOptions)
 			updateIncidentsForStatus(defaultOptions, status)
 		}
-	}
+	}, [status])
 
 	const updateIncidentsForStatus = (allOptions: SelectOption[], currentStatus: string) => {
 		// Se o status for "Concluído", incluir "Não houve incidentes"
@@ -123,6 +104,26 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 			setIncidents(allOptions.filter((option) => option.value !== NO_INCIDENTS_CATEGORY_ID))
 		}
 	}
+
+	// Carregar incidentes quando o offcanvas abre
+	useEffect(() => {
+		if (open) {
+			loadIncidents()
+		}
+	}, [open, loadIncidents])
+
+	// Atualizar opções de incidentes quando o status mudar
+	useEffect(() => {
+		if (allIncidents.length > 0) {
+			updateIncidentsForStatus(allIncidents, status)
+
+			// Se o status não for "Concluído" e o incidente selecionado for "Não houve incidentes",
+			// limpar a seleção
+			if (status !== 'completed' && incidentId === NO_INCIDENTS_CATEGORY_ID) {
+				setIncidentId(null)
+			}
+		}
+	}, [status, allIncidents, incidentId])
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -224,7 +225,7 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 	const hasRealIncident = isRealIncident(incidentId)
 
 	return (
-		<Offcanvas open={open} onClose={onClose} title='Editar acontecimentos no turno' side='right' width='lg' zIndex={80}>
+		<Offcanvas open={open} onClose={onClose} title='Editar acontecimentos no turno' side='right' width='xl' zIndex={80}>
 			{/* Bloco de contexto mais elegante */}
 			<div className='mb-6 flex items-center gap-4 rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-700/50 dark:bg-blue-950/20'>
 				<div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-300'>
@@ -264,7 +265,9 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 				{hasRealIncident && (
 					<div>
 						<Label required>Descrição de incidentes</Label>
-						<textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className='block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-3 dark:bg-zinc-900 dark:text-zinc-200' placeholder='Descreva os detalhes do incidente...' />
+						<div className='mt-2 min-h-[200px]'>
+							<Markdown value={description} onChange={(value) => setDescription(value || '')} preview='edit' className='h-full' />
+						</div>
 					</div>
 				)}
 				<div className='flex justify-end gap-2'>
