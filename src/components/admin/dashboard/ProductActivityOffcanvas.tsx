@@ -143,6 +143,12 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 			return
 		}
 
+		// Validação: se há incidente real selecionado, descrição é obrigatória
+		if (hasRealIncident && !description.trim()) {
+			toast({ type: 'error', title: 'Descrição de incidentes é obrigatória quando um incidente é selecionado' })
+			return
+		}
+
 		setLoading(true)
 		try {
 			const payload: { productId: string; date: string; turn: number; status: string; description: string; problemCategoryId: string | null; id?: string } = {
@@ -257,8 +263,8 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 				</div>
 				{hasRealIncident && (
 					<div>
-						<Label>Descrição de incidentes</Label>
-						<textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className='block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-3 dark:bg-zinc-900 dark:text-zinc-200' />
+						<Label required>Descrição de incidentes</Label>
+						<textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className='block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-3 dark:bg-zinc-900 dark:text-zinc-200' placeholder='Descreva os detalhes do incidente...' />
 					</div>
 				)}
 				<div className='flex justify-end gap-2'>

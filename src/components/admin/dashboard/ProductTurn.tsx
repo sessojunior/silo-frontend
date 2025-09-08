@@ -1,6 +1,27 @@
 import Popover from '@/components/ui/Popover'
 import { formatDateBR } from '@/lib/dateUtils'
 
+// Função para sanitizar e truncar descrição
+function sanitizeDescription(description: string | null | undefined): string {
+	if (!description) return ''
+
+	// Remove HTML tags e caracteres especiais
+	const sanitized = description
+		.replace(/<[^>]*>/g, '') // Remove HTML tags
+		.replace(/&[^;]+;/g, '') // Remove entidades HTML
+		.replace(/[\r\n]+/g, ' ') // Substitui quebras de linha por espaços
+		.replace(/\s+/g, ' ') // Remove espaços múltiplos
+		.trim()
+
+	// Trunca para máximo 4 linhas (aproximadamente 200 caracteres)
+	const maxLength = 200
+	if (sanitized.length <= maxLength) {
+		return sanitized
+	}
+
+	return sanitized.substring(0, maxLength) + '...'
+}
+
 interface TurnCell {
 	id?: string
 	time: number
@@ -62,12 +83,12 @@ export default function ProductTurn({ productName, days, onTurnClick }: Props) {
 												}}
 												className='flex cursor-pointer items-start gap-2 rounded-lg p-2 hover:bg-zinc-50 dark:hover:bg-zinc-900'
 											>
-												<div className={`flex h-5 w-5 items-center justify-center rounded-full text-xs ${COLOR_MAP[turn.status] || 'bg-zinc-200 text-zinc-600'}`}>{turn.time}</div>
+												<div className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs ${COLOR_MAP[turn.status] || 'bg-zinc-200 text-zinc-600'}`}>{turn.time}</div>
 												<div className='flex flex-col'>
 													<span className='font-medium'>{STATUS_LABEL(turn.status)}.</span>
 													{turn.description && (
 														<span className='text-xs text-zinc-500 dark:text-zinc-400 line-clamp-4' title={turn.description}>
-															{turn.description}
+															{sanitizeDescription(turn.description)}
 														</span>
 													)}
 												</div>
@@ -91,7 +112,7 @@ export default function ProductTurn({ productName, days, onTurnClick }: Props) {
 							<div className='rounded-full bg-zinc-50 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-700'>
 								<div className='flex gap-x-0.5 rounded-full p-1.5'>
 									{day.turns.map((turn, index) => (
-										<div key={index} className={`flex h-5 w-5 items-center justify-center rounded-full text-center text-xs ${COLOR_MAP[turn.status] || 'bg-zinc-200 text-zinc-600'}`}>
+										<div key={index} className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-center text-xs ${COLOR_MAP[turn.status] || 'bg-zinc-200 text-zinc-600'}`}>
 											{turn.time}
 										</div>
 									))}
