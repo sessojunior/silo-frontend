@@ -5,6 +5,8 @@ import Select, { SelectOption } from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { toast } from '@/lib/toast'
 import { formatDateBR } from '@/lib/dateUtils'
+import { NO_INCIDENTS_CATEGORY_ID, isRealIncident } from '@/lib/constants'
+import IncidentManagementOffcanvas from './IncidentManagementOffcanvas'
 
 interface Props {
 	open: boolean
@@ -38,50 +40,89 @@ const INCIDENT_STATUS = new Set(['pending', 'under_support', 'suspended', 'not_r
 export default function ProductActivityOffcanvas({ open, onClose, productId, productName, date, turn, existingId = null, initialStatus = 'completed', initialDescription = '', initialCategoryId = null, onSaved, onAddSaveLog }: Props) {
 	const [status, setStatus] = useState<string>(initialStatus)
 	const [description, setDescription] = useState<string>(initialDescription || '')
-	const [categoryId, setCategoryId] = useState<string | null>(initialCategoryId || null)
-	const [categories, setCategories] = useState<SelectOption[]>([])
+	const [incidentId, setIncidentId] = useState<string | null>(initialCategoryId || null)
+	const [incidents, setIncidents] = useState<SelectOption[]>([])
+	const [allIncidents, setAllIncidents] = useState<SelectOption[]>([])
 	const [loading, setLoading] = useState(false)
+	const [incidentManagementOpen, setIncidentManagementOpen] = useState(false)
 
 	useEffect(() => {
 		if (open) {
 			// reset fields when reopened
 			setStatus(initialStatus)
 			setDescription(initialDescription || '')
-			setCategoryId(initialCategoryId || null)
+			setIncidentId(initialCategoryId || null)
 		}
 	}, [open, initialStatus, initialDescription, initialCategoryId])
 
-	// Carregar categorias apenas uma vez
+	// Carregar incidentes quando o offcanvas abre
 	useEffect(() => {
-		if (open && categories.length === 0) {
-			fetch('/api/admin/products/problems/categories', {
-				credentials: 'include', // Incluir cookies de autenticação
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			})
-				.then((res) => {
-					if (res.status === 401) {
-						throw new Error('Usuário não autenticado')
-					}
-					if (!res.ok) {
-						throw new Error(`HTTP ${res.status}`)
-					}
-					return res.json()
-				})
-				.then((json) => {
-					if (json.success && json.data && json.data.length > 0) {
-						const categoryOptions = json.data.map((c: { name: string; id: string }) => ({ label: c.name, value: c.id }))
-						setCategories(categoryOptions)
-					}
-					// Se não houver categorias da API, mantém as padrão já definidas
-				})
-				.catch((error) => {
-					console.error('❌ Erro ao carregar categorias:', error)
-					// Mantém categorias padrão já definidas
-				})
+		if (open) {
+			loadIncidents()
 		}
-	}, [open, categories.length])
+	}, [open])
+
+	// Atualizar opções de incidentes quando o status mudar
+	useEffect(() => {
+		if (allIncidents.length > 0) {
+			updateIncidentsForStatus(allIncidents, status)
+
+			// Se o status não for "Concluído" e o incidente selecionado for "Não houve incidentes",
+			// limpar a seleção
+			if (status !== 'completed' && incidentId === NO_INCIDENTS_CATEGORY_ID) {
+				setIncidentId(null)
+			}
+		}
+	}, [status, allIncidents])
+
+	const loadIncidents = async () => {
+		try {
+			const response = await fetch('/api/admin/incidents', {
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' },
+			})
+
+			if (response.status === 401) {
+				throw new Error('Usuário não autenticado')
+			}
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status}`)
+			}
+
+			const data = await response.json()
+			if (data.success && data.data) {
+				const incidentOptions = [
+					{ label: 'Não houve incidentes', value: NO_INCIDENTS_CATEGORY_ID },
+					...data.data.map((incident: { name: string; id: string }) => ({
+						label: incident.name,
+						value: incident.id,
+					})),
+				]
+				setAllIncidents(incidentOptions)
+				updateIncidentsForStatus(incidentOptions, status)
+			} else {
+				const defaultOptions = [{ label: 'Não houve incidentes', value: NO_INCIDENTS_CATEGORY_ID }]
+				setAllIncidents(defaultOptions)
+				updateIncidentsForStatus(defaultOptions, status)
+			}
+		} catch (error) {
+			console.error('❌ Erro ao carregar incidentes:', error)
+			// Manter opção padrão
+			const defaultOptions = [{ label: 'Não houve incidentes', value: NO_INCIDENTS_CATEGORY_ID }]
+			setAllIncidents(defaultOptions)
+			updateIncidentsForStatus(defaultOptions, status)
+		}
+	}
+
+	const updateIncidentsForStatus = (allOptions: SelectOption[], currentStatus: string) => {
+		// Se o status for "Concluído", incluir "Não houve incidentes"
+		// Caso contrário, filtrar essa opção
+		if (currentStatus === 'completed') {
+			setIncidents(allOptions)
+		} else {
+			setIncidents(allOptions.filter((option) => option.value !== NO_INCIDENTS_CATEGORY_ID))
+		}
+	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -92,13 +133,13 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 			turn,
 			status,
 			description,
-			categoryId,
+			incidentId,
 			existingId,
 		})
 
 		// validate
-		if (INCIDENT_STATUS.has(status) && !categoryId) {
-			toast({ type: 'error', title: 'Selecione a categoria' })
+		if (INCIDENT_STATUS.has(status) && !incidentId) {
+			toast({ type: 'error', title: 'Selecione o incidente' })
 			return
 		}
 
@@ -110,7 +151,7 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 				turn,
 				status,
 				description,
-				problemCategoryId: categoryId,
+				problemCategoryId: incidentId,
 			}
 			const url = '/api/admin/products/activities'
 			let method: 'POST' | 'PUT' = 'POST'
@@ -173,7 +214,8 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 		}
 	}
 
-	const requireCategory = INCIDENT_STATUS.has(status)
+	const requireIncident = INCIDENT_STATUS.has(status)
+	const hasRealIncident = isRealIncident(incidentId)
 
 	return (
 		<Offcanvas open={open} onClose={onClose} title='Editar acontecimentos no turno' side='right' width='lg' zIndex={80}>
@@ -203,13 +245,22 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 					<Select name='status' options={STATUS_OPTIONS} selected={status} onChange={setStatus} placeholder='Selecione o status' required />
 				</div>
 				<div>
-					<Label required={requireCategory}>Categoria</Label>
-					<Select name='category' options={categories} selected={categoryId ?? undefined} onChange={(v) => setCategoryId(v)} placeholder='Selecione a categoria' required={requireCategory} />
+					<div className='flex gap-2'>
+						<div className='flex-1'>
+							<Label required={requireIncident}>Incidentes</Label>
+							<div className='flex items-center gap-2'>
+								<Select name='incident' options={incidents} selected={incidentId ?? undefined} onChange={setIncidentId} placeholder='Selecione o incidente' required={requireIncident} />
+								<Button icon='icon-[lucide--settings]' type='button' style='bordered' onClick={() => setIncidentManagementOpen(true)} className='px-3 py-3 h-12' title='Gerenciar incidentes'></Button>
+							</div>
+						</div>
+					</div>
 				</div>
-				<div>
-					<Label>Descrição de incidentes</Label>
-					<textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className='block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-3 dark:bg-zinc-900 dark:text-zinc-200' />
-				</div>
+				{hasRealIncident && (
+					<div>
+						<Label>Descrição de incidentes</Label>
+						<textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className='block w-full rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-3 dark:bg-zinc-900 dark:text-zinc-200' />
+					</div>
+				)}
 				<div className='flex justify-end gap-2'>
 					<Button style='bordered' type='button' onClick={onClose}>
 						Cancelar
@@ -219,6 +270,16 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 					</Button>
 				</div>
 			</form>
+
+			{/* Offcanvas de gerenciamento de incidentes */}
+			<IncidentManagementOffcanvas
+				open={incidentManagementOpen}
+				onClose={() => setIncidentManagementOpen(false)}
+				onIncidentUpdated={() => {
+					loadIncidents()
+					onSaved?.()
+				}}
+			/>
 		</Offcanvas>
 	)
 }

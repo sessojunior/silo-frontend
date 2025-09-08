@@ -8,6 +8,13 @@
       "when": 1757076943121,
       "tag": "0000_long_ken_ellis",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1757336650613,
+      "tag": "0001_aspiring_tarantula",
+      "breakpoints": true
     }
   ]
 }

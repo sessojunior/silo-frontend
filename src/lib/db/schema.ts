@@ -132,6 +132,8 @@ export const productProblemCategory = pgTable('product_problem_category', {
 	id: text('id').primaryKey(),
 	name: text('name').notNull().unique(),
 	color: text('color'),
+	isSystem: boolean('is_system').notNull().default(false), // Categoria do sistema (não pode ser excluída)
+	sortOrder: integer('sort_order').notNull().default(0), // Ordem de exibição
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })

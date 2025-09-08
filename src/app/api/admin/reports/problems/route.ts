@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { productProblem, productProblemCategory, product } from '@/lib/db/schema'
-import { eq, and, gte, lte } from 'drizzle-orm'
+import { eq, and, gte, lte, ne } from 'drizzle-orm'
 import { getToday, getDaysAgo, formatDate } from '@/lib/dateUtils'
+import { NO_INCIDENTS_CATEGORY_ID, NO_INCIDENTS_CATEGORY_NAME } from '@/lib/constants'
 
 export async function GET(request: Request) {
 	try {
@@ -32,7 +33,7 @@ export async function GET(request: Request) {
 
 		console.log('📅 Período de análise:', { start, end })
 
-		// Buscar problemas no período
+		// Buscar problemas no período (excluindo "Não houve incidentes")
 		const problemsQuery = db
 			.select({
 				id: productProblem.id,
@@ -45,7 +46,15 @@ export async function GET(request: Request) {
 				problemCategoryId: productProblem.problemCategoryId,
 			})
 			.from(productProblem)
-			.where(and(gte(productProblem.createdAt, new Date(start + 'T00:00:00')), lte(productProblem.createdAt, new Date(end + 'T23:59:59')), productId ? eq(productProblem.productId, productId) : undefined, problemCategory ? eq(productProblem.problemCategoryId, problemCategory) : undefined))
+			.where(
+				and(
+					gte(productProblem.createdAt, new Date(start + 'T00:00:00')),
+					lte(productProblem.createdAt, new Date(end + 'T23:59:59')),
+					ne(productProblem.problemCategoryId, NO_INCIDENTS_CATEGORY_ID), // ← FILTRO AUTOMÁTICO
+					productId ? eq(productProblem.productId, productId) : undefined,
+					problemCategory ? eq(productProblem.problemCategoryId, problemCategory) : undefined,
+				),
+			)
 
 		const problems = await problemsQuery
 		console.log('✅ Problemas encontrados:', problems.length)
@@ -54,8 +63,9 @@ export async function GET(request: Request) {
 		const categories = await db.select().from(productProblemCategory)
 		console.log('✅ Categorias encontradas:', categories.length)
 
-		// Calcular problemas por categoria
+		// Calcular problemas por categoria (excluindo "Não houve incidentes")
 		const problemsByCategory = categories
+			.filter((cat) => cat.name !== NO_INCIDENTS_CATEGORY_NAME) // ← FILTRO AUTOMÁTICO
 			.map((category) => {
 				const categoryProblems = problems.filter((p) => p.problemCategoryId === category.id)
 				const problemsCount = categoryProblems.length

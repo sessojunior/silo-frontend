@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import * as schema from '@/lib/db/schema'
 import { hashPassword } from '@/lib/auth/hash'
 import { createLocalDate } from '@/lib/utils'
+import { NO_INCIDENTS_CATEGORY_ID, NO_INCIDENTS_CATEGORY_NAME } from '@/lib/constants'
 
 // Importar dados do arquivo separado
 import { products, groups, contacts, testUsers, dependencyStructure, projectsData, helpDocumentation, manualData, generateProblems, generateSolutions, projectActivitiesData } from './seed-data'
@@ -288,18 +289,58 @@ async function seed() {
 			if (existingCats.length === 0) {
 				console.log('🔵 Categorias de problema ainda não existem – criando antes do product_activity...')
 				const problemCategories = [
-					{ name: 'Rede externa', color: '#1E40AF' },
-					{ name: 'Servidor indisponível', color: '#DC2626' },
-					{ name: 'Falha humana', color: '#F59E0B' },
-					{ name: 'Rede interna', color: '#10B981' },
-					{ name: 'Erro no modelo', color: '#7C3AED' },
-					{ name: 'Dados indisponíveis', color: '#6B7280' },
+					{
+						id: NO_INCIDENTS_CATEGORY_ID, // ID fixo para "Não houve incidentes"
+						name: NO_INCIDENTS_CATEGORY_NAME,
+						color: '#10B981',
+						isSystem: true, // Não pode ser excluída
+						sortOrder: 0, // Sempre primeiro
+					},
+					{
+						id: randomUUID(),
+						name: 'Rede externa',
+						color: '#1E40AF',
+						isSystem: false,
+						sortOrder: 1,
+					},
+					{
+						id: randomUUID(),
+						name: 'Servidor indisponível',
+						color: '#DC2626',
+						isSystem: false,
+						sortOrder: 2,
+					},
+					{
+						id: randomUUID(),
+						name: 'Falha humana',
+						color: '#F59E0B',
+						isSystem: false,
+						sortOrder: 3,
+					},
+					{
+						id: randomUUID(),
+						name: 'Rede interna',
+						color: '#10B981',
+						isSystem: false,
+						sortOrder: 4,
+					},
+					{
+						id: randomUUID(),
+						name: 'Erro no modelo',
+						color: '#7C3AED',
+						isSystem: false,
+						sortOrder: 5,
+					},
+					{
+						id: randomUUID(),
+						name: 'Dados indisponíveis',
+						color: '#6B7280',
+						isSystem: false,
+						sortOrder: 6,
+					},
 				]
 
-				const insertedCats = await db
-					.insert(schema.productProblemCategory)
-					.values(problemCategories.map((c) => ({ id: randomUUID(), ...c })))
-					.returning()
+				const insertedCats = await db.insert(schema.productProblemCategory).values(problemCategories).returning()
 				insertedCats.forEach((c) => categoryMap.set(c.name, c.id))
 			} else {
 				existingCats.forEach((c) => categoryMap.set(c.name, c.id))

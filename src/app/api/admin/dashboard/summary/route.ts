@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { productActivity, productProblemCategory } from '@/lib/db/schema'
-import { gte, and, isNotNull, inArray } from 'drizzle-orm'
+import { gte, and, isNotNull, inArray, ne } from 'drizzle-orm'
+import { NO_INCIDENTS_CATEGORY_ID } from '@/lib/constants'
 
 // Status considerados incidentes (mesmos do dashboard)
 const INCIDENT_STATUS = ['pending', 'under_support', 'suspended', 'not_run', 'with_problems', 'run_again'] as const
@@ -17,11 +18,18 @@ export async function GET() {
 		const dateStr7 = cut7.toISOString().slice(0, 10)
 		const dateStr14 = cut14.toISOString().slice(0, 10)
 
-		// Fetch incidents for last 14 days (we'll split in memory)
+		// Fetch incidents for last 14 days (we'll split in memory) - excluindo "Não houve incidentes"
 		const rows = await db
 			.select({ date: productActivity.date, categoryId: productActivity.problemCategoryId })
 			.from(productActivity)
-			.where(and(gte(productActivity.date, dateStr14), isNotNull(productActivity.problemCategoryId), inArray(productActivity.status, INCIDENT_STATUS)))
+			.where(
+				and(
+					gte(productActivity.date, dateStr14),
+					isNotNull(productActivity.problemCategoryId),
+					inArray(productActivity.status, INCIDENT_STATUS),
+					ne(productActivity.problemCategoryId, NO_INCIDENTS_CATEGORY_ID), // ← FILTRO AUTOMÁTICO
+				),
+			)
 
 		let recentCount = 0
 		let previousCount = 0

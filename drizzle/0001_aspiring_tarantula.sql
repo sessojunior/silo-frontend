@@ -1,0 +1,2 @@
+ALTER TABLE "product_problem_category" ADD COLUMN "is_system" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "product_problem_category" ADD COLUMN "sort_order" integer DEFAULT 0 NOT NULL;

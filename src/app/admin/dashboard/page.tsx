@@ -4,6 +4,7 @@ import { formatDateBR } from '@/lib/dateUtils'
 import ChartColumn from '@/components/admin/dashboard/ChartColumn'
 import ChartLine from '@/components/admin/dashboard/ChartLine'
 import ChartDonut from '@/components/admin/dashboard/ChartDonut'
+import { isRealIncident } from '@/lib/constants'
 
 import Stats from '@/components/admin/dashboard/Stats'
 import Radial from '@/components/admin/dashboard/Radial'
@@ -124,7 +125,8 @@ export default function DashboardPage() {
 
 	data.forEach((product) => {
 		product.dates.forEach((d) => {
-			if (last7Dates.includes(d.date) && STATUS_INFO[d.status]?.severity >= 3) {
+			// ← FILTRO AUTOMÁTICO: Só conta incidentes reais
+			if (last7Dates.includes(d.date) && STATUS_INFO[d.status]?.severity >= 3 && isRealIncident(d.category_id)) {
 				incidentsByDay[d.date]++
 			}
 		})
