@@ -247,26 +247,44 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 			</div>
 
 			<form onSubmit={handleSubmit} className='flex flex-col gap-4'>
-				<div>
-					<Label required>Status</Label>
-					<Select name='status' options={STATUS_OPTIONS} selected={status} onChange={setStatus} placeholder='Selecione o status' required />
-				</div>
-				<div>
-					<div className='flex gap-2'>
-						<div className='flex-1'>
-							<Label required={requireIncident}>Incidentes</Label>
-							<div className='flex items-center gap-2'>
-								<Select name='incident' options={incidents} selected={incidentId ?? undefined} onChange={setIncidentId} placeholder='Selecione o incidente' required={requireIncident} />
-								<Button icon='icon-[lucide--settings]' type='button' style='bordered' onClick={() => setIncidentManagementOpen(true)} className='px-3 py-3 h-12' title='Gerenciar incidentes'></Button>
-							</div>
+				{/* Status e Incidentes na mesma linha */}
+				<div className='flex gap-4'>
+					<div className='flex-1'>
+						<Label required>Status</Label>
+						<Select name='status' options={STATUS_OPTIONS} selected={status} onChange={setStatus} placeholder='Selecione o status' required />
+					</div>
+					<div className='flex-1'>
+						<Label required={requireIncident}>Incidentes</Label>
+						<div className='flex items-center gap-2'>
+							<Select name='incident' options={incidents} selected={incidentId ?? undefined} onChange={setIncidentId} placeholder='Selecione o incidente' required={requireIncident} />
+							<Button icon='icon-[lucide--settings]' type='button' style='bordered' onClick={() => setIncidentManagementOpen(true)} className='px-3 py-3 h-12' title='Gerenciar incidentes'></Button>
 						</div>
 					</div>
 				</div>
 				{hasRealIncident && (
 					<div>
 						<Label required>Descrição de incidentes</Label>
-						<div className='mt-2 min-h-[200px]'>
-							<Markdown value={description} onChange={(value) => setDescription(value || '')} preview='edit' className='h-full' />
+
+						{/* Dicas de formatação Markdown */}
+						<div className='mt-2 mb-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3'>
+							<div className='flex items-start gap-3'>
+								<span className='icon-[lucide--info] size-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0' />
+								<div className='text-sm text-blue-700 dark:text-blue-300'>
+									<p className='font-medium mb-1'>Dicas de formatação:</p>
+									<ul className='text-sm'>
+										<li>
+											Use <code className='bg-blue-100 dark:bg-blue-800 px-1 rounded'>**negrito**</code> para destacar informações importantes e <code className='bg-blue-100 dark:bg-blue-800 px-1 rounded'>*itálico*</code> para ênfase
+										</li>
+										<li>
+											Use <code className='bg-blue-100 dark:bg-blue-800 px-1 rounded'>- lista</code> para criar listas e <code className='bg-blue-100 dark:bg-blue-800 px-1 rounded'>`código`</code> para comandos ou erros
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+
+						<div className='mt-2'>
+							<Markdown value={description} onChange={(value) => setDescription(value || '')} preview='edit' className='h-full w-full' />
 						</div>
 					</div>
 				)}

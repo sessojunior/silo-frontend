@@ -56,8 +56,8 @@ export default function ProductTurn({ productName, days, onTurnClick }: Props) {
 		<div className='relative h-8'>
 			<div className='flex gap-1'>
 				{days.map((day, i) => {
-					const incidentsStatuses = ['pending', 'under_support', 'suspended', 'not_run', 'with_problems', 'run_again']
-					const totalIncidents = day.turns.filter((t) => incidentsStatuses.includes(t.status)).length
+					// Contar apenas turnos com incidentes reais (baseado em category_id, não status)
+					const totalIncidents = day.turns.filter((t) => t.category_id && t.category_id !== 'no_incidents').length
 
 					return (
 						<Popover

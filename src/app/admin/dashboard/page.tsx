@@ -126,8 +126,8 @@ export default function DashboardPage() {
 
 	data.forEach((product) => {
 		product.dates.forEach((d) => {
-			// ← FILTRO AUTOMÁTICO: Só conta incidentes reais
-			if (last7Dates.includes(d.date) && STATUS_INFO[d.status]?.severity >= 3 && isRealIncident(d.category_id)) {
+			// ← FILTRO AUTOMÁTICO: Só conta incidentes reais (baseado em category_id, não status)
+			if (last7Dates.includes(d.date) && isRealIncident(d.category_id)) {
 				incidentsByDay[d.date]++
 			}
 		})
@@ -140,12 +140,26 @@ export default function DashboardPage() {
 
 	const columnData = last7Dates.map((d) => incidentsByDay[d])
 
+	// Contar incidentes reais por status (baseado em category_id, não severity)
+	const incidentsByStatus: Record<string, number> = {}
+	Object.keys(STATUS_INFO).forEach((s) => (incidentsByStatus[s] = 0))
+	
+	data.forEach((product) => {
+		product.dates.forEach((d) => {
+			if (new Date(d.date) < cut28) return
+			if (!product.turns.includes(String(d.turn))) return
+			if (STATUS_INFO[d.status] && isRealIncident(d.category_id)) {
+				incidentsByStatus[d.status]++
+			}
+		})
+	})
+
 	// Monta itens para Stats, omitindo status com 0
 	const statsItems = Object.entries(statusCounts)
 		.filter(([, count]) => count > 0)
 		.map(([status, count]) => {
 			const info = STATUS_INFO[status]
-			const incidents = info.severity >= 3 ? count : 0 // incidentes = laranja ou vermelho
+			const incidents = incidentsByStatus[status] || 0 // incidentes reais baseados em category_id
 			return { name: info.label, progress: count, incidents, color: info.color, colorDark: info.colorDark }
 		})
 
