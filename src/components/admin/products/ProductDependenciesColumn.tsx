@@ -23,11 +23,65 @@ interface ProductDependenciesColumnProps {
 
 	// Handlers (callbacks para página principal)
 	onOpenManagement: () => void
+	onEditDependency?: (dependency: ProductDependency) => void
+	onDeleteDependency?: (dependency: ProductDependency) => void
 }
 
-export default function ProductDependenciesColumn({ dependencies, loading, treeNodes, onOpenManagement }: ProductDependenciesColumnProps) {
+export default function ProductDependenciesColumn({ dependencies, loading, treeNodes, onOpenManagement, onEditDependency, onDeleteDependency }: ProductDependenciesColumnProps) {
 	if (loading) {
 		return null // A página principal já tem o loading geral
+	}
+
+	// Funções para converter TreeNode para ProductDependency
+	const handleEdit = (node: TreeNode) => {
+		if (onEditDependency) {
+			// Converter TreeNode para ProductDependency
+			const dependency: ProductDependency = {
+				id: node.id,
+				name: node.name,
+				icon: node.icon || undefined,
+				description: node.data?.description,
+				parentId: null, // Será preenchido pela função de busca
+				treePath: null,
+				treeDepth: 0,
+				sortKey: null,
+				children: node.children ? convertTreeNodesToDependencies(node.children) : undefined,
+			}
+			onEditDependency(dependency)
+		}
+	}
+
+	const handleDelete = (node: TreeNode) => {
+		if (onDeleteDependency) {
+			// Converter TreeNode para ProductDependency
+			const dependency: ProductDependency = {
+				id: node.id,
+				name: node.name,
+				icon: node.icon || undefined,
+				description: node.data?.description,
+				parentId: null, // Será preenchido pela função de busca
+				treePath: null,
+				treeDepth: 0,
+				sortKey: null,
+				children: node.children ? convertTreeNodesToDependencies(node.children) : undefined,
+			}
+			onDeleteDependency(dependency)
+		}
+	}
+
+	// Função auxiliar para converter TreeNode[] para ProductDependency[]
+	const convertTreeNodesToDependencies = (nodes: TreeNode[]): ProductDependency[] => {
+		return nodes.map((node) => ({
+			id: node.id,
+			name: node.name,
+			icon: node.icon || undefined,
+			description: node.data?.description,
+			parentId: null,
+			treePath: null,
+			treeDepth: 0,
+			sortKey: null,
+			children: node.children ? convertTreeNodesToDependencies(node.children) : undefined,
+		}))
 	}
 
 	return (
@@ -50,7 +104,7 @@ export default function ProductDependenciesColumn({ dependencies, loading, treeN
 
 					{/* TreeView Items */}
 					{treeNodes.length > 0 ? (
-						<TreeView nodes={treeNodes} defaultExpanded={true} />
+						<TreeView nodes={treeNodes} defaultExpanded={true} showActions={!!(onEditDependency && onDeleteDependency)} onEdit={handleEdit} onDelete={handleDelete} />
 					) : (
 						<div className='flex flex-col items-center justify-center py-12 text-center'>
 							<div className='size-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-4'>

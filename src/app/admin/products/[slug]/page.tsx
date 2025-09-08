@@ -652,7 +652,7 @@ export default function ProductsPage() {
 	return (
 		<div className='flex w-full'>
 			{/* Componente Coluna Esquerda - ETAPA 1 REFATORAÇÃO */}
-			<ProductDependenciesColumn dependencies={dependencies} loading={loading} treeNodes={treeNodes} onOpenManagement={openManagement} />
+			<ProductDependenciesColumn dependencies={dependencies} loading={loading} treeNodes={treeNodes} onOpenManagement={openManagement} onEditDependency={openEditItemForm} onDeleteDependency={openDeleteDialog} />
 
 			{/* Componente Coluna Direita - ETAPA 2 REFATORAÇÃO com manual markdown */}
 			<div className='flex-1'>

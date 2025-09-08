@@ -195,13 +195,6 @@ export default function Sidebar() {
 						url: '/admin/groups',
 						items: null,
 					},
-					{
-						id: '1.6',
-						title: 'Contatos',
-						icon: 'icon-[lucide--contact]',
-						url: '/admin/contacts',
-						items: null,
-					},
 				],
 			},
 			{
@@ -237,6 +230,13 @@ export default function Sidebar() {
 								title: 'Produtos & tasks',
 								icon: null,
 								url: '/admin/settings/products',
+								items: null,
+							},
+							{
+								id: '2.3.4',
+								title: 'Contatos',
+								icon: null,
+								url: '/admin/contacts',
 								items: null,
 							},
 							{

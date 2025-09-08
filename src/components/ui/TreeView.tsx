@@ -21,6 +21,9 @@ export interface TreeNode {
 interface TreeViewProps {
 	nodes: TreeNode[]
 	defaultExpanded?: boolean
+	showActions?: boolean
+	onEdit?: (node: TreeNode) => void
+	onDelete?: (node: TreeNode) => void
 }
 
 interface TreeItemProps {
@@ -30,16 +33,19 @@ interface TreeItemProps {
 	parentLines: boolean[]
 	onLeafClick: (node: TreeNode) => void
 	defaultExpanded?: boolean
+	showActions?: boolean
+	onEdit?: (node: TreeNode) => void
+	onDelete?: (node: TreeNode) => void
 }
 
-export default function TreeView({ nodes, defaultExpanded = false }: TreeViewProps) {
+export default function TreeView({ nodes, defaultExpanded = false, showActions = false, onEdit, onDelete }: TreeViewProps) {
 	const [dialogNode, setDialogNode] = useState<TreeNode | null>(null)
 
 	return (
 		<>
 			<div className='flex flex-col gap-1 text-sm'>
 				{nodes.map((node, index) => (
-					<TreeItem key={node.id} node={node} depth={0} isLast={index === nodes.length - 1} parentLines={[]} onLeafClick={setDialogNode} defaultExpanded={defaultExpanded} />
+					<TreeItem key={node.id} node={node} depth={0} isLast={index === nodes.length - 1} parentLines={[]} onLeafClick={setDialogNode} defaultExpanded={defaultExpanded} showActions={showActions} onEdit={onEdit} onDelete={onDelete} />
 				))}
 			</div>
 
@@ -62,7 +68,7 @@ export default function TreeView({ nodes, defaultExpanded = false }: TreeViewPro
 	)
 }
 
-function TreeItem({ node, depth, isLast, parentLines, onLeafClick, defaultExpanded = false }: TreeItemProps) {
+function TreeItem({ node, depth, isLast, parentLines, onLeafClick, defaultExpanded = false, showActions = false, onEdit, onDelete }: TreeItemProps) {
 	const [expanded, setExpanded] = useState(defaultExpanded)
 	const hasChildren = !!node.children && node.children.length > 0
 
@@ -74,9 +80,19 @@ function TreeItem({ node, depth, isLast, parentLines, onLeafClick, defaultExpand
 		}
 	}
 
+	const handleEdit = (e: React.MouseEvent) => {
+		e.stopPropagation()
+		onEdit?.(node)
+	}
+
+	const handleDelete = (e: React.MouseEvent) => {
+		e.stopPropagation()
+		onDelete?.(node)
+	}
+
 	return (
 		<div>
-			<div className='flex items-center py-1'>
+			<div className='flex items-center py-1 group'>
 				{/* Renderizar linhas verticais dos níveis pais */}
 				{parentLines.map((showLine, index) => (
 					<div key={index} className='relative w-6 flex-shrink-0'>
@@ -111,7 +127,7 @@ function TreeItem({ node, depth, isLast, parentLines, onLeafClick, defaultExpand
 				</div>
 
 				{/* Nome do nó */}
-				<div onClick={handleClick} className={clsx(twMerge('flex items-center cursor-pointer select-none font-medium text-base', !hasChildren && 'text-primary font-normal text-sm'))}>
+				<div onClick={handleClick} className={clsx(twMerge('flex items-center cursor-pointer select-none font-medium text-base flex-1', !hasChildren && 'text-primary font-normal text-sm'))}>
 					{/* Ícone do nó */}
 					{node.icon && (
 						<div className='flex items-center justify-center flex-shrink-0 size-5'>
@@ -120,13 +136,25 @@ function TreeItem({ node, depth, isLast, parentLines, onLeafClick, defaultExpand
 					)}
 					{node.name}
 				</div>
+
+				{/* Botões de ação */}
+				{showActions && (
+					<div className='flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity'>
+						<button onClick={handleEdit} className='p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300' title='Editar dependência'>
+							<span className='icon-[lucide--edit-2] size-4' />
+						</button>
+						<button onClick={handleDelete} className='p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded text-zinc-500 hover:text-red-600 dark:hover:text-red-400' title='Excluir dependência'>
+							<span className='icon-[lucide--trash-2] size-4' />
+						</button>
+					</div>
+				)}
 			</div>
 
 			{/* Renderizar filhos quando expandido */}
 			{hasChildren && expanded && (
 				<div>
 					{node.children!.map((child, index) => (
-						<TreeItem key={child.id} node={child} depth={depth + 1} isLast={index === node.children!.length - 1} parentLines={[...parentLines, !isLast]} onLeafClick={onLeafClick} defaultExpanded={defaultExpanded} />
+						<TreeItem key={child.id} node={child} depth={depth + 1} isLast={index === node.children!.length - 1} parentLines={[...parentLines, !isLast]} onLeafClick={onLeafClick} defaultExpanded={defaultExpanded} showActions={showActions} onEdit={onEdit} onDelete={onDelete} />
 					))}
 				</div>
 			)}

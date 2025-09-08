@@ -195,30 +195,62 @@ export const dependencyStructure: DependencyItem[] = [
 	{
 		name: 'Equipamentos',
 		icon: null,
+		description: 'Infraestrutura física e de rede necessária para o funcionamento dos produtos meteorológicos. Inclui servidores, workstations, clusters de processamento e toda a conectividade de rede interna e externa.',
 		children: [
 			{
 				name: 'Máquinas',
 				icon: null,
+				description: 'Hardware de computação utilizado para processamento, armazenamento e execução dos modelos meteorológicos.',
 				children: [
-					{ name: 'Servidor Principal', icon: 'icon-[lucide--server]' },
-					{ name: 'Workstation Linux', icon: 'icon-[lucide--computer]' },
-					{ name: 'Cluster de Processamento', icon: 'icon-[lucide--cpu]' },
+					{
+						name: 'Servidor Principal',
+						icon: 'icon-[lucide--server]',
+						description: 'Servidor central responsável pela coordenação dos processos, gerenciamento de dados e execução dos modelos meteorológicos. Especificações: 64GB RAM, 16 cores, 10TB armazenamento.',
+					},
+					{
+						name: 'Workstation Linux',
+						icon: 'icon-[lucide--computer]',
+						description: 'Estação de trabalho Linux para desenvolvimento, testes e análise de dados meteorológicos. Configurada com ferramentas de visualização e análise científica.',
+					},
+					{
+						name: 'Cluster de Processamento',
+						icon: 'icon-[lucide--cpu]',
+						description: 'Cluster de alta performance para processamento paralelo de modelos meteorológicos. Composto por múltiplos nós de computação com processadores de alta frequência.',
+					},
 				],
 			},
 			{
 				name: 'Redes internas',
 				icon: null,
+				description: 'Infraestrutura de rede interna do INPE/CPTEC para comunicação entre equipamentos e sistemas.',
 				children: [
-					{ name: 'Rede CPTEC', icon: 'icon-[lucide--network]' },
-					{ name: 'Rede Laboratório', icon: 'icon-[lucide--network]' },
+					{
+						name: 'Rede CPTEC',
+						icon: 'icon-[lucide--network]',
+						description: 'Rede principal do CPTEC com alta disponibilidade e redundância. Fornece conectividade entre todos os sistemas meteorológicos e bancos de dados.',
+					},
+					{
+						name: 'Rede Laboratório',
+						icon: 'icon-[lucide--network]',
+						description: 'Rede dedicada para laboratórios de pesquisa e desenvolvimento. Isolada da rede principal para testes e experimentos.',
+					},
 				],
 			},
 			{
 				name: 'Redes externas',
 				icon: null,
+				description: 'Conectividade externa necessária para recebimento de dados meteorológicos, comunicação com outros centros e acesso à internet.',
 				children: [
-					{ name: 'Internet INPE', icon: 'icon-[lucide--globe]' },
-					{ name: 'VPN Científica', icon: 'icon-[lucide--shield]' },
+					{
+						name: 'Internet INPE',
+						icon: 'icon-[lucide--globe]',
+						description: 'Conexão principal de internet do INPE com alta velocidade e redundância. Utilizada para download de dados meteorológicos globais e comunicação com centros internacionais.',
+					},
+					{
+						name: 'VPN Científica',
+						icon: 'icon-[lucide--shield]',
+						description: 'Rede privada virtual para comunicação segura com outros centros de pesquisa meteorológica e acesso a dados restritos.',
+					},
 				],
 			},
 		],
@@ -226,26 +258,50 @@ export const dependencyStructure: DependencyItem[] = [
 	{
 		name: 'Dependências',
 		icon: null,
+		description: 'Dependências de software, sistemas e recursos humanos necessários para o funcionamento e manutenção dos produtos meteorológicos.',
 		children: [
 			{
 				name: 'Sistema',
 				icon: null,
+				description: 'Dependências de software e sistemas operacionais necessários para execução dos modelos e processamento de dados.',
 				children: [
 					{
 						name: 'Hosts',
 						icon: null,
+						description: 'Máquinas específicas que hospedam os sistemas e executam os modelos meteorológicos.',
 						children: [
-							{ name: 'met01.cptec.inpe.br', icon: 'icon-[lucide--computer]' },
-							{ name: 'model02.cptec.inpe.br', icon: 'icon-[lucide--computer]' },
+							{
+								name: 'met01.cptec.inpe.br',
+								icon: 'icon-[lucide--computer]',
+								description: 'Servidor principal de meteorologia do CPTEC. Responsável pela execução dos modelos de previsão numérica do tempo e processamento de dados observacionais.',
+							},
+							{
+								name: 'model02.cptec.inpe.br',
+								icon: 'icon-[lucide--computer]',
+								description: 'Servidor secundário para backup e processamento paralelo. Utilizado para execução de modelos de alta resolução e simulações experimentais.',
+							},
 						],
 					},
 					{
 						name: 'Softwares',
 						icon: null,
+						description: 'Aplicações e bibliotecas de software necessárias para processamento, análise e visualização de dados meteorológicos.',
 						children: [
-							{ name: 'Python 3.9+', icon: 'icon-[lucide--code]' },
-							{ name: 'NetCDF4', icon: 'icon-[lucide--database]' },
-							{ name: 'GrADS', icon: 'icon-[lucide--bar-chart]' },
+							{
+								name: 'Python 3.9+',
+								icon: 'icon-[lucide--code]',
+								description: 'Linguagem de programação principal para scripts de processamento, análise de dados e automação de tarefas meteorológicas. Versão mínima 3.9 para compatibilidade com bibliotecas científicas.',
+							},
+							{
+								name: 'NetCDF4',
+								icon: 'icon-[lucide--database]',
+								description: 'Biblioteca para leitura e escrita de arquivos NetCDF, formato padrão para dados meteorológicos e climáticos. Essencial para manipulação de dados de modelos numéricos.',
+							},
+							{
+								name: 'GrADS',
+								icon: 'icon-[lucide--bar-chart]',
+								description: 'Sistema de análise e visualização de dados geofísicos. Utilizado para criação de mapas meteorológicos, gráficos e análises estatísticas de dados atmosféricos.',
+							},
 						],
 					},
 				],
@@ -253,21 +309,40 @@ export const dependencyStructure: DependencyItem[] = [
 			{
 				name: 'Recursos humanos',
 				icon: null,
+				description: 'Pessoas responsáveis pelo desenvolvimento, manutenção e suporte dos sistemas meteorológicos.',
 				children: [
 					{
 						name: 'Responsáveis técnicos do INPE',
 						icon: null,
+						description: 'Especialistas técnicos do INPE responsáveis pelo desenvolvimento e manutenção dos sistemas meteorológicos.',
 						children: [
-							{ name: 'João Silva', icon: 'icon-[lucide--user-round]' },
-							{ name: 'Maria Santos', icon: 'icon-[lucide--user-round]' },
+							{
+								name: 'João Silva',
+								icon: 'icon-[lucide--user-round]',
+								description: 'Engenheiro de Sistemas especializado em meteorologia computacional. Responsável pela manutenção dos modelos numéricos e otimização de performance.',
+							},
+							{
+								name: 'Maria Santos',
+								icon: 'icon-[lucide--user-round]',
+								description: 'Cientista da Computação com doutorado em Meteorologia. Especialista em processamento de dados atmosféricos e desenvolvimento de algoritmos de previsão.',
+							},
 						],
 					},
 					{
 						name: 'Suporte',
 						icon: null,
+						description: 'Equipe de suporte técnico responsável pela operação e resolução de problemas dos sistemas meteorológicos.',
 						children: [
-							{ name: 'Carlos Tech', icon: 'icon-[lucide--headphones]' },
-							{ name: 'Ana Support', icon: 'icon-[lucide--headphones]' },
+							{
+								name: 'Carlos Tech',
+								icon: 'icon-[lucide--headphones]',
+								description: 'Técnico de suporte especializado em sistemas Linux e redes. Responsável pela manutenção preventiva e resolução de problemas de infraestrutura.',
+							},
+							{
+								name: 'Ana Support',
+								icon: 'icon-[lucide--headphones]',
+								description: 'Analista de sistemas com experiência em meteorologia operacional. Responsável pelo monitoramento 24/7 e suporte aos usuários dos sistemas.',
+							},
 						],
 					},
 				],
