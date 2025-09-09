@@ -41,9 +41,8 @@ interface Props {
 
 const COLOR_MAP: Record<string, string> = {
 	completed: 'bg-green-600 text-white',
-	waiting: 'bg-zinc-200 text-zinc-600',
 	in_progress: 'bg-transparent border border-zinc-300 text-zinc-600 dark:border-zinc-700',
-	pending: 'bg-orange-600 text-white',
+	pending: 'bg-zinc-200 text-zinc-600',
 	under_support: 'bg-orange-500 text-white',
 	suspended: 'bg-orange-500 text-white',
 	not_run: 'bg-zinc-400 text-white', // Corrigido: cinza ao invés de vermelho
@@ -111,11 +110,30 @@ export default function ProductTurn({ productName, days, onTurnClick }: Props) {
 						>
 							<div className='rounded-full bg-zinc-50 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-700'>
 								<div className='flex gap-x-0.5 rounded-full p-1.5'>
-									{day.turns.map((turn, index) => (
-										<div key={index} className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-center text-xs ${COLOR_MAP[turn.status] || 'bg-zinc-200 text-zinc-600'}`}>
-											{turn.time}
-										</div>
-									))}
+									{day.turns.map((turn, index) => {
+										// Função para truncar e limpar descrição
+										const truncateDescription = (desc: string | null | undefined): string => {
+											if (!desc) return ''
+											// Remove quebras de linha e caracteres inválidos
+											const cleaned = desc
+												.replace(/[\r\n\t]+/g, ' ')
+												.replace(/\s+/g, ' ')
+												.trim()
+											// Trunca em 60 caracteres
+											return cleaned.length > 60 ? cleaned.substring(0, 60) + '...' : cleaned
+										}
+
+										// Construir tooltip individual para cada turno
+										const dateFormatted = formatDateBR(day.date)
+										const description = turn.description ? truncateDescription(turn.description) : ''
+										const tooltipContent = `${dateFormatted}\nTurno ${turn.time}: ${STATUS_LABEL(turn.status)}${description ? ' - ' + description : ''}`
+
+										return (
+											<div key={index} className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-center text-xs hover:scale-110 transition-transform ${COLOR_MAP[turn.status] || 'bg-zinc-200 text-zinc-600'}`} title={tooltipContent}>
+												{turn.time}
+											</div>
+										)
+									})}
 								</div>
 							</div>
 						</Popover>
@@ -129,7 +147,6 @@ export default function ProductTurn({ productName, days, onTurnClick }: Props) {
 function STATUS_LABEL(status: string) {
 	const map: Record<string, string> = {
 		completed: 'Concluído',
-		waiting: 'Aguardando',
 		in_progress: 'Em execução',
 		pending: 'Pendente',
 		under_support: 'Sob intervenção',

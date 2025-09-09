@@ -26,7 +26,6 @@ interface Props {
 
 const STATUS_OPTIONS: SelectOption[] = [
 	{ label: 'Concluído', value: 'completed' },
-	{ label: 'Aguardando', value: 'waiting' },
 	{ label: 'Em execução', value: 'in_progress' },
 	{ label: 'Pendente', value: 'pending' },
 	{ label: 'Sob intervenção', value: 'under_support' },

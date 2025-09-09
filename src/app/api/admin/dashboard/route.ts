@@ -43,7 +43,7 @@ function isAlert(status: string): status is AlertStatus {
 //     date: string,             // 'YYYY-MM-DD' (3 últimos meses, do dia 1º do mês menos 2 até hoje)
 //     turn: number,             // 0 | 6 | 12 | 18
 //     user_id: string,          // id do usuário responsável
-//     status: string,           // 'completed', 'waiting', 'pending', 'in_progress', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended', 'off'
+//     status: string,           // 'completed', 'pending', 'in_progress', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended', 'off'
 //     description: string|null, // descrição da atividade
 //     alert: boolean            // true ↔ status ∈ {'pending', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended'}
 //   }>

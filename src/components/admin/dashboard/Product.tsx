@@ -64,7 +64,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 				daysMap[d.date].turns.push({ id: d.id, time: d.turn, status: d.status, description: d.description, category_id: d.category_id })
 			} else {
 				// Se já existe, escolher status mais severo (orange/red substitui green) – simples prioridade
-				const severityOrder: Record<string, number> = { completed: 0, waiting: 1, in_progress: 2, pending: 3, under_support: 3, suspended: 3, not_run: 4, with_problems: 4, run_again: 4, off: 5 }
+				const severityOrder: Record<string, number> = { completed: 0, in_progress: 2, pending: 3, under_support: 3, suspended: 3, not_run: 4, with_problems: 4, run_again: 4, off: 5 }
 				if ((severityOrder[d.status] ?? 0) > (severityOrder[existingTurn.status] ?? 0)) {
 					existingTurn.status = d.status
 					existingTurn.description = d.description
@@ -92,10 +92,10 @@ export default function Product({ id, name, turns, progress, priority, date, las
 							category_id: dbRecord.category_id,
 						})
 					} else {
-						// Se não existe no banco, criar como not_run sem ID
+						// Se não existe no banco, criar como pending sem ID
 						day.turns.push({
 							time: turnNum,
-							status: 'not_run',
+							status: 'pending',
 							description: null,
 							category_id: null,
 						})
@@ -215,17 +215,6 @@ export default function Product({ id, name, turns, progress, priority, date, las
 								description: d.description,
 								category_id: d.category_id,
 							}))}
-							onTimelineClick={(item) => {
-								setActivityCtx({
-									id: item.id,
-									date: item.date,
-									turn: item.turn,
-									status: item.status,
-									description: item.description,
-									category_id: item.category_id,
-								})
-								setActivityPanelOpen(true)
-							}}
 						/>
 					</div>
 
@@ -295,7 +284,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 						<span className='size-3 rounded-full bg-green-600 dark:bg-green-700'></span> Concluído
 					</div>
 					<div className='flex items-center gap-1.5' title='Quando ainda não deu a hora de executar.'>
-						<span className='size-3 rounded-full bg-zinc-300 dark:bg-zinc-700'></span> Aguardando
+						<span className='size-3 rounded-full bg-zinc-300 dark:bg-zinc-700'></span> Pendente
 					</div>
 					<div className='flex items-center gap-1.5' title='Deu a hora de executar, mas não executou o modelo, é necessário executá-lo depois. Ou sob intervenção do suporte técnico. Ou rodada suspensa.'>
 						<span className='size-3 rounded-full bg-orange-400 dark:bg-orange-700'></span> Pendente • Sob intervenção • Suspenso

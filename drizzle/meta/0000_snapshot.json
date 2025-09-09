@@ -1,5 +1,5 @@
 {
-  "id": "e6d8825e-a331-43e4-8e70-1de423581f6a",
+  "id": "d57fd101-d9c2-4f18-80cb-54ec5ba61c29",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1220,6 +1220,20 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "is_system": {
+          "name": "is_system",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "created_at": {
           "name": "created_at",

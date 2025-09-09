@@ -428,7 +428,7 @@ export const productActivity = pgTable(
 			.references(() => authUser.id, { onDelete: 'cascade' }),
 		date: date('date').notNull(),
 		turn: integer('turn').notNull(), // 0,6,12,18
-		status: text('status').notNull(), // 'completed', 'waiting', 'pending', 'in_progress', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended', 'off'
+		status: text('status').notNull(), // 'completed', 'pending', 'in_progress', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended', 'off'
 		problemCategoryId: text('problem_category_id').references(() => productProblemCategory.id),
 		description: text('description'),
 		createdAt: timestamp('created_at').notNull().defaultNow(),

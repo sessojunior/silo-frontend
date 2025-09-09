@@ -153,6 +153,8 @@ CREATE TABLE "product_problem_category" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"color" text,
+	"is_system" boolean DEFAULT false NOT NULL,
+	"sort_order" integer DEFAULT 0 NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "product_problem_category_name_unique" UNIQUE("name")

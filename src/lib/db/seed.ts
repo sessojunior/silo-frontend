@@ -353,7 +353,7 @@ async function seed() {
 		const activityExisting = await db.select().from(schema.productActivity).limit(1)
 		if (activityExisting.length === 0) {
 			console.log('🔵 Gerando histórico de product_activity (60 dias)...')
-			const statusPool = ['completed', 'waiting', 'pending', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended'] as const
+			const statusPool = ['completed', 'pending', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended'] as const
 
 			const descriptionSamples: Record<string, string[]> = {
 				pending: ['Rodada não iniciada no horário programado', 'Execução pendente, aguardar próximo turno', 'Execução atrasada; necessário iniciar manualmente'],
@@ -386,7 +386,7 @@ async function seed() {
 							date: dateStr as unknown as string,
 							turn,
 							status,
-							problemCategoryId: status === 'completed' || status === 'waiting' ? null : categoryIdsArray[Math.floor(Math.random() * categoryIdsArray.length)],
+							problemCategoryId: status === 'completed' ? null : categoryIdsArray[Math.floor(Math.random() * categoryIdsArray.length)],
 							description: randomDescription,
 						})
 					}

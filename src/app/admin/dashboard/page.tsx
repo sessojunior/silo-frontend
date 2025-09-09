@@ -88,16 +88,15 @@ export default function DashboardPage() {
 
 	// Mapeamento de status → info visual
 	const STATUS_INFO: Record<string, { label: string; color: string; colorDark: string; severity: number }> = {
-		completed: { label: 'Concluídos', color: 'bg-green-400', colorDark: 'bg-green-700', severity: 0 },
-		waiting: { label: 'Aguardando', color: 'bg-zinc-400', colorDark: 'bg-zinc-500', severity: 1 },
+		completed: { label: 'Concluído', color: 'bg-green-400', colorDark: 'bg-green-700', severity: 0 },
 		in_progress: { label: 'Em execução', color: 'bg-zinc-100', colorDark: 'bg-zinc-600', severity: 2 },
-		pending: { label: 'Pendentes', color: 'bg-orange-600', colorDark: 'bg-orange-500', severity: 3 },
+		pending: { label: 'Pendente', color: 'bg-zinc-200', colorDark: 'bg-zinc-600', severity: 3 },
 		under_support: { label: 'Sob intervenção', color: 'bg-orange-500', colorDark: 'bg-orange-600', severity: 3 },
-		suspended: { label: 'Suspensos', color: 'bg-orange-400', colorDark: 'bg-orange-700', severity: 3 },
-		not_run: { label: 'Não rodaram', color: 'bg-red-600', colorDark: 'bg-red-500', severity: 4 },
+		suspended: { label: 'Suspenso', color: 'bg-orange-400', colorDark: 'bg-orange-700', severity: 3 },
+		not_run: { label: 'Não rodou', color: 'bg-red-600', colorDark: 'bg-red-500', severity: 4 },
 		with_problems: { label: 'Com problemas', color: 'bg-red-600', colorDark: 'bg-red-600', severity: 4 },
 		run_again: { label: 'Rodar novamente', color: 'bg-red-400', colorDark: 'bg-red-700', severity: 4 },
-		off: { label: 'Desligados', color: 'bg-black', colorDark: 'bg-white', severity: 5 },
+		off: { label: 'Desligado', color: 'bg-black', colorDark: 'bg-white', severity: 5 },
 	}
 
 	// Inicializa contagem
@@ -143,7 +142,7 @@ export default function DashboardPage() {
 	// Contar incidentes reais por status (baseado em category_id, não severity)
 	const incidentsByStatus: Record<string, number> = {}
 	Object.keys(STATUS_INFO).forEach((s) => (incidentsByStatus[s] = 0))
-	
+
 	data.forEach((product) => {
 		product.dates.forEach((d) => {
 			if (new Date(d.date) < cut28) return
@@ -233,10 +232,13 @@ export default function DashboardPage() {
 												last28Dates.push(dateYMD(d))
 											}
 
-											// Mapear status para cada dia (incluindo dias sem atividade)
-											const last28DaysStatus = last28Dates.map((date) => {
-												const dayData = p.dates.find((d) => d.date === date)
-												return dayData || { date, turn: 0, user_id: null, status: 'not_run', description: null, category_id: null, alert: false }
+											// Mapear status para cada dia (incluindo dias sem atividade) - CORRIGIDO para incluir TODOS os turnos
+											const last28DaysStatus = last28Dates.flatMap((date) => {
+												const dayData = p.dates.filter((d) => d.date === date)
+												if (dayData.length === 0) {
+													return [{ date, turn: 0, user_id: '', status: 'pending', description: null, category_id: null, alert: false }]
+												}
+												return dayData
 											})
 
 											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? formatDateBR(p.last_run) : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={p.dates} onSaved={fetchDashboard} />
