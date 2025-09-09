@@ -10,7 +10,6 @@ interface TimelineItem {
 interface Props {
 	statuses: string[] // array 28 itens (dia0..dia27) - DEPRECATED
 	timelineData?: TimelineItem[] // dados completos para clique
-	onTimelineClick?: (item: TimelineItem) => void // callback para clique
 }
 
 function cls(status: string) {
@@ -49,7 +48,7 @@ function STATUS_LABEL(status: string) {
 	return map[status] || status
 }
 
-export default function ProductTimeline({ statuses, timelineData, onTimelineClick }: Props) {
+export default function ProductTimeline({ statuses, timelineData }: Props) {
 	// Se timelineData está disponível, usar dados completos; senão usar statuses simples
 	const hasCompleteData = timelineData && timelineData.length > 0
 

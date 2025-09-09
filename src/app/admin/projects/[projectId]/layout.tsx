@@ -2,7 +2,7 @@ import React from 'react'
 
 interface ProjectDetailsLayoutProps {
 	children: React.ReactNode
-	params: Promise<{ id: string }>
+	params: Promise<{ projectId: string }>
 }
 
 export default async function ProjectDetailsLayout({ children }: ProjectDetailsLayoutProps) {
