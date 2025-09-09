@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react'
 import { toast } from '@/lib/toast'
 import { AuthUser, Group } from '@/lib/db/schema'
 
@@ -9,7 +9,11 @@ interface GroupUsersSectionProps {
 	isExpanded: boolean
 }
 
-export default function GroupUsersSection({ group, isExpanded }: GroupUsersSectionProps) {
+export interface GroupUsersSectionRef {
+	refreshUsers: () => void
+}
+
+const GroupUsersSection = forwardRef<GroupUsersSectionRef, GroupUsersSectionProps>(({ group, isExpanded }, ref) => {
 	const [users, setUsers] = useState<AuthUser[]>([])
 	const [loading, setLoading] = useState(false)
 
@@ -43,6 +47,15 @@ export default function GroupUsersSection({ group, isExpanded }: GroupUsersSecti
 			setLoading(false)
 		}
 	}, [group.id, group.name])
+
+	// Expor função de refresh para o componente pai
+	useImperativeHandle(
+		ref,
+		() => ({
+			refreshUsers: fetchUsers,
+		}),
+		[fetchUsers],
+	)
 
 	// Carregar usuários quando expandido
 	useEffect(() => {
@@ -107,4 +120,8 @@ export default function GroupUsersSection({ group, isExpanded }: GroupUsersSecti
 			</tr>
 		</>
 	)
-}
+})
+
+GroupUsersSection.displayName = 'GroupUsersSection'
+
+export default GroupUsersSection

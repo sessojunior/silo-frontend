@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { toast } from '@/lib/toast'
 import { formatDateBR } from '@/lib/dateUtils'
 
@@ -9,7 +9,7 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import GroupFormOffcanvas from '@/components/admin/groups/GroupFormOffcanvas'
 import GroupDeleteDialog from '@/components/admin/groups/GroupDeleteDialog'
-import GroupUsersSection from '@/components/admin/groups/GroupUsersSection'
+import GroupUsersSection, { GroupUsersSectionRef } from '@/components/admin/groups/GroupUsersSection'
 import UserSelectorOffcanvas from '@/components/admin/groups/UserSelectorOffcanvas'
 import { Group } from '@/lib/db/schema'
 
@@ -35,6 +35,7 @@ export default function GroupsPage() {
 	// Estados do seletor de usuários
 	const [userSelectorOpen, setUserSelectorOpen] = useState(false)
 	const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
+	const groupRefs = useRef<Map<string, GroupUsersSectionRef>>(new Map())
 
 	// Carregar grupos
 	useEffect(() => {
@@ -54,6 +55,15 @@ export default function GroupsPage() {
 			}
 		} catch (error) {
 			console.error('❌ Erro ao carregar total de usuários:', error)
+		}
+	}
+
+	// Função para atualizar apenas um grupo específico
+	function refreshGroupUsers(groupId: string) {
+		const groupRef = groupRefs.current.get(groupId)
+		if (groupRef) {
+			groupRef.refreshUsers()
+			console.log('🔵 Atualizando usuários do grupo:', groupId)
 		}
 	}
 
@@ -144,7 +154,6 @@ export default function GroupsPage() {
 			return newSet
 		})
 	}
-
 
 	return (
 		<>
@@ -304,7 +313,15 @@ export default function GroupsPage() {
 													</td>
 												</tr>
 												{/* Seção de usuários expandida */}
-                                                                                                <GroupUsersSection group={group} isExpanded={isExpanded} />
+												<GroupUsersSection
+													ref={(ref) => {
+														if (ref) {
+															groupRefs.current.set(group.id, ref)
+														}
+													}}
+													group={group}
+													isExpanded={isExpanded}
+												/>
 											</React.Fragment>
 										)
 									})}
@@ -346,7 +363,11 @@ export default function GroupsPage() {
 						}}
 						group={groups.find((g) => g.id === selectedGroupId)!}
 						onSuccess={() => {
-							fetchTotalUsers()
+							// Atualizar apenas o grupo específico que foi alterado
+							if (selectedGroupId) {
+								refreshGroupUsers(selectedGroupId)
+							}
+							fetchTotalUsers() // Atualizar estatísticas gerais
 							setUserSelectorOpen(false)
 							setSelectedGroupId(null)
 						}}

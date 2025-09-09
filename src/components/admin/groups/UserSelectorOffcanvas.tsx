@@ -45,16 +45,16 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 				// Buscar usuários que estão especificamente no grupo atual
 				const groupUsersResponse = await fetch(`/api/admin/users?groupId=${group.id}`)
 				const groupUsersData = await groupUsersResponse.json()
-				
+
 				const usersInCurrentGroup = groupUsersData.success ? groupUsersData.data.items.map((u: { id: string }) => u.id) : []
 				const usersInGroupSet = new Set(usersInCurrentGroup)
-				
+
 				console.log('🔵 Usuários no grupo atual:', usersInCurrentGroup.length)
-				
+
 				// Mostrar todos os usuários, marcando os que estão no grupo atual
 				const allUsers = data.data.items.map((user: UserWithGroup) => ({
 					...user,
-					isInGroup: usersInGroupSet.has(user.id)
+					isInGroup: usersInGroupSet.has(user.id),
 				}))
 				setAvailableUsers(allUsers)
 				console.log('✅ Todos os usuários carregados:', allUsers.length)
@@ -88,7 +88,7 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 	// Inicializar seleção com usuários que já estão no grupo
 	useEffect(() => {
 		if (availableUsers.length > 0) {
-			const usersInGroup = availableUsers.filter(user => user.isInGroup).map(user => user.id)
+			const usersInGroup = availableUsers.filter((user) => user.isInGroup).map((user) => user.id)
 			setSelectedUsers(new Set(usersInGroup))
 		}
 	}, [availableUsers])
@@ -133,17 +133,17 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 			console.log('🔵 Gerenciando usuários do grupo:', group.name)
 
 			// Usuários que estavam no grupo originalmente
-			const originalUsersInGroup = availableUsers.filter(user => user.isInGroup).map(user => user.id)
+			const originalUsersInGroup = availableUsers.filter((user) => user.isInGroup).map((user) => user.id)
 			const originalSet = new Set(originalUsersInGroup)
 
 			// Usuários selecionados agora
 			const selectedSet = selectedUsers
 
 			// Usuários para adicionar (selecionados mas não estavam no grupo)
-			const usersToAdd = Array.from(selectedSet).filter(userId => !originalSet.has(userId))
-			
+			const usersToAdd = Array.from(selectedSet).filter((userId) => !originalSet.has(userId))
+
 			// Usuários para remover (estavam no grupo mas não estão selecionados)
-			const usersToRemove = Array.from(originalSet).filter(userId => !selectedSet.has(userId))
+			const usersToRemove = Array.from(originalSet).filter((userId) => !selectedSet.has(userId))
 
 			console.log('🔵 Usuários para adicionar:', usersToAdd.length)
 			console.log('🔵 Usuários para remover:', usersToRemove.length)
@@ -169,44 +169,42 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 				})
 			})
 
-			// Remover usuários do grupo
+			// Remover usuários do grupo - usar API específica de grupos
 			const removePromises = usersToRemove.map(async (userId) => {
-				const userToUpdate = availableUsers.find((user) => user.id === userId)
-				if (!userToUpdate) {
-					throw new Error(`Usuário ${userId} não encontrado`)
-				}
-
-				return fetch('/api/admin/users', {
-					method: 'PUT',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						id: userId,
-						name: userToUpdate.name,
-						email: userToUpdate.email,
-						emailVerified: userToUpdate.emailVerified,
-						groupId: null, // Remover do grupo
-						isActive: userToUpdate.isActive,
-					}),
+				return fetch(`/api/admin/groups/users?userId=${userId}&groupId=${group.id}`, {
+					method: 'DELETE',
 				})
 			})
 
 			// Executar todas as operações
 			const allPromises = [...addPromises, ...removePromises]
 			const results = await Promise.all(allPromises)
-			const allSuccessful = results.every((res) => res.ok)
 
-			if (allSuccessful) {
-				const totalChanges = usersToAdd.length + usersToRemove.length
-				toast({
-					type: 'success',
-					title: 'Grupo atualizado',
-					description: `${totalChanges} alteração(ões) realizada(s) no grupo ${group.name}`,
-				})
-				onSuccess()
-				onClose()
-			} else {
-				throw new Error('Algumas alterações não puderam ser salvas')
+			// Verificar resultados individuais
+			const failedResults = results.filter((res) => !res.ok)
+			if (failedResults.length > 0) {
+				console.error('❌ Algumas operações falharam:', failedResults)
+				const errorMessages = await Promise.all(
+					failedResults.map(async (res) => {
+						try {
+							const errorData = await res.json()
+							return errorData.message || `Erro ${res.status}`
+						} catch {
+							return `Erro ${res.status}`
+						}
+					}),
+				)
+				throw new Error(`Falhas: ${errorMessages.join(', ')}`)
 			}
+
+			const totalChanges = usersToAdd.length + usersToRemove.length
+			toast({
+				type: 'success',
+				title: 'Grupo atualizado',
+				description: `${totalChanges} alteração(ões) realizada(s) no grupo ${group.name}`,
+			})
+			onSuccess()
+			onClose()
 		} catch (error) {
 			console.error('❌ Erro ao gerenciar usuários do grupo:', error)
 			toast({
