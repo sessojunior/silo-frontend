@@ -34,8 +34,8 @@ export default function ProjectSelectorDialog({ isOpen, onClose, projects, onSel
 				<div className='flex gap-3 items-center'>
 					{/* Campo de Busca - FLEX 1 */}
 					<div className='relative flex-1'>
-						<Input type='text' placeholder='Buscar projeto...' value={search} setValue={setSearch} className='pl-10' />
-						<span className='icon-[lucide--search] absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
+						<Input type='text' placeholder='Buscar projeto...' value={search} setValue={setSearch} className='pr-10' />
+						<span className='icon-[lucide--search] absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
 					</div>
 
 					{/* Botão Selecionar Primeiro */}

@@ -2,20 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from '@/lib/toast'
-import Button from '@/components/ui/Button'
-import UserSelectorOffcanvas from './UserSelectorOffcanvas'
 import { AuthUser, Group } from '@/lib/db/schema'
 
 interface GroupUsersSectionProps {
 	group: Group
 	isExpanded: boolean
-	onUserAdded?: () => void
 }
 
-export default function GroupUsersSection({ group, isExpanded, onUserAdded }: GroupUsersSectionProps) {
+export default function GroupUsersSection({ group, isExpanded }: GroupUsersSectionProps) {
 	const [users, setUsers] = useState<AuthUser[]>([])
 	const [loading, setLoading] = useState(false)
-	const [selectorOpen, setSelectorOpen] = useState(false)
 
 	const fetchUsers = useCallback(async () => {
 		try {
@@ -55,69 +51,6 @@ export default function GroupUsersSection({ group, isExpanded, onUserAdded }: Gr
 		}
 	}, [isExpanded, group.id, fetchUsers])
 
-	function handleOpenSelector() {
-		console.log('🔵 Abrindo seletor de usuários para o grupo:', group.name)
-		setSelectorOpen(true)
-	}
-
-	function handleUserAdded() {
-		// Recarregar usuários do grupo
-		fetchUsers()
-		// Notificar componente pai se necessário
-		if (onUserAdded) {
-			onUserAdded()
-		}
-	}
-
-	async function handleRemoveUser(userId: string, userName: string) {
-		try {
-			console.log('🔵 Removendo usuário do grupo:', userName)
-
-			// Buscar dados completos do usuário
-			const userToUpdate = users.find((user) => user.id === userId)
-			if (!userToUpdate) {
-				console.error('❌ Usuário não encontrado na lista atual')
-				toast({
-					type: 'error',
-					title: 'Erro',
-					description: 'Usuário não encontrado na lista atual',
-				})
-				return
-			}
-
-			const response = await fetch(`/api/admin/groups/users?userId=${userId}&groupId=${group.id}`, {
-				method: 'DELETE',
-			})
-
-			const data = await response.json()
-
-			if (data.success) {
-				console.log('✅ Usuário removido do grupo com sucesso')
-				toast({
-					type: 'success',
-					title: 'Usuário removido',
-					description: `${userName} foi removido do grupo ${group.name}`,
-				})
-				fetchUsers() // Recarregar lista
-				if (onUserAdded) onUserAdded() // Atualizar estatísticas
-			} else {
-				console.error('❌ Erro ao remover usuário:', data.error || data.message)
-				toast({
-					type: 'error',
-					title: 'Erro ao remover usuário',
-					description: data.error || data.message || 'Erro desconhecido',
-				})
-			}
-		} catch (error) {
-			console.error('❌ Erro inesperado ao remover usuário:', error)
-			toast({
-				type: 'error',
-				title: 'Erro inesperado',
-				description: 'Erro ao remover usuário do grupo',
-			})
-		}
-	}
-
 	if (!isExpanded) return null
 
 	return (
@@ -133,10 +66,6 @@ export default function GroupUsersSection({ group, isExpanded, onUserAdded }: Gr
 								({users.length} {users.length === 1 ? 'usuário' : 'usuários'})
 							</span>
 						</div>
-						<Button onClick={handleOpenSelector} className='flex items-center gap-2 text-sm px-3 py-1.5'>
-							<span className='icon-[lucide--plus] size-3.5' />
-							Adicionar usuário
-						</Button>
 					</div>
 
 					{/* Conteúdo dos usuários */}
@@ -149,11 +78,7 @@ export default function GroupUsersSection({ group, isExpanded, onUserAdded }: Gr
 						) : users.length === 0 ? (
 							<div className='text-center py-6'>
 								<span className='icon-[lucide--user-x] size-8 text-zinc-300 dark:text-zinc-600 mx-auto mb-2 block' />
-								<p className='text-sm text-zinc-600 dark:text-zinc-400 mb-3'>Nenhum usuário neste grupo ainda.</p>
-								<Button onClick={handleOpenSelector} className='flex items-center gap-2 text-sm px-3 py-1.5 mx-auto' style='bordered'>
-									<span className='icon-[lucide--plus] size-3.5' />
-									Adicionar usuário
-								</Button>
+								<p className='text-sm text-zinc-600 dark:text-zinc-400'>Nenhum usuário neste grupo ainda.</p>
 							</div>
 						) : (
 							<div className='space-y-2'>
@@ -172,10 +97,6 @@ export default function GroupUsersSection({ group, isExpanded, onUserAdded }: Gr
 										<div className='flex items-center gap-2'>
 											{/* Status do usuário */}
 											<span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${user.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>{user.isActive ? '🟢 Ativo' : '🔴 Inativo'}</span>
-											{/* Ação: Remover usuário do grupo */}
-											<Button onClick={() => handleRemoveUser(user.id, user.name)} className='size-7 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20' title={`Remover ${user.name} do grupo ${group.name}`}>
-												<span className='icon-[lucide--user-minus] size-3.5 text-red-600 dark:text-red-400' />
-											</Button>
 										</div>
 									</div>
 								))}
@@ -184,9 +105,6 @@ export default function GroupUsersSection({ group, isExpanded, onUserAdded }: Gr
 					</div>
 				</td>
 			</tr>
-
-			{/* Offcanvas de Seleção de Usuários */}
-			<UserSelectorOffcanvas isOpen={selectorOpen} onClose={() => setSelectorOpen(false)} group={group} onSuccess={handleUserAdded} />
 		</>
 	)
 }

@@ -19,6 +19,7 @@ interface UserWithGroup extends AuthUser {
 	groupName?: string
 	groupIcon?: string
 	groupColor?: string
+	isInGroup?: boolean // Indica se o usuário está no grupo atual
 }
 
 export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSuccess }: UserSelectorOffcanvasProps) {
@@ -34,17 +35,29 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 
 		try {
 			setLoading(true)
-			console.log('🔵 Carregando usuários disponíveis para o grupo:', group.name)
+			console.log('🔵 Carregando todos os usuários para o grupo:', group.name)
 
-			// Buscar todos os usuários que NÃO estão no grupo atual
+			// Buscar todos os usuários
 			const response = await fetch('/api/admin/users')
 			const data = await response.json()
 
 			if (data.success) {
-				// Filtrar usuários que não estão no grupo atual
-				const usersNotInGroup = data.data.items.filter((user: UserWithGroup) => user.groupId !== group.id)
-				setAvailableUsers(usersNotInGroup)
-				console.log('✅ Usuários disponíveis carregados:', usersNotInGroup.length)
+				// Buscar usuários que estão especificamente no grupo atual
+				const groupUsersResponse = await fetch(`/api/admin/users?groupId=${group.id}`)
+				const groupUsersData = await groupUsersResponse.json()
+				
+				const usersInCurrentGroup = groupUsersData.success ? groupUsersData.data.items.map((u: { id: string }) => u.id) : []
+				const usersInGroupSet = new Set(usersInCurrentGroup)
+				
+				console.log('🔵 Usuários no grupo atual:', usersInCurrentGroup.length)
+				
+				// Mostrar todos os usuários, marcando os que estão no grupo atual
+				const allUsers = data.data.items.map((user: UserWithGroup) => ({
+					...user,
+					isInGroup: usersInGroupSet.has(user.id)
+				}))
+				setAvailableUsers(allUsers)
+				console.log('✅ Todos os usuários carregados:', allUsers.length)
 			} else {
 				console.error('❌ Erro ao carregar usuários:', data.error)
 				toast({
@@ -71,6 +84,14 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 			fetchAvailableUsers()
 		}
 	}, [isOpen, group, fetchAvailableUsers])
+
+	// Inicializar seleção com usuários que já estão no grupo
+	useEffect(() => {
+		if (availableUsers.length > 0) {
+			const usersInGroup = availableUsers.filter(user => user.isInGroup).map(user => user.id)
+			setSelectedUsers(new Set(usersInGroup))
+		}
+	}, [availableUsers])
 
 	// Filtrar usuários por busca
 	useEffect(() => {
@@ -105,15 +126,30 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 	}
 
 	async function handleAddUsers() {
-		if (!group || selectedUsers.size === 0) return
+		if (!group) return
 
 		try {
 			setSaving(true)
-			console.log('🔵 Adicionando usuários ao grupo:', group.name, 'Usuários:', selectedUsers.size)
+			console.log('🔵 Gerenciando usuários do grupo:', group.name)
 
-			// Atualizar cada usuário selecionado para o grupo
-			const updatePromises = Array.from(selectedUsers).map(async (userId) => {
-				// Buscar dados completos do usuário
+			// Usuários que estavam no grupo originalmente
+			const originalUsersInGroup = availableUsers.filter(user => user.isInGroup).map(user => user.id)
+			const originalSet = new Set(originalUsersInGroup)
+
+			// Usuários selecionados agora
+			const selectedSet = selectedUsers
+
+			// Usuários para adicionar (selecionados mas não estavam no grupo)
+			const usersToAdd = Array.from(selectedSet).filter(userId => !originalSet.has(userId))
+			
+			// Usuários para remover (estavam no grupo mas não estão selecionados)
+			const usersToRemove = Array.from(originalSet).filter(userId => !selectedSet.has(userId))
+
+			console.log('🔵 Usuários para adicionar:', usersToAdd.length)
+			console.log('🔵 Usuários para remover:', usersToRemove.length)
+
+			// Adicionar usuários ao grupo
+			const addPromises = usersToAdd.map(async (userId) => {
 				const userToUpdate = availableUsers.find((user) => user.id === userId)
 				if (!userToUpdate) {
 					throw new Error(`Usuário ${userId} não encontrado`)
@@ -133,41 +169,50 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 				})
 			})
 
-			const results = await Promise.all(updatePromises)
+			// Remover usuários do grupo
+			const removePromises = usersToRemove.map(async (userId) => {
+				const userToUpdate = availableUsers.find((user) => user.id === userId)
+				if (!userToUpdate) {
+					throw new Error(`Usuário ${userId} não encontrado`)
+				}
+
+				return fetch('/api/admin/users', {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						id: userId,
+						name: userToUpdate.name,
+						email: userToUpdate.email,
+						emailVerified: userToUpdate.emailVerified,
+						groupId: null, // Remover do grupo
+						isActive: userToUpdate.isActive,
+					}),
+				})
+			})
+
+			// Executar todas as operações
+			const allPromises = [...addPromises, ...removePromises]
+			const results = await Promise.all(allPromises)
 			const allSuccessful = results.every((res) => res.ok)
 
 			if (allSuccessful) {
-				console.log('✅ Usuários adicionados ao grupo com sucesso')
+				const totalChanges = usersToAdd.length + usersToRemove.length
 				toast({
 					type: 'success',
-					title: 'Usuários adicionados com sucesso',
-					description: `${selectedUsers.size} ${selectedUsers.size === 1 ? 'usuário adicionado' : 'usuários adicionados'} ao grupo ${group.name}`,
+					title: 'Grupo atualizado',
+					description: `${totalChanges} alteração(ões) realizada(s) no grupo ${group.name}`,
 				})
 				onSuccess()
 				onClose()
 			} else {
-				console.error('❌ Erro ao adicionar alguns usuários')
-
-				// Log dos erros específicos para debug
-				for (let i = 0; i < results.length; i++) {
-					if (!results[i].ok) {
-						const errorData = await results[i].json()
-						console.error(`❌ Erro no usuário ${Array.from(selectedUsers)[i]}:`, errorData)
-					}
-				}
-
-				toast({
-					type: 'error',
-					title: 'Erro ao adicionar usuários',
-					description: 'Alguns usuários não foram adicionados. Verifique o console para mais detalhes.',
-				})
+				throw new Error('Algumas alterações não puderam ser salvas')
 			}
 		} catch (error) {
-			console.error('❌ Erro inesperado ao adicionar usuários:', error)
+			console.error('❌ Erro ao gerenciar usuários do grupo:', error)
 			toast({
 				type: 'error',
-				title: 'Erro inesperado',
-				description: 'Erro ao adicionar usuários ao grupo',
+				title: 'Erro ao atualizar grupo',
+				description: error instanceof Error ? error.message : 'Erro desconhecido',
 			})
 		} finally {
 			setSaving(false)
@@ -186,8 +231,8 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 				{/* Header */}
 				<div className='flex items-center justify-between p-6 border-b border-zinc-200 dark:border-zinc-700 flex-shrink-0'>
 					<div>
-						<h2 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100'>Adicionar Usuários</h2>
-						<p className='text-sm text-zinc-600 dark:text-zinc-400'>Selecione usuários para adicionar ao grupo &quot;{group?.name}&quot;</p>
+						<h2 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100'>Gerenciar Usuários</h2>
+						<p className='text-sm text-zinc-600 dark:text-zinc-400'>Gerencie os usuários do grupo &quot;{group?.name}&quot;</p>
 					</div>
 					<Button onClick={onClose} className='size-8 p-0 bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800'>
 						<span className='icon-[lucide--x] size-4 text-zinc-600 dark:text-zinc-400' />
@@ -197,8 +242,8 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 				{/* Search */}
 				<div className='p-6 border-b border-zinc-200 dark:border-zinc-700 flex-shrink-0'>
 					<div className='relative'>
-						<Input type='text' placeholder='Buscar usuários...' value={search} setValue={setSearch} className='pl-10' />
-						<span className='icon-[lucide--search] absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
+						<Input type='text' placeholder='Buscar usuários...' value={search} setValue={setSearch} className='pr-10' />
+						<span className='icon-[lucide--search] absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
 					</div>
 				</div>
 
@@ -254,16 +299,16 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 							<Button onClick={onClose} style='bordered'>
 								Cancelar
 							</Button>
-							<Button onClick={handleAddUsers} disabled={selectedUsers.size === 0 || saving} className='flex items-center gap-2'>
+							<Button onClick={handleAddUsers} disabled={saving} className='flex items-center gap-2'>
 								{saving ? (
 									<>
 										<span className='icon-[lucide--loader-circle] size-4 animate-spin' />
-										Adicionando...
+										Salvando...
 									</>
 								) : (
 									<>
-										<span className='icon-[lucide--user-plus] size-4' />
-										Adicionar {selectedUsers.size > 0 && `(${selectedUsers.size})`}
+										<span className='icon-[lucide--save] size-4' />
+										Salvar Alterações
 									</>
 								)}
 							</Button>

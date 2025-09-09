@@ -179,8 +179,8 @@ export default function ContactSelectorOffcanvas({ isOpen, onClose, productId, o
 
 						<div className='space-y-4'>
 							<div className='relative'>
-								<Input type='text' placeholder='Buscar contatos...' value={search} setValue={setSearch} className='pl-10' />
-								<span className='icon-[lucide--search] absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
+								<Input type='text' placeholder='Buscar contatos...' value={search} setValue={setSearch} className='pr-10' />
+								<span className='icon-[lucide--search] absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
 							</div>
 
 							<div className='flex items-center justify-between'>

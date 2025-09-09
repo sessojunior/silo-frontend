@@ -86,8 +86,8 @@ export default function EmojiPicker({ isOpen, onClose, onEmojiSelect, position =
 				{/* Header com busca */}
 				<div className='p-3 border-b border-zinc-200 dark:border-zinc-700'>
 					<div className='relative'>
-						<span className='icon-[lucide--search] absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400' />
-						<input type='text' placeholder='Buscar emoji...' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className='w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-700 text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-300 rounded-md border border-zinc-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm' />
+						<span className='icon-[lucide--search] absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400' />
+						<input type='text' placeholder='Buscar emoji...' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className='w-full pr-10 pl-4 py-2 bg-zinc-50 dark:bg-zinc-700 text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-300 rounded-md border border-zinc-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm' />
 					</div>
 				</div>
 

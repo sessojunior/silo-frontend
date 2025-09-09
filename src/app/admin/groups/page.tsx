@@ -10,6 +10,7 @@ import Select from '@/components/ui/Select'
 import GroupFormOffcanvas from '@/components/admin/groups/GroupFormOffcanvas'
 import GroupDeleteDialog from '@/components/admin/groups/GroupDeleteDialog'
 import GroupUsersSection from '@/components/admin/groups/GroupUsersSection'
+import UserSelectorOffcanvas from '@/components/admin/groups/UserSelectorOffcanvas'
 import { Group } from '@/lib/db/schema'
 
 export default function GroupsPage() {
@@ -30,6 +31,10 @@ export default function GroupsPage() {
 	// Estados do modal de exclusão
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 	const [groupToDelete, setGroupToDelete] = useState<Group | null>(null)
+
+	// Estados do seletor de usuários
+	const [userSelectorOpen, setUserSelectorOpen] = useState(false)
+	const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
 
 	// Carregar grupos
 	useEffect(() => {
@@ -120,6 +125,12 @@ export default function GroupsPage() {
 		setDeleteDialogOpen(true)
 	}
 
+	function openUserSelector(groupId: string) {
+		console.log('🔵 Abrindo seletor de usuários para grupo:', groupId)
+		setSelectedGroupId(groupId)
+		setUserSelectorOpen(true)
+	}
+
 	function toggleGroupExpansion(groupId: string) {
 		setExpandedGroups((prev) => {
 			const newSet = new Set(prev)
@@ -134,6 +145,7 @@ export default function GroupsPage() {
 		})
 	}
 
+
 	return (
 		<>
 			{/* Header */}
@@ -146,23 +158,25 @@ export default function GroupsPage() {
 				<div className='flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center'>
 					<div className='flex flex-col sm:flex-row gap-3 flex-1'>
 						{/* Busca */}
-						<div className='relative flex-1 min-w-80 max-w-md'>
-							<Input type='text' placeholder='Buscar grupos...' value={search} setValue={setSearch} className='pl-10' />
-							<span className='icon-[lucide--search] absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
+						<div className='relative w-full sm:w-80'>
+							<Input type='text' placeholder='Buscar grupos...' value={search} setValue={setSearch} className='pr-10' />
+							<span className='icon-[lucide--search] absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
 						</div>
 
 						{/* Filtro de Status */}
-						<Select
-							name='statusFilter'
-							selected={statusFilter}
-							onChange={(value) => setStatusFilter(value as 'all' | 'active' | 'inactive')}
-							options={[
-								{ value: 'all', label: 'Todos os status' },
-								{ value: 'active', label: 'Apenas ativos' },
-								{ value: 'inactive', label: 'Apenas inativos' },
-							]}
-							placeholder='Filtrar por status'
-						/>
+						<div className='flex-1'>
+							<Select
+								name='statusFilter'
+								selected={statusFilter}
+								onChange={(value) => setStatusFilter(value as 'all' | 'active' | 'inactive')}
+								options={[
+									{ value: 'all', label: 'Todos os status' },
+									{ value: 'active', label: 'Apenas ativos' },
+									{ value: 'inactive', label: 'Apenas inativos' },
+								]}
+								placeholder='Filtrar por status'
+							/>
+						</div>
 					</div>
 
 					{/* Botão Criar */}
@@ -277,17 +291,20 @@ export default function GroupsPage() {
 													</td>
 													<td className='px-4 py-4'>
 														<div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
-															<Button onClick={() => openEditForm(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20'>
+															<Button onClick={() => openUserSelector(group.id)} className='size-8 p-0 rounded-md bg-transparent hover:bg-green-50 dark:hover:bg-green-900/20' title='Gerenciar Usuários'>
+																<span className='icon-[lucide--users] size-4 text-green-600 dark:text-green-400' />
+															</Button>
+															<Button onClick={() => openEditForm(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20' title='Editar Grupo'>
 																<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />
 															</Button>
-															<Button onClick={() => openDeleteDialog(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20'>
+															<Button onClick={() => openDeleteDialog(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20' title='Excluir Grupo'>
 																<span className='icon-[lucide--trash] size-4 text-red-600 dark:text-red-400' />
 															</Button>
 														</div>
 													</td>
 												</tr>
 												{/* Seção de usuários expandida */}
-												<GroupUsersSection group={group} isExpanded={isExpanded} onUserAdded={fetchTotalUsers} />
+                                                                                                <GroupUsersSection group={group} isExpanded={isExpanded} />
 											</React.Fragment>
 										)
 									})}
@@ -318,6 +335,23 @@ export default function GroupsPage() {
 						setDeleteDialogOpen(false)
 					}}
 				/>
+
+				{/* Seletor de Usuários */}
+				{selectedGroupId && (
+					<UserSelectorOffcanvas
+						isOpen={userSelectorOpen}
+						onClose={() => {
+							setUserSelectorOpen(false)
+							setSelectedGroupId(null)
+						}}
+						group={groups.find((g) => g.id === selectedGroupId)!}
+						onSuccess={() => {
+							fetchTotalUsers()
+							setUserSelectorOpen(false)
+							setSelectedGroupId(null)
+						}}
+					/>
+				)}
 			</div>
 		</>
 	)

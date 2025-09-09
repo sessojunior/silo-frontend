@@ -202,9 +202,9 @@ export default function UsersPage() {
 				<div className='flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center'>
 					<div className='flex flex-col sm:flex-row gap-3 flex-1'>
 						{/* Busca */}
-						<div className='relative flex-1 min-w-80 max-w-md'>
-							<Input type='text' placeholder='Buscar usuários...' value={search} setValue={setSearch} className='pl-10' />
-							<span className='icon-[lucide--search] absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
+						<div className='relative flex-1 min-w-80 max-w-lg'>
+							<Input type='text' placeholder='Buscar usuários...' value={search} setValue={setSearch} className='pr-10' />
+							<span className='icon-[lucide--search] absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
 						</div>
 
 						{/* Filtro de Status */}
