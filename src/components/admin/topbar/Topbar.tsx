@@ -4,6 +4,7 @@ import TopbarDropdown from '@/components/admin/topbar/TopbarDropdown'
 import TopbarButton from '@/components/admin/topbar/TopbarButton'
 import TopbarDivider from '@/components/admin/topbar/TopbarDivider'
 import ChatNotificationButton from '@/components/admin/topbar/ChatNotificationButton'
+import { useSidebar } from '@/context/SidebarContext'
 import { useState, useEffect } from 'react'
 
 export type AccountLinkProps = {
@@ -16,6 +17,7 @@ export type AccountLinkProps = {
 export type AccountProps = AccountLinkProps[]
 
 export default function Topbar() {
+	const { isOpenSidebar } = useSidebar()
 	const [chatEnabled, setChatEnabled] = useState(true)
 
 	// Verificar se o chat está habilitado para o usuário
@@ -66,7 +68,7 @@ export default function Topbar() {
 
 	return (
 		<>
-			<header className='sticky inset-x-0 top-0 z-40 flex h-16 w-full flex-shrink-0 flex-wrap border-b border-b-zinc-200 bg-white py-2.5 md:flex-nowrap md:justify-start lg:ps-[260px] dark:border-zinc-700 dark:bg-zinc-900'>
+			<header className={`sticky inset-x-0 top-0 z-40 flex h-16 w-full flex-shrink-0 flex-wrap border-b border-b-zinc-200 bg-white py-2.5 md:flex-nowrap md:justify-start dark:border-zinc-700 dark:bg-zinc-900 ${isOpenSidebar ? 'ps-[260px]' : 'lg:ps-[260px]'}`}>
 				<nav className='flex w-full items-center px-4'>
 					<div className='flex w-full items-center justify-between gap-x-2'>
 						<div className='flex items-center gap-x-2'>

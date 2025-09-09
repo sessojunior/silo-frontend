@@ -61,26 +61,31 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 				if (data.products && Array.isArray(data.products)) {
 					// Para gráficos donut, categorizar produtos por nível de disponibilidade
 					if (type === 'donut') {
-						const availableProducts = data.products.filter((item: Record<string, unknown>) => (parseFloat(item.availabilityPercentage as string) || 0) >= 90).length
-						const warningProducts = data.products.filter((item: Record<string, unknown>) => {
-							const availability = parseFloat(item.availabilityPercentage as string) || 0
-							return availability >= 70 && availability < 90
-						}).length
-						const criticalProducts = data.products.filter((item: Record<string, unknown>) => (parseFloat(item.availabilityPercentage as string) || 0) < 70).length
+						// Categorizar cada produto individualmente
+						const categorizedProducts = data.products.map((item: Record<string, unknown>) => {
+							const availability = item.availabilityPercentage as number
+							const name = item.name as string
 
-						// Calcular porcentagens baseadas nas contagens
-						const totalProducts = data.products.length
-						const availablePercentage = totalProducts > 0 ? Math.round((availableProducts / totalProducts) * 1000) / 10 : 0
-						const warningPercentage = totalProducts > 0 ? Math.round((warningProducts / totalProducts) * 1000) / 10 : 0
-						const criticalPercentage = totalProducts > 0 ? Math.round((criticalProducts / totalProducts) * 1000) / 10 : 0
+							if (availability >= 90) return { name, availability, category: 'available' }
+							else if (availability >= 70) return { name, availability, category: 'warning' }
+							else return { name, availability, category: 'critical' }
+						})
 
-						return [availablePercentage, warningPercentage, criticalPercentage]
+						// Contar por categoria
+						const availableProducts = categorizedProducts.filter((p) => p.category === 'available').length
+						const warningProducts = categorizedProducts.filter((p) => p.category === 'warning').length
+						const criticalProducts = categorizedProducts.filter((p) => p.category === 'critical').length
+
+						// Debug logs removidos para produção
+
+						// Retornar contagens absolutas para o gráfico donut
+						return [availableProducts, warningProducts, criticalProducts]
 					} else {
 						// Para gráficos de barra e linha, usar dados individuais
 						return [
 							{
 								name: 'Disponibilidade (%)',
-								data: data.products.map((item: Record<string, unknown>) => parseFloat(item.availabilityPercentage as string) || 0),
+								data: data.products.map((item: Record<string, unknown>) => item.availabilityPercentage as number),
 							},
 						]
 					}
@@ -88,22 +93,15 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 				break
 			case 'problems':
 				if (data.problemsByCategory && Array.isArray(data.problemsByCategory)) {
-					// Para gráficos donut, calcular porcentagens baseadas nas contagens
+					// Para gráficos donut, usar contagens absolutas
 					if (type === 'donut') {
-						const totalProblems = data.problemsByCategory.reduce((sum: number, item: Record<string, unknown>) => sum + (parseInt(item.problemsCount as string) || 0), 0)
-
-						// Calcular porcentagens para cada categoria
-						return data.problemsByCategory.map((item: Record<string, unknown>) => {
-							const count = parseInt(item.problemsCount as string) || 0
-							const percentage = totalProblems > 0 ? Math.round((count / totalProblems) * 1000) / 10 : 0
-							return percentage
-						})
+						return data.problemsByCategory.map((item: Record<string, unknown>) => item.problemsCount as number)
 					} else {
 						// Para gráficos de barra e linha, usar formato de série
 						return [
 							{
 								name: 'Quantidade de Problemas',
-								data: data.problemsByCategory.map((item: Record<string, unknown>) => parseInt(item.problemsCount as string) || 0),
+								data: data.problemsByCategory.map((item: Record<string, unknown>) => item.problemsCount as number),
 							},
 						]
 					}
@@ -116,32 +114,27 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 						return [
 							{
 								name: 'Pontuação Total',
-								data: data.userPerformance.map((user: Record<string, unknown>) => parseInt(user.totalScore as string) || 0),
+								data: data.userPerformance.map((user: Record<string, unknown>) => user.totalScore as number),
 							},
 							{
 								name: 'Problemas Criados',
-								data: data.userPerformance.map((user: Record<string, unknown>) => parseInt(user.problemsCreated as string) || 0),
+								data: data.userPerformance.map((user: Record<string, unknown>) => user.problemsCreated as number),
 							},
 							{
 								name: 'Soluções Fornecidas',
-								data: data.userPerformance.map((user: Record<string, unknown>) => parseInt(user.solutionsProvided as string) || 0),
+								data: data.userPerformance.map((user: Record<string, unknown>) => user.solutionsProvided as number),
 							},
 							{
 								name: 'Tarefas Concluídas',
-								data: data.userPerformance.map((user: Record<string, unknown>) => parseInt(user.tasksCompleted as string) || 0),
+								data: data.userPerformance.map((user: Record<string, unknown>) => user.tasksCompleted as number),
 							},
 						]
 					} else {
-						// Para gráfico donut, calcular porcentagens baseadas nas atividades
-						const totalTasksAssigned = data.userPerformance.reduce((sum: number, user: Record<string, unknown>) => sum + (parseInt(user.tasksAssigned as string) || 0), 0)
-						const totalTasksCompleted = data.userPerformance.reduce((sum: number, user: Record<string, unknown>) => sum + (parseInt(user.tasksCompleted as string) || 0), 0)
-						const total = totalTasksAssigned + totalTasksCompleted
+						// Para gráfico donut, usar contagens absolutas
+						const totalTasksAssigned = data.userPerformance.reduce((sum: number, user: Record<string, unknown>) => sum + (user.tasksAssigned as number), 0)
+						const totalTasksCompleted = data.userPerformance.reduce((sum: number, user: Record<string, unknown>) => sum + (user.tasksCompleted as number), 0)
 
-						// Calcular porcentagens para atividades atribuídas e concluídas
-						const assignedPercentage = total > 0 ? Math.round((totalTasksAssigned / total) * 1000) / 10 : 0
-						const completedPercentage = total > 0 ? Math.round((totalTasksCompleted / total) * 1000) / 10 : 0
-
-						return [assignedPercentage, completedPercentage]
+						return [totalTasksAssigned, totalTasksCompleted]
 					}
 				}
 				break
@@ -152,19 +145,13 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 						return [
 							{
 								name: 'Progresso (%)',
-								data: data.projectsWithProgress.map((project: Record<string, unknown>) => parseInt(project.progress as string) || 0),
+								data: data.projectsWithProgress.map((project: Record<string, unknown>) => project.progress as number),
 							},
 						]
 					} else {
-						// Para gráfico donut, usar distribuição por status
+						// Para gráfico donut, usar contagens absolutas por status
 						if (data.projectsByStatus) {
-							const statusCounts = Object.values(data.projectsByStatus as Record<string, number>)
-							const total = statusCounts.reduce((sum, count) => sum + count, 0)
-
-							return statusCounts.map((count) => {
-								const percentage = total > 0 ? Math.round((count / total) * 1000) / 10 : 0
-								return percentage
-							})
+							return Object.values(data.projectsByStatus as Record<string, number>)
 						}
 						return []
 					}
@@ -401,9 +388,7 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 	const chartSeries = getChartSeries()
 	const chartLabels = getChartLabels()
 
-	console.log('📊 Chart Series:', chartSeries)
-	console.log('🏷️ Chart Labels:', chartLabels)
-	console.log('📈 Chart Type:', type)
+	// Debug logs removidos para produção
 
 	// Atualizar as opções do gráfico com os labels
 	if (chartLabels.length > 0) {

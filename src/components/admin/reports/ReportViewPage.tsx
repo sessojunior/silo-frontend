@@ -227,8 +227,8 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 						<ReportChart type='line' data={report.data} reportType={report.type} />
 					</div>
 					<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
-						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>Distribuição de Atividades</h3>
-						<p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>Proporção entre tarefas atribuídas e concluídas na equipe</p>
+						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>{report.type === 'availability' ? 'Distribuição por Nível de Disponibilidade' : 'Distribuição de Atividades'}</h3>
+						<p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>{report.type === 'availability' ? 'Classificação dos produtos por nível de disponibilidade: Disponível (≥90%), Atenção (70-89%), Crítico (<70%)' : 'Proporção entre tarefas atribuídas e concluídas na equipe'}</p>
 						<ReportChart type='donut' data={report.data} reportType={report.type} />
 					</div>
 				</div>

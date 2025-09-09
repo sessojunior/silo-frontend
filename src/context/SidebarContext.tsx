@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 
 type SidebarContextType = {
 	isOpenSidebar: boolean
@@ -20,6 +20,28 @@ export const useSidebar = () => {
 
 export const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
 	const [isOpenSidebar, setIsOpenSidebar] = useState(false)
+
+	// Em telas lg+, o sidebar deve estar sempre aberto por padrão
+	useEffect(() => {
+		const checkScreenSize = () => {
+			if (window.innerWidth >= 1024) {
+				setIsOpenSidebar(true)
+			} else {
+				setIsOpenSidebar(false)
+			}
+		}
+
+		// Verificar tamanho inicial
+		checkScreenSize()
+
+		// Listener para mudanças de tamanho
+		window.addEventListener('resize', checkScreenSize)
+
+		// Cleanup
+		return () => {
+			window.removeEventListener('resize', checkScreenSize)
+		}
+	}, [])
 
 	const openSidebar = () => setIsOpenSidebar(true)
 	const closeSidebar = () => setIsOpenSidebar(false)
