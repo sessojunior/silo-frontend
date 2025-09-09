@@ -231,7 +231,30 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 			.from(schema.projectTask)
 			.where(and(eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId)))
 
-		return NextResponse.json({ success: true, tasks: updatedTasks })
+		// Buscar usuários associados a cada tarefa (igual ao GET)
+		const tasksWithUsers = await Promise.all(
+			updatedTasks.map(async (task) => {
+				const taskUsers = await db
+					.select({
+						id: schema.projectTaskUser.userId,
+						role: schema.projectTaskUser.role,
+						name: schema.authUser.name,
+						email: schema.authUser.email,
+						image: schema.authUser.image,
+					})
+					.from(schema.projectTaskUser)
+					.innerJoin(schema.authUser, eq(schema.projectTaskUser.userId, schema.authUser.id))
+					.where(eq(schema.projectTaskUser.taskId, task.id))
+
+				return {
+					...task,
+					assignedUsers: taskUsers.map((user) => user.id), // IDs dos usuários para compatibilidade
+					assignedUsersDetails: taskUsers, // Detalhes completos dos usuários
+				}
+			}),
+		)
+
+		return NextResponse.json({ success: true, tasks: tasksWithUsers })
 	} catch (error) {
 		console.error('❌ [API] Erro ao atualizar tarefas do kanban:', error)
 		return NextResponse.json({ success: false, error: 'Erro ao atualizar tarefas do kanban' }, { status: 500 })
