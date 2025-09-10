@@ -205,8 +205,8 @@ export default function Product({ id, name, turns, progress, priority, date, las
 							<span className='text-lg font-medium'>{name}</span>
 						</div>
 						<div className='text-sm'>
-							{progress}% <span className='text-zinc-300'>•</span>
-							{date}
+							<span title='Porcentagem de turnos concluídos nos últimos 28 dias'>{progress}%</span> <span className='text-zinc-300'>•</span>
+							<span title='Data da última execução registrada'>{date}</span>
 						</div>
 					</div>
 

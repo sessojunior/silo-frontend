@@ -167,18 +167,18 @@ export default function DashboardPage() {
 		})
 
 	// ===== Progress Radials =====
-	// Produtos: % de turnos completos nos últimos 7 dias
-	let totalTurns7 = 0
-	let completedTurns7 = 0
+	// Produtos: % de turnos completos nos últimos 28 dias
+	let totalTurns28 = 0
+	let completedTurns28 = 0
 	data.forEach((prod) => {
 		prod.dates.forEach((d) => {
-			if (last7Dates.includes(d.date) && prod.turns.includes(String(d.turn))) {
-				totalTurns7++
-				if (d.status === 'completed') completedTurns7++
+			if (new Date(d.date) >= cut28 && prod.turns.includes(String(d.turn))) {
+				totalTurns28++
+				if (d.status === 'completed') completedTurns28++
 			}
 		})
 	})
-	const productsProgressPercent = totalTurns7 > 0 ? Math.round((completedTurns7 / totalTurns7) * 100) : 0
+	const productsProgressPercent = totalTurns28 > 0 ? Math.round((completedTurns28 / totalTurns28) * 100) : 0
 
 	// Projetos: média de progresso dos projetos ativos
 	const projectsProgressPercent = projects.length > 0 ? Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length) : 0
@@ -245,7 +245,7 @@ export default function DashboardPage() {
 												return dayData
 											})
 
-											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? formatDateBR(p.last_run) : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={p.dates} onSaved={fetchDashboard} />
+											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? formatDateBR(p.last_run.split(' ')[0]) : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={p.dates} onSaved={fetchDashboard} />
 										})}
 								</div>
 							</div>
@@ -323,7 +323,7 @@ export default function DashboardPage() {
 
 						{/* Progresso radial */}
 						<div className='grid w-full grid-cols-2 divide-x divide-zinc-200 border-b border-b-zinc-200 dark:divide-zinc-700 dark:border-b-zinc-700'>
-							<Radial name='Produtos' progress={productsProgressPercent} color='text-purple-500' colorDark='text-purple-600' title='Porcentagem de rodadas concluídas nos últimos 7 dias' />
+							<Radial name='Produtos' progress={productsProgressPercent} color='text-purple-500' colorDark='text-purple-600' title='Porcentagem de rodadas concluídas nos últimos 28 dias' />
 							<Radial name='Projetos' progress={projectsProgressPercent} color='text-rose-400' colorDark='text-rose-500' title='Porcentagem de tarefas concluídas sobre o total de todo o projeto' />
 						</div>
 
