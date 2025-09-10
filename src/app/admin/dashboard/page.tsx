@@ -291,27 +291,56 @@ export default function DashboardPage() {
 						<div className='flex flex-col border-b border-b-zinc-200 pb-6 dark:border-b-zinc-700'>
 							<h3 className='pb-4 text-2xl font-medium'>Resumo de 7 dias</h3>
 							{summary ? (
-								<p className='text-base'>
-									Nos últimos 7 dias você teve
-									<span className='font-semibold'> {Math.abs(summary.percentChange).toFixed(2)}% </span>
-									{summary.percentChange >= 0 ? ' mais ' : ' menos '} problemas que o{' '}
-									<span className='italic' title='7 dias anteriores a estes últimos 7 dias'>
-										período anterior
-									</span>
-									, foram
-									<span className='font-semibold'>
-										{' '}
-										{summary.recentCount} problema{summary.recentCount === 1 ? '' : 's'}{' '}
-									</span>
-									nas categorias{' '}
-									{summary.categories.map((c, idx) => (
-										<span key={c.name} className='font-semibold italic'>
-											{c.name}
-											{idx < summary.categories.length - 2 ? ', ' : idx === summary.categories.length - 2 ? ' e ' : ''}
-										</span>
-									))}
-									.
-								</p>
+								<div className='text-base space-y-3'>
+									<p>
+										{summary.recentCount === 0 ? (
+											<span className='text-green-600 dark:text-green-400 font-semibold'>🎉 Excelente! Não houve problemas nos últimos 7 dias.</span>
+										) : summary.percentChange === 0 ? (
+											<>
+												Nos últimos 7 dias você teve <span className='font-semibold text-blue-600 dark:text-blue-400'>a mesma quantidade de problemas</span> que o período anterior: foram{' '}
+												<span className='font-semibold'>
+													{summary.recentCount} problema{summary.recentCount === 1 ? '' : 's'}
+												</span>
+											</>
+										) : summary.percentChange > 0 ? (
+											<>
+												Nos últimos 7 dias você teve <span className='font-semibold text-red-600 dark:text-red-400'>{Math.abs(summary.percentChange).toFixed(1)}% mais problemas</span> que o período anterior: foram{' '}
+												<span className='font-semibold'>
+													{summary.recentCount} problema{summary.recentCount === 1 ? '' : 's'}
+												</span>
+											</>
+										) : (
+											<>
+												Nos últimos 7 dias você teve <span className='font-semibold text-green-600 dark:text-green-400'>{Math.abs(summary.percentChange).toFixed(1)}% menos problemas</span> que o período anterior: foram{' '}
+												<span className='font-semibold'>
+													{summary.recentCount} problema{summary.recentCount === 1 ? '' : 's'}
+												</span>
+											</>
+										)}
+										{summary.categories.length > 0 && (
+											<>
+												{' '}
+												nas categorias{' '}
+												{summary.categories.map((c, idx) => (
+													<span key={c.name} className='font-semibold italic'>
+														{c.name}
+														{idx < summary.categories.length - 2 ? ', ' : idx === summary.categories.length - 2 ? ' e ' : ''}
+													</span>
+												))}
+												.
+											</>
+										)}
+									</p>
+
+									<p className='text-sm text-zinc-600 dark:text-zinc-400 pt-5 border-t border-zinc-200 dark:border-zinc-700'>
+										<span className='text-lg'>💡</span>
+										<span>Consulte os </span>
+										<Link href='/admin/reports' className='text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium underline'>
+											relatórios
+										</Link>
+										<span> para mais detalhes.</span>
+									</p>
+								</div>
 							) : (
 								<div className='flex animate-pulse flex-col gap-2'>
 									<div className='h-4 w-full rounded bg-zinc-200 dark:bg-zinc-700'></div>

@@ -4,17 +4,13 @@ import { productActivity, productProblemCategory } from '@/lib/db/schema'
 import { gte, and, isNotNull, inArray, ne } from 'drizzle-orm'
 import { NO_INCIDENTS_CATEGORY_ID } from '@/lib/constants'
 import { INCIDENT_STATUS } from '@/lib/productStatus'
+import { getDaysAgo } from '@/lib/dateUtils'
 
 export async function GET() {
 	try {
-		const today = new Date()
-		const cut7 = new Date()
-		cut7.setDate(today.getDate() - 7)
-		const cut14 = new Date()
-		cut14.setDate(today.getDate() - 14)
-
-		const dateStr7 = cut7.toISOString().slice(0, 10)
-		const dateStr14 = cut14.toISOString().slice(0, 10)
+		// Usar timezone de São Paulo consistentemente
+		const dateStr7 = getDaysAgo(7) // últimos 7 dias
+		const dateStr14 = getDaysAgo(14) // últimos 14 dias
 
 		// Fetch incidents for last 14 days (we'll split in memory) - excluindo "Não houve incidentes"
 		const rows = await db
