@@ -1,3 +1,5 @@
+import { getStatusLabel, getStatusColor, ProductStatus, getDayColorFromTurns, getStatusClasses as getCentralizedStatusClasses } from '@/lib/productStatus'
+
 interface TimelineItem {
 	id?: string
 	date: string
@@ -12,40 +14,12 @@ interface Props {
 	timelineData?: TimelineItem[] // dados completos para clique
 }
 
-function cls(status: string) {
-	switch (status) {
-		case 'completed':
-			return 'bg-green-600 text-white' // Consistente com ProductTurn
-		case 'pending':
-			return 'bg-zinc-200 text-zinc-600' // Consistente com ProductTurn
-		case 'under_support':
-		case 'suspended':
-			return 'bg-orange-600 text-white' // Consistente com ProductTurn
-		case 'not_run':
-			return 'bg-zinc-400 text-white' // Consistente com ProductTurn
-		case 'with_problems':
-		case 'run_again':
-			return 'bg-red-600 text-white' // Consistente com ProductTurn
-			return 'bg-zinc-200 text-zinc-600' // Consistente com ProductTurn
-		case 'in_progress':
-			return 'bg-transparent border border-zinc-300 text-zinc-600 dark:border-zinc-700' // Consistente com ProductTurn
-		default:
-			return 'bg-zinc-200 dark:bg-zinc-700'
-	}
-}
+// Função para obter classes CSS baseadas no status ou cor
+function getStatusClasses(input: string): string {
+	// Se o input é um status, converter para cor primeiro
+	const color = input.includes('green') || input.includes('orange') || input.includes('red') || input.includes('gray') || input.includes('transparent') || input.includes('blue') || input.includes('violet') || input.includes('yellow') ? (input as 'green' | 'orange' | 'red' | 'gray' | 'transparent' | 'blue' | 'violet' | 'yellow') : getStatusColor(input as ProductStatus)
 
-function STATUS_LABEL(status: string) {
-	const map: Record<string, string> = {
-		completed: 'Concluído',
-		in_progress: 'Em execução',
-		pending: 'Pendente',
-		under_support: 'Sob intervenção',
-		suspended: 'Suspenso',
-		not_run: 'Não rodou',
-		with_problems: 'Com problemas',
-		run_again: 'Rodar novamente',
-	}
-	return map[status] || status
+	return getCentralizedStatusClasses(color, 'timeline') // Variante de referência
 }
 
 export default function ProductTimeline({ statuses, timelineData }: Props) {
@@ -57,27 +31,6 @@ export default function ProductTimeline({ statuses, timelineData }: Props) {
 		const formatDateBR = (dateStr: string) => {
 			const [year, month, day] = dateStr.split('-')
 			return `${day}/${month}/${year}`
-		}
-
-		// Função para determinar o status mais severo
-		const getMostSevereStatus = (turns: TimelineItem[]) => {
-			const severityOrder: Record<string, number> = {
-				completed: 0,
-				in_progress: 2,
-				pending: 3,
-				under_support: 3,
-				suspended: 3,
-				not_run: 4,
-				with_problems: 4,
-				run_again: 4,
-				off: 5,
-			}
-
-			return turns.reduce((mostSevere, turn) => {
-				const currentSeverity = severityOrder[turn.status] ?? 0
-				const mostSevereSeverity = severityOrder[mostSevere.status] ?? 0
-				return currentSeverity > mostSevereSeverity ? turn : mostSevere
-			})
 		}
 
 		// Agrupar dados por data para exibir todos os turnos no tooltip
@@ -98,10 +51,10 @@ export default function ProductTimeline({ statuses, timelineData }: Props) {
 		 * LÓGICA DOS TURNOS FALTANTES:
 		 * - Turnos esperados: [0, 6, 12, 18] (meia-noite, 6h, meio-dia, 18h)
 		 * - Se existe registro no banco: usa o status real do banco
-		 * - Se NÃO existe registro no banco: status = 'pending' (Pendente)
+		 * - Se NÃO existe registro no banco: status = 'pending' (Pendente - ainda não chegou a hora)
 		 *
 		 * Isso garante que o tooltip sempre mostre os 4 turnos por dia,
-		 * mesmo quando alguns turnos não foram executados ou não têm dados.
+		 * mesmo quando alguns turnos ainda não foram executados.
 		 */
 		const getExpectedTurns = (date: string, existingTurns: TimelineItem[]): TimelineItem[] => {
 			const expectedTurns = [0, 6, 12, 18]
@@ -113,7 +66,7 @@ export default function ProductTimeline({ statuses, timelineData }: Props) {
 					// Turno existe no banco - usar dados reais
 					result.push(existingTurn)
 				} else {
-					// Turno não existe no banco - status padrão "Pendente"
+					// Turno não existe no banco - status padrão "Pendente" (ainda não chegou a hora)
 					result.push({
 						date,
 						turn,
@@ -139,9 +92,6 @@ export default function ProductTimeline({ statuses, timelineData }: Props) {
 		// Criar array de datas únicas ordenadas para exibir todos os 28 dias
 		const uniqueDates = [...new Set(timelineData.map((item) => item.date))].sort()
 
-		// Debug: verificar quantas datas únicas temos
-		console.log(`🔍 Timeline Debug - Total de datas únicas: ${uniqueDates.length}`, uniqueDates)
-
 		return (
 			<div className='h-8'>
 				<div className='flex'>
@@ -157,8 +107,9 @@ export default function ProductTimeline({ statuses, timelineData }: Props) {
 									return <div key={`${date}-${idx}`} className='h-5 w-1.5 rounded-full bg-zinc-200 dark:bg-zinc-700' title={`${formatDateBR(date)} - Sem dados`} />
 								}
 
-								// Determinar status mais severo para cor do elemento
-								const mostSevereTurn = getMostSevereStatus(allTurnsForDate)
+								// Determinar cor do dia baseado nos turnos
+								const turnStatuses = allTurnsForDate.map((turn) => turn.status as ProductStatus)
+								const dayColor = getDayColorFromTurns(turnStatuses)
 
 								// Construir tooltip com todos os turnos da data
 								const dateFormatted = formatDateBR(date)
@@ -178,14 +129,14 @@ export default function ProductTimeline({ statuses, timelineData }: Props) {
 								const turnsInfo = allTurnsForDate
 									.map((turn) => {
 										const description = turn.description ? truncateDescription(turn.description) : ''
-										return `Turno ${turn.turn}: ${STATUS_LABEL(turn.status)}${description ? ' - ' + description : ''}`
+										return `Turno ${turn.turn}: ${getStatusLabel(turn.status as ProductStatus)}${description ? ' - ' + description : ''}`
 									})
 									.join('\n')
 
 								// Variável final com data e todos os turnos
 								const tooltipContent = `${dateFormatted}\n${turnsInfo}`
 
-								return <div key={`${date}-${idx}`} className={`h-5 w-1.5 rounded-full ${cls(mostSevereTurn.status)} hover:scale-110 transition-transform`} title={tooltipContent} />
+								return <div key={`${date}-${idx}`} className={`h-5 w-1.5 rounded-full ${getStatusClasses(dayColor)} hover:scale-110 transition-transform`} title={tooltipContent} />
 							})}
 						</div>
 					))}
@@ -204,7 +155,7 @@ export default function ProductTimeline({ statuses, timelineData }: Props) {
 				{weeks.map((start, wIdx) => (
 					<div key={wIdx} className={weekClass}>
 						{statuses.slice(start, start + 7).map((s, idx) => (
-							<div key={idx} className={`h-5 w-1.5 rounded-full ${cls(s)}`}></div>
+							<div key={idx} className={`h-5 w-1.5 rounded-full ${getStatusClasses(s)}`}></div>
 						))}
 					</div>
 				))}

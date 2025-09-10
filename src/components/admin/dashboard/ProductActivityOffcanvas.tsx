@@ -7,6 +7,7 @@ import Markdown from '@/components/ui/Markdown'
 import { toast } from '@/lib/toast'
 import { formatDateBR } from '@/lib/dateUtils'
 import { NO_INCIDENTS_CATEGORY_ID, isRealIncident } from '@/lib/constants'
+import { STATUS_OPTIONS, INCIDENT_STATUS, ProductStatus } from '@/lib/productStatus'
 import IncidentManagementOffcanvas from './IncidentManagementOffcanvas'
 
 interface Props {
@@ -23,19 +24,6 @@ interface Props {
 	onSaved?: () => void
 	onAddSaveLog?: (step: string, details: unknown, success?: boolean, error?: string) => void
 }
-
-const STATUS_OPTIONS: SelectOption[] = [
-	{ label: 'Concluído', value: 'completed' },
-	{ label: 'Em execução', value: 'in_progress' },
-	{ label: 'Pendente', value: 'pending' },
-	{ label: 'Sob intervenção', value: 'under_support' },
-	{ label: 'Suspenso', value: 'suspended' },
-	{ label: 'Não rodou', value: 'not_run' },
-	{ label: 'Com problemas', value: 'with_problems' },
-	{ label: 'Rodar novamente', value: 'run_again' },
-]
-
-const INCIDENT_STATUS = new Set(['pending', 'under_support', 'suspended', 'not_run', 'with_problems', 'run_again'])
 
 export default function ProductActivityOffcanvas({ open, onClose, productId, productName, date, turn, existingId = null, initialStatus = 'completed', initialDescription = '', initialCategoryId = null, onSaved, onAddSaveLog }: Props) {
 	const [status, setStatus] = useState<string>(initialStatus)
@@ -138,7 +126,7 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 		})
 
 		// validate
-		if (INCIDENT_STATUS.has(status) && !incidentId) {
+		if (INCIDENT_STATUS.has(status as ProductStatus) && !incidentId) {
 			toast({ type: 'error', title: 'Selecione o incidente' })
 			return
 		}
@@ -220,7 +208,7 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 		}
 	}
 
-	const requireIncident = INCIDENT_STATUS.has(status)
+	const requireIncident = INCIDENT_STATUS.has(status as ProductStatus)
 	const hasRealIncident = isRealIncident(incidentId)
 
 	return (

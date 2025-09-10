@@ -3,11 +3,9 @@ import { db } from '@/lib/db'
 import { product, productActivity } from '@/lib/db/schema'
 import { eq, gte } from 'drizzle-orm'
 import { getMonthsAgo, getDaysAgo } from '@/lib/dateUtils'
+import { INCIDENT_STATUS } from '@/lib/productStatus'
 
-// Utilidades
-const ALERT_STATUSES = ['pending', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended'] as const
-
-type AlertStatus = (typeof ALERT_STATUSES)[number]
+type AlertStatus = 'pending' | 'not_run' | 'with_problems' | 'run_again' | 'under_support' | 'suspended'
 
 type DashboardProduct = {
 	productId: string
@@ -29,7 +27,7 @@ type DashboardProduct = {
 }
 
 function isAlert(status: string): status is AlertStatus {
-	return ALERT_STATUSES.includes(status as AlertStatus)
+	return INCIDENT_STATUS.has(status as AlertStatus)
 }
 
 // Deve retornar um array de produtos com as seguintes informações:

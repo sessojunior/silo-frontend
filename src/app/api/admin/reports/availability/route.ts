@@ -3,9 +3,7 @@ import { db } from '@/lib/db'
 import { product, productActivity } from '@/lib/db/schema'
 import { eq, and, gte } from 'drizzle-orm'
 import { getDaysAgo } from '@/lib/dateUtils'
-
-// Status considerados incidentes (mesmos do dashboard)
-const INCIDENT_STATUS = ['pending', 'under_support', 'suspended', 'not_run', 'with_problems', 'run_again'] as const
+import { INCIDENT_STATUS, ProductStatus } from '@/lib/productStatus'
 
 export async function GET() {
 	try {
@@ -57,7 +55,7 @@ export async function GET() {
 				let totalActivities = activities.length
 				let completedActivities = activities.filter((a) => a.status === 'completed').length
 				const activeActivities = activities.filter((a) => a.status === 'in_progress').length
-				let failedActivities = activities.filter((a) => INCIDENT_STATUS.includes(a.status as (typeof INCIDENT_STATUS)[number])).length
+				let failedActivities = activities.filter((a) => INCIDENT_STATUS.has(a.status as ProductStatus)).length
 
 				// Calcular porcentagem de disponibilidade
 				let availabilityPercentage = 100

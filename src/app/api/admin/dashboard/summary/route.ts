@@ -3,9 +3,7 @@ import { db } from '@/lib/db'
 import { productActivity, productProblemCategory } from '@/lib/db/schema'
 import { gte, and, isNotNull, inArray, ne } from 'drizzle-orm'
 import { NO_INCIDENTS_CATEGORY_ID } from '@/lib/constants'
-
-// Status considerados incidentes (mesmos do dashboard)
-const INCIDENT_STATUS = ['pending', 'under_support', 'suspended', 'not_run', 'with_problems', 'run_again'] as const
+import { INCIDENT_STATUS } from '@/lib/productStatus'
 
 export async function GET() {
 	try {
@@ -26,7 +24,7 @@ export async function GET() {
 				and(
 					gte(productActivity.date, dateStr14),
 					isNotNull(productActivity.problemCategoryId),
-					inArray(productActivity.status, INCIDENT_STATUS),
+					inArray(productActivity.status, Array.from(INCIDENT_STATUS)),
 					ne(productActivity.problemCategoryId, NO_INCIDENTS_CATEGORY_ID), // ← FILTRO AUTOMÁTICO
 				),
 			)

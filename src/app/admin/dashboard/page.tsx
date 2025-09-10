@@ -5,6 +5,7 @@ import ChartColumn from '@/components/admin/dashboard/ChartColumn'
 import ChartLine from '@/components/admin/dashboard/ChartLine'
 import ChartDonut from '@/components/admin/dashboard/ChartDonut'
 import { isRealIncident } from '@/lib/constants'
+import { STATUS_DEFINITIONS, getStatusSeverity, ProductStatus, getStatusClasses as getCentralizedStatusClasses } from '@/lib/productStatus'
 
 import Stats from '@/components/admin/dashboard/Stats'
 import Radial from '@/components/admin/dashboard/Radial'
@@ -86,16 +87,19 @@ export default function DashboardPage() {
 	const cut28 = new Date()
 	cut28.setDate(new Date().getDate() - 28)
 
-	// Mapeamento de status → info visual
+	// Mapeamento de status → info visual (usando definições centralizadas)
 	const STATUS_INFO: Record<string, { label: string; color: string; colorDark: string; severity: number }> = {
-		completed: { label: 'Concluído', color: 'bg-green-400', colorDark: 'bg-green-700', severity: 0 },
-		in_progress: { label: 'Em execução', color: 'bg-zinc-100', colorDark: 'bg-zinc-600', severity: 2 },
-		pending: { label: 'Pendente', color: 'bg-zinc-200', colorDark: 'bg-zinc-600', severity: 3 },
-		under_support: { label: 'Sob intervenção', color: 'bg-orange-500', colorDark: 'bg-orange-600', severity: 3 },
-		suspended: { label: 'Suspenso', color: 'bg-orange-400', colorDark: 'bg-orange-700', severity: 3 },
-		not_run: { label: 'Não rodou', color: 'bg-red-600', colorDark: 'bg-red-500', severity: 4 },
-		with_problems: { label: 'Com problemas', color: 'bg-red-600', colorDark: 'bg-red-600', severity: 4 },
-		run_again: { label: 'Rodar novamente', color: 'bg-red-400', colorDark: 'bg-red-700', severity: 4 },
+		...Object.fromEntries(
+			Object.entries(STATUS_DEFINITIONS).map(([key, def]) => [
+				key,
+				{
+					label: def.label,
+					color: getCentralizedStatusClasses(def.color, 'stats'), // Mesma tonalidade da timeline
+					colorDark: getCentralizedStatusClasses(def.color, 'stats'), // Mesma tonalidade da timeline
+					severity: getStatusSeverity(key as ProductStatus),
+				},
+			]),
+		),
 		off: { label: 'Desligado', color: 'bg-black', colorDark: 'bg-white', severity: 5 },
 	}
 

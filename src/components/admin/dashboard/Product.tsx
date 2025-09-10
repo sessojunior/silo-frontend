@@ -7,6 +7,7 @@ import ProductTurn from '@/components/admin/dashboard/ProductTurn'
 import ProductCalendar from '@/components/admin/dashboard/ProductCalendar'
 import Modal from '@/components/ui/Modal'
 import ProductActivityOffcanvas from '@/components/admin/dashboard/ProductActivityOffcanvas'
+import { STATUS_DEFINITIONS, ProductStatus, StatusColor, getStatusSeverity, getDayColorFromTurns, getStatusClasses as getCentralizedStatusClasses } from '@/lib/productStatus'
 
 interface ProductDateStatus {
 	id?: string
@@ -44,8 +45,8 @@ export default function Product({ id, name, turns, progress, priority, date, las
 	// A timeline de 28 dias é agregada por dia; não deve ser filtrada por turno
 	const filteredCalendar = useMemo(() => calendarStatus.filter((d) => turns.includes(String(d.turn))), [calendarStatus, turns])
 
-	// Usar status de 28 dias para a timeline (não filtrados por turnos)
-	const timelineStatuses = last28DaysStatus.map((d) => d.status)
+	// Usar status de 28 dias para a timeline (filtrados por turnos para consistência)
+	const timelineStatuses = last28DaysStatus.filter((d) => turns.includes(String(d.turn))).map((d) => d.status)
 
 	// Build days array for ProductTurn - timeline completa dos últimos turnos
 	const days = useMemo(() => {
@@ -64,8 +65,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 				daysMap[d.date].turns.push({ id: d.id, time: d.turn, status: d.status, description: d.description, category_id: d.category_id })
 			} else {
 				// Se já existe, escolher status mais severo (orange/red substitui green) – simples prioridade
-				const severityOrder: Record<string, number> = { completed: 0, in_progress: 2, pending: 3, under_support: 3, suspended: 3, not_run: 4, with_problems: 4, run_again: 4, off: 5 }
-				if ((severityOrder[d.status] ?? 0) > (severityOrder[existingTurn.status] ?? 0)) {
+				if (getStatusSeverity(d.status as ProductStatus) > getStatusSeverity(existingTurn.status as ProductStatus)) {
 					existingTurn.status = d.status
 					existingTurn.description = d.description
 					existingTurn.category_id = d.category_id
@@ -115,29 +115,16 @@ export default function Product({ id, name, turns, progress, priority, date, las
 	type CalendarDate = {
 		dateWeek: string
 		dateDay: number
-		dateTurns: { dateTurn: number; dateStatus: 'green' | 'orange' | 'red' | '' }[]
+		dateTurns: { dateTurn: number; dateStatus: 'green' | 'orange' | 'red' | 'gray' | 'transparent' | 'blue' | 'violet' | 'yellow'; realStatus: string }[]
 	}
 
 	type Calendar = { year: number; month: number; dates: CalendarDate[] }
 
 	const dayOfWeekName = (d: number): string => ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][d]
 
-	const colorForStatus = (status?: string): 'green' | 'orange' | 'red' | '' => {
-		switch (status) {
-			case 'completed':
-				return 'green'
-			case 'pending':
-			case 'under_support':
-			case 'suspended':
-				return 'orange'
-			case 'not_run':
-				return '' // Corrigido: cinza (vazio) ao invés de vermelho
-			case 'with_problems':
-			case 'run_again':
-				return 'red'
-			default:
-				return ''
-		}
+	// Função para gerar classes CSS da legenda baseadas na cor do status
+	const getLegendClasses = (color: string): string => {
+		return getCentralizedStatusClasses(color as StatusColor, 'stats') // Mesma tonalidade da timeline
 	}
 
 	// Mapa status por (date + turn) para calendário
@@ -146,15 +133,29 @@ export default function Product({ id, name, turns, progress, priority, date, las
 		statusMap.set(`${d.date}_${d.turn}`, d.status)
 	})
 
-	// Gera lista dos 3 últimos meses a partir da data atual
-	const today = new Date()
+	// Gera lista dos 3 últimos meses a partir da data atual (mês atual primeiro)
+	// Usar fuso horário de São Paulo, Brasil (UTC-3)
+	const now = new Date()
+	const saoPauloFormatter = new Intl.DateTimeFormat('pt-BR', {
+		timeZone: 'America/Sao_Paulo',
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+	})
+
+	const parts = saoPauloFormatter.formatToParts(now)
+	const year = parts.find((part) => part.type === 'year')?.value
+	const month = parts.find((part) => part.type === 'month')?.value
+	const day = parts.find((part) => part.type === 'day')?.value
+
+	const today = new Date(parseInt(year!), parseInt(month!) - 1, parseInt(day!))
 	const monthsArr: string[] = []
 	for (let i = 0; i < 3; i++) {
 		const dt = new Date(today.getFullYear(), today.getMonth() - i, 1)
 		const ym = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`
 		monthsArr.push(ym)
 	}
-	monthsArr.sort()
+	// Não ordenar - manter ordem: atual, anterior, mais anterior
 
 	const calendars: Calendar[] = monthsArr.map((ym) => {
 		const [yearStr, monthStr] = ym.split('-')
@@ -167,7 +168,26 @@ export default function Product({ id, name, turns, progress, priority, date, las
 		for (let day = 1; day <= daysInMonth; day++) {
 			const dateStr = `${ym}-${String(day).padStart(2, '0')}`
 			const weekName = dayOfWeekName(new Date(dateStr).getDay())
-			const dateTurns = [0, 6, 12, 18].map((t) => ({ dateTurn: t, dateStatus: colorForStatus(statusMap.get(`${dateStr}_${t}`)) }))
+
+			// Obter todos os status dos turnos para este dia
+			const dayStatuses = turns.map((t) => {
+				const turnNum = parseInt(t)
+				const realStatus = statusMap.get(`${dateStr}_${turnNum}`)
+				return realStatus || 'pending'
+			}) as ProductStatus[]
+
+			// Determinar cor do dia baseada na prioridade dos status
+			const dayColor = getDayColorFromTurns(dayStatuses)
+
+			const dateTurns = turns.map((t) => {
+				const turnNum = parseInt(t)
+				const realStatus = statusMap.get(`${dateStr}_${turnNum}`)
+				return {
+					dateTurn: turnNum,
+					dateStatus: dayColor, // Usar cor do dia inteiro baseada na prioridade
+					realStatus: realStatus || 'pending', // Status real para tooltip - pending quando não há dados
+				}
+			})
 			dates.push({ dateWeek: weekName, dateDay: day, dateTurns })
 		}
 
@@ -208,13 +228,15 @@ export default function Product({ id, name, turns, progress, priority, date, las
 						{/* Linha do tempo */}
 						<ProductTimeline
 							statuses={timelineStatuses}
-							timelineData={last28DaysStatus.map((d) => ({
-								date: d.date,
-								turn: d.turn,
-								status: d.status,
-								description: d.description,
-								category_id: d.category_id,
-							}))}
+							timelineData={last28DaysStatus
+								.filter((d) => turns.includes(String(d.turn)))
+								.map((d) => ({
+									date: d.date,
+									turn: d.turn,
+									status: d.status,
+									description: d.description,
+									category_id: d.category_id,
+								}))}
 						/>
 					</div>
 
@@ -249,6 +271,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 					<ProductCalendar
 						key={idx}
 						calendar={cal}
+						turns={turns}
 						onDotClick={({ date: d, turn }) => {
 							// Buscar dados reais do turno, se existirem
 							const target = filteredCalendar.find((ds) => ds.date === d && ds.turn === turn)
@@ -280,27 +303,11 @@ export default function Product({ id, name, turns, progress, priority, date, las
 
 				{/* Legenda */}
 				<div className='p-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm'>
-					<div className='flex items-center gap-1.5' title='Quando está ok.'>
-						<span className='size-3 rounded-full bg-green-600 dark:bg-green-700'></span> Concluído
-					</div>
-					<div className='flex items-center gap-1.5' title='Quando ainda não deu a hora de executar.'>
-						<span className='size-3 rounded-full bg-zinc-300 dark:bg-zinc-700'></span> Pendente
-					</div>
-					<div className='flex items-center gap-1.5' title='Deu a hora de executar, mas não executou o modelo, é necessário executá-lo depois. Ou sob intervenção do suporte técnico. Ou rodada suspensa.'>
-						<span className='size-3 rounded-full bg-orange-400 dark:bg-orange-700'></span> Pendente • Sob intervenção • Suspenso
-					</div>
-					<div className='flex items-center gap-1.5' title='Produto rodando normalmente no turno atual.'>
-						<span className='size-3 rounded-full bg-transparent border border-zinc-300 dark:border-zinc-700'></span> Em andamento
-					</div>
-					<div className='flex items-center gap-1.5' title='Produto não rodou durante o turno, rodou com problemas ou deve ser rodado novamente.'>
-						<span className='size-3 rounded-full bg-red-600'></span> Não rodou • Com problemas • Rodar novamente
-					</div>
-					<div className='flex items-center gap-1.5' title='Quando não executou'>
-						<span className='size-3 rounded-full bg-zinc-300 dark:bg-zinc-700'></span> Sem execução
-					</div>
-					<div className='flex items-center gap-1.5' title='Produto desligado'>
-						<span className='size-3 rounded-full bg-black dark:bg-white'></span> Desligado
-					</div>
+					{Object.values(STATUS_DEFINITIONS).map((statusDef) => (
+						<div key={statusDef.status} className='flex items-center gap-1.5' title={statusDef.description}>
+							<span className={`size-3 rounded-full ${getLegendClasses(statusDef.color)}`}></span> {statusDef.label}
+						</div>
+					))}
 				</div>
 			</Modal>
 

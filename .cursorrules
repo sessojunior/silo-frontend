@@ -149,7 +149,7 @@ Quando usuário disser **"atualizar readme.md"**:
 ### Princípios de Desenvolvimento
 
 - **Modularidade**: Sistemas organizados em módulos
-- **Type Safety**: TypeScript strict em todo projeto
+- **Type Safety**: TypeScript strict em todo projeto, nunca usar any
 - **Security by Design**: Validação em todas camadas
 - **Performance First**: Bundle otimizado
 
