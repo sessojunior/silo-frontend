@@ -1,4 +1,4 @@
-import { getStatusLabel, getStatusColor, ProductStatus, getDayColorFromTurns, getStatusClasses as getCentralizedStatusClasses } from '@/lib/productStatus'
+import { getStatusLabel, getStatusColor, ProductStatus, getDayColorFromTurns, getStatusClasses as getCentralizedStatusClasses, DEFAULT_STATUS } from '@/lib/productStatus'
 
 interface TimelineItem {
 	id?: string
@@ -46,31 +46,32 @@ export default function ProductTimeline({ statuses, timelineData }: Props) {
 		)
 
 		/**
-		 * Função para garantir que todos os turnos esperados sejam exibidos no tooltip
+		 * Função para garantir que apenas os turnos configurados do produto sejam exibidos no tooltip
 		 *
-		 * LÓGICA DOS TURNOS FALTANTES:
-		 * - Turnos esperados: [0, 6, 12, 18] (meia-noite, 6h, meio-dia, 18h)
+		 * LÓGICA DOS TURNOS CONFIGURADOS:
+		 * - Usa apenas os turnos que o produto tem configurado (recebidos via timelineData)
 		 * - Se existe registro no banco: usa o status real do banco
 		 * - Se NÃO existe registro no banco: status = 'pending' (Pendente - ainda não chegou a hora)
 		 *
-		 * Isso garante que o tooltip sempre mostre os 4 turnos por dia,
-		 * mesmo quando alguns turnos ainda não foram executados.
+		 * Isso garante que o tooltip mostre apenas os turnos configurados para o produto,
+		 * evitando mostrar turnos que o produto não deveria ter.
 		 */
 		const getExpectedTurns = (date: string, existingTurns: TimelineItem[]): TimelineItem[] => {
-			const expectedTurns = [0, 6, 12, 18]
+			// Obter turnos únicos dos dados existentes para determinar quais turnos o produto tem
+			const configuredTurns = [...new Set(timelineData!.map((item) => item.turn))].sort((a, b) => a - b)
 			const result: TimelineItem[] = []
 
-			for (const turn of expectedTurns) {
+			for (const turn of configuredTurns) {
 				const existingTurn = existingTurns.find((t) => t.turn === turn)
 				if (existingTurn) {
 					// Turno existe no banco - usar dados reais
 					result.push(existingTurn)
 				} else {
-					// Turno não existe no banco - status padrão "Pendente" (ainda não chegou a hora)
+					// Turno não existe no banco - usar status padrão centralizado (statuspending)
 					result.push({
 						date,
 						turn,
-						status: 'pending',
+						status: DEFAULT_STATUS,
 						description: null,
 						category_id: null,
 					})

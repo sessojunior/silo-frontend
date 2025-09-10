@@ -3,9 +3,9 @@
  * Este arquivo é a única fonte de verdade para status, cores e labels
  */
 
-export type ProductStatus = 'completed' | 'in_progress' | 'pending' | 'under_support' | 'suspended' | 'not_run' | 'with_problems' | 'run_again'
+export type ProductStatus = 'completed' | 'with_problems' | 'run_again' | 'not_run' | 'under_support' | 'suspended' | 'in_progress' | 'pending'
 
-export type StatusColor = 'green' | 'orange' | 'red' | 'gray' | 'transparent' | 'blue' | 'violet' | 'yellow'
+export type StatusColor = 'green' | 'orange' | 'red' | 'gray' | 'transparent' | 'blue' | 'violet' | 'yellow' | 'white'
 
 export interface StatusOption {
 	label: string
@@ -24,13 +24,13 @@ export interface StatusDefinition {
  */
 export const STATUS_OPTIONS: StatusOption[] = [
 	{ label: 'Concluído', value: 'completed' },
-	{ label: 'Em execução', value: 'in_progress' },
-	{ label: 'Pendente', value: 'pending' },
-	{ label: 'Sob intervenção', value: 'under_support' },
-	{ label: 'Suspenso', value: 'suspended' },
-	{ label: 'Não rodou', value: 'not_run' },
 	{ label: 'Com problemas', value: 'with_problems' },
 	{ label: 'Rodar novamente', value: 'run_again' },
+	{ label: 'Não rodou', value: 'not_run' },
+	{ label: 'Sob intervenção', value: 'under_support' },
+	{ label: 'Suspenso', value: 'suspended' },
+	{ label: 'Em execução', value: 'in_progress' },
+	{ label: 'Pendente', value: 'pending' },
 ]
 
 /**
@@ -42,36 +42,6 @@ export const STATUS_DEFINITIONS: Record<ProductStatus, StatusDefinition> = {
 		label: 'Concluído',
 		color: 'green',
 		description: 'Produto executado com sucesso.',
-	},
-	in_progress: {
-		status: 'in_progress',
-		label: 'Em execução',
-		color: 'gray',
-		description: 'Produto rodando normalmente no turno atual.',
-	},
-	pending: {
-		status: 'pending',
-		label: 'Pendente',
-		color: 'transparent',
-		description: 'Quando ainda não deu a hora de executar e terminar a execução.',
-	},
-	under_support: {
-		status: 'under_support',
-		label: 'Sob intervenção',
-		color: 'violet',
-		description: 'Sob intervenção do suporte técnico.',
-	},
-	suspended: {
-		status: 'suspended',
-		label: 'Suspenso',
-		color: 'blue',
-		description: 'Rodada suspensa temporariamente.',
-	},
-	not_run: {
-		status: 'not_run',
-		label: 'Não rodou',
-		color: 'yellow',
-		description: 'Produto não rodou durante o turno devido a algum problema.',
 	},
 	with_problems: {
 		status: 'with_problems',
@@ -85,7 +55,43 @@ export const STATUS_DEFINITIONS: Record<ProductStatus, StatusDefinition> = {
 		color: 'orange',
 		description: 'Produto deve ser rodado novamente.',
 	},
+	not_run: {
+		status: 'not_run',
+		label: 'Não rodou',
+		color: 'yellow',
+		description: 'Produto não rodou durante o turno devido a algum problema.',
+	},
+	under_support: {
+		status: 'under_support',
+		label: 'Sob intervenção',
+		color: 'violet',
+		description: 'Sob intervenção do suporte técnico.',
+	},
+	suspended: {
+		status: 'suspended',
+		label: 'Suspenso',
+		color: 'blue',
+		description: 'Rodada suspensa temporariamente.',
+	},
+	in_progress: {
+		status: 'in_progress',
+		label: 'Em execução',
+		color: 'gray',
+		description: 'Produto rodando normalmente no turno atual.',
+	},
+	pending: {
+		status: 'pending',
+		label: 'Pendente',
+		color: 'white',
+		description: 'Quando ainda não deu a hora de executar e terminar a execução.',
+	},
 }
+
+/**
+ * Status padrão quando não há dados no banco
+ * Usado quando um turno ainda não foi executado ou não há registro
+ */
+export const DEFAULT_STATUS: ProductStatus = 'pending'
 
 /**
  * Status que são considerados incidentes
@@ -96,31 +102,33 @@ export const INCIDENT_STATUS = new Set<ProductStatus>(['pending', 'under_support
  * Mapeia status para cor (usado no Product.tsx)
  */
 export const getStatusColor = (status?: ProductStatus): StatusColor => {
-	if (!status) return 'transparent'
+	if (!status) return STATUS_DEFINITIONS[DEFAULT_STATUS].color // Usar cor do status padrão
 
 	const definition = STATUS_DEFINITIONS[status]
-	return definition.color === 'transparent' ? 'transparent' : (definition.color as StatusColor)
+	if (!definition) return STATUS_DEFINITIONS[DEFAULT_STATUS].color // Fallback para cor do status padrão
+
+	return definition.color
 }
 
 /**
  * Mapeia status para label (usado no ProductCalendar.tsx)
  */
 export const getStatusLabel = (status: ProductStatus): string => {
-	return STATUS_DEFINITIONS[status]?.label || 'Não rodou'
+	return STATUS_DEFINITIONS[status]?.label || STATUS_DEFINITIONS[DEFAULT_STATUS].label
 }
 
 /**
  * Mapeia status para descrição (usado em tooltips)
  */
 export const getStatusDescription = (status: ProductStatus): string => {
-	return STATUS_DEFINITIONS[status]?.description || 'Status desconhecido'
+	return STATUS_DEFINITIONS[status]?.description || STATUS_DEFINITIONS[DEFAULT_STATUS].description
 }
 
 /**
  * Obtém definição completa de um status
  */
 export const getStatusDefinition = (status: ProductStatus): StatusDefinition => {
-	return STATUS_DEFINITIONS[status] || STATUS_DEFINITIONS.not_run
+	return STATUS_DEFINITIONS[status] || STATUS_DEFINITIONS[DEFAULT_STATUS]
 }
 
 /**
@@ -134,13 +142,13 @@ export const getStatusDefinition = (status: ProductStatus): StatusDefinition => 
  * 4. Violet - under_support
  * 5. Blue - suspended
  * 6. Gray - in_progress
- * 7. Transparent - pending
+ * 7. White - pending
  * 8. Green - completed (só se TODOS os turnos foram concluídos)
  */
 export const STATUS_SEVERITY_ORDER: Record<ProductStatus, number> = {
 	completed: 8, // Green - só se todos os turnos foram concluídos
 	in_progress: 6, // Gray - rodando normalmente
-	pending: 7, // Transparent - ainda não chegou a hora
+	pending: 7, // White - ainda não chegou a hora
 	under_support: 4, // Violet - sob intervenção
 	suspended: 5, // Blue - suspenso
 	not_run: 3, // Yellow - não rodou
@@ -234,6 +242,15 @@ export const getStatusClasses = (color: StatusColor, variant: 'timeline' | 'cale
 				case 'stats':
 					return 'bg-yellow-500' // Mesma tonalidade da timeline
 			}
+		case 'white':
+			switch (variant) {
+				case 'timeline':
+					return 'bg-white text-zinc-800 border border-zinc-300 dark:bg-zinc-100 dark:text-zinc-900' // Referência: barra de 28 dias
+				case 'calendar':
+					return 'bg-white border border-zinc-300 dark:bg-zinc-100' // Mesma tonalidade da timeline
+				case 'stats':
+					return 'bg-white border border-zinc-300 dark:bg-zinc-100' // Mesma tonalidade da timeline
+			}
 		default:
 			return 'bg-zinc-200 dark:bg-zinc-700'
 	}
@@ -241,10 +258,10 @@ export const getStatusClasses = (color: StatusColor, variant: 'timeline' | 'cale
 
 /**
  * Determina a cor do dia baseado nos turnos
- * Lógica: Red > Orange > Yellow > Violet > Blue > Gray > Transparent > Green (só se todos concluídos)
+ * Lógica: Red > Orange > Yellow > Violet > Blue > Gray > White > Green (só se todos concluídos)
  */
 export const getDayColorFromTurns = (turns: ProductStatus[]): StatusColor => {
-	if (turns.length === 0) return 'transparent'
+	if (turns.length === 0) return 'white'
 
 	// Verificar se todos os turnos foram concluídos
 	const allCompleted = turns.every((status) => status === 'completed')
@@ -280,8 +297,8 @@ export const getDayColorFromTurns = (turns: ProductStatus[]): StatusColor => {
 		if (turns.includes('in_progress')) return 'gray'
 	}
 	if (maxSeverity >= 7) {
-		// pending (transparent) - prioridade 7
-		if (turns.includes('pending')) return 'transparent'
+		// pending (white) - prioridade 7
+		if (turns.includes('pending')) return 'white'
 	}
 	// completed (green) - prioridade 8, só se todos concluídos
 	return 'green'

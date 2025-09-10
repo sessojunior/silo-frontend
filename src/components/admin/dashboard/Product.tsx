@@ -7,7 +7,7 @@ import ProductTurn from '@/components/admin/dashboard/ProductTurn'
 import ProductCalendar from '@/components/admin/dashboard/ProductCalendar'
 import Modal from '@/components/ui/Modal'
 import ProductActivityOffcanvas from '@/components/admin/dashboard/ProductActivityOffcanvas'
-import { STATUS_DEFINITIONS, ProductStatus, StatusColor, getStatusSeverity, getDayColorFromTurns, getStatusClasses as getCentralizedStatusClasses } from '@/lib/productStatus'
+import { STATUS_DEFINITIONS, ProductStatus, StatusColor, getStatusSeverity, getDayColorFromTurns, getStatusClasses as getCentralizedStatusClasses, DEFAULT_STATUS } from '@/lib/productStatus'
 
 interface ProductDateStatus {
 	id?: string
@@ -92,10 +92,10 @@ export default function Product({ id, name, turns, progress, priority, date, las
 							category_id: dbRecord.category_id,
 						})
 					} else {
-						// Se não existe no banco, criar como pending sem ID
+						// Se não existe no banco, criar com status padrão sem ID
 						day.turns.push({
 							time: turnNum,
-							status: 'pending',
+							status: DEFAULT_STATUS,
 							description: null,
 							category_id: null,
 						})
@@ -115,7 +115,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 	type CalendarDate = {
 		dateWeek: string
 		dateDay: number
-		dateTurns: { dateTurn: number; dateStatus: 'green' | 'orange' | 'red' | 'gray' | 'transparent' | 'blue' | 'violet' | 'yellow'; realStatus: string }[]
+		dateTurns: { dateTurn: number; dateStatus: 'green' | 'orange' | 'red' | 'gray' | 'transparent' | 'blue' | 'violet' | 'yellow' | 'white'; realStatus: string }[]
 	}
 
 	type Calendar = { year: number; month: number; dates: CalendarDate[] }
@@ -173,7 +173,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 			const dayStatuses = turns.map((t) => {
 				const turnNum = parseInt(t)
 				const realStatus = statusMap.get(`${dateStr}_${turnNum}`)
-				return realStatus || 'pending'
+				return realStatus || DEFAULT_STATUS
 			}) as ProductStatus[]
 
 			// Determinar cor do dia baseada na prioridade dos status
@@ -185,7 +185,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 				return {
 					dateTurn: turnNum,
 					dateStatus: dayColor, // Usar cor do dia inteiro baseada na prioridade
-					realStatus: realStatus || 'pending', // Status real para tooltip - pending quando não há dados
+					realStatus: realStatus || DEFAULT_STATUS, // Status real para tooltip - status padrão quando não há dados
 				}
 			})
 			dates.push({ dateWeek: weekName, dateDay: day, dateTurns })

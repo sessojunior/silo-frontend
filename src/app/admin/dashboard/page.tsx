@@ -5,7 +5,7 @@ import ChartColumn from '@/components/admin/dashboard/ChartColumn'
 import ChartLine from '@/components/admin/dashboard/ChartLine'
 import ChartDonut from '@/components/admin/dashboard/ChartDonut'
 import { isRealIncident } from '@/lib/constants'
-import { STATUS_DEFINITIONS, getStatusSeverity, ProductStatus, getStatusClasses as getCentralizedStatusClasses } from '@/lib/productStatus'
+import { STATUS_DEFINITIONS, getStatusSeverity, ProductStatus, getStatusClasses as getCentralizedStatusClasses, DEFAULT_STATUS } from '@/lib/productStatus'
 
 import Stats from '@/components/admin/dashboard/Stats'
 import Radial from '@/components/admin/dashboard/Radial'
@@ -223,7 +223,7 @@ export default function DashboardPage() {
 											const lastDaysStatus = lastDates.flatMap((date) => {
 												const dayData = p.dates.filter((d) => d.date === date)
 												if (dayData.length === 0) {
-													return [{ date, turn: 0, user_id: '', status: 'not_run', description: null, category_id: null, alert: false }]
+													return [{ date, turn: 0, user_id: '', status: DEFAULT_STATUS, description: null, category_id: null, alert: false }]
 												}
 												return dayData
 											})
@@ -240,7 +240,7 @@ export default function DashboardPage() {
 											const last28DaysStatus = last28Dates.flatMap((date) => {
 												const dayData = p.dates.filter((d) => d.date === date)
 												if (dayData.length === 0) {
-													return [{ date, turn: 0, user_id: '', status: 'pending', description: null, category_id: null, alert: false }]
+													return [{ date, turn: 0, user_id: '', status: DEFAULT_STATUS, description: null, category_id: null, alert: false }]
 												}
 												return dayData
 											})
