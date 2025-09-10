@@ -148,8 +148,11 @@ export async function PUT(req: NextRequest) {
 			updatedAt: new Date(),
 		}
 
-		// Se é uma reordenação (parentId ou newPosition fornecidos)
-		if (parentId !== undefined || newPosition !== undefined) {
+		// Só recalcula ordenação se realmente necessário
+		// Para edições simples (nome, ícone, descrição), não deve recalcular ordenação
+		const shouldRecalculateOrdering = newPosition !== undefined
+
+		if (shouldRecalculateOrdering) {
 			// Buscar dados do novo pai se existir
 			let parentData = null
 			if (parentId) {
@@ -157,8 +160,8 @@ export async function PUT(req: NextRequest) {
 				parentData = parentResult[0] || null
 			}
 
-			// Recalcular campos híbridos
-			const position = newPosition !== undefined ? newPosition : 0
+			// Recalcular campos híbridos com a nova posição
+			const position = newPosition
 			updateData.parentId = parentId
 			updateData.treePath = calculateTreePath(parentData?.treePath || null, position)
 			updateData.sortKey = calculateSortKey(parentData?.sortKey || null, position)
