@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { product, productProblem, productProblemImage, productSolution, productSolutionChecked, authUser, productProblemCategory } from '@/lib/db/schema'
+import { product, productProblem, productProblemImage, productSolution, productSolutionChecked, productSolutionImage, authUser, productProblemCategory } from '@/lib/db/schema'
 import { eq, inArray, desc } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { getAuthUser } from '@/lib/auth/token'
@@ -139,15 +139,20 @@ export async function DELETE(req: NextRequest) {
 
 		// Inicia transação manual
 		await db.transaction(async (tx) => {
-			// 1. Buscar todas as soluções do problema
+			// 1. Buscar TODAS as soluções do problema (incluindo respostas)
 			const solutions = await tx.select().from(productSolution).where(eq(productSolution.productProblemId, id))
 			const solutionIds = solutions.map((s) => s.id)
 
 			// 2. Excluir todas as verificações dessas soluções
 			if (solutionIds.length > 0) {
 				await tx.delete(productSolutionChecked).where(inArray(productSolutionChecked.productSolutionId, solutionIds))
-				// 3. Excluir todas as soluções
-				await tx.delete(productSolution).where(inArray(productSolution.id, solutionIds))
+
+				// 3. Excluir imagens das soluções
+				await tx.delete(productSolutionImage).where(inArray(productSolutionImage.productSolutionId, solutionIds))
+
+				// 4. Excluir TODAS as soluções (incluindo respostas)
+				// Como todas as soluções têm productProblemId igual ao problema, isso já pega todas
+				await tx.delete(productSolution).where(eq(productSolution.productProblemId, id))
 			}
 
 			// 4. Buscar todas as imagens do problema
@@ -177,7 +182,8 @@ export async function DELETE(req: NextRequest) {
 		})
 
 		return NextResponse.json({ success: true }, { status: 200 })
-	} catch {
+	} catch (error) {
+		console.error('❌ Erro ao excluir problema:', error)
 		return NextResponse.json({ field: null, message: 'Erro ao excluir problema.' }, { status: 500 })
 	}
 }

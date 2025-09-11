@@ -211,28 +211,64 @@ export async function DELETE(req: NextRequest) {
 		return NextResponse.json({ error: 'Permissão negada.' }, { status: 403 })
 	}
 
-	// Remove imagem associada e exclui do UploadThing
-	const oldImg = await db.select().from(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
-	if (oldImg.length) {
-		// Exclui a imagem do UploadThing
-		const oldImageUrl = oldImg[0].image
-		const oldFileKey = getFileKeyFromUrl(oldImageUrl)
-		if (oldFileKey) {
-			try {
-				console.log('🔵 Excluindo arquivo da solução do UploadThing:', oldFileKey)
-				await utapi.deleteFiles([oldFileKey])
-				console.log('✅ Arquivo da solução excluído do UploadThing com sucesso')
-			} catch (error) {
-				console.error('❌ Erro ao excluir arquivo da solução do UploadThing:', error)
-				// Continua mesmo se falhar a exclusão do arquivo remoto
+	// Usar transação para garantir exclusão em cascata
+	await db.transaction(async (tx) => {
+		// 1. Função recursiva para buscar todas as respostas filhas
+		const getAllChildReplies = async (parentId: string): Promise<string[]> => {
+			const directReplies = await tx.select().from(productSolution).where(eq(productSolution.replyId, parentId))
+			let allReplies = directReplies.map((r) => r.id)
+
+			// Recursivamente buscar respostas das respostas
+			for (const reply of directReplies) {
+				const childReplies = await getAllChildReplies(reply.id)
+				allReplies = allReplies.concat(childReplies)
+			}
+
+			return allReplies
+		}
+
+		// 2. Buscar todas as respostas filhas (recursivamente)
+		const childReplyIds = await getAllChildReplies(id)
+		const allSolutionIds = [id, ...childReplyIds]
+
+		console.log('🔵 Excluindo solução e respostas filhas:', {
+			mainSolutionId: id.substring(0, 8),
+			childReplies: childReplyIds.length,
+			totalToDelete: allSolutionIds.length,
+		})
+
+		// 3. Excluir verificações de todas as soluções
+		if (allSolutionIds.length > 0) {
+			await tx.delete(productSolutionChecked).where(inArray(productSolutionChecked.productSolutionId, allSolutionIds))
+		}
+
+		// 4. Excluir imagens e arquivos do UploadThing
+		const allImages = await tx.select().from(productSolutionImage).where(inArray(productSolutionImage.productSolutionId, allSolutionIds))
+
+		for (const img of allImages) {
+			const fileKey = getFileKeyFromUrl(img.image)
+			if (fileKey) {
+				try {
+					console.log('🔵 Excluindo arquivo do UploadThing:', fileKey)
+					await utapi.deleteFiles([fileKey])
+					console.log('✅ Arquivo excluído do UploadThing com sucesso')
+				} catch (error) {
+					console.error('❌ Erro ao excluir arquivo do UploadThing:', error)
+					// Continua mesmo se falhar a exclusão do arquivo remoto
+				}
 			}
 		}
 
-		await db.delete(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
-	}
+		// 5. Excluir todas as imagens do banco
+		if (allSolutionIds.length > 0) {
+			await tx.delete(productSolutionImage).where(inArray(productSolutionImage.productSolutionId, allSolutionIds))
+		}
 
-	// Remove a solução
-	await db.delete(productSolution).where(eq(productSolution.id, id))
+		// 6. Excluir todas as soluções (principal + respostas filhas)
+		await tx.delete(productSolution).where(inArray(productSolution.id, allSolutionIds))
+
+		console.log('✅ Solução e respostas filhas excluídas com sucesso:', allSolutionIds.length)
+	})
 
 	return NextResponse.json({ success: true }, { status: 200 })
 }
