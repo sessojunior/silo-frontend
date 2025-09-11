@@ -165,7 +165,7 @@ function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Ta
 			</div>
 
 			<h3 className='font-medium text-gray-900 dark:text-gray-100 mb-1'>{task.name}</h3>
-			<p className='text-sm text-gray-600 dark:text-gray-400 mb-3'>{task.description}</p>
+			<p className='text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-4'>{task.description}</p>
 
 			{/* Informações de tempo e data */}
 			<div className='flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3'>

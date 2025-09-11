@@ -271,7 +271,7 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 						</div>
 
 						<div className='mt-2'>
-							<Markdown value={description} onChange={(value) => setDescription(value || '')} preview='edit' className='h-full w-full' />
+							<Markdown value={description} onChange={(value) => setDescription(value || '')} preview='edit' className='h-full w-full' height={250} compact />
 						</div>
 					</div>
 				)}

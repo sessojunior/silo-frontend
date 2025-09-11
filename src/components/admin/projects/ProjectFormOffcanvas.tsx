@@ -193,7 +193,7 @@ export default function ProjectFormOffcanvas({ isOpen, onClose, project, onSubmi
 				<div>
 					<Label htmlFor='description'>Descrição Completa</Label>
 					<div className='mt-2'>
-						<Markdown value={formData.description} onChange={(value) => handleFieldChange('description', value)} />
+						<Markdown value={formData.description} onChange={(value) => handleFieldChange('description', value)} height={250} compact />
 					</div>
 				</div>
 

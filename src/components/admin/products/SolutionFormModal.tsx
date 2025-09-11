@@ -3,6 +3,7 @@
 import Modal from '@/components/ui/Modal'
 import Label from '@/components/ui/Label'
 import Button from '@/components/ui/Button'
+import Markdown from '@/components/ui/Markdown'
 import clsx from 'clsx'
 import { toast } from '@/lib/toast'
 import Image from 'next/image'
@@ -87,7 +88,9 @@ export default function SolutionFormModal({ isOpen, onClose, mode, editingSoluti
 					<Label htmlFor='solution-description' required>
 						Descrição da solução
 					</Label>
-					<textarea id='solution-description' value={solutionDescription} onChange={(e) => setSolutionDescription(e.target.value)} minLength={2} maxLength={3000} required className={clsx('block w-full rounded-lg border-zinc-200 px-4 py-3 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500', solutionError && 'border-red-400')} rows={6} placeholder='Descreva a solução detalhadamente.' />
+					<div className='mt-2'>
+						<Markdown value={solutionDescription} onChange={setSolutionDescription} height={200} preview='edit' compact />
+					</div>
 				</div>
 
 				{/* Upload de imagem */}

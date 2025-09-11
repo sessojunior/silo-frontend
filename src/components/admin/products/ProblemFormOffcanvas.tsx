@@ -5,6 +5,7 @@ import Input from '@/components/ui/Input'
 import Label from '@/components/ui/Label'
 import Dialog from '@/components/ui/Dialog'
 import Lightbox from '@/components/ui/Lightbox'
+import Markdown from '@/components/ui/Markdown'
 import { toast } from '@/lib/toast'
 import { UploadButton } from '@/lib/uploadthing'
 import clsx from 'clsx'
@@ -81,7 +82,9 @@ export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle
 						<Label htmlFor='problem-description' required>
 							Descrição detalhada
 						</Label>
-						<textarea id='problem-description' value={formDescription} onChange={(e) => setFormDescription(e.target.value)} minLength={20} maxLength={3000} required className={clsx('block w-full rounded-lg border-zinc-200 px-4 py-3 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500', form.field === 'description' && 'border-red-400')} rows={16} placeholder='Descreva o problema detalhadamente para facilitar o suporte e a resolução.' />
+						<div className='mt-2'>
+							<Markdown value={formDescription} onChange={setFormDescription} height={300} compact />
+						</div>
 					</div>
 					{form.field === 'description' && <div className='text-red-600 text-sm'>{form.message}</div>}
 					{!editing && <div className='text-sm text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/30 rounded-lg'>Imagens poderão ser adicionadas após o cadastro do problema, na tela de edição.</div>}

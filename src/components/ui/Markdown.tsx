@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import MDEditor from '@uiw/react-md-editor'
+import MDEditor, { commands } from '@uiw/react-md-editor'
 
 interface MarkdownProps {
 	value: string
@@ -10,9 +10,10 @@ interface MarkdownProps {
 	className?: string
 	'data-color-mode'?: 'light' | 'dark'
 	height?: string | number // Nova prop para controlar altura
+	compact?: boolean // Nova prop para barra de ferramentas compacta
 }
 
-export default function Markdown({ value, onChange, preview = 'edit', className = '', 'data-color-mode': colorMode, ...props }: MarkdownProps) {
+export default function Markdown({ value, onChange, preview = 'edit', className = '', 'data-color-mode': colorMode, compact = false, ...props }: MarkdownProps) {
 	const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
 	useEffect(() => {
@@ -357,13 +358,16 @@ export default function Markdown({ value, onChange, preview = 'edit', className 
 		}
 	`
 
+	// Configuração da barra de ferramentas compacta
+	const compactCommands = compact ? [commands.bold, commands.italic, commands.strikethrough, commands.divider, commands.unorderedListCommand, commands.orderedListCommand, commands.divider, commands.link, commands.code] : undefined
+
 	return (
 		<>
 			{/* Inject styles */}
 			<style dangerouslySetInnerHTML={{ __html: styles }} />
 
 			{/* MDEditor component */}
-			<MDEditor value={value} onChange={(val) => onChange(val || '')} preview={preview} className={`md-editor-custom ${className}`} data-color-mode={colorMode || theme} {...props} />
+			<MDEditor value={value} onChange={(val) => onChange(val || '')} preview={preview} className={`md-editor-custom ${className}`} data-color-mode={colorMode || theme} {...(compact && { commands: compactCommands })} {...props} />
 		</>
 	)
 }
