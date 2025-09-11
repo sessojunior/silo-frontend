@@ -111,12 +111,7 @@ export default function ProjectFormOffcanvas({ isOpen, onClose, project, onSubmi
 
 			await onSubmit(formData)
 
-			toast({
-				type: 'success',
-				title: project ? 'Projeto atualizado' : 'Projeto criado',
-				description: `${formData.name} ${project ? 'foi atualizado' : 'foi criado'} com sucesso`,
-			})
-
+			// ✅ Toast removido daqui - será exibido pela função onSubmit
 			onClose()
 		} catch (error) {
 			console.error('❌ Erro ao salvar projeto:', error)
