@@ -36,7 +36,33 @@ interface ProblemSolutionsSectionProps {
 
 export function ProblemSolutionsSection({ solutions, expandedSolutionIds, onOpenSolutionModal, onOpenDeleteSolutionDialog, onToggleExpandSolution, onImageClick, formatDate }: ProblemSolutionsSectionProps) {
 	if (solutions.length === 0) {
-		return null
+		return (
+			<div className='flex w-full flex-col border-t border-zinc-200 p-8'>
+				<div className='flex w-full items-center justify-between pb-6'>
+					<div>
+						<h3 className='text-xl font-medium'>Soluções</h3>
+						<div>
+							<span className='text-sm text-zinc-500 dark:text-zinc-400'>Nenhuma solução registrada para este problema</span>
+						</div>
+					</div>
+					<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='shrink-0 py-2' onClick={() => onOpenSolutionModal('create')}>
+						Adicionar solução
+					</Button>
+				</div>
+
+				{/* Placeholder para adicionar solução */}
+				<div className='flex flex-col items-center justify-center py-12 text-center'>
+					<div className='mb-4 rounded-full bg-zinc-100 p-4 dark:bg-zinc-800'>
+						<span className='icon-[lucide--lightbulb] text-2xl text-zinc-400 dark:text-zinc-500'></span>
+					</div>
+					<h4 className='mb-2 text-lg font-medium text-zinc-700 dark:text-zinc-300'>Nenhuma solução encontrada</h4>
+					<p className='mb-6 max-w-md text-sm text-zinc-500 dark:text-zinc-400'>Este problema ainda não possui soluções registradas. Seja o primeiro a compartilhar uma solução!</p>
+					<Button type='button' icon='icon-[lucide--plus]' style='unstyled' className='shrink-0 py-2' onClick={() => onOpenSolutionModal('create')}>
+						Adicionar primeira solução
+					</Button>
+				</div>
+			</div>
+		)
 	}
 
 	return (
