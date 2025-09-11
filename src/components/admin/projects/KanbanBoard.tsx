@@ -131,7 +131,7 @@ const categoryColors: Record<string, string> = {
 }
 
 // Componente base reutilizável para conteúdo do card
-function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Task; showEditButton?: boolean; onEditTask?: (task: Task) => void }) {
+function TaskCardContent({ task, showEditButton = true, onEditTask, onViewHistory }: { task: Task; showEditButton?: boolean; onEditTask?: (task: Task) => void; onViewHistory?: (task: Task) => void }) {
 	// Usar funções utilitárias para formatação consistente de datas
 	const formatDate = (dateString: string): string => {
 		return formatDateBR(dateString)
@@ -150,17 +150,33 @@ function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Ta
 					<span className={`text-xs px-2 py-1 rounded-full ${categoryColors[task.category] || 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'}`}>{task.category}</span>
 				</div>
 				{showEditButton && (
-					<button
-						onClick={(e) => {
-							e.stopPropagation()
-							onEditTask?.(task)
-						}}
-						className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition group'
-						title='Editar tarefa'
-						type='button'
-					>
-						<span className='icon-[lucide--pencil] size-4 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-600 dark:group-hover:text-zinc-300' />
-					</button>
+					<div className='flex gap-1'>
+						{/* Botão de histórico */}
+						<button
+							onClick={(e) => {
+								e.stopPropagation()
+								onViewHistory?.(task)
+							}}
+							className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition group'
+							title='Ver histórico'
+							type='button'
+						>
+							<span className='icon-[lucide--history] size-4 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-600 dark:group-hover:text-zinc-300' />
+						</button>
+
+						{/* Botão de editar */}
+						<button
+							onClick={(e) => {
+								e.stopPropagation()
+								onEditTask?.(task)
+							}}
+							className='flex items-center justify-center size-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition group'
+							title='Editar tarefa'
+							type='button'
+						>
+							<span className='icon-[lucide--pencil] size-4 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-600 dark:group-hover:text-zinc-300' />
+						</button>
+					</div>
 				)}
 			</div>
 
@@ -216,7 +232,7 @@ function TaskCardContent({ task, showEditButton = true, onEditTask }: { task: Ta
 	)
 }
 
-function SortableTaskCard({ task, activeTask, onEditTask }: { task: Task; activeTask: Task | null; onEditTask?: (task: Task) => void }) {
+function SortableTaskCard({ task, activeTask, onEditTask, onViewHistory }: { task: Task; activeTask: Task | null; onEditTask?: (task: Task) => void; onViewHistory?: (task: Task) => void }) {
 	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
 		id: task.id,
 		data: {
@@ -234,14 +250,14 @@ function SortableTaskCard({ task, activeTask, onEditTask }: { task: Task; active
 	if (isBeingDragged) {
 		return (
 			<div ref={setNodeRef} style={style} className={`bg-white dark:bg-zinc-800 rounded-xl border-2 ${theme.border} p-4 opacity-50`}>
-				<TaskCardContent task={task} onEditTask={onEditTask} />
+				<TaskCardContent task={task} onEditTask={onEditTask} onViewHistory={onViewHistory} />
 			</div>
 		)
 	}
 
 	return (
 		<div ref={setNodeRef} style={style} {...attributes} {...listeners} className={`bg-white dark:bg-zinc-800 rounded-xl border-2 ${theme.border} p-4 cursor-move transition-shadow hover:shadow-md dark:hover:shadow-zinc-900/50`}>
-			<TaskCardContent task={task} onEditTask={onEditTask} />
+			<TaskCardContent task={task} onEditTask={onEditTask} onViewHistory={onViewHistory} />
 		</div>
 	)
 }
@@ -254,7 +270,7 @@ function TaskCard({ task }: { task: Task }) {
 	)
 }
 
-function DroppableColumn({ column, tasks, activeTask, onCreateTask, onEditTask }: { column: Column; tasks: Task[]; activeTask: Task | null; onCreateTask?: (status: Task['status']) => void; onEditTask?: (task: Task) => void }) {
+function DroppableColumn({ column, tasks, activeTask, onCreateTask, onEditTask, onViewHistory }: { column: Column; tasks: Task[]; activeTask: Task | null; onCreateTask?: (status: Task['status']) => void; onEditTask?: (task: Task) => void; onViewHistory?: (task: Task) => void }) {
 	const { setNodeRef } = useDroppable({ id: column.id })
 	const taskIds = tasks.map((task: Task) => task.id)
 	return (
@@ -281,7 +297,7 @@ function DroppableColumn({ column, tasks, activeTask, onCreateTask, onEditTask }
 			<SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
 				<div className='flex-1 px-3 py-3 space-y-3 overflow-y-auto'>
 					{tasks.map((task: Task) => (
-						<SortableTaskCard key={task.id} task={task} activeTask={activeTask} onEditTask={onEditTask} />
+						<SortableTaskCard key={task.id} task={task} activeTask={activeTask} onEditTask={onEditTask} onViewHistory={onViewHistory} />
 					))}
 					{tasks.length === 0 && (
 						<div className='h-24 border-2 border-dashed border-gray-300 dark:border-zinc-600 rounded-lg flex items-center justify-center bg-zinc-50 dark:bg-zinc-800'>
@@ -294,7 +310,7 @@ function DroppableColumn({ column, tasks, activeTask, onCreateTask, onEditTask }
 	)
 }
 
-export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder, isDragBlocked = false, onCreateTask, onEditTask }: KanbanBoardProps) {
+export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder, isDragBlocked = false, onCreateTask, onEditTask, onViewHistory }: KanbanBoardProps & { onViewHistory?: (task: Task) => void }) {
 	const [tasks, setTasks] = useState<Task[]>(externalTasks)
 	const [activeTask, setActiveTask] = useState<Task | null>(null)
 	const [isClient, setIsClient] = useState(false)
@@ -494,7 +510,7 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder,
 						return (
 							<div className='flex gap-6 items-start overflow-x-auto'>
 								{columns.map((column) => (
-									<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={null} onCreateTask={onCreateTask} onEditTask={onEditTask} />
+									<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={null} onCreateTask={onCreateTask} onEditTask={onEditTask} onViewHistory={onViewHistory} />
 								))}
 							</div>
 						)
@@ -503,7 +519,7 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder,
 							<DndContext sensors={sensors} collisionDetection={pointerWithin} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
 								<div className='flex gap-6 items-start overflow-x-auto'>
 									{columns.map((column) => (
-										<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={activeTask} onCreateTask={onCreateTask} onEditTask={onEditTask} />
+										<DroppableColumn key={column.id} column={column} tasks={getTasksByStatus(column.id)} activeTask={activeTask} onCreateTask={onCreateTask} onEditTask={onEditTask} onViewHistory={onViewHistory} />
 									))}
 								</div>
 								<DragOverlay>{activeTask ? <TaskCard task={activeTask} /> : null}</DragOverlay>

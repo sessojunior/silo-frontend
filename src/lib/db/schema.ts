@@ -415,6 +415,34 @@ export const projectTaskUser = pgTable(
 )
 export type ProjectTaskUser = typeof projectTaskUser.$inferSelect
 
+// Tabela de histórico de movimentação de tarefas
+export const projectTaskHistory = pgTable(
+	'project_task_history',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		taskId: uuid('task_id')
+			.notNull()
+			.references(() => projectTask.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => authUser.id),
+		action: text('action').notNull(), // 'status_change', 'created', 'updated', 'deleted'
+		fromStatus: text('from_status'), // status anterior (null para criação)
+		toStatus: text('to_status').notNull(), // status novo
+		fromSort: integer('from_sort'), // posição anterior na coluna
+		toSort: integer('to_sort'), // posição nova na coluna (null para tarefas deletadas)
+		details: jsonb('details'), // dados extras (campos alterados, descrições, etc.)
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+	},
+	(table) => ({
+		// Índices para performance de consultas
+		taskIdIdx: index('idx_project_task_history_task_id').on(table.taskId),
+		userIdIdx: index('idx_project_task_history_user_id').on(table.userId),
+		createdAtIdx: index('idx_project_task_history_created_at').on(table.createdAt),
+	}),
+)
+export type ProjectTaskHistory = typeof projectTaskHistory.$inferSelect
+
 // Tabela de atividades/rodadas de produtos
 export const productActivity = pgTable(
 	'product_activity',

@@ -6,6 +6,7 @@ import { notFound, useParams } from 'next/navigation'
 import { getToday } from '@/lib/dateUtils'
 import KanbanBoard from '@/components/admin/projects/KanbanBoard'
 import TaskFormOffcanvas from '@/components/admin/projects/TaskFormOffcanvas'
+import TaskHistoryModal from '@/components/admin/projects/TaskHistoryModal'
 import { ProjectTask } from '@/lib/db/schema'
 
 // Interface estendida para ProjectTask com campos da API
@@ -81,6 +82,10 @@ export default function TaskKanbanPage() {
 	const [taskFormOpen, setTaskFormOpen] = useState(false)
 	const [taskToEdit, setTaskToEdit] = useState<KanbanTask | null>(null)
 	const [initialTaskStatus, setInitialTaskStatus] = useState<KanbanTask['status']>('todo')
+
+	// Estados do TaskHistoryModal
+	const [historyModalOpen, setHistoryModalOpen] = useState(false)
+	const [taskForHistory, setTaskForHistory] = useState<KanbanTask | null>(null)
 
 	// Função para carregar dados do projeto
 	const fetchProject = useCallback(async () => {
@@ -203,6 +208,12 @@ export default function TaskKanbanPage() {
 		setTaskToEdit(task)
 		setInitialTaskStatus(task.status)
 		setTaskFormOpen(true)
+	}, [])
+
+	// Função para abrir modal de histórico da tarefa
+	const handleViewHistory = useCallback((task: KanbanTask) => {
+		setTaskForHistory(task)
+		setHistoryModalOpen(true)
 	}, [])
 
 	// Função para processar envio do formulário de tarefa
@@ -442,7 +453,7 @@ export default function TaskKanbanPage() {
 
 			{/* Conteúdo */}
 			<div className='flex-1 bg-zinc-50 dark:bg-zinc-900'>
-				<KanbanBoard tasks={kanbanTasks} onTasksReorder={handleTasksReorder} isDragBlocked={isDragBlocked} onCreateTask={handleCreateTask} onEditTask={handleEditTask} />
+				<KanbanBoard tasks={kanbanTasks} onTasksReorder={handleTasksReorder} isDragBlocked={isDragBlocked} onCreateTask={handleCreateTask} onEditTask={handleEditTask} onViewHistory={handleViewHistory} />
 			</div>
 
 			{/* TaskFormOffcanvas */}
@@ -457,6 +468,19 @@ export default function TaskKanbanPage() {
 				onSubmit={handleTaskSubmit}
 				onDelete={handleTaskDelete}
 			/>
+
+			{/* TaskHistoryModal */}
+			{taskForHistory && (
+				<TaskHistoryModal
+					isOpen={historyModalOpen}
+					onClose={() => {
+						setHistoryModalOpen(false)
+						setTaskForHistory(null)
+					}}
+					taskId={taskForHistory.id}
+					taskName={taskForHistory.name}
+				/>
+			)}
 		</div>
 	)
 }

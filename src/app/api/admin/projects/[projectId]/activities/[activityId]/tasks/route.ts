@@ -3,6 +3,7 @@ import { eq, and, asc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import * as schema from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
+import { recordBulkTaskHistory, recordTaskHistory } from '@/lib/taskHistory'
 
 // GET - Buscar tarefas da atividade
 export async function GET(request: NextRequest, { params }: { params: Promise<{ projectId: string; activityId: string }> }) {
@@ -217,13 +218,43 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 			)
 		}
 
+		// Identificar mudanças para histórico
+		const historyEntries = []
+		for (const taskAfter of tasksAfterMove) {
+			const taskBefore = tasksBeforeMove.find((t) => t.taskId === taskAfter.taskId)
+
+			// Verificar se houve mudança de status ou posição
+			if (taskBefore && (taskBefore.status !== taskAfter.status || taskBefore.sort !== taskAfter.sort)) {
+				historyEntries.push({
+					taskId: taskAfter.taskId,
+					userId: user.id,
+					action: 'status_change' as const,
+					fromStatus: taskBefore.status,
+					toStatus: taskAfter.status,
+					fromSort: taskBefore.sort,
+					toSort: taskAfter.sort,
+					details: {
+						reason: 'Drag and drop',
+						kanbanMove: true,
+						timestamp: new Date().toISOString(),
+					},
+				})
+			}
+		}
+
 		// Atualizar todas as tasks conforme tasksAfterMove (status e sort)
 		// Usar transação para garantir atomicidade
 		await db.transaction(async (tx) => {
+			// Atualizar tarefas
 			for (const task of tasksAfterMove) {
 				await tx.update(schema.projectTask).set({ status: task.status, sort: task.sort, updatedAt: new Date() }).where(eq(schema.projectTask.id, task.taskId))
 			}
 		})
+
+		// Registrar histórico após transação bem-sucedida
+		if (historyEntries.length > 0) {
+			await recordBulkTaskHistory(historyEntries)
+		}
 
 		// Buscar novamente todas as tasks atualizadas do banco (array plano)
 		const updatedTasks = await db
@@ -313,6 +344,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
 		console.log('✅ [API] Tarefa criada:', newTask[0])
 
+		// Registrar histórico de criação
+		await recordTaskHistory({
+			taskId: newTask[0].id,
+			userId: user.id,
+			action: 'created',
+			fromStatus: null,
+			toStatus: status || 'todo',
+			fromSort: null,
+			toSort: nextSort,
+			details: {
+				initialData: { name: name.trim(), category, priority },
+				createdVia: 'form',
+			},
+		})
+
 		return NextResponse.json({
 			success: true,
 			task: newTask[0],
@@ -360,6 +406,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 			return NextResponse.json({ success: false, error: 'Tarefa não encontrada' }, { status: 404 })
 		}
 
+		const oldTask = existingTask[0]
+		const newStatus = status || 'todo'
+
 		// Atualizar tarefa
 		const updatedTask = await db
 			.update(schema.projectTask)
@@ -371,13 +420,45 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 				startDate: startDate || null,
 				endDate: endDate || null,
 				priority: priority || 'medium',
-				status: status || 'todo',
+				status: newStatus,
 				updatedAt: new Date(),
 			})
 			.where(eq(schema.projectTask.id, id))
 			.returning()
 
 		console.log('✅ [API] Tarefa atualizada:', updatedTask[0].id)
+
+		// Registrar histórico de edição
+		const changedFields = []
+		if (oldTask.name !== name.trim()) changedFields.push('name')
+		if (oldTask.description !== description.trim()) changedFields.push('description')
+		if (oldTask.category !== (category || null)) changedFields.push('category')
+		if (oldTask.priority !== (priority || 'medium')) changedFields.push('priority')
+		if (oldTask.status !== newStatus) changedFields.push('status')
+
+		await recordTaskHistory({
+			taskId: id,
+			userId: user.id,
+			action: oldTask.status !== newStatus ? 'status_change' : 'updated',
+			fromStatus: oldTask.status !== newStatus ? oldTask.status : null,
+			toStatus: newStatus,
+			fromSort: null,
+			toSort: oldTask.sort,
+			details: {
+				changedFields,
+				oldValues: {
+					name: oldTask.name,
+					status: oldTask.status,
+					priority: oldTask.priority,
+				},
+				newValues: {
+					name: name.trim(),
+					status: newStatus,
+					priority: priority || 'medium',
+				},
+				editedVia: 'form',
+			},
+		})
 
 		return NextResponse.json({
 			success: true,
@@ -417,6 +498,27 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 		if (existingTask.length === 0) {
 			return NextResponse.json({ success: false, error: 'Tarefa não encontrada' }, { status: 404 })
 		}
+
+		const taskToDelete = existingTask[0]
+
+		// Registrar histórico antes de excluir
+		await recordTaskHistory({
+			taskId: id,
+			userId: user.id,
+			action: 'deleted',
+			fromStatus: taskToDelete.status,
+			toStatus: 'deleted',
+			fromSort: taskToDelete.sort,
+			toSort: null,
+			details: {
+				deletedData: {
+					name: taskToDelete.name,
+					status: taskToDelete.status,
+					category: taskToDelete.category,
+				},
+				deletedVia: 'form',
+			},
+		})
 
 		// Excluir tarefa
 		await db.delete(schema.projectTask).where(eq(schema.projectTask.id, id))

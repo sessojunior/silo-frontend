@@ -816,6 +816,99 @@ async function seed() {
 			console.log('⚠️ Nenhuma tarefa ou usuário encontrado para criar associações')
 		}
 
+		// 🆕 SEÇÃO 8: HISTÓRICO DE TAREFAS (project_task_history)
+		console.log('\n📋 SEÇÃO 8: HISTÓRICO DE TAREFAS')
+		console.log('🔄 Criando histórico simulado para tarefas existentes...')
+
+		// Remover histórico existente
+		await db.delete(schema.projectTaskHistory)
+		console.log('✅ Histórico antigo removido')
+
+		// Buscar todas as tarefas existentes
+		const existingTasks = await db.select().from(schema.projectTask)
+		const activeUsers = await db.select().from(schema.authUser).where(eq(schema.authUser.isActive, true))
+
+		if (existingTasks.length > 0 && activeUsers.length > 0) {
+			const historyEntries = []
+
+			// Para cada tarefa, criar histórico simulado
+			for (const task of existingTasks) {
+				const randomUser = activeUsers[Math.floor(Math.random() * activeUsers.length)]
+
+				// Entrada de criação (sempre existe)
+				const createdAt = new Date(task.createdAt)
+				historyEntries.push({
+					taskId: task.id,
+					userId: randomUser.id,
+					action: 'created',
+					fromStatus: null,
+					toStatus: 'todo',
+					fromSort: null,
+					toSort: 0,
+					details: { initialStatus: 'todo', initialSort: 0 },
+					createdAt: createdAt,
+				})
+
+				// Simular algumas movimentações baseadas no status atual
+				if (task.status !== 'todo') {
+					// Movimentação de 'todo' para 'in_progress'
+					const progressDate = new Date(createdAt.getTime() + Math.random() * 24 * 60 * 60 * 1000) // +0-24h
+					historyEntries.push({
+						taskId: task.id,
+						userId: activeUsers[Math.floor(Math.random() * activeUsers.length)].id,
+						action: 'status_change',
+						fromStatus: 'todo',
+						toStatus: 'in_progress',
+						fromSort: 0,
+						toSort: 0,
+						details: { reason: 'Drag and drop', column: 'Em progresso' },
+						createdAt: progressDate,
+					})
+
+					if (task.status === 'done' || task.status === 'review') {
+						// Movimentação para status final
+						const finalDate = new Date(progressDate.getTime() + Math.random() * 48 * 60 * 60 * 1000) // +0-48h
+						historyEntries.push({
+							taskId: task.id,
+							userId: activeUsers[Math.floor(Math.random() * activeUsers.length)].id,
+							action: 'status_change',
+							fromStatus: 'in_progress',
+							toStatus: task.status,
+							fromSort: 0,
+							toSort: task.sort,
+							details: { reason: 'Drag and drop', column: task.status === 'done' ? 'Concluído' : 'Em revisão' },
+							createdAt: finalDate,
+						})
+					}
+
+					if (task.status === 'blocked') {
+						// Simular bloqueio
+						const blockedDate = new Date(progressDate.getTime() + Math.random() * 12 * 60 * 60 * 1000) // +0-12h
+						historyEntries.push({
+							taskId: task.id,
+							userId: activeUsers[Math.floor(Math.random() * activeUsers.length)].id,
+							action: 'status_change',
+							fromStatus: 'in_progress',
+							toStatus: 'blocked',
+							fromSort: 0,
+							toSort: task.sort,
+							details: { reason: 'Drag and drop', column: 'Bloqueado', note: 'Aguardando dependência externa' },
+							createdAt: blockedDate,
+						})
+					}
+				}
+			}
+
+			// Inserir histórico no banco
+			if (historyEntries.length > 0) {
+				await db.insert(schema.projectTaskHistory).values(historyEntries)
+				console.log(`✅ ${historyEntries.length} entradas de histórico criadas!`)
+				console.log(`✅ FUNCIONALIDADE IMPLEMENTADA: Todas as ${existingTasks.length} tarefas têm histórico de movimentação`)
+			}
+		} else {
+			console.log('⚠️ Nenhuma tarefa encontrada para criar histórico')
+		}
+
 		console.log('✅ Seed finalizado com sucesso!')
 		console.log('📊 Resumo do seed:')
 		console.log(`   - Sistema completamente configurado`)
