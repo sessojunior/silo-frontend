@@ -35,7 +35,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 		}
 
 		// Marcar como lida
-		await db.update(schema.chatMessage).set({ readAt: new Date() }).where(eq(schema.chatMessage.id, messageId))
+		await db.update(schema.chatMessage).set({ readAt: new Date(), updatedAt: new Date() }).where(eq(schema.chatMessage.id, messageId))
 
 		console.log('✅ Mensagem marcada como lida:', messageId)
 

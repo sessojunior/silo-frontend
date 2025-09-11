@@ -39,7 +39,12 @@ export async function POST(req: NextRequest) {
 			// Atualiza registro existente
 			;[record] = await db
 				.update(productActivity)
-				.set({ status, description: description || null, problemCategoryId: problemCategoryId || null })
+				.set({
+					status,
+					description: description || null,
+					problemCategoryId: problemCategoryId || null,
+					updatedAt: new Date(),
+				})
 				.where(eq(productActivity.id, existing.id))
 				.returning()
 			action = 'updated'
@@ -86,7 +91,12 @@ export async function PUT(req: NextRequest) {
 
 		const [updated] = await db
 			.update(productActivity)
-			.set({ status, description: description || null, problemCategoryId: problemCategoryId || null })
+			.set({
+				status,
+				description: description || null,
+				problemCategoryId: problemCategoryId || null,
+				updatedAt: new Date(),
+			})
 			.where(eq(productActivity.id, id))
 			.returning()
 

@@ -221,7 +221,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 		// Usar transação para garantir atomicidade
 		await db.transaction(async (tx) => {
 			for (const task of tasksAfterMove) {
-				await tx.update(schema.projectTask).set({ status: task.status, sort: task.sort }).where(eq(schema.projectTask.id, task.taskId))
+				await tx.update(schema.projectTask).set({ status: task.status, sort: task.sort, updatedAt: new Date() }).where(eq(schema.projectTask.id, task.taskId))
 			}
 		})
 

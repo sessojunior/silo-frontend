@@ -223,7 +223,7 @@ export async function PUT(request: NextRequest) {
 			active: active !== undefined ? active : true,
 			isDefault: isDefault || false,
 			maxUsers: maxUsers || null,
-			updatedAt: sql`NOW()`,
+			updatedAt: new Date(),
 		}
 
 		await db.update(group).set(updatedData).where(eq(group.id, id))

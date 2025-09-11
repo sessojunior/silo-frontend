@@ -75,7 +75,7 @@ export async function PUT(request: NextRequest) {
 
 		await db
 			.update(productProblemCategory)
-			.set({ name: name.trim(), color: color || null })
+			.set({ name: name.trim(), color: color || null, updatedAt: new Date() })
 			.where(eq(productProblemCategory.id, id))
 		return NextResponse.json({ success: true })
 	} catch (error) {
