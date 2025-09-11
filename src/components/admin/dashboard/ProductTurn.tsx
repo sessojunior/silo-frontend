@@ -29,6 +29,7 @@ interface TurnCell {
 	status: string
 	description?: string | null
 	category_id?: string | null
+	user_name?: string | null
 }
 interface DayItem {
 	date: string
@@ -134,7 +135,8 @@ export default function ProductTurn({ productName, days, onTurnClick }: Props) {
 										// Construir tooltip individual para cada turno
 										const dateFormatted = formatDateBR(day.date)
 										const description = turn.description ? truncateDescription(turn.description) : ''
-										const tooltipContent = `${dateFormatted}\nTurno ${turn.time}: ${getStatusLabel(turn.status as ProductStatus)}${description ? ' - ' + description : ''}`
+										const userName = turn.user_name ? ` (${turn.user_name})` : ''
+										const tooltipContent = `${dateFormatted}\nTurno ${turn.time}: ${getStatusLabel(turn.status as ProductStatus)}${userName}${description ? ' - ' + description : ''}`
 
 										return (
 											<div key={index} className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-center text-xs hover:scale-110 transition-transform ${getStatusClasses(turn.status)}`} title={tooltipContent}>

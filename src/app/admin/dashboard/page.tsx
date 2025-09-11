@@ -1,6 +1,6 @@
 'use client'
 
-import { formatDateBR } from '@/lib/dateUtils'
+import { formatDateTimeShortBR } from '@/lib/dateUtils'
 import ChartColumn from '@/components/admin/dashboard/ChartColumn'
 import ChartLine from '@/components/admin/dashboard/ChartLine'
 import ChartDonut from '@/components/admin/dashboard/ChartDonut'
@@ -245,7 +245,7 @@ export default function DashboardPage() {
 												return dayData
 											})
 
-											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? formatDateBR(p.last_run.split(' ')[0]) : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={p.dates} onSaved={fetchDashboard} />
+											return <Product key={p.productId} id={p.productId} name={p.name} turns={p.turns} progress={p.percent_completed} priority={p.priority === 'high' ? 'normal' : p.priority} date={p.last_run ? formatDateTimeShortBR(p.last_run) : ''} lastDaysStatus={lastDaysStatus} last28DaysStatus={last28DaysStatus} calendarStatus={p.dates} onSaved={fetchDashboard} />
 										})}
 								</div>
 							</div>

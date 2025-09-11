@@ -77,8 +77,6 @@ export async function GET() {
 			if (!g) continue
 
 			const dateStr = row.date // YYYY-MM-DD
-			const turnHour = String(row.turn).padStart(2, '0')
-			const dateTimeStr = `${dateStr} ${turnHour}:00:00`
 
 			g.dates.push({
 				id: row.id,
@@ -91,9 +89,10 @@ export async function GET() {
 				alert: isAlert(row.status),
 			})
 
-			// last_run (comparação lexicográfica YYYY-MM-DD HH:mm:ss)
-			if (!g.last_run || dateTimeStr > g.last_run) {
-				g.last_run = dateTimeStr
+			// last_run usando updatedAt real da atividade (formato YYYY-MM-DD HH:mm:ss em São Paulo)
+			const updatedAtStr = row.updatedAt.toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace('T', ' ')
+			if (!g.last_run || updatedAtStr > g.last_run) {
+				g.last_run = updatedAtStr
 			}
 		}
 

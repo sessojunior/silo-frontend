@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import { randomUUID } from 'crypto'
-import { eq, inArray } from 'drizzle-orm'
+import { eq, inArray, and } from 'drizzle-orm'
 
 import { db } from '@/lib/db'
 import * as schema from '@/lib/db/schema'
@@ -394,8 +394,228 @@ async function seed() {
 			}
 			console.log('✅ product_activity gerado!')
 		} else {
-			console.log('⚠️ product_activity já possui dados, pulando geração...')
+			console.log('⚠️ product_activity já possui dados, mas vamos recriar para o BAM...')
+
+			// Buscar o produto BAM
+			const bamProduct = await db.select().from(schema.product).where(eq(schema.product.slug, 'bam')).limit(1)
+
+			if (bamProduct.length > 0) {
+				// Remover atividades antigas do BAM
+				await db.delete(schema.productActivity).where(eq(schema.productActivity.productId, bamProduct[0].id))
+				console.log('✅ Atividades antigas do BAM removidas')
+
+				// Criar atividades para o BAM (90 dias × 4 turnos)
+				const statusPool = ['completed', 'pending', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended'] as const
+				const descriptionSamples: Record<string, string[]> = {
+					pending: ['Rodada não iniciada no horário programado', 'Execução pendente, aguardar próximo turno', 'Execução atrasada; necessário iniciar manualmente'],
+					not_run: ['Modelo não executou no turno previsto', 'Execução falhou, sem saída gerada', 'Turno perdido; verificar agendamento'],
+					with_problems: ['Saída gerada com inconsistências', 'Modelo concluiu com erros de validação', 'Resultados suspeitos; revisar parâmetros'],
+					run_again: ['Necessário reexecutar devido a dados de entrada corrigidos', 'Solicitada nova execução pelo usuário', 'Reprocessamento agendado'],
+					under_support: ['Execução em análise pela equipe do IO', 'Intervenção técnica em andamento', 'Suporte investigando problema de infraestrutura'],
+					suspended: ['Rodada suspensa por manutenção programada', 'Execução pausada por falta de recursos', 'Processo suspenso até nova ordem'],
+				}
+
+				for (let d = 0; d < 90; d++) {
+					const day = new Date()
+					day.setDate(day.getDate() - d)
+					const dateStr = day.toISOString().slice(0, 10)
+					for (const turn of [0, 6, 12, 18]) {
+						const rnd = Math.random()
+						let status: (typeof statusPool)[number] = 'completed'
+						if (rnd > 0.7) {
+							status = statusPool[Math.floor(Math.random() * statusPool.length)]
+						}
+
+						const randomDescription = descriptionSamples[status]?.[Math.floor(Math.random() * (descriptionSamples[status]?.length || 1))] || null
+
+						await db.insert(schema.productActivity).values({
+							id: randomUUID(),
+							productId: bamProduct[0].id,
+							userId: userId || bamProduct[0].id,
+							date: dateStr as unknown as string,
+							turn,
+							status,
+							problemCategoryId: status === 'completed' ? null : categoryIdsArray[Math.floor(Math.random() * categoryIdsArray.length)],
+							description: randomDescription,
+						})
+					}
+				}
+				console.log('✅ Atividades do BAM recriadas (90 dias × 4 turnos)!')
+			}
 		}
+
+		// === 4.3 CRIAR HISTÓRICO DE ATIVIDADES APENAS PARA BAM (DATA ATUAL) ===
+		console.log('🔵 Criando histórico de atividades apenas para BAM (data atual)...')
+
+		// Buscar o produto BAM
+		const bamProduct = await db.select().from(schema.product).where(eq(schema.product.slug, 'bam')).limit(1)
+		console.log('🔍 Produto BAM encontrado:', bamProduct.length > 0)
+		if (bamProduct.length > 0) {
+			console.log('🔍 ID do produto BAM:', bamProduct[0].id)
+
+			// Remover histórico antigo do BAM
+			const oldActivities = await db.select({ id: schema.productActivity.id }).from(schema.productActivity).where(eq(schema.productActivity.productId, bamProduct[0].id))
+			if (oldActivities.length > 0) {
+				const oldActivityIds = oldActivities.map((a) => a.id)
+				await db.delete(schema.productActivityHistory).where(inArray(schema.productActivityHistory.productActivityId, oldActivityIds))
+				console.log('✅ Histórico antigo do BAM removido')
+			}
+
+			// Buscar atividades do BAM para a data atual
+			const today = new Date().toISOString().slice(0, 10)
+			const todayActivities = await db
+				.select()
+				.from(schema.productActivity)
+				.where(and(eq(schema.productActivity.productId, bamProduct[0].id), eq(schema.productActivity.date, today as unknown as string)))
+				.orderBy(schema.productActivity.turn)
+
+			console.log(`🔍 Encontradas ${todayActivities.length} atividades do BAM para hoje (${today})`)
+
+			// 3 descrições longas para demonstração
+			const longDescriptions = [
+				`**PROBLEMA CRÍTICO DETECTADO - TURNO 0H**
+
+O modelo BAM apresentou falhas durante a execução do turno 0h. Os principais problemas identificados foram:
+
+- **Falha de conexão**: Não foi possível conectar com o servidor de dados meteorológicos
+- **Timeout**: Processamento excedeu o tempo limite de 45 minutos
+- **Dados corrompidos**: Arquivo de entrada apresentou inconsistências nos dados de temperatura
+
+**AÇÕES TOMADAS:**
+1. Reinicialização do serviço de dados meteorológicos
+2. Verificação da integridade dos arquivos de entrada
+3. Reprocessamento manual agendado para 06:30h
+
+**PRÓXIMOS PASSOS:**
+- Monitorar execução do próximo turno
+- Investigar causa raiz do problema de conectividade
+- Implementar melhorias no sistema de retry automático`,
+
+				`**RELATÓRIO DETALHADO DE EXECUÇÃO - TURNO 12H**
+
+## Status: CONCLUÍDO COM SUCESSO
+
+### Resumo da Execução
+O modelo BAM foi executado com sucesso no turno 12h, processando todos os dados meteorológicos sem interrupções.
+
+### Métricas de Performance
+- **Tempo de execução**: 22 minutos 15 segundos
+- **Dados processados**: 3.2GB de dados meteorológicos
+- **Taxa de sucesso**: 100%
+- **Recursos utilizados**: CPU 92%, Memória 16GB
+
+### Validações Realizadas
+1. ✅ Verificação de integridade dos dados de entrada
+2. ✅ Validação dos parâmetros de configuração do modelo
+3. ✅ Teste de conectividade com serviços externos
+4. ✅ Verificação de permissões de acesso aos dados
+5. ✅ Validação dos dados de saída e qualidade
+
+### Observações
+- Performance superior à média histórica (15% mais rápido)
+- Nenhum warning ou erro detectado nos logs
+- Dados de saída validados e aprovados pela equipe técnica
+- Modelo executou com parâmetros otimizados
+
+### Recomendações
+- Manter configurações atuais do modelo
+- Continuar monitoramento regular da performance
+- Próxima execução agendada para 18h conforme cronograma`,
+
+				`**INCIDENTE DE INFRAESTRUTURA - TURNO 18H**
+
+## Severidade: ALTA
+
+### Descrição do Problema
+Falha crítica no sistema de armazenamento durante a execução do turno 18h do modelo BAM, resultando em perda parcial de dados e interrupção do processamento.
+
+### Impacto Detalhado
+- **Produtos afetados**: BAM (100% dos turnos)
+- **Dados perdidos**: ~25% do processamento do turno
+- **Tempo de inatividade**: 3 horas 45 minutos
+- **Usuários impactados**: 8 operadores do centro meteorológico
+- **Serviços dependentes**: 3 sistemas downstream afetados
+
+### Causa Raiz
+Investigação inicial aponta para falha no sistema RAID do servidor principal de dados. O disco 3 do array apresentou falha física completa, causando degradação crítica do sistema de armazenamento.
+
+### Ações Corretivas Implementadas
+1. **Imediatas (0-30 min)**:
+   - Ativação automática do servidor de backup
+   - Migração dos dados críticos para storage secundário
+   - Notificação imediata da equipe de infraestrutura
+   - Isolamento do servidor afetado
+
+2. **A curto prazo (30 min - 2h)**:
+   - Substituição emergencial do disco falho
+   - Início da reconstrução do array RAID
+   - Testes de integridade dos dados migrados
+   - Validação dos backups automáticos
+
+3. **A médio prazo (2h - 24h)**:
+   - Implementação de redundância adicional no storage
+   - Revisão completa dos procedimentos de backup
+   - Treinamento da equipe em procedimentos de emergência
+   - Implementação de monitoramento proativo
+
+### Status Atual
+- ✅ Sistema restaurado e operacional
+- ✅ Dados recuperados com 98% de integridade
+- ✅ Monitoramento intensivo ativo 24/7
+- ✅ Próxima verificação completa em 2 horas
+- ⚠️ Performance reduzida temporariamente (10-15%)
+
+### Lições Aprendidas
+- Necessidade de redundância adicional no storage
+- Importância de backups mais frequentes
+- Melhoria nos alertas de monitoramento
+- Treinamento da equipe em procedimentos de emergência`,
+			]
+
+			// Gerar histórico apenas para as atividades de hoje (máximo 3)
+			for (let i = 0; i < Math.min(todayActivities.length, 3); i++) {
+				const activity = todayActivities[i]
+
+				// Criar data base para o histórico (mais recente que a atividade)
+				const baseHistoryDate = new Date()
+
+				// Criar múltiplas entradas de histórico para simular evolução
+				const historyEntries = [
+					{
+						status: 'pending',
+						description: 'Execução aguardando liberação de recursos',
+						createdAt: new Date(baseHistoryDate.getTime() - 3600000), // 1 hora antes
+					},
+					{
+						status: 'in_progress',
+						description: 'Processamento iniciado com sucesso',
+						createdAt: new Date(baseHistoryDate.getTime() - 1800000), // 30 min antes
+					},
+					{
+						status: activity.status,
+						description: longDescriptions[i] || 'Execução finalizada',
+						createdAt: baseHistoryDate, // Data mais recente
+					},
+				]
+
+				// Inserir histórico
+				for (const entry of historyEntries) {
+					await db.insert(schema.productActivityHistory).values({
+						productActivityId: activity.id,
+						userId: activity.userId,
+						status: entry.status,
+						description: entry.description,
+						createdAt: entry.createdAt,
+					})
+				}
+
+				// Atualizar o updatedAt da atividade para ser mais recente que o histórico
+				const finalActivityDate = new Date(baseHistoryDate.getTime() + 1000) // +1 segundo
+				await db.update(schema.productActivity).set({ updatedAt: finalActivityDate }).where(eq(schema.productActivity.id, activity.id))
+				console.log(`✅ Histórico criado para atividade do turno ${activity.turn}h`)
+			}
+		}
+		console.log('✅ product_activity_history gerado apenas para BAM (data atual)!')
 
 		// === 5. CRIAR CONTATOS ===
 		if (!contactsCheck.hasData) {

@@ -23,9 +23,10 @@ interface Props {
 	initialCategoryId?: string | null
 	onSaved?: () => void
 	onAddSaveLog?: (step: string, details: unknown, success?: boolean, error?: string) => void
+	onViewHistory?: () => void
 }
 
-export default function ProductActivityOffcanvas({ open, onClose, productId, productName, date, turn, existingId = null, initialStatus = 'completed', initialDescription = '', initialCategoryId = null, onSaved, onAddSaveLog }: Props) {
+export default function ProductActivityOffcanvas({ open, onClose, productId, productName, date, turn, existingId = null, initialStatus = 'completed', initialDescription = '', initialCategoryId = null, onSaved, onAddSaveLog, onViewHistory }: Props) {
 	const [status, setStatus] = useState<string>(initialStatus)
 	const [description, setDescription] = useState<string>(initialDescription || '')
 	const [incidentId, setIncidentId] = useState<string | null>(initialCategoryId || null)
@@ -218,7 +219,7 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 				<div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-300'>
 					<span className='icon-[lucide--calendar-clock] size-6'></span>
 				</div>
-				<div className='flex flex-col'>
+				<div className='flex flex-col flex-1'>
 					<span className='text-lg font-semibold text-blue-900 dark:text-blue-100'>{productName}</span>
 					<div className='flex items-center gap-3 text-sm text-blue-700 dark:text-blue-300'>
 						<span className='flex items-center gap-1'>
@@ -231,6 +232,12 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 						</span>
 					</div>
 				</div>
+				{/* Botão de histórico */}
+				{onViewHistory && (
+					<Button icon='icon-[lucide--history]' style='bordered' onClick={onViewHistory} className='px-3 py-2' title='Ver histórico de status'>
+						Histórico
+					</Button>
+				)}
 			</div>
 
 			<form onSubmit={handleSubmit} className='flex flex-col gap-4'>

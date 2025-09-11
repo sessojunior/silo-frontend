@@ -7,6 +7,7 @@ import ProductTurn from '@/components/admin/dashboard/ProductTurn'
 import ProductCalendar from '@/components/admin/dashboard/ProductCalendar'
 import Modal from '@/components/ui/Modal'
 import ProductActivityOffcanvas from '@/components/admin/dashboard/ProductActivityOffcanvas'
+import ProductStatusHistoryOffcanvas from '@/components/admin/dashboard/ProductStatusHistoryOffcanvas'
 import { STATUS_DEFINITIONS, ProductStatus, StatusColor, getStatusSeverity, getDayColorFromTurns, getStatusClasses as getCentralizedStatusClasses, DEFAULT_STATUS } from '@/lib/productStatus'
 
 interface ProductDateStatus {
@@ -16,6 +17,7 @@ interface ProductDateStatus {
 	status: string
 	description?: string | null
 	category_id?: string | null
+	user_name?: string | null
 }
 
 interface ProductProps {
@@ -36,6 +38,12 @@ export default function Product({ id, name, turns, progress, priority, date, las
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [activityCtx, setActivityCtx] = useState<{ id?: string; date: string; turn: number; status: string; description?: string | null; category_id?: string | null } | null>(null)
 	const [activityPanelOpen, setActivityPanelOpen] = useState(false)
+	const [historyPanelOpen, setHistoryPanelOpen] = useState(false)
+
+	// Função para abrir o histórico
+	const handleViewHistory = () => {
+		setHistoryPanelOpen(true)
+	}
 
 	// Filtra status conforme turnos configurados do produto
 	const filteredLastDays = useMemo(() => {
@@ -50,7 +58,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 
 	// Build days array for ProductTurn - timeline completa dos últimos turnos
 	const days = useMemo(() => {
-		const daysMap: Record<string, { date: string; turns: { id?: string; time: number; status: string; description?: string | null; category_id?: string | null }[] }> = {}
+		const daysMap: Record<string, { date: string; turns: { id?: string; time: number; status: string; description?: string | null; category_id?: string | null; user_name?: string | null }[] }> = {}
 
 		// Primeiro, criar entradas para todos os dias dos últimos turnos
 		const lastDaysDates = [...new Set(lastDaysStatus.map((d) => d.date))]
@@ -62,7 +70,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 		filteredLastDays.forEach((d) => {
 			const existingTurn = daysMap[d.date].turns.find((t) => t.time === d.turn)
 			if (!existingTurn) {
-				daysMap[d.date].turns.push({ id: d.id, time: d.turn, status: d.status, description: d.description, category_id: d.category_id })
+				daysMap[d.date].turns.push({ id: d.id, time: d.turn, status: d.status, description: d.description, category_id: d.category_id, user_name: d.user_name })
 			} else {
 				// Se já existe, escolher status mais severo (orange/red substitui green) – simples prioridade
 				if (getStatusSeverity(d.status as ProductStatus) > getStatusSeverity(existingTurn.status as ProductStatus)) {
@@ -70,6 +78,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 					existingTurn.description = d.description
 					existingTurn.category_id = d.category_id
 					existingTurn.id = d.id
+					existingTurn.user_name = d.user_name
 				}
 			}
 		})
@@ -90,6 +99,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 							status: dbRecord.status,
 							description: dbRecord.description,
 							category_id: dbRecord.category_id,
+							user_name: dbRecord.user_name,
 						})
 					} else {
 						// Se não existe no banco, criar com status padrão sem ID
@@ -98,6 +108,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 							status: DEFAULT_STATUS,
 							description: null,
 							category_id: null,
+							user_name: null,
 						})
 					}
 				}
@@ -206,7 +217,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 						</div>
 						<div className='text-sm'>
 							<span title='Porcentagem de turnos concluídos nos últimos 28 dias'>{progress}%</span> <span className='text-zinc-300'>•</span>
-							<span title='Data da última execução registrada'>{date}</span>
+							<span title='Data da última atividade registrada'>{date}</span>
 						</div>
 					</div>
 
@@ -243,22 +254,22 @@ export default function Product({ id, name, turns, progress, priority, date, las
 					{/* Prioridade */}
 					<div className='flex items-center text-xs leading-none'>
 						{priority == 'urgent' && (
-							<div className='inline-block rounded-md bg-red-100 px-2 py-1.5 dark:bg-red-600'>
+							<div className='inline-block rounded-md bg-red-100 px-2 py-1.5 dark:bg-red-600' title='Prioridade Urgente'>
 								<span className='text-xs font-medium text-nowrap text-red-500 uppercase dark:text-white'>Urgente</span>
 							</div>
 						)}
 						{priority == 'high' && (
-							<div className='inline-block rounded-md bg-orange-100 px-2 py-1.5 dark:bg-red-600'>
+							<div className='inline-block rounded-md bg-orange-100 px-2 py-1.5 dark:bg-red-600' title='Prioridade Alta'>
 								<span className='text-xs font-medium text-nowrap text-red-500 uppercase dark:text-white'>Alta</span>
 							</div>
 						)}
 						{priority == 'normal' && (
-							<div className='inline-block rounded-md bg-orange-100 px-2 py-1.5 dark:bg-orange-600'>
+							<div className='inline-block rounded-md bg-orange-100 px-2 py-1.5 dark:bg-orange-600' title='Prioridade Normal'>
 								<span className='text-xs font-medium text-nowrap text-orange-500 uppercase dark:text-white'>Normal</span>
 							</div>
 						)}
 						{priority == 'low' && (
-							<div className='inline-block rounded-md bg-green-200 px-2 py-1.5 dark:bg-green-700'>
+							<div className='inline-block rounded-md bg-green-200 px-2 py-1.5 dark:bg-green-700' title='Prioridade Baixa'>
 								<span className='text-xs font-medium text-nowrap text-green-600 uppercase dark:text-white'>Baixa</span>
 							</div>
 						)}
@@ -328,8 +339,12 @@ export default function Product({ id, name, turns, progress, priority, date, las
 						onSaved?.()
 					}}
 					onAddSaveLog={onAddSaveLog}
+					onViewHistory={handleViewHistory}
 				/>
 			)}
+
+			{/* Offcanvas histórico de status */}
+			{activityCtx && <ProductStatusHistoryOffcanvas open={historyPanelOpen} onClose={() => setHistoryPanelOpen(false)} productId={id} productName={name} date={activityCtx.date} turn={activityCtx.turn} />}
 		</>
 	)
 }

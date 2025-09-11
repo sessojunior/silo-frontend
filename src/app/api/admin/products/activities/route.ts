@@ -5,6 +5,7 @@ import { getAuthUser } from '@/lib/auth/token'
 import { randomUUID } from 'crypto'
 import { eq, and } from 'drizzle-orm'
 import { formatDate } from '@/lib/dateUtils'
+import { recordProductActivityHistory } from '@/lib/productActivityHistory'
 
 // Helper para resposta padronizada
 function jsonResponse(body: Record<string, unknown>, status = 200) {
@@ -65,6 +66,14 @@ export async function POST(req: NextRequest) {
 				.returning()
 		}
 
+		// Registrar histórico
+		await recordProductActivityHistory({
+			productActivityId: record.id,
+			userId: user.id,
+			status: record.status,
+			description: record.description,
+		})
+
 		return jsonResponse({ success: true, data: record, action })
 	} catch (error) {
 		console.error('❌ Erro ao criar product_activity', error)
@@ -99,6 +108,14 @@ export async function PUT(req: NextRequest) {
 			})
 			.where(eq(productActivity.id, id))
 			.returning()
+
+		// Registrar histórico
+		await recordProductActivityHistory({
+			productActivityId: updated.id,
+			userId: user.id,
+			status: updated.status,
+			description: updated.description,
+		})
 
 		return jsonResponse({ success: true, data: updated })
 	} catch (error) {

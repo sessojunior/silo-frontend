@@ -468,3 +468,27 @@ export const productActivity = pgTable(
 )
 
 export type ProductActivity = typeof productActivity.$inferSelect
+
+// Tabela de histórico de atividades de produtos
+export const productActivityHistory = pgTable(
+	'product_activity_history',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		productActivityId: uuid('product_activity_id')
+			.notNull()
+			.references(() => productActivity.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => authUser.id),
+		status: text('status').notNull(),
+		description: text('description'),
+		createdAt: timestamp('created_at').notNull().defaultNow(),
+	},
+	(table) => ({
+		// Índices para performance de consultas
+		productActivityIdIdx: index('idx_product_activity_history_product_activity_id').on(table.productActivityId),
+		userIdIdx: index('idx_product_activity_history_user_id').on(table.userId),
+		createdAtIdx: index('idx_product_activity_history_created_at').on(table.createdAt),
+	}),
+)
+export type ProductActivityHistory = typeof productActivityHistory.$inferSelect

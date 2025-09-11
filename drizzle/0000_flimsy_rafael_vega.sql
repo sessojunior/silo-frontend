@@ -109,6 +109,15 @@ CREATE TABLE "product_activity" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "product_activity_history" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"product_activity_id" uuid NOT NULL,
+	"user_id" text NOT NULL,
+	"status" text NOT NULL,
+	"description" text,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "product_contact" (
 	"id" text PRIMARY KEY NOT NULL,
 	"product_id" text NOT NULL,
@@ -235,6 +244,19 @@ CREATE TABLE "project_task" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "project_task_history" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"task_id" uuid NOT NULL,
+	"user_id" text NOT NULL,
+	"action" text NOT NULL,
+	"from_status" text,
+	"to_status" text NOT NULL,
+	"from_sort" integer,
+	"to_sort" integer,
+	"details" jsonb,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "project_task_user" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"task_id" uuid NOT NULL,
@@ -304,6 +326,8 @@ ALTER TABLE "chat_user_presence" ADD CONSTRAINT "chat_user_presence_user_id_auth
 ALTER TABLE "product_activity" ADD CONSTRAINT "product_activity_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_activity" ADD CONSTRAINT "product_activity_user_id_auth_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."auth_user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_activity" ADD CONSTRAINT "product_activity_problem_category_id_product_problem_category_id_fk" FOREIGN KEY ("problem_category_id") REFERENCES "public"."product_problem_category"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "product_activity_history" ADD CONSTRAINT "product_activity_history_product_activity_id_product_activity_id_fk" FOREIGN KEY ("product_activity_id") REFERENCES "public"."product_activity"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "product_activity_history" ADD CONSTRAINT "product_activity_history_user_id_auth_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."auth_user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_contact" ADD CONSTRAINT "product_contact_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_contact" ADD CONSTRAINT "product_contact_contact_id_contact_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contact"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_dependency" ADD CONSTRAINT "product_dependency_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -320,6 +344,8 @@ ALTER TABLE "product_solution_image" ADD CONSTRAINT "product_solution_image_prod
 ALTER TABLE "project_activity" ADD CONSTRAINT "project_activity_project_id_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."project"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "project_task" ADD CONSTRAINT "project_task_project_id_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."project"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "project_task" ADD CONSTRAINT "project_task_project_activity_id_project_activity_id_fk" FOREIGN KEY ("project_activity_id") REFERENCES "public"."project_activity"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "project_task_history" ADD CONSTRAINT "project_task_history_task_id_project_task_id_fk" FOREIGN KEY ("task_id") REFERENCES "public"."project_task"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "project_task_history" ADD CONSTRAINT "project_task_history_user_id_auth_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."auth_user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "project_task_user" ADD CONSTRAINT "project_task_user_task_id_project_task_id_fk" FOREIGN KEY ("task_id") REFERENCES "public"."project_task"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "project_task_user" ADD CONSTRAINT "project_task_user_user_id_auth_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."auth_user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "system_file" ADD CONSTRAINT "system_file_uploaded_by_auth_user_id_fk" FOREIGN KEY ("uploaded_by") REFERENCES "public"."auth_user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -331,6 +357,12 @@ CREATE INDEX "idx_chat_message_group" ON "chat_message" USING btree ("receiver_g
 CREATE INDEX "idx_chat_message_user" ON "chat_message" USING btree ("receiver_user_id","sender_user_id","created_at");--> statement-breakpoint
 CREATE INDEX "idx_chat_message_unread_user" ON "chat_message" USING btree ("receiver_user_id","read_at");--> statement-breakpoint
 CREATE INDEX "idx_product_activity_product_date" ON "product_activity" USING btree ("product_id","date");--> statement-breakpoint
+CREATE INDEX "idx_product_activity_history_product_activity_id" ON "product_activity_history" USING btree ("product_activity_id");--> statement-breakpoint
+CREATE INDEX "idx_product_activity_history_user_id" ON "product_activity_history" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "idx_product_activity_history_created_at" ON "product_activity_history" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "idx_project_task_history_task_id" ON "project_task_history" USING btree ("task_id");--> statement-breakpoint
+CREATE INDEX "idx_project_task_history_user_id" ON "project_task_history" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "idx_project_task_history_created_at" ON "project_task_history" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "idx_project_task_user_task_id" ON "project_task_user" USING btree ("task_id");--> statement-breakpoint
 CREATE INDEX "idx_project_task_user_user_id" ON "project_task_user" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "idx_user_group_user_id" ON "user_group" USING btree ("user_id");--> statement-breakpoint

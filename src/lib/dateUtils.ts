@@ -99,5 +99,74 @@ export function formatDateTimeBR(dateString: string, timeString?: string): strin
 		const [hours, minutes] = timeString.split(':')
 		date.setHours(parseInt(hours), parseInt(minutes), 0, 0)
 	}
-	return date.toLocaleString(DATE_CONFIG.LOCALE)
+	return date.toLocaleString(DATE_CONFIG.LOCALE, {
+		timeZone: DATE_CONFIG.TIMEZONE,
+	})
+}
+
+/**
+ * Converte uma data para o formato de exibição brasileiro com data e hora completas
+ * Formato: dd/mm/yyyy, hh:mm:ss
+ */
+export function formatDateTimeFullBR(dateString: string): string {
+	if (!dateString) return 'Data inválida'
+
+	let date: Date
+
+	// Se a string já contém hora (formato YYYY-MM-DD HH:mm:ss), usar diretamente
+	if (dateString.includes(' ')) {
+		date = new Date(dateString.replace(' ', 'T'))
+	} else {
+		// Se for apenas data (YYYY-MM-DD), usar parseDate
+		date = parseDate(dateString)
+	}
+
+	// Verificar se a data é válida
+	if (isNaN(date.getTime())) {
+		return 'Data inválida'
+	}
+
+	return date.toLocaleString(DATE_CONFIG.LOCALE, {
+		day: '2-digit',
+		month: '2-digit',
+		year: 'numeric',
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+		hour12: false,
+		timeZone: DATE_CONFIG.TIMEZONE,
+	})
+}
+
+/**
+ * Converte uma data para o formato de exibição brasileiro com data e hora (sem segundos)
+ * Formato: dd/mm/yyyy, hh:mm
+ */
+export function formatDateTimeShortBR(dateString: string): string {
+	if (!dateString) return 'Data inválida'
+
+	let date: Date
+
+	// Se a string já contém hora (formato YYYY-MM-DD HH:mm:ss), usar diretamente
+	if (dateString.includes(' ')) {
+		date = new Date(dateString.replace(' ', 'T'))
+	} else {
+		// Se for apenas data (YYYY-MM-DD), usar parseDate
+		date = parseDate(dateString)
+	}
+
+	// Verificar se a data é válida
+	if (isNaN(date.getTime())) {
+		return 'Data inválida'
+	}
+
+	return date.toLocaleString(DATE_CONFIG.LOCALE, {
+		day: '2-digit',
+		month: '2-digit',
+		year: 'numeric',
+		hour: '2-digit',
+		minute: '2-digit',
+		hour12: false,
+		timeZone: DATE_CONFIG.TIMEZONE,
+	})
 }
