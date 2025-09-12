@@ -774,14 +774,14 @@ fileserver/                    # Servidor de arquivos independente
 
 ### 🔧 **COMANDOS DE EXECUÇÃO**
 
-#### **Desenvolvimento**
+#### **⚡ Início Rápido (Desenvolvimento)**
 
 ```bash
-# 1. Instalar dependências do servidor
+# 1. Instalar dependências do servidor (primeira vez)
 cd fileserver
 npm install
 
-# 2. Executar servidor em modo desenvolvimento
+# 2. Executar servidor de arquivos
 npm run dev
 
 # 3. Em outro terminal, executar o frontend SILO
@@ -789,19 +789,39 @@ cd ..
 npm run dev
 ```
 
-#### **Produção**
+**✅ Pronto!** Sistema completo rodando:
+
+- **Frontend**: `http://localhost:3000`
+- **Servidor de Arquivos**: `http://localhost:4000`
+
+#### **🚀 Produção**
 
 ```bash
-# Executar com PM2
+# Instalar PM2 globalmente (primeira vez)
+npm install -g pm2
+
+# Executar servidor com PM2
 cd fileserver
 npm run pm2
 
-# Verificar status
-pm2 status silo-fileserver
+# Comandos de gerenciamento
+pm2 status silo-fileserver          # Ver status
+pm2 logs silo-fileserver            # Ver logs
+pm2 restart silo-fileserver         # Reiniciar
+pm2 stop silo-fileserver            # Parar
 
-# Ver logs
-pm2 logs silo-fileserver
+# Configurar para iniciar com sistema
+pm2 startup
+pm2 save
 ```
+
+#### **📋 Scripts Disponíveis**
+
+| Script              | Comando       | Descrição                |
+| ------------------- | ------------- | ------------------------ |
+| **Desenvolvimento** | `npm run dev` | Servidor com auto-reload |
+| **Produção**        | `npm start`   | Execução direta          |
+| **PM2**             | `npm run pm2` | Executar com PM2         |
 
 ### 🌐 **ENDPOINTS DISPONÍVEIS**
 
@@ -833,22 +853,40 @@ pm2 logs silo-fileserver
 - **CORS**: Configurado para domínio específico
 - **Limpeza Automática**: Remoção de arquivos temporários a cada hora
 
-### 📊 **MONITORAMENTO**
+### 📊 **MONITORAMENTO E VERIFICAÇÃO**
+
+#### **🔍 Verificar Status do Sistema**
 
 ```bash
-# Health check
+# 1. Health check do servidor de arquivos
 curl http://localhost:4000/health
 
-# Verificar arquivos salvos
+# 2. Verificar se frontend está rodando
+curl http://localhost:3000
+
+# 3. Verificar arquivos salvos
 ls fileserver/uploads/avatars/
 ls fileserver/uploads/contacts/
 ls fileserver/uploads/problems/
 ls fileserver/uploads/solutions/
 ls fileserver/uploads/general/
 
-# Verificar imagens otimizadas
+# 4. Verificar imagens otimizadas
 ls fileserver/uploads/*/*.webp
 ls fileserver/uploads/avatars/thumb-*.webp
+```
+
+#### **🧪 Testes Rápidos**
+
+```bash
+# Testar upload via proxy Next.js
+curl -X POST -F "file=@test.jpg" http://localhost:3000/api/upload
+
+# Testar upload direto no servidor
+curl -X POST -F "file=@test.jpg" http://localhost:4000/api/upload
+
+# Testar upload de avatar (com thumbnail)
+curl -X POST -F "file=@avatar.jpg" http://localhost:4000/upload/avatar
 ```
 
 ### ⚙️ **CONFIGURAÇÃO**

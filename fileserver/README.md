@@ -20,6 +20,27 @@ Este servidor Node.js oferece **controle total** sobre uploads e armazenamento d
 
 ---
 
+## ⚡ INÍCIO RÁPIDO
+
+### 🚀 **Executar em 3 Passos**
+
+```bash
+# 1. Instalar dependências
+cd fileserver
+npm install
+
+# 2. Executar servidor
+npm run dev
+
+# 3. Em outro terminal, executar frontend
+cd ..
+npm run dev
+```
+
+**✅ Pronto!** O servidor estará rodando em `http://localhost:4000` e o frontend em `http://localhost:3000`.
+
+---
+
 ## 🚀 INSTALAÇÃO E CONFIGURAÇÃO
 
 ### 📦 **Instalação das Dependências**
@@ -105,30 +126,44 @@ fileserver/
 ### 🛠️ **Desenvolvimento**
 
 ```bash
-# Executar em modo desenvolvimento (com auto-reload)
+# 1. Instalar dependências (primeira vez)
+cd fileserver
+npm install
+
+# 2. Executar em modo desenvolvimento (com auto-reload)
 npm run dev
 
-# Ou executar diretamente
-node src/server.js
+# 3. Em outro terminal, executar o frontend SILO
+cd ..
+npm run dev
 ```
+
+**Scripts Disponíveis:**
+
+- `npm run dev` - Modo desenvolvimento com auto-reload
+- `npm start` - Execução direta (produção)
+- `npm run pm2` - Executar com PM2 (produção)
 
 ### 🚀 **Produção**
 
 ```bash
-# Executar com PM2 (recomendado para produção)
+# Instalar PM2 globalmente (primeira vez)
+npm install -g pm2
+
+# Executar servidor com PM2
+cd fileserver
 npm run pm2
 
-# Verificar status
-pm2 status silo-fileserver
+# Comandos de gerenciamento PM2
+pm2 status silo-fileserver          # Ver status
+pm2 logs silo-fileserver            # Ver logs
+pm2 restart silo-fileserver         # Reiniciar
+pm2 stop silo-fileserver            # Parar
+pm2 delete silo-fileserver          # Remover do PM2
 
-# Ver logs
-pm2 logs silo-fileserver
-
-# Reiniciar
-pm2 restart silo-fileserver
-
-# Parar
-pm2 stop silo-fileserver
+# Configurar PM2 para iniciar com sistema
+pm2 startup
+pm2 save
 ```
 
 ### 🧪 **Teste de Funcionamento**
@@ -447,7 +482,7 @@ curl http://localhost:4000/health
 # 2. Testar upload direto
 curl -X POST -F "file=@test.jpg" http://localhost:4000/api/upload
 
-# 3. Testar via proxy
+# 3. Testar via proxy (Next.js)
 curl -X POST -F "file=@test.jpg" http://localhost:3000/api/upload
 
 # 4. Verificar arquivos salvos
@@ -461,6 +496,15 @@ ls fileserver/uploads/general/
 # 5. Verificar imagens otimizadas
 ls fileserver/uploads/*/*.webp
 ls fileserver/uploads/avatars/thumb-*.webp
+
+# 6. Testar upload de avatar (com thumbnail)
+curl -X POST -F "file=@avatar.jpg" http://localhost:4000/upload/avatar
+
+# 7. Testar upload múltiplo de problemas
+curl -X POST \
+  -F "files=@problema1.jpg" \
+  -F "files=@problema2.jpg" \
+  http://localhost:4000/upload/problem
 ```
 
 ---
