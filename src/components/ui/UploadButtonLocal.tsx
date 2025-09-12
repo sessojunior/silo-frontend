@@ -5,7 +5,7 @@ import { toast } from '@/lib/toast'
 
 interface UploadButtonLocalProps {
 	endpoint?: 'general' | 'avatarUploader' | 'contactImageUploader' | 'problemImageUploader' | 'solutionImageUploader'
-	onClientUploadComplete?: (res: any) => void
+	onClientUploadComplete?: (res: { url: string; key?: string; name?: string; size?: number } | { url: string; key?: string; name?: string; size?: number }[]) => void
 	onUploadError?: (error: { message: string }) => void
 	appearance?: {
 		button?: string

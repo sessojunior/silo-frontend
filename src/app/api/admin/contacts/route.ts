@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
-import { eq, desc } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 import { db } from '@/lib/db'
 import { contact } from '@/lib/db/schema'
@@ -257,8 +257,6 @@ export async function DELETE(req: NextRequest) {
 		if (existingContacts.length === 0) {
 			return NextResponse.json({ success: false, error: 'Contato não encontrado' }, { status: 404 })
 		}
-
-		const existingContact = existingContacts[0]
 
 		// Excluir contato (as associações serão removidas automaticamente por CASCADE)
 		await db.delete(contact).where(eq(contact.id, id))

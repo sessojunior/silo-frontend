@@ -18,16 +18,6 @@ export async function GET(req: NextRequest) {
 		// Se houver soluções com o mesmo createdAt, ordena por id para garantir ordem estável
 		const solutions = await db.select().from(productSolution).where(eq(productSolution.productProblemId, problemId)).orderBy(desc(productSolution.createdAt), desc(productSolution.id))
 
-		console.log(
-			'🔵 API - Soluções do banco (ordenadas por createdAt):',
-			solutions.map((s) => ({
-				id: s.id.substring(0, 8),
-				createdAt: s.createdAt,
-				updatedAt: s.updatedAt,
-				description: s.description.substring(0, 30) + '...',
-			})),
-		)
-
 		// Busca os usuários relacionados
 		const userIds = [...new Set(solutions.map((s) => s.userId))]
 		const users = userIds.length ? await db.select().from(authUser).where(inArray(authUser.id, userIds)) : []
@@ -71,15 +61,6 @@ export async function GET(req: NextRequest) {
 			images: images.filter((img) => img.productSolutionId === solution.id), // Todas as imagens da solução
 			isMine: false, // O front pode sobrescrever com base no usuário logado
 		}))
-
-		console.log(
-			'🔵 API - Resultado final (ordenado por date):',
-			result.map((r) => ({
-				id: r.id.substring(0, 8),
-				date: r.date,
-				description: r.description.substring(0, 30) + '...',
-			})),
-		)
 
 		return NextResponse.json({ items: result })
 	} catch {

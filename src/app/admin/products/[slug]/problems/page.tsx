@@ -80,7 +80,7 @@ export default function ProblemsPage() {
 	// Estados para imagens de soluções
 	const [solutionImages, setSolutionImages] = useState<Array<{ id: string; image: string; description: string }>>([])
 	const [solutionDeleteImageId, setSolutionDeleteImageId] = useState<string | null>(null)
-	const [solutionDeleteImageLoading, setSolutionDeleteImageLoading] = useState(false)
+	const [solutionDeleteImageLoading] = useState(false)
 	const [solutionLightboxOpen, setSolutionLightboxOpen] = useState(false)
 	const [solutionLightboxImage, setSolutionLightboxImage] = useState<{ src: string; alt?: string } | null>(null)
 	const [replyTo, setReplyTo] = useState<SolutionWithDetails | null>(null)
@@ -535,7 +535,7 @@ export default function ProblemsPage() {
 
 		console.log(
 			'🔵 Soluções carregadas da API:',
-			solutionsWithIsMine.map((s) => ({
+			solutionsWithIsMine.map((s: SolutionWithDetails) => ({
 				id: s.id.substring(0, 8),
 				date: s.date,
 				description: s.description.substring(0, 30) + '...',

@@ -300,7 +300,7 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 								<div className='flex items-center gap-2'>
 									<UploadButtonLocal
 										endpoint='contactImageUploader'
-										onClientUploadComplete={async (res) => {
+										onClientUploadComplete={async (res: { url: string; key?: string; name?: string; size?: number } | { url: string; key?: string; name?: string; size?: number }[]) => {
 											// Tratar tanto array quanto objeto único
 											const url = Array.isArray(res) ? res[0]?.url : res?.url
 											if (url) {

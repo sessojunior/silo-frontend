@@ -75,7 +75,7 @@ export function ProblemDetailColumn({ loadingDetail, problem, solutions, images,
 					{images.length > 0 &&
 						images.map(({ id, image, description }) => (
 							<div key={id} className='cursor-pointer' onClick={() => onImageClick(image, description)}>
-								<Image src={image} alt={description} className='h-32 w-auto rounded-lg transition hover:brightness-90' width={200} height={128} style={{ objectFit: 'cover' }} />
+								<Image src={image} alt={description} className='h-32 w-auto rounded-lg transition hover:brightness-90' width={200} height={128} style={{ objectFit: 'cover', height: 'auto' }} priority />
 							</div>
 						))}
 				</div>

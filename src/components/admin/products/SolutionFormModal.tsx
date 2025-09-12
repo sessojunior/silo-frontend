@@ -64,7 +64,7 @@ interface SolutionFormModalProps {
 	setLightboxImage: (image: { src: string; alt?: string } | null) => void
 }
 
-export default function SolutionFormModal({ isOpen, onClose, mode, editingSolution, solutionDescription, setSolutionDescription, setSolutionImage, solutionImagePreview, setSolutionImagePreview, solutionLoading, solutionError, setSolutionError, onSubmit, onDeleteSolution, onUpdateSolutions, onUpdateEditingSolution, problemId, solutionImages, onSolutionImagesUpdate, deleteImageId, setDeleteImageId, deleteImageLoading, lightboxOpen, setLightboxOpen, lightboxImage, setLightboxImage }: SolutionFormModalProps) {
+export default function SolutionFormModal({ isOpen, onClose, mode, editingSolution, solutionDescription, setSolutionDescription, solutionLoading, onSubmit, onDeleteSolution, onUpdateSolutions, problemId, solutionImages, onSolutionImagesUpdate, deleteImageId, setDeleteImageId, deleteImageLoading, lightboxOpen, setLightboxOpen, lightboxImage, setLightboxImage }: SolutionFormModalProps) {
 	const getTitle = () => {
 		switch (mode) {
 			case 'edit':
@@ -192,7 +192,7 @@ export default function SolutionFormModal({ isOpen, onClose, mode, editingSoluti
 					</div>
 				)}
 
-				{solutionError && <div className='text-red-600 text-sm'>{solutionError}</div>}
+				{/* {solutionError && <div className='text-red-600 text-sm'>{solutionError}</div>} */}
 
 				<div className='flex justify-between gap-2'>
 					{/* Botão de excluir no modal, só se for modo edit e a solução for do usuário logado */}
