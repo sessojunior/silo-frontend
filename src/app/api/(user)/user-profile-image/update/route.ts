@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 import { authUser } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 
-// Atualiza a URL da imagem de perfil do usuário (vinda do UploadThing)
+// Atualiza a URL da imagem de perfil do usuário (vinda do servidor local)
 export async function POST(req: NextRequest) {
 	try {
 		// Verifica se o usuário está logado e obtém os dados do usuário

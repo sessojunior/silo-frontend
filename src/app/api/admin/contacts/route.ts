@@ -5,7 +5,6 @@ import { eq, desc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { contact } from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
-import { utapi, getFileKeyFromUrl } from '@/server/uploadthing'
 
 // GET - Listar contatos com filtros
 export async function GET(req: NextRequest) {
@@ -21,8 +20,8 @@ export async function GET(req: NextRequest) {
 
 		console.log('🔵 Listando contatos...', { search, status })
 
-		// Query simples sem filtros complexos por enquanto
-		const contacts = await db.select().from(contact).orderBy(desc(contact.createdAt))
+		// Query ordenada alfabeticamente por nome
+		const contacts = await db.select().from(contact).orderBy(contact.name)
 
 		// Aplicar filtros em JavaScript por simplicidade
 		let filteredContacts = contacts
@@ -68,7 +67,6 @@ export async function POST(req: NextRequest) {
 		const phone = formData.get('phone') as string | null
 		const imageUrl = formData.get('imageUrl') as string | null
 		const active = formData.get('active') === 'true'
-		// const file = formData.get('file') as File | null - não mais usado, apenas UploadThing
 
 		console.log('🔵 Criando novo contato:', { name, role, team, email, active })
 
@@ -98,8 +96,6 @@ export async function POST(req: NextRequest) {
 		if (imageUrl) {
 			imagePath = imageUrl
 		}
-
-		// Upload de imagem agora é feito via UploadThing no frontend
 
 		// Criar contato
 		const contactId = randomUUID()
@@ -140,7 +136,6 @@ export async function PUT(req: NextRequest) {
 		const phone = formData.get('phone') as string | null
 		const imageUrl = formData.get('imageUrl') as string | null
 		const active = formData.get('active') === 'true'
-		// const file = formData.get('file') as File | null - não mais usado, apenas UploadThing
 		const removeImage = formData.get('removeImage') === 'true'
 
 		console.log('🔵 Editando contato:', { id, name, role, team, email, active })
@@ -188,22 +183,34 @@ export async function PUT(req: NextRequest) {
 
 		// Remover imagem se solicitado
 		if (removeImage && existingContact.image) {
-			// Exclui a imagem do UploadThing
-			const fileKey = getFileKeyFromUrl(existingContact.image)
-			if (fileKey) {
-				try {
-					console.log('🔵 Excluindo imagem de contato do UploadThing:', fileKey)
-					await utapi.deleteFiles([fileKey])
-					console.log('✅ Imagem de contato excluída do UploadThing com sucesso')
-				} catch (error) {
-					console.error('❌ Erro ao excluir imagem de contato do UploadThing:', error)
-					// Continua mesmo se falhar a exclusão do arquivo remoto
-				}
-			}
 			imagePath = null
-		}
 
-		// Upload de imagem agora é feito via UploadThing no frontend
+			// Remover arquivo do disco também
+			try {
+				const imageUrl = existingContact.image
+				if (imageUrl.includes('localhost:4000/files/')) {
+					// Extrair o caminho do arquivo da URL
+					const urlParts = imageUrl.split('/files/')
+					if (urlParts.length === 2) {
+						const filePath = urlParts[1] // ex: "contacts/filename.webp"
+						const deleteUrl = `http://localhost:4000/files/${filePath}`
+
+						// Fazer requisição DELETE para o servidor de arquivos
+						const deleteResponse = await fetch(deleteUrl, {
+							method: 'DELETE',
+						})
+
+						if (deleteResponse.ok) {
+							console.log('✅ Arquivo de imagem removido do disco:', filePath)
+						} else {
+							console.log('⚠️ Erro ao remover arquivo do disco:', filePath)
+						}
+					}
+				}
+			} catch (error) {
+				console.log('⚠️ Erro ao remover arquivo do disco:', error)
+			}
+		}
 
 		// Atualizar contato
 		await db
@@ -252,21 +259,6 @@ export async function DELETE(req: NextRequest) {
 		}
 
 		const existingContact = existingContacts[0]
-
-		// Exclui a imagem do UploadThing se existir
-		if (existingContact.image) {
-			const fileKey = getFileKeyFromUrl(existingContact.image)
-			if (fileKey) {
-				try {
-					console.log('🔵 Excluindo imagem de contato do UploadThing:', fileKey)
-					await utapi.deleteFiles([fileKey])
-					console.log('✅ Imagem de contato excluída do UploadThing com sucesso')
-				} catch (error) {
-					console.error('❌ Erro ao excluir imagem de contato do UploadThing:', error)
-					// Continua mesmo se falhar a exclusão do arquivo remoto
-				}
-			}
-		}
 
 		// Excluir contato (as associações serão removidas automaticamente por CASCADE)
 		await db.delete(contact).where(eq(contact.id, id))

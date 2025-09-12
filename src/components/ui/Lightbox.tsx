@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react'
-import Image from 'next/image'
 
 interface LightboxProps {
 	open: boolean
@@ -27,12 +26,23 @@ export default function Lightbox({ open, image, alt, onClose }: LightboxProps) {
 	}
 
 	return (
-		<div ref={overlayRef} className='fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in' onClick={handleOverlayClick} aria-modal='true' role='dialog'>
-			<div className='relative max-w-full max-h-full flex flex-col items-center justify-center'>
-				<button onClick={onClose} className='absolute -top-10 -right-10 z-10 rounded-full bg-zinc-800/80 size-10 flex items-center justify-center text-white hover:bg-black focus:outline-none focus:ring-2 focus:ring-blue-500' aria-label='Fechar'>
+		<div ref={overlayRef} className='fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-sm' onClick={handleOverlayClick} aria-modal='true' role='dialog'>
+			<div className='relative max-w-full max-h-full flex flex-col items-center justify-center p-4'>
+				<button onClick={onClose} className='absolute -top-0.5 -right-0.5 z-10 rounded-full bg-red-600 size-10 flex items-center justify-center text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-blue-500' aria-label='Fechar'>
 					<span className='icon-[lucide--x] size-5' />
 				</button>
-				<Image src={image} alt={alt || 'Imagem ampliada'} className='rounded-lg shadow-2xl max-h-[75vh] max-w-[75vw] border-4 border-white dark:border-zinc-800' width={800} height={600} priority={true} unoptimized={true} style={{ objectFit: 'contain' }} />
+				<img
+					src={image}
+					alt={alt || 'Imagem ampliada'}
+					className='rounded-lg shadow-2xl max-h-[75vh] max-w-[75vw] border-2 border-zinc-200 dark:border-zinc-600 object-contain bg-white'
+					onLoad={() => {}}
+					onError={() => {}}
+					style={{
+						maxHeight: '75vh',
+						maxWidth: '75vw',
+						objectFit: 'contain',
+					}}
+				/>
 			</div>
 		</div>
 	)

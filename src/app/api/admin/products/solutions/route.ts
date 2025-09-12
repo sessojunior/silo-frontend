@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { productSolution, authUser, productSolutionChecked, productSolutionImage } from '@/lib/db/schema'
-import { eq, inArray } from 'drizzle-orm'
+import { eq, inArray, desc } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { getAuthUser } from '@/lib/auth/token'
-import { utapi, getFileKeyFromUrl } from '@/server/uploadthing'
 
 export async function GET(req: NextRequest) {
 	const { searchParams } = new URL(req.url)
@@ -15,8 +14,19 @@ export async function GET(req: NextRequest) {
 	}
 
 	try {
-		// Busca todas as soluções para o problema
-		const solutions = await db.select().from(productSolution).where(eq(productSolution.productProblemId, problemId))
+		// Busca todas as soluções para o problema ordenadas por data de criação (mais recentes primeiro)
+		// Se houver soluções com o mesmo createdAt, ordena por id para garantir ordem estável
+		const solutions = await db.select().from(productSolution).where(eq(productSolution.productProblemId, problemId)).orderBy(desc(productSolution.createdAt), desc(productSolution.id))
+
+		console.log(
+			'🔵 API - Soluções do banco (ordenadas por createdAt):',
+			solutions.map((s) => ({
+				id: s.id.substring(0, 8),
+				createdAt: s.createdAt,
+				updatedAt: s.updatedAt,
+				description: s.description.substring(0, 30) + '...',
+			})),
+		)
 
 		// Busca os usuários relacionados
 		const userIds = [...new Set(solutions.map((s) => s.userId))]
@@ -58,9 +68,18 @@ export async function GET(req: NextRequest) {
 						name: 'Usuário desconhecido',
 						image: '/images/profile.png',
 					},
-			image: images.find((img) => img.productSolutionId === solution.id) || null,
+			images: images.filter((img) => img.productSolutionId === solution.id), // Todas as imagens da solução
 			isMine: false, // O front pode sobrescrever com base no usuário logado
 		}))
+
+		console.log(
+			'🔵 API - Resultado final (ordenado por date):',
+			result.map((r) => ({
+				id: r.id.substring(0, 8),
+				date: r.date,
+				description: r.description.substring(0, 30) + '...',
+			})),
+		)
 
 		return NextResponse.json({ items: result })
 	} catch {
@@ -138,27 +157,30 @@ export async function PUT(req: NextRequest) {
 		return NextResponse.json({ error: 'Permissão negada.' }, { status: 403 })
 	}
 
+	// Log antes da atualização
+	console.log('🔵 ANTES da edição - Solução:', {
+		id: id.substring(0, 8),
+		createdAt: solution[0].createdAt,
+		updatedAt: solution[0].updatedAt,
+		description: solution[0].description.substring(0, 30) + '...',
+	})
+
 	await db.update(productSolution).set({ description, updatedAt: new Date() }).where(eq(productSolution.id, id))
+
+	// Log após a atualização - buscar a solução novamente
+	const updatedSolution = await db.select().from(productSolution).where(eq(productSolution.id, id))
+	console.log('🔵 DEPOIS da edição - Solução:', {
+		id: id.substring(0, 8),
+		createdAt: updatedSolution[0].createdAt,
+		updatedAt: updatedSolution[0].updatedAt,
+		description: updatedSolution[0].description.substring(0, 30) + '...',
+	})
 
 	// Imagem: se enviada, substitui a anterior
 	if (imageUrl) {
 		// Remove imagem anterior se houver
 		const oldImg = await db.select().from(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
 		if (oldImg.length) {
-			// Exclui a imagem antiga do UploadThing
-			const oldImageUrl = oldImg[0].image
-			const oldFileKey = getFileKeyFromUrl(oldImageUrl)
-			if (oldFileKey) {
-				try {
-					console.log('🔵 Excluindo arquivo antigo do UploadThing:', oldFileKey)
-					await utapi.deleteFiles([oldFileKey])
-					console.log('✅ Arquivo antigo excluído do UploadThing com sucesso')
-				} catch (error) {
-					console.error('❌ Erro ao excluir arquivo antigo do UploadThing:', error)
-					// Continua mesmo se falhar a exclusão do arquivo remoto
-				}
-			}
-
 			await db.delete(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
 		}
 		await db.insert(productSolutionImage).values({
@@ -175,20 +197,6 @@ export async function PUT(req: NextRequest) {
 		if (removeImage) {
 			const oldImg = await db.select().from(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
 			if (oldImg.length) {
-				// Exclui a imagem do UploadThing
-				const oldImageUrl = oldImg[0].image
-				const oldFileKey = getFileKeyFromUrl(oldImageUrl)
-				if (oldFileKey) {
-					try {
-						console.log('🔵 Excluindo arquivo do UploadThing:', oldFileKey)
-						await utapi.deleteFiles([oldFileKey])
-						console.log('✅ Arquivo excluído do UploadThing com sucesso')
-					} catch (error) {
-						console.error('❌ Erro ao excluir arquivo do UploadThing:', error)
-						// Continua mesmo se falhar a exclusão do arquivo remoto
-					}
-				}
-
 				await db.delete(productSolutionImage).where(eq(productSolutionImage.productSolutionId, id))
 			}
 		}
@@ -242,29 +250,12 @@ export async function DELETE(req: NextRequest) {
 			await tx.delete(productSolutionChecked).where(inArray(productSolutionChecked.productSolutionId, allSolutionIds))
 		}
 
-		// 4. Excluir imagens e arquivos do UploadThing
-		const allImages = await tx.select().from(productSolutionImage).where(inArray(productSolutionImage.productSolutionId, allSolutionIds))
-
-		for (const img of allImages) {
-			const fileKey = getFileKeyFromUrl(img.image)
-			if (fileKey) {
-				try {
-					console.log('🔵 Excluindo arquivo do UploadThing:', fileKey)
-					await utapi.deleteFiles([fileKey])
-					console.log('✅ Arquivo excluído do UploadThing com sucesso')
-				} catch (error) {
-					console.error('❌ Erro ao excluir arquivo do UploadThing:', error)
-					// Continua mesmo se falhar a exclusão do arquivo remoto
-				}
-			}
-		}
-
-		// 5. Excluir todas as imagens do banco
+		// 4. Excluir todas as imagens do banco
 		if (allSolutionIds.length > 0) {
 			await tx.delete(productSolutionImage).where(inArray(productSolutionImage.productSolutionId, allSolutionIds))
 		}
 
-		// 6. Excluir todas as soluções (principal + respostas filhas)
+		// 5. Excluir todas as soluções (principal + respostas filhas)
 		await tx.delete(productSolution).where(inArray(productSolution.id, allSolutionIds))
 
 		console.log('✅ Solução e respostas filhas excluídas com sucesso:', allSolutionIds.length)

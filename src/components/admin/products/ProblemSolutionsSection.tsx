@@ -22,6 +22,11 @@ interface SolutionWithDetails {
 		image: string
 		description: string
 	} | null
+	images: Array<{
+		id: string
+		image: string
+		description: string
+	}>
 	isMine: boolean
 }
 
@@ -100,15 +105,20 @@ export function ProblemSolutionsSection({ solutions, expandedSolutionIds, onOpen
 									{isReplyExpanded ? '[ver menos]' : '[...leia mais]'}
 								</button>
 							)}
-							{/* Imagem da reply */}
-							{reply.image && reply.image.image && (
-								<div
-									onClick={() => {
-										onImageClick(reply.image!.image, reply.image!.description || '')
-									}}
-									className='cursor-pointer'
-								>
-									<Image src={reply.image.image} alt={reply.image.description || 'Imagem da solução'} className='mt-2 h-32 w-auto rounded-lg border border-zinc-200 shadow-sm hover:brightness-90' width={200} height={128} style={{ objectFit: 'cover' }} />
+							{/* Imagens da reply */}
+							{reply.images && reply.images.length > 0 && (
+								<div className='mt-2 flex gap-2 flex-wrap'>
+									{reply.images.map((img) => (
+										<div
+											key={img.id}
+											onClick={() => {
+												onImageClick(img.image, img.description || '')
+											}}
+											className='cursor-pointer'
+										>
+											<Image src={img.image} alt={img.description || 'Imagem da solução'} className='h-32 w-auto rounded-lg border border-zinc-200 shadow-sm hover:brightness-90' width={200} height={128} style={{ objectFit: 'cover' }} />
+										</div>
+									))}
 								</div>
 							)}
 						</div>
@@ -227,17 +237,20 @@ export function ProblemSolutionsSection({ solutions, expandedSolutionIds, onOpen
 												{isExpanded ? '[ver menos]' : '[...leia mais]'}
 											</button>
 										)}
-										{/* Imagem da solução */}
-										{solution.image && solution.image.image && (
-											<div
-												onClick={() => {
-													if (solution.image && solution.image.image) {
-														onImageClick(solution.image.image, solution.image.description || '')
-													}
-												}}
-												className='cursor-pointer'
-											>
-												<Image src={solution.image.image} alt={solution.image.description || 'Imagem da solução'} className='mt-2 h-32 w-auto rounded-lg border border-zinc-200 shadow-sm hover:brightness-90' width={200} height={128} style={{ objectFit: 'cover' }} />
+										{/* Imagens da solução */}
+										{solution.images && solution.images.length > 0 && (
+											<div className='mt-2 flex gap-2 flex-wrap'>
+												{solution.images.map((img) => (
+													<div
+														key={img.id}
+														onClick={() => {
+															onImageClick(img.image, img.description || '')
+														}}
+														className='cursor-pointer'
+													>
+														<Image src={img.image} alt={img.description || 'Imagem da solução'} className='h-32 w-auto rounded-lg border border-zinc-200 shadow-sm hover:brightness-90' width={200} height={128} style={{ objectFit: 'cover' }} />
+													</div>
+												))}
 											</div>
 										)}
 									</div>

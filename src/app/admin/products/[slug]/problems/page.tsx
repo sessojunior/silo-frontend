@@ -31,6 +31,11 @@ interface SolutionWithDetails {
 		image: string
 		description: string
 	} | null
+	images: Array<{
+		id: string
+		image: string
+		description: string
+	}>
 	isMine: boolean
 }
 
@@ -72,6 +77,12 @@ export default function ProblemsPage() {
 	const [solutionImagePreview, setSolutionImagePreview] = useState<string | null>(null)
 	const [solutionLoading, setSolutionLoading] = useState(false)
 	const [solutionError, setSolutionError] = useState<string | null>(null)
+	// Estados para imagens de soluções
+	const [solutionImages, setSolutionImages] = useState<Array<{ id: string; image: string; description: string }>>([])
+	const [solutionDeleteImageId, setSolutionDeleteImageId] = useState<string | null>(null)
+	const [solutionDeleteImageLoading, setSolutionDeleteImageLoading] = useState(false)
+	const [solutionLightboxOpen, setSolutionLightboxOpen] = useState(false)
+	const [solutionLightboxImage, setSolutionLightboxImage] = useState<{ src: string; alt?: string } | null>(null)
 	const [replyTo, setReplyTo] = useState<SolutionWithDetails | null>(null)
 	const [deleteSolutionDialogOpen, setDeleteSolutionDialogOpen] = useState(false)
 	const [solutionToDelete, setSolutionToDelete] = useState<SolutionWithDetails | null>(null)
@@ -121,6 +132,9 @@ export default function ProblemsPage() {
 				...sol,
 				isMine: sol.user?.id === user.id,
 			}))
+
+			// A API já retorna as soluções ordenadas por data de criação (mais recentes primeiro)
+			// Não precisamos ordenar novamente no frontend
 			setSolutions(solutionsWithIsMine)
 			setImages(imagesData.items)
 		} finally {
@@ -371,37 +385,26 @@ export default function ProblemsPage() {
 	}
 
 	// Função para abrir modal de solução
-	function openSolutionModal(mode: 'create' | 'edit' | 'reply', solution?: SolutionWithDetails) {
+	async function openSolutionModal(mode: 'create' | 'edit' | 'reply', solution?: SolutionWithDetails) {
 		setSolutionMode(mode)
 		setSolutionModalOpen(true)
 		setSolutionError(null)
 		if (mode === 'edit' && solution) {
 			setEditingSolution(solution)
 			setSolutionDescription(solution.description)
-			// Carregar imagem da solução se existir
-			if (solution.image?.image) {
-				console.log('✅ Carregando imagem existente da solução:', solution.image.image)
-				setSolutionImage(null) // Não há arquivo para edição, apenas preview
-				// Adicionar timestamp para evitar cache
-				setSolutionImagePreview(`${solution.image.image}?t=${Date.now()}`)
-			} else {
-				console.log('🔵 Solução não possui imagem associada')
-				setSolutionImage(null)
-				setSolutionImagePreview(null)
-			}
+			// Carregar imagens da solução diretamente (já disponíveis em solution.images)
+			setSolutionImages(solution.images || [])
 			setReplyTo(null)
 		} else if (mode === 'reply' && solution) {
 			setReplyTo(solution)
 			setEditingSolution(null)
 			setSolutionDescription('')
-			setSolutionImage(null)
-			setSolutionImagePreview(null)
+			setSolutionImages([])
 		} else {
 			setEditingSolution(null)
 			setReplyTo(null)
 			setSolutionDescription('')
-			setSolutionImage(null)
-			setSolutionImagePreview(null)
+			setSolutionImages([])
 		}
 	}
 
@@ -414,6 +417,10 @@ export default function ProblemsPage() {
 		setSolutionImage(null)
 		setSolutionImagePreview(null)
 		setSolutionError(null)
+		setSolutionImages([])
+		setSolutionDeleteImageId(null)
+		setSolutionLightboxOpen(false)
+		setSolutionLightboxImage(null)
 	}
 
 	// Função para submit do modal de solução
@@ -525,6 +532,18 @@ export default function ProblemsPage() {
 			...sol,
 			isMine: sol.user?.id === user.id,
 		}))
+
+		console.log(
+			'🔵 Soluções carregadas da API:',
+			solutionsWithIsMine.map((s) => ({
+				id: s.id.substring(0, 8),
+				date: s.date,
+				description: s.description.substring(0, 30) + '...',
+			})),
+		)
+
+		// A API já retorna as soluções ordenadas por data de criação (mais recentes primeiro)
+		// Não precisamos ordenar novamente no frontend
 		setSolutions(solutionsWithIsMine)
 	}
 
@@ -542,6 +561,20 @@ export default function ProblemsPage() {
 			setImages(imagesData.items || [])
 		} catch (error) {
 			console.error('❌ Erro ao atualizar imagens:', error)
+		}
+	}
+
+	// Função para atualizar imagens da solução
+	async function updateSolutionImages() {
+		if (!editingSolution) return
+		try {
+			const res = await fetch(`/api/admin/products/solutions/images?solutionId=${editingSolution.id}`)
+			const data = await res.json()
+			if (res.ok) {
+				setSolutionImages(data.items || [])
+			}
+		} catch (error) {
+			console.error('❌ Erro ao atualizar imagens da solução:', error)
 		}
 	}
 
@@ -628,7 +661,7 @@ export default function ProblemsPage() {
 			/>
 
 			{/* Modal de solução */}
-			<SolutionFormModal isOpen={solutionModalOpen} onClose={closeSolutionModal} mode={solutionMode} editingSolution={editingSolution} solutionDescription={solutionDescription} setSolutionDescription={setSolutionDescription} setSolutionImage={setSolutionImage} solutionImagePreview={solutionImagePreview} setSolutionImagePreview={setSolutionImagePreview} solutionLoading={solutionLoading} solutionError={solutionError} setSolutionError={setSolutionError} onSubmit={handleSolutionSubmit} onDeleteSolution={openDeleteSolutionDialog} onUpdateSolutions={atualizarSolucoes} onUpdateEditingSolution={setEditingSolution} problemId={problem?.id || null} />
+			<SolutionFormModal isOpen={solutionModalOpen} onClose={closeSolutionModal} mode={solutionMode} editingSolution={editingSolution} solutionDescription={solutionDescription} setSolutionDescription={setSolutionDescription} setSolutionImage={setSolutionImage} solutionImagePreview={solutionImagePreview} setSolutionImagePreview={setSolutionImagePreview} solutionLoading={solutionLoading} solutionError={solutionError} setSolutionError={setSolutionError} onSubmit={handleSolutionSubmit} onDeleteSolution={openDeleteSolutionDialog} onUpdateSolutions={atualizarSolucoes} onUpdateEditingSolution={setEditingSolution} problemId={problem?.id || null} solutionImages={solutionImages} onSolutionImagesUpdate={updateSolutionImages} deleteImageId={solutionDeleteImageId} setDeleteImageId={setSolutionDeleteImageId} deleteImageLoading={solutionDeleteImageLoading} lightboxOpen={solutionLightboxOpen} setLightboxOpen={setSolutionLightboxOpen} lightboxImage={solutionLightboxImage} setLightboxImage={setSolutionLightboxImage} />
 
 			{/* Dialog de confirmação de exclusão de solução */}
 			<DeleteSolutionDialog

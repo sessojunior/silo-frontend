@@ -33,7 +33,7 @@ export default async function AdminLayout({
 	const currentUser = await getAuthUser()
 	if (!currentUser) redirect('/login')
 
-	// Busca dados completos do usuário, incluindo a imagem do UploadThing
+	// Busca dados completos do usuário, incluindo a imagem do servidor local
 	const userData = await db.select().from(authUser).where(eq(authUser.id, currentUser.id)).limit(1)
 	const userImage = userData[0]?.image || '/images/profile.png'
 

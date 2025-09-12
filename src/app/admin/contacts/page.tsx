@@ -22,6 +22,7 @@ export default function ContactsPage() {
 	// Estados do formulário
 	const [formOpen, setFormOpen] = useState(false)
 	const [editingContact, setEditingContact] = useState<Contact | null>(null)
+	const [hasChanges, setHasChanges] = useState(false)
 
 	// Estados do modal de exclusão
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -289,7 +290,24 @@ export default function ContactsPage() {
 			</div>
 
 			{/* Componentes de formulário */}
-			<ContactFormOffcanvas key={editingContact?.id || 'new'} isOpen={formOpen} onClose={() => setFormOpen(false)} contact={editingContact} onSuccess={fetchContacts} />
+			<ContactFormOffcanvas
+				key={editingContact?.id || 'new'}
+				isOpen={formOpen}
+				onClose={() => {
+					setFormOpen(false)
+					// Só recarregar se houve mudanças
+					if (hasChanges) {
+						fetchContacts()
+						setHasChanges(false)
+					}
+				}}
+				contact={editingContact}
+				onSuccess={() => {
+					fetchContacts()
+					setHasChanges(false)
+				}}
+				onChange={() => setHasChanges(true)}
+			/>
 
 			<ContactDeleteDialog isOpen={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} contact={contactToDelete} onSuccess={fetchContacts} />
 		</div>

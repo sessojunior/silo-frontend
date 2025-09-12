@@ -71,7 +71,7 @@ export function ProblemDetailColumn({ loadingDetail, problem, solutions, images,
 					<ReactMarkdown>{problem ? problem.description : 'Nenhum problema registrado para este produto.'}</ReactMarkdown>
 				</div>
 
-				<div className='flex gap-6 pt-6'>
+				<div className='flex gap-2 pt-6'>
 					{images.length > 0 &&
 						images.map(({ id, image, description }) => (
 							<div key={id} className='cursor-pointer' onClick={() => onImageClick(image, description)}>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from '@/lib/toast'
-import { UploadButton } from '@/lib/uploadthing'
+import UploadButtonLocal from '@/components/ui/UploadButtonLocal'
 
 import Offcanvas from '@/components/ui/Offcanvas'
 import Button from '@/components/ui/Button'
@@ -16,14 +16,13 @@ interface ContactFormOffcanvasProps {
 	onClose: () => void
 	contact?: Contact | null
 	onSuccess?: () => void
+	onChange?: () => void
 }
 
-export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSuccess }: ContactFormOffcanvasProps) {
+export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSuccess, onChange }: ContactFormOffcanvasProps) {
 	const [loading, setLoading] = useState(false)
 	const [imagePreview, setImagePreview] = useState<string | null>(contact?.image || null)
 	const [removeImage, setRemoveImage] = useState(false)
-	// UploadThing não precisa de ref de arquivo
-	const [imageUrl, setImageUrl] = useState<string | null>(contact?.image || null)
 	// const fileInputRef = useRef<HTMLInputElement>(null)
 
 	// Estados do formulário
@@ -78,14 +77,56 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 
 	const handleInputChange = (field: string, value: string | boolean) => {
 		setFormData((prev) => ({ ...prev, [field]: value }))
+		// Marcar que houve mudanças
+		if (onChange) {
+			onChange()
+		}
 	}
 
 	// Função removida - agora usando UploadThing
 
-	const handleRemoveImage = () => {
+	const handleRemoveImage = async () => {
 		setImagePreview(null)
-		setImageUrl(null)
 		setRemoveImage(true)
+
+		// Marcar que houve mudanças
+		if (onChange) {
+			onChange()
+		}
+
+		// Remover automaticamente do banco de dados se for edição
+		if (contact?.id && contact?.image) {
+			try {
+				const formData = new FormData()
+				formData.append('id', contact.id)
+				formData.append('removeImage', 'true')
+				// Incluir todos os campos obrigatórios da API
+				formData.append('name', contact.name)
+				formData.append('role', contact.role)
+				formData.append('team', contact.team)
+				formData.append('email', contact.email)
+				formData.append('phone', contact.phone || '')
+				formData.append('active', contact.active.toString())
+
+				const response = await fetch('/api/admin/contacts', {
+					method: 'PUT',
+					body: formData,
+				})
+
+				if (response.ok) {
+					console.log('✅ Imagem do contato removida automaticamente do banco')
+					// Atualizar a lista de contatos para refletir a mudança
+					if (onSuccess) {
+						onSuccess()
+					}
+				} else {
+					const errorData = await response.json()
+					console.log('⚠️ Erro ao remover imagem do banco automaticamente:', errorData)
+				}
+			} catch (error) {
+				console.log('⚠️ Erro ao remover imagem do banco:', error)
+			}
+		}
 	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -147,8 +188,8 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 			}
 
 			// Imagem via UploadThing
-			if (imageUrl) {
-				submitFormData.append('imageUrl', imageUrl)
+			if (imagePreview) {
+				submitFormData.append('imageUrl', imagePreview)
 			}
 
 			if (removeImage) {
@@ -234,19 +275,76 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 
 						<div className='flex items-center gap-4'>
 							{/* Preview da imagem */}
-							<div className='size-20 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center'>{imagePreview ? <Image src={imagePreview} alt='Preview do contato' className='size-full object-cover' width={80} height={80} objectFit='cover' unoptimized={true} /> : <span className='icon-[lucide--user] size-8 text-zinc-400' />}</div>
+							<div className='flex items-center justify-center'>
+								<div className='group relative flex size-20 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-dashed border-zinc-300 bg-zinc-100 dark:bg-zinc-800 transition duration-200 hover:border-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:ring-2 hover:ring-zinc-300'>
+									{imagePreview ? (
+										<Image
+											src={imagePreview}
+											alt='Preview do contato'
+											fill
+											className='object-cover transition-transform duration-200 group-hover:scale-105'
+											onError={() => {
+												console.log('❌ Erro ao carregar imagem:', imagePreview)
+												setImagePreview(null)
+											}}
+											onLoad={() => console.log('✅ Imagem carregada:', imagePreview)}
+										/>
+									) : (
+										<span className='icon-[lucide--user] size-8 text-zinc-400 transition-colors duration-200 group-hover:text-zinc-500' />
+									)}
+								</div>
+							</div>
 
 							{/* Controles */}
 							<div className='flex-1 space-y-2'>
-								<div className='flex gap-2'>
-									<UploadButton
+								<div className='flex items-center gap-2'>
+									<UploadButtonLocal
 										endpoint='contactImageUploader'
-										onClientUploadComplete={(res) => {
-											const url = res?.[0]?.url
+										onClientUploadComplete={async (res) => {
+											// Tratar tanto array quanto objeto único
+											const url = Array.isArray(res) ? res[0]?.url : res?.url
 											if (url) {
 												setImagePreview(url)
-												setImageUrl(url)
 												setRemoveImage(false)
+
+												// Marcar que houve mudanças
+												if (onChange) {
+													onChange()
+												}
+
+												// Salvar automaticamente no banco de dados se for edição
+												if (contact?.id) {
+													try {
+														const formData = new FormData()
+														formData.append('id', contact.id)
+														formData.append('imageUrl', url)
+														// Incluir todos os campos obrigatórios da API
+														formData.append('name', contact.name)
+														formData.append('role', contact.role)
+														formData.append('team', contact.team)
+														formData.append('email', contact.email)
+														formData.append('phone', contact.phone || '')
+														formData.append('active', contact.active.toString())
+
+														const response = await fetch('/api/admin/contacts', {
+															method: 'PUT',
+															body: formData,
+														})
+
+														if (response.ok) {
+															console.log('✅ Imagem do contato salva automaticamente no banco')
+															// Atualizar a lista de contatos para refletir a mudança
+															if (onSuccess) {
+																onSuccess()
+															}
+														} else {
+															const errorData = await response.json()
+															console.log('⚠️ Erro ao salvar imagem no banco automaticamente:', errorData)
+														}
+													} catch (error) {
+														console.log('⚠️ Erro ao salvar imagem no banco:', error)
+													}
+												}
 											}
 										}}
 										onUploadError={(error) => toast({ type: 'error', title: error.message })}
@@ -258,15 +356,15 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 										content={{
 											button: (
 												<>
-													<span className='icon-[lucide--upload] size-4 mr-2' /> Enviar imagem
+													<span className='icon-[lucide--upload] size-4' /> Enviar imagem
 												</>
 											),
 										}}
 									/>
 
 									{imagePreview && (
-										<Button type='button' style='bordered' onClick={handleRemoveImage} className='text-red-600 hover:text-red-700'>
-											<span className='icon-[lucide--x] size-4 mr-2' /> Remover
+										<Button type='button' style='bordered' onClick={handleRemoveImage} className='inline-flex items-center gap-x-2 px-2 py-2 text-xs text-red-600 hover:text-red-700' title='Remover imagem'>
+											<span className='icon-[lucide--trash] size-4' />
 										</Button>
 									)}
 								</div>

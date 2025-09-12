@@ -10,16 +10,6 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
 # misc
 .DS_Store
 *.pem
@@ -32,6 +22,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env
+.env.local
+.env.production
+.env.development
 
 # vercel
 .vercel
@@ -43,25 +36,7 @@ next-env.d.ts
 # database
 *.db
 
-# Playwright
-node_modules/
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-
-# Test fixtures (imagens de teste)
-tests/fixtures/*.jpg
-tests/fixtures/*.png
-tests/fixtures/*.gif
-tests/fixtures/*.webp
-
 # File Server - Arquivos de upload
-fileserver/uploads/
-fileserver/node_modules/
-fileserver/.env
-fileserver/.env.local
-fileserver/.env.production
-fileserver/.env.development
-fileserver/logs/
-fileserver/temp/
+/uploads
+/logs
+/temp

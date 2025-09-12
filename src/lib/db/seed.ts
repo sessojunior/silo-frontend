@@ -702,7 +702,7 @@ Investigação inicial aponta para falha no sistema RAID do servidor principal d
 							})
 						}
 
-						// Imagens de problemas agora são adicionadas via UploadThing na interface
+						// Imagens de problemas agora são adicionadas via servidor local na interface
 					}
 				}
 			}

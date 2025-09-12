@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Switch from '@/components/ui/Switch'
-import PhotoUpload from '@/components/ui/PhotoUpload'
+import PhotoUploadLocal from '@/components/ui/PhotoUploadLocal'
 import InputPasswordHints from '@/components/ui/InputPasswordHints'
 
 import { useUser } from '@/context/UserContext'
@@ -341,7 +341,7 @@ export default function SettingsPage() {
 				<div>
 					<Label>Foto de perfil</Label>
 					<div className='mt-2'>
-						<PhotoUpload image={image} />
+						<PhotoUploadLocal image={image} />
 					</div>
 				</div>
 

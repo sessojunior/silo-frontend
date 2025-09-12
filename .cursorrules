@@ -145,6 +145,7 @@ Quando usuário disser **"atualizar readme.md"**:
 - **React 19** + **TypeScript** (strict mode)
 - **Drizzle ORM** + **PostgreSQL**
 - **Tailwind CSS** + **Design System customizado**
+- **Servidor de Arquivos Local** (Node.js + Express + Multer + Sharp)
 
 ### Princípios de Desenvolvimento
 
@@ -173,6 +174,7 @@ Quando usuário disser **"atualizar readme.md"**:
 - Duplicar validações ou schemas
 - Ignorar .env (sempre considerar correto)
 - Incluir datas nos progressos (ex: "DEZEMBRO 2024")
+- Usar UploadThing (sistema migrado para servidor local)
 
 ---
 
@@ -193,3 +195,56 @@ Quando usuário disser **"atualizar readme.md"**:
 5. **Para atualizações**: Seguir protocolo de manutenção acima
 
 **A eficiência depende inteiramente da precisão do README.md.**
+
+---
+
+## 🗂️ SERVIDOR DE ARQUIVOS LOCAL
+
+### 📋 **INFORMAÇÕES CRÍTICAS**
+
+- **STATUS**: ✅ **MIGRAÇÃO COMPLETA** - UploadThing substituído por servidor local Node.js
+- **LOCALIZAÇÃO**: `/fileserver/` - Servidor independente na raiz do projeto
+- **STACK**: Express + Multer + Sharp + file-type + UUID
+- **OTIMIZAÇÃO**: Conversão automática para WebP, redimensionamento, thumbnails
+- **SEGURANÇA**: Validação robusta, CORS configurado, limpeza automática
+
+### 🚀 **COMANDOS ESSENCIAIS**
+
+```bash
+# Desenvolvimento
+cd fileserver && npm run dev
+
+# Produção
+cd fileserver && npm run pm2
+
+# Health check
+curl http://localhost:4000/health
+```
+
+### 🔧 **ENDPOINTS PRINCIPAIS**
+
+- `/api/upload` - Upload genérico (proxy Next.js)
+- `/upload/avatar` - Avatar com thumbnail automático
+- `/upload/contact` - Fotos de contatos
+- `/upload/problem` - Imagens de problemas (múltiplas)
+- `/upload/solution` - Imagens de soluções (múltiplas)
+- `/files/:type/:filename` - Acesso e delete de arquivos
+
+### 📁 **ESTRUTURA DE DIRETÓRIOS**
+
+```
+fileserver/uploads/
+├── avatars/     # Com thumbnails automáticos (thumb-*.webp)
+├── contacts/    # Fotos de contatos otimizadas
+├── problems/    # Imagens de problemas otimizadas
+├── solutions/   # Imagens de soluções otimizadas
+├── general/     # Uploads genéricos otimizados
+└── temp/        # Arquivos temporários (limpeza automática)
+```
+
+### ⚠️ **IMPORTANTE**
+
+- **NUNCA** usar UploadThing - sistema completamente migrado
+- **SEMPRE** usar UploadButtonLocal nos componentes
+- **SEMPRE** verificar se servidor está rodando antes de testes
+- **SEMPRE** consultar README.md para comandos atualizados

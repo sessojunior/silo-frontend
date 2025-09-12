@@ -7,7 +7,7 @@ import Dialog from '@/components/ui/Dialog'
 import Lightbox from '@/components/ui/Lightbox'
 import Markdown from '@/components/ui/Markdown'
 import { toast } from '@/lib/toast'
-import { UploadButton } from '@/lib/uploadthing'
+import UploadButtonLocal from '@/components/ui/UploadButtonLocal'
 import Image from 'next/image'
 import type { ProductProblem, ProductProblemImage } from '@/lib/db/schema'
 import Select, { SelectOption } from '@/components/ui/Select'
@@ -119,26 +119,33 @@ export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle
 											</div>
 										</div>
 									))}
-								<UploadButton
+								<UploadButtonLocal
 									endpoint='problemImageUploader'
 									onClientUploadComplete={async (res) => {
-										if (res && res[0]) {
-											// Enviar a URL da imagem para a API
-											const formData = new FormData()
-											formData.append('imageUrl', res[0].url)
-											formData.append('productProblemId', editing?.id || '')
-											formData.append('description', 'Imagem enviada via UploadThing')
+										if (res && Array.isArray(res) && res.length > 0) {
+											// Processar todas as imagens enviadas
+											const uploadPromises = res.map(async (imageData) => {
+												const formData = new FormData()
+												formData.append('imageUrl', imageData.url)
+												formData.append('productProblemId', editing?.id || '')
+												formData.append('description', 'Imagem enviada via servidor local')
 
-											const apiRes = await fetch('/api/admin/products/images', {
-												method: 'POST',
-												body: formData,
+												const apiRes = await fetch('/api/admin/products/images', {
+													method: 'POST',
+													body: formData,
+												})
+
+												return apiRes.ok
 											})
 
-											if (apiRes.ok) {
-												toast({ type: 'success', title: 'Imagem enviada' })
+											const results = await Promise.all(uploadPromises)
+											const successCount = results.filter(Boolean).length
+
+											if (successCount === res.length) {
+												toast({ type: 'success', title: `${successCount} imagem(ns) enviada(s)` })
 												await onImagesUpdate()
 											} else {
-												toast({ type: 'error', title: 'Erro ao salvar imagem' })
+												toast({ type: 'error', title: `Apenas ${successCount} de ${res.length} imagens foram salvas` })
 											}
 										}
 									}}
