@@ -15,6 +15,7 @@ import ProductSkeleton from '@/components/admin/dashboard/ProductSkeleton'
 import Link from 'next/link'
 
 type ProductDateStatus = {
+	id?: string
 	date: string
 	turn: number
 	user_id: string
