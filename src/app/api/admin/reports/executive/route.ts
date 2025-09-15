@@ -15,18 +15,29 @@ export async function GET(request: NextRequest) {
 
 		// Extrair parâmetros da query
 		const { searchParams } = new URL(request.url)
+		const dateRange = searchParams.get('dateRange') || '30d'
 		const startDate = searchParams.get('startDate')
 		const endDate = searchParams.get('endDate')
 		const productId = searchParams.get('productId')
 		const groupId = searchParams.get('groupId')
 
-		// Construir filtros de data - timezone São Paulo
-		const today = getToday()
-		const defaultStartDate = getDaysAgo(30) // 30 dias atrás
-		const start = startDate ? formatDate(startDate) : defaultStartDate
-		const end = endDate ? formatDate(endDate) : today
+		// Calcular período baseado no dateRange - timezone São Paulo
+		const end = endDate ? formatDate(endDate) : getToday()
+		const start = startDate
+			? formatDate(startDate)
+			: (() => {
+					switch (dateRange) {
+						case '7d':
+							return getDaysAgo(7)
+						case '90d':
+							return getDaysAgo(90)
+						default: // 30d
+							return getDaysAgo(30)
+					}
+				})()
 
-		console.log('🔵 Buscando relatório executivo:', { start, end, productId, groupId })
+		console.log('📅 Período de análise:', { start, end, dateRange })
+		console.log('🔵 Buscando relatório executivo:', { productId, groupId })
 
 		// Buscar produtos
 		const productsQuery = db
