@@ -1,13 +1,36 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { product, productActivity } from '@/lib/db/schema'
-import { eq, and, gte } from 'drizzle-orm'
-import { getDaysAgo } from '@/lib/dateUtils'
+import { eq, and, gte, lte } from 'drizzle-orm'
+import { getToday, getDaysAgo, formatDate } from '@/lib/dateUtils'
 import { INCIDENT_STATUS, ProductStatus } from '@/lib/productStatus'
 
-export async function GET() {
+export async function GET(request: Request) {
 	try {
 		console.log('🔵 Iniciando busca de relatório de disponibilidade')
+
+		// Extrair parâmetros da query - timezone São Paulo
+		const { searchParams } = new URL(request.url)
+		const dateRange = searchParams.get('dateRange') || '30d'
+		const startDate = searchParams.get('startDate')
+		const endDate = searchParams.get('endDate')
+
+		// Calcular período baseado no dateRange
+		const end = endDate ? formatDate(endDate) : getToday()
+		const start = startDate
+			? formatDate(startDate)
+			: (() => {
+					switch (dateRange) {
+						case '7d':
+							return getDaysAgo(7)
+						case '90d':
+							return getDaysAgo(90)
+						default: // 30d
+							return getDaysAgo(30)
+					}
+				})()
+
+		console.log('📅 Período de análise:', { start, end })
 
 		// Buscar todos os produtos
 		const products = await db.select().from(product).orderBy(product.name)
@@ -26,17 +49,13 @@ export async function GET() {
 		// Calcular disponibilidade para cada produto
 		const productsWithAvailability = await Promise.all(
 			products.map(async (prod) => {
-				console.log(`🔵 Processando produto: ${prod.name}`)
+				console.log(`🔵 Processando produto: ${prod.name} (período: ${start} a ${end})`)
 
-				// Buscar atividades dos últimos 30 dias - timezone São Paulo
-				const thirtyDaysAgo = getDaysAgo(30)
-				const dateStr = thirtyDaysAgo
-
-				// Buscar todas as atividades do produto
+				// Buscar todas as atividades do produto no período selecionado
 				const activities = await db
 					.select()
 					.from(productActivity)
-					.where(and(eq(productActivity.productId, prod.id), gte(productActivity.date, dateStr)))
+					.where(and(eq(productActivity.productId, prod.id), gte(productActivity.date, start), lte(productActivity.date, end)))
 
 				console.log(`📊 Atividades encontradas para ${prod.name}:`, activities.length)
 
@@ -48,7 +67,7 @@ export async function GET() {
 					})
 					console.log(`📋 Status das atividades para ${prod.name}:`, statusCounts)
 				} else {
-					console.log(`⚠️ Nenhuma atividade encontrada para ${prod.name} desde ${dateStr}`)
+					console.log(`⚠️ Nenhuma atividade encontrada para ${prod.name} no período ${start} a ${end}`)
 				}
 
 				// Calcular métricas
