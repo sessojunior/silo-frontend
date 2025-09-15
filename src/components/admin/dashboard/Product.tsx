@@ -8,7 +8,7 @@ import ProductCalendar from '@/components/admin/dashboard/ProductCalendar'
 import Modal from '@/components/ui/Modal'
 import ProductActivityOffcanvas from '@/components/admin/dashboard/ProductActivityOffcanvas'
 import ProductStatusHistoryOffcanvas from '@/components/admin/dashboard/ProductStatusHistoryOffcanvas'
-import { STATUS_DEFINITIONS, ProductStatus, StatusColor, getStatusSeverity, getDayColorFromTurns, getStatusClasses as getCentralizedStatusClasses, DEFAULT_STATUS } from '@/lib/productStatus'
+import { STATUS_DEFINITIONS, ProductStatus, StatusColor, getStatusSeverity, getDayColorFromTurns, getStatusColor, getStatusClasses as getCentralizedStatusClasses, DEFAULT_STATUS } from '@/lib/productStatus'
 
 interface ProductDateStatus {
 	id?: string
@@ -193,9 +193,10 @@ export default function Product({ id, name, turns, progress, priority, date, las
 			const dateTurns = turns.map((t) => {
 				const turnNum = parseInt(t)
 				const realStatus = statusMap.get(`${dateStr}_${turnNum}`)
+				const statusColor = getStatusColor((realStatus as ProductStatus) || DEFAULT_STATUS)
 				return {
 					dateTurn: turnNum,
-					dateStatus: dayColor, // Usar cor do dia inteiro baseada na prioridade
+					dateStatus: statusColor, // Usar cor individual do turno
 					realStatus: realStatus || DEFAULT_STATUS, // Status real para tooltip - status padrão quando não há dados
 				}
 			})
