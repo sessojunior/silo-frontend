@@ -8,7 +8,7 @@ import ProductCalendar from '@/components/admin/dashboard/ProductCalendar'
 import Modal from '@/components/ui/Modal'
 import ProductActivityOffcanvas from '@/components/admin/dashboard/ProductActivityOffcanvas'
 import ProductStatusHistoryOffcanvas from '@/components/admin/dashboard/ProductStatusHistoryOffcanvas'
-import { STATUS_DEFINITIONS, ProductStatus, StatusColor, getStatusSeverity, getDayColorFromTurns, getStatusColor, getStatusClasses as getCentralizedStatusClasses, DEFAULT_STATUS } from '@/lib/productStatus'
+import { STATUS_DEFINITIONS, ProductStatus, StatusColor, getStatusSeverity, getStatusColor, getStatusClasses as getCentralizedStatusClasses, DEFAULT_STATUS } from '@/lib/productStatus'
 
 interface ProductDateStatus {
 	id?: string
@@ -179,16 +179,6 @@ export default function Product({ id, name, turns, progress, priority, date, las
 		for (let day = 1; day <= daysInMonth; day++) {
 			const dateStr = `${ym}-${String(day).padStart(2, '0')}`
 			const weekName = dayOfWeekName(new Date(dateStr).getDay())
-
-			// Obter todos os status dos turnos para este dia
-			const dayStatuses = turns.map((t) => {
-				const turnNum = parseInt(t)
-				const realStatus = statusMap.get(`${dateStr}_${turnNum}`)
-				return realStatus || DEFAULT_STATUS
-			}) as ProductStatus[]
-
-			// Determinar cor do dia baseada na prioridade dos status
-			const dayColor = getDayColorFromTurns(dayStatuses)
 
 			const dateTurns = turns.map((t) => {
 				const turnNum = parseInt(t)
