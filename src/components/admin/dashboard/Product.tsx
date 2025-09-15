@@ -290,6 +290,7 @@ export default function Product({ id, name, turns, progress, priority, date, las
 							// Se não encontrou dados reais, criar contexto com status padrão
 							if (target) {
 								setActivityCtx({
+									id: target.id,
 									date: target.date,
 									turn: target.turn,
 									status: target.status,
