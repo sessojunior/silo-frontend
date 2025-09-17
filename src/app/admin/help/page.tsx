@@ -163,7 +163,7 @@ export default function HelpPage() {
 
 	// Interface principal com sidebar e conteúdo (seguindo padrão ProductManualSection)
 	return (
-		<div className='flex bg-zinc-50 dark:bg-zinc-900'>
+		<div className='w-full h-full flex bg-zinc-50 dark:bg-zinc-900'>
 			{/* Sidebar */}
 			<div className='w-96 border-r border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex-shrink-0'>
 				<div className='h-full flex flex-col'>
