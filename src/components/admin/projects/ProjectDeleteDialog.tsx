@@ -21,6 +21,9 @@ export default function ProjectDeleteDialog({ isOpen, onClose, project, onConfir
 		setDeleting(true)
 		try {
 			await onConfirm(project.id)
+			onClose() // Fechar o dialog após exclusão bem-sucedida
+		} catch (error) {
+			console.error('❌ Erro ao excluir projeto:', error)
 		} finally {
 			setDeleting(false)
 		}
