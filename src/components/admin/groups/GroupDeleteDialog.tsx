@@ -82,7 +82,7 @@ export default function GroupDeleteDialog({ isOpen, onClose, group, onSuccess }:
 			return `O grupo "${group.name}" é o grupo padrão do sistema e não pode ser excluído. Para excluí-lo, primeiro defina outro grupo como padrão nas configurações.`
 		}
 
-		return `Tem certeza que deseja excluir o grupo "${group.name}"? Esta ação não pode ser desfeita e todos os usuários deste grupo serão movidos para o grupo padrão.`
+		return `Tem certeza que deseja excluir o grupo "${group.name}"? Esta ação não pode ser desfeita e todos os usuários deste grupo que não estiverem em nenhum outro grupo serão movidos para o grupo padrão.`
 	}
 
 	return (

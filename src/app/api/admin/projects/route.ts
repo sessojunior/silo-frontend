@@ -3,9 +3,9 @@ import { z } from 'zod'
 import { randomUUID } from 'crypto'
 
 import { db } from '@/lib/db'
-import { project } from '@/lib/db/schema'
+import { project, projectActivity, projectTask, projectTaskHistory, projectTaskUser } from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
-import { asc, eq, ilike, or, and } from 'drizzle-orm'
+import { asc, eq, ilike, or, and, inArray } from 'drizzle-orm'
 
 // Schema de validação para criação/edição de projetos
 const ProjectSchema = z.object({
@@ -188,12 +188,15 @@ export async function DELETE(request: NextRequest) {
 		const id = searchParams.get('id')
 
 		if (!id) {
+			console.log('⚠️ ID do projeto não fornecido')
 			return NextResponse.json({ error: 'ID do projeto é obrigatório' }, { status: 400 })
 		}
 
-		console.log('🔵 Excluindo projeto:', id)
+		console.log('🔵 Iniciando exclusão do projeto:', id)
+		console.log('🔵 Usuário autenticado:', user.email)
 
 		// Verificar se projeto existe
+		console.log('🔵 Verificando se projeto existe...')
 		const existingProject = await db.select().from(project).where(eq(project.id, id)).limit(1)
 
 		if (existingProject.length === 0) {
@@ -201,13 +204,63 @@ export async function DELETE(request: NextRequest) {
 			return NextResponse.json({ error: 'Projeto não encontrado' }, { status: 404 })
 		}
 
-		// Excluir projeto
-		await db.delete(project).where(eq(project.id, id))
+		console.log('✅ Projeto encontrado:', existingProject[0].name)
 
-		console.log('✅ Projeto excluído com sucesso:', id)
+		// Executar exclusão em cascata usando transação
+		await db.transaction(async (tx) => {
+			console.log('🔵 Iniciando transação de exclusão em cascata...')
+
+			// 1. Buscar todas as atividades do projeto
+			const activities = await tx.select({ id: projectActivity.id }).from(projectActivity).where(eq(projectActivity.projectId, id))
+			const activityIds = activities.map((a) => a.id)
+			console.log(`🔵 Encontradas ${activityIds.length} atividades do projeto`)
+
+			// 2. Buscar todas as tarefas do projeto
+			const tasks = await tx.select({ id: projectTask.id }).from(projectTask).where(eq(projectTask.projectId, id))
+			const taskIds = tasks.map((t) => t.id)
+			console.log(`🔵 Encontradas ${taskIds.length} tarefas do projeto`)
+
+			// 3. Excluir histórico das tarefas
+			if (taskIds.length > 0) {
+				await tx.delete(projectTaskHistory).where(inArray(projectTaskHistory.taskId, taskIds))
+				console.log('✅ Histórico das tarefas excluído')
+			}
+
+			// 4. Excluir associações usuário-tarefa
+			if (taskIds.length > 0) {
+				await tx.delete(projectTaskUser).where(inArray(projectTaskUser.taskId, taskIds))
+				console.log('✅ Associações usuário-tarefa excluídas')
+			}
+
+			// 5. Excluir todas as tarefas
+			await tx.delete(projectTask).where(eq(projectTask.projectId, id))
+			console.log('✅ Tarefas do projeto excluídas')
+
+			// 6. Excluir todas as atividades
+			await tx.delete(projectActivity).where(eq(projectActivity.projectId, id))
+			console.log('✅ Atividades do projeto excluídas')
+
+			// 7. Finalmente, excluir o projeto
+			await tx.delete(project).where(eq(project.id, id))
+			console.log('✅ Projeto excluído com sucesso')
+		})
+
+		console.log('✅ Exclusão em cascata do projeto concluída:', id)
+
 		return NextResponse.json({ success: true, message: 'Projeto excluído com sucesso' })
 	} catch (error) {
-		console.error('❌ Erro ao excluir projeto:', error)
-		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+		console.error('❌ Erro detalhado ao excluir projeto:', error)
+		console.error('❌ Stack trace:', error instanceof Error ? error.stack : 'N/A')
+		console.error('❌ Tipo do erro:', typeof error)
+		console.error('❌ Mensagem do erro:', error instanceof Error ? error.message : String(error))
+
+		return NextResponse.json(
+			{
+				success: false,
+				error: 'Erro interno do servidor',
+				details: error instanceof Error ? error.message : String(error),
+			},
+			{ status: 500 },
+		)
 	}
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { authUser, group, userGroup } from '@/lib/db/schema'
+import { authUser, group, userGroup, userProfile, userPreferences, productActivity, productActivityHistory, productProblem, productSolution, productSolutionChecked, projectTaskHistory, projectTaskUser, chatMessage, chatUserPresence, rateLimit, authProvider, authCode, authSession } from '@/lib/db/schema'
 import { eq, desc, ilike, and, not, inArray } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import bcrypt from 'bcryptjs'
@@ -537,24 +537,135 @@ export async function DELETE(request: NextRequest) {
 			)
 		}
 
-		// Verificar se usuário tem dependências (problemas, soluções, etc.)
-		// Por segurança, vamos apenas desativar em vez de excluir
-		await db
-			.update(authUser)
-			.set({
-				isActive: false,
-				email: `deleted_${Date.now()}_${existingUser[0].email}`, // Garantir que email não conflite
-			})
-			.where(eq(authUser.id, id))
+		// Verificar se o usuário a ser excluído é administrador
+		const userGroups = await db.select({ role: userGroup.role, groupName: group.name }).from(userGroup).innerJoin(group, eq(userGroup.groupId, group.id)).where(eq(userGroup.userId, id))
 
-		// Remover dos grupos
-		await db.delete(userGroup).where(eq(userGroup.userId, id))
+		const isAdmin = userGroups.some((ug) => ug.role === 'admin')
 
-		console.log('✅ Usuário desativado com sucesso:', id)
+		// Se for administrador, verificar se é o último administrador do sistema
+		if (isAdmin) {
+			const allAdmins = await db.select({ userId: userGroup.userId }).from(userGroup).where(eq(userGroup.role, 'admin'))
+
+			if (allAdmins.length <= 1) {
+				return NextResponse.json(
+					{
+						success: false,
+						message: 'Não é possível excluir o último administrador do sistema. Deve haver pelo menos um administrador ativo.',
+					},
+					{ status: 400 },
+				)
+			}
+		}
+
+		console.log('🔵 Iniciando exclusão em cascata do usuário:', id)
+
+		// Executar exclusão em cascata usando transação
+		await db.transaction(async (tx) => {
+			console.log('🔵 Iniciando transação de exclusão em cascata...')
+
+			// 1. Buscar todas as atividades do produto criadas pelo usuário
+			const productActivities = await tx.select({ id: productActivity.id }).from(productActivity).where(eq(productActivity.userId, id))
+			const productActivityIds = productActivities.map((a) => a.id)
+			console.log(`🔵 Encontradas ${productActivityIds.length} atividades de produto do usuário`)
+
+			// 2. Excluir histórico das atividades de produto
+			if (productActivityIds.length > 0) {
+				await tx.delete(productActivityHistory).where(inArray(productActivityHistory.productActivityId, productActivityIds))
+				console.log('✅ Histórico das atividades de produto excluído')
+			}
+
+			// 3. Excluir atividades de produto
+			await tx.delete(productActivity).where(eq(productActivity.userId, id))
+			console.log('✅ Atividades de produto do usuário excluídas')
+
+			// 4. Buscar todos os problemas criados pelo usuário
+			const problems = await tx.select({ id: productProblem.id }).from(productProblem).where(eq(productProblem.userId, id))
+			const problemIds = problems.map((p) => p.id)
+			console.log(`🔵 Encontrados ${problemIds.length} problemas do usuário`)
+
+			// 5. Para cada problema, excluir soluções e suas dependências
+			if (problemIds.length > 0) {
+				// Buscar todas as soluções dos problemas
+				const solutions = await tx.select({ id: productSolution.id }).from(productSolution).where(inArray(productSolution.productProblemId, problemIds))
+				const solutionIds = solutions.map((s) => s.id)
+				console.log(`🔵 Encontradas ${solutionIds.length} soluções dos problemas`)
+
+				// Excluir verificações das soluções
+				if (solutionIds.length > 0) {
+					await tx.delete(productSolutionChecked).where(inArray(productSolutionChecked.productSolutionId, solutionIds))
+					console.log('✅ Verificações das soluções excluídas')
+				}
+
+				// Excluir todas as soluções
+				await tx.delete(productSolution).where(inArray(productSolution.productProblemId, problemIds))
+				console.log('✅ Soluções dos problemas excluídas')
+
+				// Excluir todos os problemas
+				await tx.delete(productProblem).where(eq(productProblem.userId, id))
+				console.log('✅ Problemas do usuário excluídos')
+			}
+
+			// 6. (projectActivity não tem userId - não precisa excluir)
+
+			// 7. Buscar todas as tarefas associadas ao usuário
+			const taskUsers = await tx.select({ taskId: projectTaskUser.taskId }).from(projectTaskUser).where(eq(projectTaskUser.userId, id))
+			const taskIds = taskUsers.map((tu) => tu.taskId)
+			console.log(`🔵 Encontradas ${taskIds.length} tarefas associadas ao usuário`)
+
+			// 8. Excluir histórico das tarefas criado pelo usuário (não todas as tarefas associadas)
+			await tx.delete(projectTaskHistory).where(eq(projectTaskHistory.userId, id))
+			console.log('✅ Histórico das tarefas criado pelo usuário excluído')
+
+			// 9. Excluir associações usuário-tarefa
+			await tx.delete(projectTaskUser).where(eq(projectTaskUser.userId, id))
+			console.log('✅ Associações usuário-tarefa excluídas')
+
+			// 10. Excluir mensagens de chat do usuário
+			await tx.delete(chatMessage).where(eq(chatMessage.senderUserId, id))
+			console.log('✅ Mensagens de chat do usuário excluídas')
+
+			// 11. Excluir presença do chat
+			await tx.delete(chatUserPresence).where(eq(chatUserPresence.userId, id))
+			console.log('✅ Presença do chat excluída')
+
+			// 12. Excluir registros de rate limit
+			await tx.delete(rateLimit).where(eq(rateLimit.email, existingUser[0].email))
+			console.log('✅ Registros de rate limit excluídos')
+
+			// 13. Excluir sessões de autenticação
+			await tx.delete(authSession).where(eq(authSession.userId, id))
+			console.log('✅ Sessões de autenticação excluídas')
+
+			// 14. Excluir códigos de autenticação
+			await tx.delete(authCode).where(eq(authCode.userId, id))
+			console.log('✅ Códigos de autenticação excluídos')
+
+			// 15. Excluir provedores de autenticação
+			await tx.delete(authProvider).where(eq(authProvider.userId, id))
+			console.log('✅ Provedores de autenticação excluídos')
+
+			// 16. Excluir perfil do usuário
+			await tx.delete(userProfile).where(eq(userProfile.userId, id))
+			console.log('✅ Perfil do usuário excluído')
+
+			// 17. Excluir preferências do usuário
+			await tx.delete(userPreferences).where(eq(userPreferences.userId, id))
+			console.log('✅ Preferências do usuário excluídas')
+
+			// 18. Remover dos grupos
+			await tx.delete(userGroup).where(eq(userGroup.userId, id))
+			console.log('✅ Associações de grupos excluídas')
+
+			// 19. Finalmente, excluir o usuário
+			await tx.delete(authUser).where(eq(authUser.id, id))
+			console.log('✅ Usuário excluído com sucesso')
+		})
+
+		console.log('✅ Exclusão em cascata do usuário concluída:', id)
 
 		return NextResponse.json({
 			success: true,
-			message: 'Usuário desativado com sucesso.',
+			message: 'Usuário e todos os dados relacionados excluídos com sucesso.',
 		})
 	} catch (error) {
 		console.error('❌ Erro ao excluir usuário:', error)

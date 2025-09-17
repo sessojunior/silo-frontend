@@ -24,12 +24,8 @@ export default function UserDeleteDialog({ isOpen, onClose, user, onSuccess }: U
 			setLoading(true)
 			console.log('🔵 Excluindo usuário:', user.name)
 
-			const response = await fetch('/api/admin/users', {
+			const response = await fetch(`/api/admin/users?id=${user.id}`, {
 				method: 'DELETE',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ id: user.id }),
 			})
 
 			const data = await response.json()
@@ -44,10 +40,15 @@ export default function UserDeleteDialog({ isOpen, onClose, user, onSuccess }: U
 				onSuccess()
 			} else {
 				console.error('❌ Erro ao excluir usuário:', data.error)
+				const errorMessage = data.message || data.error || 'Erro desconhecido'
+
+				// Verificar se é erro de último administrador
+				const isLastAdminError = errorMessage.includes('último administrador')
+
 				toast({
 					type: 'error',
-					title: 'Erro ao excluir usuário',
-					description: data.message || data.error || 'Erro desconhecido',
+					title: isLastAdminError ? 'Não é possível excluir' : 'Erro ao excluir usuário',
+					description: errorMessage,
 				})
 			}
 		} catch (error) {

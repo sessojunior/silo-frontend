@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { group, userGroup } from '@/lib/db/schema'
-import { eq, desc, ilike, and, count, sql, not } from 'drizzle-orm'
+import { group, userGroup, chatMessage } from '@/lib/db/schema'
+import { eq, desc, ilike, and, sql, not, inArray } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { getAuthUser } from '@/lib/auth/token'
 
@@ -293,21 +293,72 @@ export async function DELETE(request: NextRequest) {
 			)
 		}
 
-		// Verificar se há usuários no grupo
-		const usersInGroup = await db.select({ count: count() }).from(userGroup).where(eq(userGroup.groupId, id))
+		console.log('🔵 Iniciando exclusão em cascata do grupo:', id)
 
-		if (usersInGroup[0].count > 0) {
-			return NextResponse.json(
-				{
-					success: false,
-					message: `Não é possível excluir o grupo pois ele possui ${usersInGroup[0].count} usuário(s).`,
-				},
-				{ status: 400 },
-			)
-		}
+		// Executar exclusão em cascata usando transação
+		await db.transaction(async (tx) => {
+			console.log('🔵 Iniciando transação de exclusão em cascata...')
 
-		// Excluir grupo
-		await db.delete(group).where(eq(group.id, id))
+			// 1. Buscar o grupo padrão
+			const defaultGroup = await tx.select().from(group).where(eq(group.isDefault, true)).limit(1)
+
+			if (defaultGroup.length === 0) {
+				throw new Error('Grupo padrão não encontrado. Não é possível excluir grupos sem um grupo padrão.')
+			}
+
+			const defaultGroupId = defaultGroup[0].id
+			console.log(`🔵 Grupo padrão encontrado: ${defaultGroup[0].name} (${defaultGroupId})`)
+
+			// 2. Verificar quantos usuários estão no grupo
+			const usersInGroup = await tx.select().from(userGroup).where(eq(userGroup.groupId, id))
+			console.log(`🔵 Encontrados ${usersInGroup.length} usuários no grupo`)
+
+			// 3. Mover usuários para o grupo padrão (apenas se não estiverem em nenhum outro grupo)
+			if (usersInGroup.length > 0) {
+				const userIds = usersInGroup.map((ug) => ug.userId)
+
+				// Verificar quais usuários já estão em outros grupos (incluindo o padrão)
+				const usersInOtherGroups = await tx
+					.select({ userId: userGroup.userId })
+					.from(userGroup)
+					.where(and(not(eq(userGroup.groupId, id)), inArray(userGroup.userId, userIds)))
+
+				const usersInOtherGroupsIds = new Set(usersInOtherGroups.map((u) => u.userId))
+
+				// Mover apenas usuários que não estão em nenhum outro grupo
+				const usersToMove = usersInGroup.filter((ug) => !usersInOtherGroupsIds.has(ug.userId))
+
+				if (usersToMove.length > 0) {
+					// Adicionar usuários ao grupo padrão
+					await tx.insert(userGroup).values(
+						usersToMove.map((ug) => ({
+							id: randomUUID(),
+							userId: ug.userId,
+							groupId: defaultGroupId,
+							role: 'member', // Todos como members no grupo padrão
+							assignedAt: new Date(),
+						})),
+					)
+					console.log(`✅ ${usersToMove.length} usuários movidos para o grupo padrão (não estavam em outros grupos)`)
+				} else {
+					console.log('✅ Todos os usuários já estão em outros grupos')
+				}
+			}
+
+			// 4. Excluir associações usuário-grupo do grupo sendo excluído
+			await tx.delete(userGroup).where(eq(userGroup.groupId, id))
+			console.log(`✅ ${usersInGroup.length} associações usuário-grupo excluídas`)
+
+			// 5. Excluir mensagens de chat do grupo
+			await tx.delete(chatMessage).where(eq(chatMessage.receiverGroupId, id))
+			console.log('✅ Mensagens de chat do grupo excluídas')
+
+			// 6. Finalmente, excluir o grupo
+			await tx.delete(group).where(eq(group.id, id))
+			console.log('✅ Grupo excluído com sucesso')
+		})
+
+		console.log('✅ Exclusão em cascata do grupo concluída:', id)
 
 		console.log('✅ Grupo excluído com sucesso:', id)
 

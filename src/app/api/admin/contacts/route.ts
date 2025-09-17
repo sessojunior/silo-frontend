@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto'
 import { eq } from 'drizzle-orm'
 
 import { db } from '@/lib/db'
-import { contact } from '@/lib/db/schema'
+import { contact, productContact } from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
 
 // GET - Listar contatos com filtros
@@ -239,14 +239,18 @@ export async function PUT(req: NextRequest) {
 // DELETE - Excluir contato
 export async function DELETE(req: NextRequest) {
 	try {
+		console.log('🔵 Iniciando exclusão de contato...')
+
 		const user = await getAuthUser()
 		if (!user) {
+			console.log('❌ Usuário não autenticado tentou excluir contato')
 			return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
 		}
 
-		const { id } = await req.json()
+		console.log('✅ Usuário autenticado:', user.email)
 
-		console.log('🔵 Excluindo contato:', id)
+		const { id } = await req.json()
+		console.log('🔵 ID do contato recebido:', id)
 
 		if (!id) {
 			return NextResponse.json({ success: false, error: 'ID do contato é obrigatório' }, { status: 400 })
@@ -258,14 +262,37 @@ export async function DELETE(req: NextRequest) {
 			return NextResponse.json({ success: false, error: 'Contato não encontrado' }, { status: 404 })
 		}
 
-		// Excluir contato (as associações serão removidas automaticamente por CASCADE)
-		await db.delete(contact).where(eq(contact.id, id))
+		console.log('🔵 Iniciando exclusão em cascata do contato:', id)
 
-		console.log('✅ Contato excluído com sucesso:', id)
+		// Executar exclusão em cascata usando transação
+		await db.transaction(async (tx) => {
+			console.log('🔵 Iniciando transação de exclusão em cascata...')
+
+			// 1. Excluir associações produto-contato
+			await tx.delete(productContact).where(eq(productContact.contactId, id))
+			console.log('✅ Associações produto-contato excluídas')
+
+			// 2. Finalmente, excluir o contato
+			await tx.delete(contact).where(eq(contact.id, id))
+			console.log('✅ Contato excluído com sucesso')
+		})
+
+		console.log('✅ Exclusão em cascata do contato concluída:', id)
 
 		return NextResponse.json({ success: true })
 	} catch (error) {
-		console.error('❌ Erro ao excluir contato:', error)
-		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
+		console.error('❌ Erro detalhado ao excluir contato:', error)
+		console.error('❌ Stack trace:', error instanceof Error ? error.stack : 'N/A')
+		console.error('❌ Tipo do erro:', typeof error)
+		console.error('❌ Mensagem do erro:', error instanceof Error ? error.message : String(error))
+
+		return NextResponse.json(
+			{
+				success: false,
+				error: 'Erro interno do servidor',
+				details: error instanceof Error ? error.message : String(error),
+			},
+			{ status: 500 },
+		)
 	}
 }

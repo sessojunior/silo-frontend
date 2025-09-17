@@ -206,7 +206,7 @@ export const productDependency = pgTable('product_dependency', {
 	id: text('id').primaryKey(),
 	productId: text('product_id')
 		.notNull()
-		.references(() => product.id),
+		.references(() => product.id, { onDelete: 'cascade' }),
 	name: text('name').notNull(),
 	icon: text('icon'), // ícone lucide
 	description: text('description'),
@@ -240,10 +240,10 @@ export const productContact = pgTable('product_contact', {
 	id: text('id').primaryKey(),
 	productId: text('product_id')
 		.notNull()
-		.references(() => product.id),
+		.references(() => product.id, { onDelete: 'cascade' }),
 	contactId: text('contact_id')
 		.notNull()
-		.references(() => contact.id),
+		.references(() => contact.id, { onDelete: 'cascade' }),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 export type ProductContact = typeof productContact.$inferSelect
@@ -259,23 +259,6 @@ export const productManual = pgTable('product_manual', {
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 export type ProductManual = typeof productManual.$inferSelect
-
-// Arquivos do Sistema (para rich text editor)
-export const systemFile = pgTable('system_file', {
-	id: text('id').primaryKey(),
-	filename: text('filename').notNull(),
-	originalName: text('original_name').notNull(),
-	mimeType: text('mime_type').notNull(),
-	size: integer('size').notNull(),
-	path: text('path').notNull(), // caminho relativo no sistema de arquivos
-	uploadedBy: text('uploaded_by')
-		.notNull()
-		.references(() => authUser.id),
-	relatedTo: text('related_to'), // tipo de entidade relacionada (chapter, problem, etc.)
-	relatedId: text('related_id'), // ID da entidade relacionada
-	createdAt: timestamp('created_at').notNull().defaultNow(),
-})
-export type SystemFile = typeof systemFile.$inferSelect
 
 // === SISTEMA DE CHAT ULTRA SIMPLIFICADO ===
 
@@ -425,7 +408,7 @@ export const projectTaskHistory = pgTable(
 			.references(() => projectTask.id, { onDelete: 'cascade' }),
 		userId: text('user_id')
 			.notNull()
-			.references(() => authUser.id),
+			.references(() => authUser.id, { onDelete: 'cascade' }),
 		action: text('action').notNull(), // 'status_change', 'created', 'updated', 'deleted'
 		fromStatus: text('from_status'), // status anterior (null para criação)
 		toStatus: text('to_status').notNull(), // status novo
