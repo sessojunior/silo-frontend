@@ -402,51 +402,85 @@ export const projectsData: ProjectData[] = [
 export const helpDocumentation = `# 📚 Manual do Usuário - Sistema SILO
 
 ## 🎯 Visão Geral
-Sistema web para gestão de produtos meteorológicos do INPE/CPTEC (BAM, SMEC, BRAMS, WRF).
+O Sistema SILO é uma plataforma web avançada desenvolvida especificamente para o gerenciamento de produtos meteorológicos do INPE/CPTEC. O sistema centraliza o monitoramento, controle e colaboração em torno dos principais modelos meteorológicos operacionais: BAM (Modelo Global), SMEC (Sistema de Meteorologia), BRAMS AMS 15KM (Modelo Regional) e WRF (Weather Research and Forecasting).
+
+A plataforma oferece uma interface unificada que permite aos meteorologistas, pesquisadores e operadores acompanhar em tempo real o status de execução dos modelos, identificar problemas rapidamente e colaborar na resolução de questões técnicas. O sistema integra funcionalidades de dashboard, gestão de projetos, comunicação em tempo real e base de conhecimento, proporcionando um ambiente completo para operação meteorológica.
+
+O SILO foi desenvolvido com foco na segurança institucional, utilizando autenticação baseada em domínio @inpe.br e sistema de ativação obrigatória por administradores. A arquitetura modular permite escalabilidade e adaptação às necessidades específicas do CPTEC/INPE, garantindo conformidade com os requisitos de segurança e operação institucional.
 
 ## 🏠 Acesso
-- **URL**: https://silo.inpe.br
-- **Login**: Email @inpe.br + senha
+O acesso ao sistema SILO é restrito exclusivamente a usuários com email institucional @inpe.br, garantindo a segurança e conformidade com as políticas do CPTEC/INPE. A URL oficial do sistema é https://silo.inpe.br, onde os usuários podem realizar login utilizando suas credenciais institucionais.
+
+O sistema oferece múltiplas opções de autenticação para maior flexibilidade: login tradicional com email e senha, login simplificado apenas com email (recebendo código OTP por email), e integração com Google OAuth para usuários que preferem autenticação social. Todas as opções mantêm a validação rigorosa do domínio @inpe.br.
+
+Após o cadastro inicial, todos os novos usuários são criados com status inativo por padrão, sendo necessária a ativação manual por um administrador do sistema. Esta política de segurança garante que apenas usuários autorizados tenham acesso ao sistema, alinhando-se com os requisitos de segurança institucional do CPTEC/INPE.
 
 ## 📊 Dashboard
-Monitoramento em tempo real dos produtos meteorológicos com timeline de 28 dias.
+O Dashboard é o centro de controle do sistema SILO, oferecendo uma visão consolidada e em tempo real de todos os produtos meteorológicos operacionais. A interface principal apresenta uma timeline de 28 dias que permite acompanhar o histórico de execução de cada modelo, identificando padrões, problemas recorrentes e tendências de performance.
+
+Os gráficos interativos utilizam a biblioteca ApexCharts para apresentar métricas de disponibilidade, distribuição de problemas por categoria, performance da equipe e estatísticas de resolução. Cada gráfico é responsivo e adapta-se automaticamente ao tema dark/light selecionado pelo usuário, proporcionando uma experiência visual consistente.
+
+O sistema de cores padronizado utiliza uma hierarquia visual clara: vermelho para problemas críticos, laranja para execuções que precisam ser refeitas, amarelo para falhas de execução, violeta para situações sob intervenção técnica, azul para execuções suspensas, cinza para processamento em andamento, transparente para aguardando execução, e verde para execuções bem-sucedidas.
+
+A atualização automática dos dados garante que as informações apresentadas estejam sempre atualizadas, enquanto os filtros de data e período permitem análises históricas detalhadas. O dashboard também inclui alertas visuais para situações críticas que requerem atenção imediata da equipe técnica.
 
 ## 📦 Produtos
-- **BAM**: Modelo Global (turno 0)
-- **SMEC**: Sistema de Meteorologia (turnos 0, 12)  
-- **BRAMS AMS 15KM**: Modelo Regional (turnos 0, 6, 12, 18)
-- **WRF**: Weather Research and Forecasting (turnos 0, 6, 12, 18)
+O módulo de Produtos é o núcleo operacional do sistema SILO, gerenciando os quatro principais modelos meteorológicos do CPTEC/INPE. Cada produto possui características específicas de execução, incluindo turnos de processamento, prioridades operacionais e dependências técnicas que influenciam o planejamento e monitoramento.
 
-### Status
-- **Concluído**: Execução bem-sucedida
-- **Pendente**: Aguardando execução
-- **Em execução**: Processamento em andamento
-- **Sob intervenção**: Suporte técnico ativo
-- **Suspenso**: Execução pausada
-- **Não rodou**: Falha na execução
-- **Com problemas**: Execução com inconsistências
+O **BAM (Brazilian Atmospheric Model)** é o modelo global operacional executado no turno 0 (meia-noite), sendo fundamental para previsões de longo prazo e análises climáticas. O **SMEC (Sistema de Meteorologia e Climatologia)** opera nos turnos 0 e 12, fornecendo dados essenciais para operação meteorológica diária. O **BRAMS AMS 15KM** é o modelo regional de alta resolução executado nos turnos 0, 6, 12 e 18, oferecendo previsões detalhadas para a América do Sul. O **WRF (Weather Research and Forecasting)** complementa os outros modelos com simulações de alta resolução nos mesmos turnos do BRAMS.
+
+Cada produto possui um sistema de status detalhado que reflete o estado atual da execução: **Concluído** indica execução bem-sucedida, **Pendente** significa aguardando execução, **Em execução** mostra processamento em andamento, **Sob intervenção** indica suporte técnico ativo, **Suspenso** representa execução pausada, **Não rodou** indica falha na execução, e **Com problemas** sinaliza execução com inconsistências que requerem investigação.
+
+O sistema permite associação de contatos técnicos específicos para cada produto, facilitando a comunicação direta com responsáveis especializados. Além disso, cada produto possui um manual técnico editável em Markdown, documentação de dependências hierárquicas e histórico completo de problemas e soluções implementadas.
 
 ## 🚀 Projetos
-Criação e gestão de projetos científicos com Kanban e tarefas.
+O módulo de Projetos oferece uma plataforma completa para gestão de iniciativas científicas e técnicas do CPTEC/INPE. O sistema utiliza metodologia Kanban para organizar atividades em colunas de status (A Fazer, Em Progresso, Bloqueado, Em Revisão, Concluído), proporcionando visibilidade clara do progresso e facilitando a colaboração entre equipes.
+
+Cada projeto pode conter múltiplas atividades, que por sua vez são divididas em tarefas específicas. O sistema de drag-and-drop permite reorganização intuitiva das tarefas entre diferentes status, enquanto estimativas de tempo e datas de início/fim ajudam no planejamento e controle de prazos. As atividades são categorizadas por tipo (Análise, Desenvolvimento, Testes, etc.) e priorizadas conforme a criticidade.
+
+O sistema gera estatísticas automáticas de progresso, incluindo percentual de conclusão, tempo estimado vs. real, distribuição de tarefas por status e performance da equipe. Os gráficos de acompanhamento permitem identificar gargalos, atrasos e oportunidades de otimização do fluxo de trabalho.
+
+A integração com o sistema de chat permite comunicação contextual dentro de cada projeto, enquanto a associação com produtos meteorológicos facilita o rastreamento de iniciativas relacionadas a melhorias operacionais específicas.
 
 ## 👥 Grupos
-- **Administradores**: Acesso completo
-- **Meteorologistas**: Gestão de produtos
-- **Pesquisadores**: Acesso a dados
-- **Operadores**: Execução e monitoramento
+O sistema de Grupos implementa uma arquitetura de permissões hierárquica que organiza os usuários conforme suas funções e responsabilidades no CPTEC/INPE. Cada grupo possui características específicas de acesso, limites de usuários e funcionalidades disponíveis, garantindo segurança e organização adequada.
+
+O grupo **Administradores** possui acesso completo ao sistema, incluindo gestão de usuários, configurações avançadas e relatórios administrativos. Os **Meteorologistas** têm acesso privilegiado à gestão de produtos, podendo criar, editar e monitorar execuções dos modelos meteorológicos. Os **Pesquisadores** possuem acesso focado em dados e análises, podendo consultar informações históricas e gerar relatórios científicos.
+
+Os **Operadores** são responsáveis pela execução e monitoramento dos sistemas, tendo acesso a dashboards operacionais e ferramentas de controle. O grupo **Suporte** possui acesso limitado focado em resolução de problemas técnicos e atendimento aos usuários. Os **Visitantes** têm acesso restrito para consulta de informações públicas e documentação básica.
+
+O sistema permite que usuários pertençam a múltiplos grupos simultaneamente, com permissões acumulativas. Cada grupo possui ícone distintivo, cor de identificação e limite máximo de usuários configurável. A gestão de grupos é centralizada na interface administrativa, permitindo criação, edição e exclusão conforme necessidades organizacionais.
 
 ## 💬 Chat
-Comunicação em tempo real entre equipes com grupos específicos.
+O sistema de Chat implementa uma plataforma de comunicação em tempo real inspirada no WhatsApp, oferecendo funcionalidades avançadas para colaboração entre equipes do CPTEC/INPE. A interface suporta conversas em grupos específicos e mensagens diretas entre usuários, facilitando a comunicação contextual e resolução rápida de problemas.
+
+O sistema de presença mostra o status atual de cada usuário (Online, Ausente, Ocupado, Offline), permitindo que a equipe saiba quando colegas estão disponíveis para comunicação. O emoji picker integrado oferece mais de 6 categorias de emojis com funcionalidade de busca, enriquecendo a comunicação e expressão das mensagens.
+
+As notificações em tempo real garantem que mensagens importantes sejam recebidas imediatamente, enquanto o sistema de polling inteligente otimiza o consumo de recursos, sincronizando apenas quando necessário. O histórico de mensagens é preservado com paginação automática, permitindo consulta de conversas anteriores.
+
+O chat pode ser ativado ou desativado individualmente por cada usuário através das configurações, reduzindo consumo de banco de dados quando não necessário. A integração com grupos de usuários permite criação de salas específicas por departamento, projeto ou função, facilitando a organização da comunicação institucional.
 
 ## ⚙️ Configurações
-Perfil do usuário, preferências de tema e notificações.
+O módulo de Configurações oferece controle completo sobre preferências pessoais e configurações de conta do usuário. A interface unificada organiza todas as opções em seções lógicas: Perfil (dados pessoais), Preferências (comportamento do sistema) e Segurança (senhas e autenticação).
+
+Na seção de Perfil, os usuários podem editar informações pessoais, fazer upload de foto de avatar com otimização automática, e atualizar dados de contato. O sistema de upload local garante segurança institucional, processando imagens automaticamente para formato WebP com redimensionamento otimizado.
+
+As Preferências incluem configurações de tema (dark/light), notificações por email, controle de chat (ativar/desativar), e configurações de interface. Todas as alterações são salvas automaticamente, proporcionando experiência personalizada e consistente em todas as sessões.
+
+A seção de Segurança permite alteração de senha com validações rigorosas, configuração de autenticação de dois fatores, e visualização de sessões ativas. O sistema mantém histórico de alterações de segurança e envia notificações por email para mudanças críticas, garantindo transparência e controle sobre a conta do usuário.
 
 ## 🔧 Suporte
-Base de conhecimento, chat de suporte e manuais específicos.
+O sistema de Suporte integra múltiplas funcionalidades para assistência técnica e base de conhecimento. A documentação hierárquica organiza informações em seções navegáveis, permitindo busca rápida por tópicos específicos e acesso contextual a manuais técnicos.
+
+A base de conhecimento é editável em tempo real através de editor Markdown integrado, permitindo que especialistas atualizem documentação conforme evolução dos sistemas. O sistema de busca inteligente localiza conteúdo por palavras-chave, facilitando descoberta de informações relevantes.
+
+O chat de suporte oferece comunicação direta com equipe técnica especializada, enquanto o sistema de problemas permite criação de tickets estruturados com categorização automática e acompanhamento de status. Cada problema pode ser associado a produtos específicos e contatos técnicos responsáveis.
+
+Os manuais específicos de cada produto meteorológico são acessíveis diretamente do módulo de Produtos, oferecendo documentação técnica detalhada sobre instalação, configuração, utilização e troubleshooting. O sistema mantém histórico de alterações na documentação, permitindo rastreamento de evolução e colaboração entre especialistas.
 
 ----
 
-*Manual do Usuário - Sistema SILO - INPE/CPTEC*`
+*Manual do Usuário do Sistema SILO - CPTEC/INPE*`
 
 export const manualData: ManualData[] = [
 	{

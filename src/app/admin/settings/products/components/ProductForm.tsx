@@ -88,8 +88,8 @@ export default function ProductForm({ initialData, onSubmit, onCancel, loading }
 							<span className='icon-[lucide--eye] size-5 text-green-600 dark:text-green-400' />
 						</div>
 						<div>
-							<p className='text-sm font-medium text-zinc-900 dark:text-zinc-100'>Visibilidade no Sistema</p>
-							<p className='text-xs text-zinc-500 dark:text-zinc-400'>{available ? 'Produto visível e ativo no dashboard' : 'Produto oculto na visão geral do sistema'}</p>
+							<p className='text-sm font-medium text-zinc-900 dark:text-zinc-100'>Visibilidade em Visão geral</p>
+							<p className='text-xs text-zinc-500 dark:text-zinc-400'>{available ? 'Produto visível no dashboard do sistema' : 'Produto oculto na visão geral do sistema'}</p>
 						</div>
 					</div>
 					<Switch id='product-available' name='available' checked={available} onChange={setAvailable} disabled={loading} size='md' />
