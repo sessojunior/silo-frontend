@@ -28,10 +28,12 @@ interface ActivityMiniKanbanProps {
 export default function ActivityMiniKanban({ activityId, projectId }: ActivityMiniKanbanProps) {
 	const [tasks, setTasks] = useState<ProjectTask[]>([])
 	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState<string | null>(null)
 
 	const loadKanbanTasks = useCallback(async () => {
 		try {
 			setLoading(true)
+			setError(null)
 			const response = await fetch(`/api/admin/projects/${projectId}/activities/${activityId}/tasks`)
 
 			if (response.ok) {
@@ -50,10 +52,19 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 
 					console.log('🔵 [ActivityMiniKanban] Tasks convertidas para array:', allTasks.length)
 					setTasks(allTasks)
+				} else {
+					setError('Erro ao carregar dados do servidor')
 				}
+			} else {
+				setError(`Erro HTTP ${response.status}: ${response.statusText}`)
 			}
 		} catch (error) {
 			console.error('❌ Erro ao carregar tarefas do mini-kanban:', error)
+			if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+				setError('Erro de conexão. Verifique sua internet e tente novamente.')
+			} else {
+				setError('Erro inesperado ao carregar tarefas')
+			}
 		} finally {
 			setLoading(false)
 		}
@@ -108,6 +119,21 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 				<div className='flex items-center justify-center py-8'>
 					<span className='icon-[lucide--loader-circle] size-5 animate-spin text-zinc-400 mr-2' />
 					<span className='text-sm text-zinc-600 dark:text-zinc-400'>Carregando tarefas...</span>
+				</div>
+			</div>
+		)
+	}
+
+	if (error) {
+		return (
+			<div className='px-6 py-4'>
+				<div className='text-center py-8'>
+					<span className='icon-[lucide--alert-circle] size-8 text-red-400 mx-auto mb-2 block' />
+					<p className='text-sm text-red-600 dark:text-red-400 font-medium'>Erro ao carregar tarefas</p>
+					<p className='text-xs text-red-500 dark:text-red-500 mt-1'>{error}</p>
+					<button onClick={loadKanbanTasks} className='mt-3 px-3 py-1 text-xs bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors'>
+						Tentar novamente
+					</button>
 				</div>
 			</div>
 		)

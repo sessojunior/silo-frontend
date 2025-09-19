@@ -1,6 +1,6 @@
 import { db } from './index'
 import * as schema from './schema'
-import { eq, and, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 /**
  * Função para sincronizar o status de uma atividade baseado no progresso das tarefas

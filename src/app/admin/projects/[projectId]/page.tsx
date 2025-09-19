@@ -581,44 +581,6 @@ export default function ProjectDetailsPage() {
 		}
 	}
 
-	// Funções para ícones e badges
-	const getStatusIcon = (status: ProjectActivity['status']) => {
-		const statusIcons = {
-			todo: '⏳',
-			progress: '🔵',
-			done: '✅',
-			blocked: '🔴',
-		}
-		const statusLabels = {
-			todo: 'A fazer',
-			progress: 'Em progresso',
-			done: 'Concluído',
-			blocked: 'Bloqueado',
-		}
-		return `${statusIcons[status]} ${statusLabels[status]}`
-	}
-
-	// Função para status inteligente baseado no progresso real das tarefas
-	const getSmartStatusIcon = (activity: ProjectActivity) => {
-		const progress = kanbanTaskProgress[activity.id]
-
-		// Se ainda não carregou o progresso, mostrar estado de carregamento
-		if (!progress) {
-			return '⏳ Calculando progresso...'
-		}
-
-		// Status inteligente baseado no progresso real
-		if (progress.percentage === 100) {
-			return '✅ Concluído (100%)'
-		} else if (progress.percentage > 0) {
-			return `🔵 Em progresso (${progress.percentage}%)`
-		} else if (activity.status === 'blocked') {
-			return '🔴 Bloqueado'
-		} else {
-			return '⏳ A fazer (0%)'
-		}
-	}
-
 	const getPriorityIcon = (priority: ProjectActivity['priority']) => {
 		const priorityIcons = {
 			low: '⬇️',
