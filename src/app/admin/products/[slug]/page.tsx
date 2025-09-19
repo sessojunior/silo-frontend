@@ -193,8 +193,122 @@ export default function ProductsPage() {
 		}
 	}, [reorderTimeout])
 
-	// Lista de ícones disponíveis para seleção (classes completas do Iconify)
-	const availableIcons = ['icon-[lucide--server]', 'icon-[lucide--database]', 'icon-[lucide--monitor]', 'icon-[lucide--smartphone]', 'icon-[lucide--wifi]', 'icon-[lucide--network]', 'icon-[lucide--shield]', 'icon-[lucide--key]', 'icon-[lucide--lock]', 'icon-[lucide--globe]', 'icon-[lucide--terminal]', 'icon-[lucide--code]', 'icon-[lucide--git-branch]', 'icon-[lucide--package]', 'icon-[lucide--puzzle]', 'icon-[lucide--zap]', 'icon-[lucide--activity]', 'icon-[lucide--alert-triangle]', 'icon-[lucide--settings]', 'icon-[lucide--settings-2]', 'icon-[lucide--layers]', 'icon-[lucide--workflow]', 'icon-[lucide--cpu]', 'icon-[lucide--hard-drive]', 'icon-[lucide--cloud]', 'icon-[lucide--router]', 'icon-[lucide--usb]', 'icon-[lucide--memory-stick]']
+	// Lista de ícones disponíveis para seleção (classes completas do Iconify) - Seleção otimizada
+	const availableIcons = [
+		// 🖥️ SERVIDOR E INFRAESTRUTURA
+		'icon-[lucide--server]',
+		'icon-[lucide--cloud]',
+		'icon-[lucide--container]',
+
+		// 💻 COMPUTADOR E HARDWARE
+		'icon-[lucide--monitor]',
+		'icon-[lucide--laptop]',
+		'icon-[lucide--smartphone]',
+		'icon-[lucide--printer]',
+		'icon-[lucide--cpu]',
+		'icon-[lucide--hard-drive]',
+		'icon-[lucide--memory-stick]',
+
+		// 🌐 REDE E CONECTIVIDADE
+		'icon-[lucide--network]',
+		'icon-[lucide--wifi]',
+		'icon-[lucide--router]',
+		'icon-[lucide--signal]',
+		'icon-[lucide--antenna]',
+		'icon-[lucide--bluetooth]',
+
+		// 🌍 WEB E INTERNET
+		'icon-[lucide--globe]',
+
+		// 🔒 SEGURANÇA
+		'icon-[lucide--shield]',
+		'icon-[lucide--shield-check]',
+		'icon-[lucide--key]',
+		'icon-[lucide--lock]',
+		'icon-[lucide--eye]',
+		'icon-[lucide--fingerprint]',
+
+		// 💾 BANCO DE DADOS E TABELAS
+		'icon-[lucide--database]',
+		'icon-[lucide--table]',
+		'icon-[lucide--columns]',
+		'icon-[lucide--list]',
+
+		// 📁 SOFTWARE E ARQUIVOS
+		'icon-[lucide--file-code]',
+		'icon-[lucide--file-text]',
+		'icon-[lucide--folder]',
+		'icon-[lucide--folder-open]',
+		'icon-[lucide--archive]',
+		'icon-[lucide--package]',
+		'icon-[lucide--puzzle]',
+
+		// 💻 CÓDIGO E DESENVOLVIMENTO
+		'icon-[lucide--code]',
+		'icon-[lucide--terminal]',
+		'icon-[lucide--git-branch]',
+		'icon-[lucide--git-commit]',
+		'icon-[lucide--github]',
+		'icon-[lucide--gitlab]',
+
+		// 👥 PESSOAS E USUÁRIOS
+		'icon-[lucide--users-2]',
+		'icon-[lucide--user-cog]',
+
+		// 🎧 SUPORTE TÉCNICO
+		'icon-[lucide--headphones]',
+		'icon-[lucide--phone]',
+		'icon-[lucide--message-circle]',
+		'icon-[lucide--help-circle]',
+		'icon-[lucide--mail]',
+		'icon-[lucide--ticket]',
+		'icon-[lucide--life-buoy]',
+
+		// 📊 GRÁFICOS E ANÁLISE
+		'icon-[lucide--bar-chart]',
+		'icon-[lucide--line-chart]',
+		'icon-[lucide--pie-chart]',
+		'icon-[lucide--trending-up]',
+		'icon-[lucide--chart-line]',
+		'icon-[lucide--chart-bar]',
+
+		// ⚙️ CONFIGURAÇÃO E FERRAMENTAS
+		'icon-[lucide--settings]',
+		'icon-[lucide--settings-2]',
+		'icon-[lucide--wrench]',
+		'icon-[lucide--cog]',
+		'icon-[lucide--layers]',
+		'icon-[lucide--workflow]',
+
+		// 📈 MONITORAMENTO E STATUS
+		'icon-[lucide--activity]',
+		'icon-[lucide--gauge]',
+		'icon-[lucide--timer]',
+		'icon-[lucide--bell]',
+		'icon-[lucide--alert-triangle]',
+		'icon-[lucide--zap]',
+
+		// 💾 BACKUP E ARMAZENAMENTO
+		'icon-[lucide--save]',
+
+		// 📹 COMUNICAÇÃO E COLABORAÇÃO
+		'icon-[lucide--video]',
+		'icon-[lucide--mic]',
+		'icon-[lucide--speaker]',
+
+		// 📚 DOCUMENTAÇÃO E CONHECIMENTO
+		'icon-[lucide--book]',
+		'icon-[lucide--book-open]',
+		'icon-[lucide--library]',
+		'icon-[lucide--graduation-cap]',
+		'icon-[lucide--award]',
+		'icon-[lucide--star]',
+		'icon-[lucide--bookmark]',
+		'icon-[lucide--tag]',
+
+		// ✅ QUALIDADE E TESTES
+		// (seção vazia - todos os ícones removidos)
+	]
 
 	// Busca o ID do produto pelo slug
 	useEffect(() => {
