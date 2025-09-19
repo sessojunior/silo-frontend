@@ -30,7 +30,7 @@ export default function ProjectInfoCard({ project }: ProjectInfoCardProps) {
 	return (
 		<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
 			{/* Status */}
-			<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
+			<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-3'>
 				<div className='flex items-center gap-3'>
 					<div className={`w-3 h-3 rounded-full ${project.status === 'active' ? 'bg-green-500' : project.status === 'completed' ? 'bg-blue-500' : project.status === 'paused' ? 'bg-yellow-500' : 'bg-red-500'}`} />
 					<div>
@@ -41,7 +41,7 @@ export default function ProjectInfoCard({ project }: ProjectInfoCardProps) {
 			</div>
 
 			{/* Prioridade */}
-			<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
+			<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-3'>
 				<div className='flex items-center gap-3'>
 					<div className={`w-3 h-3 rounded-full ${project.priority === 'urgent' ? 'bg-red-500' : project.priority === 'high' ? 'bg-orange-500' : project.priority === 'medium' ? 'bg-yellow-500' : 'bg-green-500'}`} />
 					<div>
@@ -52,7 +52,7 @@ export default function ProjectInfoCard({ project }: ProjectInfoCardProps) {
 			</div>
 
 			{/* Data de Início */}
-			<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
+			<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-3'>
 				<div className='flex items-center gap-3'>
 					<span className='icon-[lucide--calendar-days] size-4 text-zinc-400' />
 					<div>
@@ -63,7 +63,7 @@ export default function ProjectInfoCard({ project }: ProjectInfoCardProps) {
 			</div>
 
 			{/* Data de Fim */}
-			<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
+			<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-3'>
 				<div className='flex items-center gap-3'>
 					<span className='icon-[lucide--calendar-check] size-4 text-zinc-400' />
 					<div>

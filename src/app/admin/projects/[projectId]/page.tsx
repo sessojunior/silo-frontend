@@ -650,21 +650,26 @@ export default function ProjectDetailsPage() {
 		<>
 			{/* Cabeçalho da Página */}
 			<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
-				<div className='space-y-4'>
-					{/* Título e Descrição */}
-					<div>
-						<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>{project.name}</h1>
-						{project.shortDescription && <p className='text-zinc-600 dark:text-zinc-400 mt-1'>{project.shortDescription}</p>}
+				<div className='flex items-center justify-between gap-6'>
+					{/* Lado Esquerdo - Título e Botão Voltar */}
+					<div className='flex items-center gap-4 flex-1'>
+						<button onClick={() => router.push('/admin/projects')} className='size-10 rounded-full flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors' title='Voltar aos projetos'>
+							<span className='icon-[lucide--arrow-left] size-4 text-zinc-600 dark:text-zinc-400' />
+						</button>
+						<div>
+							<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>{project.name}</h1>
+							{project.shortDescription && <p className='text-zinc-400 dark:text-zinc-600 mt-1 max-w-sm truncate'>{project.shortDescription}</p>}
+						</div>
 					</div>
+
+					{/* Lado Direito - Informações do Projeto */}
+					<ProjectInfoCard project={project} />
 				</div>
 			</div>
 
 			{/* Conteúdo da Página */}
 			<div className='p-6'>
 				<div className='max-w-7xl mx-auto space-y-6'>
-					{/* Informações do Projeto */}
-					<ProjectInfoCard project={project} />
-
 					{/* Progresso Geral do Projeto */}
 					<ProjectProgressCard activities={activities} kanbanTaskProgress={kanbanTaskProgress} />
 
