@@ -12,6 +12,7 @@ import Image from 'next/image'
 import type { ProductProblem, ProductProblemImage } from '@/lib/db/schema'
 import Select, { SelectOption } from '@/components/ui/Select'
 import { useEffect, useState } from 'react'
+import { NO_INCIDENTS_CATEGORY_ID } from '@/lib/constants'
 
 interface ProblemFormOffcanvasProps {
 	open: boolean
@@ -52,7 +53,8 @@ export default function ProblemFormOffcanvas({ open, onClose, editing, formTitle
 				.then((res) => res.json())
 				.then((data) => {
 					if (data.data) {
-						const opts = data.data.map((c: { name: string; id: string }) => ({ label: c.name, value: c.id }))
+						// Filtrar a categoria "Não houve incidentes" - não faz sentido registrar um problema sem incidente
+						const opts = data.data.filter((c: { name: string; id: string }) => c.id !== NO_INCIDENTS_CATEGORY_ID).map((c: { name: string; id: string }) => ({ label: c.name, value: c.id }))
 						setCategoryOptions(opts)
 					}
 				})

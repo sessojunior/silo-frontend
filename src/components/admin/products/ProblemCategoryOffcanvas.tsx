@@ -9,6 +9,8 @@ interface Category {
 	id: string
 	name: string
 	color: string | null
+	isSystem?: boolean
+	usageCount: number
 }
 
 interface Props {
@@ -29,7 +31,26 @@ export default function ProblemCategoryOffcanvas({ open, onClose }: Props) {
 			const res = await fetch('/api/admin/products/problems/categories')
 			const json = await res.json()
 			if (res.ok) {
-				setCategories(json.data || [])
+				// Buscar informações de uso para cada categoria (incluindo "Não houve incidentes")
+				const categoriesWithUsage = await Promise.all(
+					(json.data || []).map(async (cat: Category) => {
+						try {
+							const usageRes = await fetch(`/api/admin/incidents/usage?incidentId=${cat.id}`)
+							const usageJson = await usageRes.json()
+							if (usageJson.success) {
+								return {
+									...cat,
+									usageCount: usageJson.data.usageCount,
+								}
+							}
+						} catch (error) {
+							console.error('Erro ao buscar uso da categoria:', error)
+						}
+						return { ...cat, usageCount: 0 }
+					}),
+				)
+
+				setCategories(categoriesWithUsage)
 			}
 		} finally {
 			setLoading(false)
@@ -46,12 +67,25 @@ export default function ProblemCategoryOffcanvas({ open, onClose }: Props) {
 	}
 
 	const handleEdit = (cat: Category) => {
+		// Bloquear edição de categorias do sistema
+		if (cat.isSystem) {
+			toast({ type: 'error', title: 'Esta categoria é do sistema e não pode ser editada.' })
+			return
+		}
 		setEditing(cat)
 		setFormOpen(true)
 	}
 
 	const confirmDelete = async () => {
 		if (!deleteDialog.cat) return
+
+		// Bloquear exclusão de categorias do sistema
+		if (deleteDialog.cat.isSystem) {
+			toast({ type: 'error', title: 'Esta categoria é do sistema e não pode ser excluída.' })
+			setDeleteDialog({ open: false, cat: null })
+			return
+		}
+
 		const res = await fetch(`/api/admin/products/problems/categories?id=${deleteDialog.cat.id}`, { method: 'DELETE' })
 		const json = await res.json()
 		if (res.ok && json.success) {
@@ -77,8 +111,13 @@ export default function ProblemCategoryOffcanvas({ open, onClose }: Props) {
 					)}
 
 					{/* Lista */}
-					<div className='flex flex-col gap-2 max-h-[50vh] overflow-y-auto pb-2'>
-						{loading && <div>Carregando...</div>}
+					<div className='flex flex-col gap-2 max-h-full overflow-y-auto pb-2'>
+						{loading && (
+							<div className='flex flex-col items-center justify-center gap-3 text-zinc-500 py-12'>
+								<div className='animate-spin text-2xl'>⏳</div>
+								<p className='text-center'>Carregando categorias...</p>
+							</div>
+						)}
 						{!loading && categories.length === 0 && (
 							<div className='flex flex-col items-center justify-center gap-3 text-zinc-500 py-12'>
 								<span className='icon-[lucide--tag] size-12 text-zinc-300'></span>
@@ -89,22 +128,31 @@ export default function ProblemCategoryOffcanvas({ open, onClose }: Props) {
 							</div>
 						)}
 						{!loading &&
-							categories.map((cat) => (
-								<div key={cat.id} className='flex items-center justify-between rounded border border-zinc-200 hover:bg-zinc-50 dark:border-zinc-700 p-4'>
-									<div className='flex items-center gap-2'>
-										<span className='size-3 rounded-full' style={{ backgroundColor: cat.color || '#64748B' }}></span>
-										<span className='text-base'>{cat.name}</span>
+							categories.map((cat) => {
+								const isProtected = cat.isSystem || cat.usageCount > 0
+								return (
+									<div key={cat.id} className='flex items-center justify-between rounded border border-zinc-200 hover:bg-zinc-50 dark:border-zinc-700 p-4'>
+										<div className='flex items-center gap-2'>
+											<span className='size-3 rounded-full' style={{ backgroundColor: cat.color || '#64748B' }}></span>
+											<span className='text-base'>{cat.name}</span>
+											{cat.isSystem && <span className='inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200'>Sistema</span>}
+											{cat.usageCount > 0 && (
+												<span className='inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200'>
+													{cat.usageCount} uso{cat.usageCount > 1 ? 's' : ''}
+												</span>
+											)}
+										</div>
+										<div className='flex gap-2'>
+											<button title={cat.isSystem ? 'Categoria do sistema - não pode ser editada' : 'Editar'} onClick={() => handleEdit(cat)} disabled={cat.isSystem} className={`inline-flex items-center justify-center size-8 rounded-full transition ${cat.isSystem ? 'text-zinc-300 cursor-not-allowed dark:text-zinc-600' : 'text-zinc-500 hover:bg-blue-100 hover:text-blue-700 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}>
+												<span className='icon-[lucide--pencil] size-4'></span>
+											</button>
+											<button title={isProtected ? 'Categoria protegida - não pode ser excluída' : 'Excluir'} onClick={() => setDeleteDialog({ open: true, cat })} disabled={!!isProtected} className={`inline-flex items-center justify-center size-8 rounded-full transition ${isProtected ? 'text-zinc-300 cursor-not-allowed dark:text-zinc-600' : 'text-zinc-500 hover:bg-red-100 hover:text-red-700 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}>
+												<span className='icon-[lucide--trash] size-4'></span>
+											</button>
+										</div>
 									</div>
-									<div className='flex gap-2'>
-										<button title='Editar' onClick={() => handleEdit(cat)} className='inline-flex items-center justify-center size-8 rounded-full text-zinc-500 hover:bg-blue-100 hover:text-blue-700 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700 transition'>
-											<span className='icon-[lucide--pencil] size-4'></span>
-										</button>
-										<button title='Excluir' onClick={() => setDeleteDialog({ open: true, cat })} className='inline-flex items-center justify-center size-8 rounded-full text-zinc-500 hover:bg-red-100 hover:text-red-700 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-400 dark:hover:bg-zinc-700 transition'>
-											<span className='icon-[lucide--trash] size-4'></span>
-										</button>
-									</div>
-								</div>
-							))}
+								)
+							})}
 					</div>
 				</div>
 			</Offcanvas>
