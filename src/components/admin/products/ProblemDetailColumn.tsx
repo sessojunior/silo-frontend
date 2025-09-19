@@ -24,9 +24,15 @@ interface SolutionWithDetails {
 	isMine: boolean
 }
 
+// Tipo estendido para incluir dados da categoria
+interface ProductProblemWithCategory extends ProductProblem {
+	categoryName?: string | null
+	categoryColor?: string | null
+}
+
 interface ProblemDetailColumnProps {
 	loadingDetail: boolean
-	problem: ProductProblem | null
+	problem: ProductProblemWithCategory | null
 	solutions: SolutionWithDetails[]
 	images: ProductProblemImage[]
 	onEditProblem: () => void
@@ -53,11 +59,31 @@ export function ProblemDetailColumn({ loadingDetail, problem, solutions, images,
 				<div className='flex w-full items-center justify-between pb-6'>
 					<div>
 						<h3 className='text-xl font-medium'>{problem ? problem.title : 'Sem problemas'}</h3>
-						{problem && solutions.length > 0 && (
-							<div className='text-base'>
-								<span className='text-sm font-medium'>{solutions.length} soluções</span> <span className='text-zinc-300 dark:text-zinc-600'>•</span> <span className='text-sm text-zinc-400'>Registrado em {formatDate(problem.createdAt)}</span>
-							</div>
-						)}
+						<div className='text-base'>
+							{/* Nome da categoria */}
+							{problem && problem.categoryName && (
+								<>
+									<span
+										className='text-sm font-medium'
+										style={{
+											color: problem.categoryColor || '#6b7280',
+										}}
+									>
+										{problem.categoryName}
+									</span>
+									<span className='text-zinc-300 dark:text-zinc-600'> • </span>
+								</>
+							)}
+							{problem && solutions.length > 0 && (
+								<>
+									<span className='text-sm font-medium'>{solutions.length} soluções</span>
+									<span className='text-zinc-300 dark:text-zinc-600'> • </span>
+									<span className='text-sm text-zinc-400' title={`Criado em ${formatDate(problem.createdAt)}`}>
+										{formatDate(problem.createdAt)}
+									</span>
+								</>
+							)}
+						</div>
 					</div>
 					{problem && (
 						<Button type='button' icon='icon-[lucide--edit]' style='unstyled' className='shrink-0 py-2' onClick={onEditProblem}>

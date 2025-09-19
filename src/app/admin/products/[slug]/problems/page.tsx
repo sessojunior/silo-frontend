@@ -15,6 +15,12 @@ import { ProblemDetailColumn } from '@/components/admin/products/ProblemDetailCo
 import { ProblemSolutionsSection } from '@/components/admin/products/ProblemSolutionsSection'
 import ProblemCategoryOffcanvas from '@/components/admin/products/ProblemCategoryOffcanvas'
 
+// Tipo estendido para incluir dados da categoria
+interface ProductProblemWithCategory extends ProductProblem {
+	categoryName?: string | null
+	categoryColor?: string | null
+}
+
 // Tipo customizado para soluções retornadas pela API
 interface SolutionWithDetails {
 	id: string
@@ -42,8 +48,8 @@ interface SolutionWithDetails {
 export default function ProblemsPage() {
 	const { slug } = useParams()
 	const user = useUser()
-	const [problems, setProblems] = useState<ProductProblem[]>([])
-	const [problem, setProblem] = useState<ProductProblem | null>(null)
+	const [problems, setProblems] = useState<ProductProblemWithCategory[]>([])
+	const [problem, setProblem] = useState<ProductProblemWithCategory | null>(null)
 	const [solutions, setSolutions] = useState<SolutionWithDetails[]>([])
 	const [images, setImages] = useState<ProductProblemImage[]>([])
 	const [solutionsCount, setSolutionsCount] = useState<Record<string, number>>({})
@@ -92,7 +98,7 @@ export default function ProblemsPage() {
 	const [formCategoryId, setFormCategoryId] = useState<string | null>(null)
 
 	// 🚀 FUNÇÃO HELPER OTIMIZADA: Busca contagem de soluções para múltiplos problemas
-	const fetchSolutionsCount = async (problems: ProductProblem[]): Promise<Record<string, number>> => {
+	const fetchSolutionsCount = async (problems: ProductProblemWithCategory[]): Promise<Record<string, number>> => {
 		if (problems.length === 0) return {}
 
 		try {
@@ -119,7 +125,7 @@ export default function ProblemsPage() {
 	}
 
 	// Função para selecionar um problema e buscar seus dados
-	const handleSelectProblem = async (selected: ProductProblem) => {
+	const handleSelectProblem = async (selected: ProductProblemWithCategory) => {
 		setProblem(selected)
 		setLoadingDetail(true)
 		try {
@@ -261,8 +267,8 @@ export default function ProblemsPage() {
 					setSolutionsCount(counts)
 
 					// Após atualizar a lista de problemas
-					const updatedProblems: ProductProblem[] = data.items ?? []
-					const updated = updatedProblems.find((p: ProductProblem) => p.id === editing.id)
+					const updatedProblems: ProductProblemWithCategory[] = data.items ?? []
+					const updated = updatedProblems.find((p: ProductProblemWithCategory) => p.id === editing.id)
 					if (updated) handleSelectProblem(updated)
 				} else {
 					setFormError(data.message || 'Erro ao atualizar problema.')
@@ -310,7 +316,7 @@ export default function ProblemsPage() {
 					setSolutionsCount(counts)
 
 					// Após atualizar a lista de problemas
-					const updatedProblems: ProductProblem[] = data.items ?? []
+					const updatedProblems: ProductProblemWithCategory[] = data.items ?? []
 					const novo = updatedProblems[0]
 					if (novo) handleSelectProblem(novo)
 				} else {

@@ -3,16 +3,22 @@
 import { ProductProblem } from '@/lib/db/schema'
 import Button from '@/components/ui/Button'
 
+// Tipo estendido para incluir dados da categoria
+interface ProductProblemWithCategory extends ProductProblem {
+	categoryName?: string | null
+	categoryColor?: string | null
+}
+
 interface ProblemsListColumnProps {
 	listRef: React.RefObject<HTMLDivElement | null>
 	filter: string
 	setFilter: (value: string) => void
 	onAddProblem: () => void
 	onOpenCategories: () => void
-	filteredProblems: ProductProblem[]
-	problemsToShow: ProductProblem[]
+	filteredProblems: ProductProblemWithCategory[]
+	problemsToShow: ProductProblemWithCategory[]
 	solutionsCount: Record<string, number>
-	onSelectProblem: (problem: ProductProblem) => void
+	onSelectProblem: (problem: ProductProblemWithCategory) => void
 	selectedProblemId: string | null
 	loadingDetail: boolean
 }
@@ -63,13 +69,29 @@ export function ProblemsListColumn({ listRef, filter, setFilter, onAddProblem, o
 	)
 }
 
-function ListProblems({ problems, solutionsCount, onSelect, selectedId, loadingDetail }: { problems: ProductProblem[]; solutionsCount: Record<string, number>; onSelect: (problem: ProductProblem) => void; selectedId: string | null; loadingDetail: boolean }) {
+function ListProblems({ problems, solutionsCount, onSelect, selectedId, loadingDetail }: { problems: ProductProblemWithCategory[]; solutionsCount: Record<string, number>; onSelect: (problem: ProductProblemWithCategory) => void; selectedId: string | null; loadingDetail: boolean }) {
 	return (
 		<div className='flex flex-col'>
 			{problems.length > 0 &&
 				problems.map((problem) => (
 					<div key={problem.id} className={`flex flex-col border-b border-zinc-200 dark:border-zinc-700 cursor-pointer ${selectedId === problem.id ? 'bg-zinc-100 dark:bg-zinc-800' : ''} ${loadingDetail ? 'opacity-50 pointer-events-none' : ''}`} onClick={() => !loadingDetail && onSelect(problem)}>
 						<div className='flex w-full flex-col gap-y-1 p-8 hover:bg-zinc-50 dark:hover:bg-zinc-800'>
+							{/* Nome da categoria */}
+							{problem.categoryName && (
+								<div className='mb-1'>
+									<span
+										className='inline-flex items-center rounded-md px-2 py-1 text-xs font-medium border'
+										style={{
+											backgroundColor: problem.categoryColor ? `${problem.categoryColor}20` : '#6b728020',
+											color: problem.categoryColor || '#6b7280',
+											borderColor: problem.categoryColor ? `${problem.categoryColor}40` : '#6b728040',
+										}}
+									>
+										{problem.categoryName}
+									</span>
+								</div>
+							)}
+
 							<div className='flex w-full items-center justify-between gap-x-2'>
 								<span
 									className='text-base font-semibold text-zinc-700 dark:text-zinc-300 line-clamp-2'
