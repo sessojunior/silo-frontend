@@ -530,16 +530,56 @@ export default function ProjectsPage() {
 			<ProjectDeleteDialog isOpen={deleteDialogOpen} onClose={closeDeleteDialog} project={projectToDelete} onConfirm={handleProjectDelete} />
 
 			{/* Offcanvas de Visualização de Descrição */}
-			<Offcanvas open={!!viewDescriptionProject} onClose={() => setViewDescriptionProject(null)} title={`Descrição: ${viewDescriptionProject?.name || ''}`} width='lg'>
-				{viewDescriptionProject?.description?.trim() ? (
-					<div className={getMarkdownClasses('base', 'text-zinc-800 dark:text-zinc-200')}>
-						<ReactMarkdown>{viewDescriptionProject.description}</ReactMarkdown>
-					</div>
-				) : (
-					<div className='text-center py-12'>
-						<span className='icon-[lucide--file-text] size-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-4 block' />
-						<h3 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>Nenhuma descrição disponível</h3>
-						<p className='text-zinc-500 italic'>Este projeto ainda não possui uma descrição detalhada.</p>
+			<Offcanvas open={!!viewDescriptionProject} onClose={() => setViewDescriptionProject(null)} title={`${viewDescriptionProject?.name || ''}`} width='lg'>
+				{viewDescriptionProject && (
+					<div className='space-y-6'>
+						{/* Informações principais do projeto */}
+						<div className='bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
+							<div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+								{/* Status */}
+								<div className='flex items-center gap-2'>
+									<span className='icon-[lucide--check-circle] size-4 text-zinc-400' />
+									<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Status:</span>
+									<span className='text-sm'>{getStatusIcon(viewDescriptionProject.status)}</span>
+								</div>
+
+								{/* Prioridade */}
+								<div className='flex items-center gap-2'>
+									<span className='icon-[lucide--triangle-alert] size-4 text-zinc-400' />
+									<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Prioridade:</span>
+									<span className='text-sm'>{getPriorityIcon(viewDescriptionProject.priority)}</span>
+								</div>
+
+								{/* Data de início */}
+								<div className='flex items-center gap-2'>
+									<span className='icon-[lucide--calendar-days] size-4 text-zinc-400' />
+									<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Início:</span>
+									<span className='text-sm text-zinc-600 dark:text-zinc-400'>{formatDate(viewDescriptionProject.startDate)}</span>
+								</div>
+
+								{/* Data de fim */}
+								<div className='flex items-center gap-2'>
+									<span className='icon-[lucide--calendar-check] size-4 text-zinc-400' />
+									<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Fim:</span>
+									<span className='text-sm text-zinc-600 dark:text-zinc-400'>{formatDate(viewDescriptionProject.endDate)}</span>
+								</div>
+							</div>
+						</div>
+
+						{/* Descrição completa */}
+						<div>
+							<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3'>Descrição do Projeto</h3>
+							{viewDescriptionProject.description?.trim() ? (
+								<div className={getMarkdownClasses('base', 'text-zinc-800 dark:text-zinc-200')}>
+									<ReactMarkdown>{viewDescriptionProject.description}</ReactMarkdown>
+								</div>
+							) : (
+								<div className='text-center py-8'>
+									<span className='icon-[lucide--file-text] size-8 text-zinc-300 dark:text-zinc-600 mx-auto mb-3 block' />
+									<p className='text-zinc-500 italic'>Este projeto ainda não possui uma descrição detalhada.</p>
+								</div>
+							)}
+						</div>
 					</div>
 				)}
 			</Offcanvas>
