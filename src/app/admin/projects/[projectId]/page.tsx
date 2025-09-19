@@ -5,10 +5,11 @@ import { toast } from '@/lib/toast'
 import { useParams, useRouter } from 'next/navigation'
 import { formatDateBR } from '@/lib/dateUtils'
 
-import ActivityStatsCards from '@/components/admin/projects/ActivityStatsCards'
 import ActivityMiniKanban from '@/components/admin/projects/ActivityMiniKanban'
 import ProjectFormOffcanvas from '@/components/admin/projects/ProjectFormOffcanvas'
 import ActivityFormOffcanvas from '@/components/admin/projects/ActivityFormOffcanvas'
+import ProjectInfoCard from '@/components/admin/projects/ProjectInfoCard'
+import ProjectProgressCard from '@/components/admin/projects/ProjectProgressCard'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
@@ -638,20 +639,29 @@ export default function ProjectDetailsPage() {
 		<>
 			{/* Cabeçalho da Página */}
 			<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
-				<div>
-					<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Atividades ({filteredActivities.length})</h1>
-					<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Todas as atividades do projeto {project.name}</p>
+				<div className='space-y-4'>
+					{/* Título e Descrição */}
+					<div>
+						<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>{project.name}</h1>
+						{project.shortDescription && <p className='text-zinc-600 dark:text-zinc-400 mt-1'>{project.shortDescription}</p>}
+					</div>
 				</div>
 			</div>
 
 			{/* Conteúdo da Página */}
 			<div className='p-6'>
 				<div className='max-w-7xl mx-auto space-y-6'>
+					{/* Informações do Projeto */}
+					<ProjectInfoCard project={project} />
+
+					{/* Progresso Geral do Projeto */}
+					<ProjectProgressCard activities={activities} />
+
 					{/* Ações e Filtros */}
 					<div className='flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center'>
 						<div className='flex flex-col sm:flex-row gap-3 flex-1'>
 							{/* Busca */}
-							<div className='relative flex-1 min-w-80 max-w-lg'>
+							<div className='relative flex-1 min-w-120 max-w-lg'>
 								<Input type='text' placeholder='Buscar atividades...' value={search} setValue={setSearch} className='pr-10' />
 								<span className='icon-[lucide--search] absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-400 size-4' />
 							</div>
@@ -678,9 +688,6 @@ export default function ProjectDetailsPage() {
 							Nova atividade
 						</Button>
 					</div>
-
-					{/* Estatísticas */}
-					<ActivityStatsCards activities={activities} />
 
 					{/* Lista de Atividades */}
 					<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700'>
