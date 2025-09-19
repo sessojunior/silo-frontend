@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import * as schema from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
 import { recordBulkTaskHistory, recordTaskHistory } from '@/lib/taskHistory'
+import { syncActivityStatus } from '@/lib/db/activityStatusSync'
 
 // GET - Buscar tarefas da atividade
 export async function GET(request: NextRequest, { params }: { params: Promise<{ projectId: string; activityId: string }> }) {
@@ -256,6 +257,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 			await recordBulkTaskHistory(historyEntries)
 		}
 
+		// Sincronizar status da atividade baseado no progresso das tarefas
+		await syncActivityStatus(activityId)
+
 		// Buscar novamente todas as tasks atualizadas do banco (array plano)
 		const updatedTasks = await db
 			.select()
@@ -359,6 +363,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 			},
 		})
 
+		// Sincronizar status da atividade baseado no progresso das tarefas
+		await syncActivityStatus(activityId)
+
 		return NextResponse.json({
 			success: true,
 			task: newTask[0],
@@ -459,6 +466,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 				editedVia: 'form',
 			},
 		})
+
+		// Sincronizar status da atividade baseado no progresso das tarefas
+		await syncActivityStatus(activityId)
 
 		return NextResponse.json({
 			success: true,

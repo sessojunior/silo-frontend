@@ -17,20 +17,37 @@ interface ProjectActivity {
 	updatedAt: Date
 }
 
-interface ProjectProgressCardProps {
-	activities: ProjectActivity[]
+interface KanbanTaskProgress {
+	total: number
+	completed: number
+	percentage: number
 }
 
-export default function ProjectProgressCard({ activities }: ProjectProgressCardProps) {
-	const completedActivities = activities.filter((a) => a.status === 'done').length
-	const totalActivities = activities.length
-	const progressPercentage = totalActivities > 0 ? Math.round((completedActivities / totalActivities) * 100) : 0
+interface ProjectProgressCardProps {
+	activities: ProjectActivity[]
+	kanbanTaskProgress: Record<string, KanbanTaskProgress>
+}
+
+export default function ProjectProgressCard({ activities, kanbanTaskProgress }: ProjectProgressCardProps) {
+	// Calcular progresso baseado nas tarefas reais do Kanban
+	let totalTasks = 0
+	let completedTasks = 0
+
+	activities.forEach((activity) => {
+		const progress = kanbanTaskProgress[activity.id]
+		if (progress) {
+			totalTasks += progress.total
+			completedTasks += progress.completed
+		}
+	})
+
+	const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
 	return (
 		<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4'>
 			<div className='flex items-center justify-between mb-2'>
 				<h3 className='text-sm font-medium text-zinc-900 dark:text-zinc-100'>Progresso Geral</h3>
-				<span className='text-sm text-zinc-600 dark:text-zinc-400'>{totalActivities > 0 ? `${completedActivities}/${totalActivities} atividades concluídas` : 'Nenhuma atividade criada'}</span>
+				<span className='text-sm text-zinc-600 dark:text-zinc-400'>{totalTasks > 0 ? `${completedTasks}/${totalTasks} tarefas concluídas` : 'Nenhuma tarefa criada'}</span>
 			</div>
 			<div className='w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2'>
 				<div
@@ -40,7 +57,7 @@ export default function ProjectProgressCard({ activities }: ProjectProgressCardP
 					}}
 				/>
 			</div>
-			<p className='text-xs text-zinc-500 dark:text-zinc-400 mt-1'>{totalActivities > 0 ? `${progressPercentage}% concluído` : '0% concluído'}</p>
+			<p className='text-xs text-zinc-500 dark:text-zinc-400 mt-1'>{totalTasks > 0 ? `${progressPercentage}% concluído` : '0% concluído'}</p>
 		</div>
 	)
 }

@@ -89,6 +89,17 @@ export default function ProjectDetailsPage() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [projectId])
 
+	// Carregar progresso das tarefas quando as atividades são carregadas
+	useEffect(() => {
+		if (activities.length > 0) {
+			// Carregar progresso de todas as atividades automaticamente
+			activities.forEach((activity) => {
+				loadKanbanTaskCount(activity.id)
+			})
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [activities])
+
 	async function fetchProject() {
 		if (!projectId) return
 
@@ -591,9 +602,9 @@ export default function ProjectDetailsPage() {
 	const getSmartStatusIcon = (activity: ProjectActivity) => {
 		const progress = kanbanTaskProgress[activity.id]
 
-		// Se ainda não carregou o progresso, usar status do banco
+		// Se ainda não carregou o progresso, mostrar estado de carregamento
 		if (!progress) {
-			return getStatusIcon(activity.status)
+			return '⏳ Calculando progresso...'
 		}
 
 		// Status inteligente baseado no progresso real
@@ -655,7 +666,7 @@ export default function ProjectDetailsPage() {
 					<ProjectInfoCard project={project} />
 
 					{/* Progresso Geral do Projeto */}
-					<ProjectProgressCard activities={activities} />
+					<ProjectProgressCard activities={activities} kanbanTaskProgress={kanbanTaskProgress} />
 
 					{/* Ações e Filtros */}
 					<div className='flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center'>
@@ -744,8 +755,9 @@ export default function ProjectDetailsPage() {
 											<div className='px-6 flex items-center justify-center gap-2'>
 												{/* Botões de ação - sempre visíveis */}
 												<div className='flex items-center justify-center gap-2'>
-													<button onClick={() => handleGoToKanban(activity.id)} className='size-10 flex items-center justify-center rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors' title='Abrir Kanban'>
+													<button onClick={() => handleGoToKanban(activity.id)} className='flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors' title='Abrir Kanban'>
 														<span className='icon-[lucide--kanban-square] size-4 text-blue-600 dark:text-blue-400' />
+														<span className='text-sm font-medium text-blue-600 dark:text-blue-400'>Ver kanban</span>
 													</button>
 													<button onClick={() => handleEditActivity(activity)} className='size-10 flex items-center justify-center rounded-full hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors' title='Editar atividade'>
 														<span className='icon-[lucide--edit] size-4 text-green-600 dark:text-green-400' />
@@ -759,11 +771,37 @@ export default function ProjectDetailsPage() {
 											<>
 												<div className='px-6 py-4 border-t border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 transition-opacity duration-700 ease-in-out animate-in fade-in'>
 													<div className='flex flex-wrap items-center gap-6'>
-														{/* Status */}
-														<div className='flex items-center gap-2'>
-															<span className='icon-[lucide--check-circle] size-4 text-zinc-400' />
-															<span className='text-sm'>{getSmartStatusIcon(activity)}</span>
-														</div>
+														{/* Status ou Progresso - Exibir apenas um baseado no estado */}
+														{kanbanTaskProgress[activity.id] !== undefined ? (
+															kanbanTaskProgress[activity.id].percentage === 100 ? (
+																/* Status - Quando 100% concluído */
+																<div className='flex items-center gap-2'>
+																	<span className='icon-[lucide--check-circle] size-4 text-zinc-400' />
+																	<span className='text-sm'>✅ Concluído (100%)</span>
+																</div>
+															) : (
+																/* Progresso - Quando em progresso */
+																<div className='flex items-center gap-2'>
+																	<span className='icon-[lucide--trending-up] size-4 text-zinc-400' />
+																	<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Progresso:</span>
+																	<div className='flex items-center gap-3'>
+																		<div className='w-20 bg-zinc-200 dark:bg-zinc-700 rounded-full h-2'>
+																			<div className={`h-2 rounded-full transition-all duration-300 ${kanbanTaskProgress[activity.id].percentage === 100 ? 'bg-green-500' : kanbanTaskProgress[activity.id].percentage > 0 ? 'bg-blue-500' : 'bg-orange-500'}`} style={{ width: `${kanbanTaskProgress[activity.id].percentage}%` }} />
+																		</div>
+																		<span className='text-sm font-semibold text-zinc-800 dark:text-zinc-200'>{kanbanTaskProgress[activity.id].percentage}%</span>
+																		<span className='text-xs text-zinc-500 dark:text-zinc-400'>
+																			({kanbanTaskProgress[activity.id].completed}/{kanbanTaskProgress[activity.id].total})
+																		</span>
+																	</div>
+																</div>
+															)
+														) : (
+															/* Estado de carregamento */
+															<div className='flex items-center gap-2'>
+																<span className='icon-[lucide--loader-circle] size-3 animate-spin text-zinc-400' />
+																<span className='text-sm text-zinc-500 dark:text-zinc-400'>Calculando progresso...</span>
+															</div>
+														)}
 
 														{/* Prioridade */}
 														<div className='flex items-center gap-2'>
@@ -782,32 +820,9 @@ export default function ProjectDetailsPage() {
 															</div>
 														</div>
 
-														{/* Progresso */}
-														<div className='flex items-center gap-2'>
-															<span className='icon-[lucide--trending-up] size-4 text-zinc-400' />
-															<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Progresso:</span>
-															{kanbanTaskProgress[activity.id] !== undefined ? (
-																<div className='flex items-center gap-3'>
-																	<div className='w-20 bg-zinc-200 dark:bg-zinc-700 rounded-full h-2'>
-																		<div className={`h-2 rounded-full transition-all duration-300 ${kanbanTaskProgress[activity.id].percentage === 100 ? 'bg-green-500' : kanbanTaskProgress[activity.id].percentage > 0 ? 'bg-blue-500' : 'bg-orange-500'}`} style={{ width: `${kanbanTaskProgress[activity.id].percentage}%` }} />
-																	</div>
-																	<span className='text-sm font-semibold text-zinc-800 dark:text-zinc-200'>{kanbanTaskProgress[activity.id].percentage}%</span>
-																	<span className='text-xs text-zinc-500 dark:text-zinc-400'>
-																		({kanbanTaskProgress[activity.id].completed}/{kanbanTaskProgress[activity.id].total})
-																	</span>
-																</div>
-															) : (
-																<div className='flex items-center gap-2'>
-																	<span className='icon-[lucide--loader-circle] size-3 animate-spin text-zinc-400' />
-																	<span className='text-sm text-zinc-500 dark:text-zinc-400'>Calculando...</span>
-																</div>
-															)}
-														</div>
-
 														{/* Kanban */}
 														<div className='flex items-center gap-2'>
 															<span className='icon-[lucide--kanban-square] size-4 text-zinc-400' />
-															<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Kanban:</span>
 															{kanbanTaskCounts[activity.id] !== undefined ? (
 																<div className='flex items-center gap-2'>
 																	<div className='flex items-center gap-2 text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-md'>
@@ -815,10 +830,6 @@ export default function ProjectDetailsPage() {
 																			{kanbanTaskCounts[activity.id]} tarefa{kanbanTaskCounts[activity.id] !== 1 ? 's' : ''}
 																		</span>
 																	</div>
-																	<Button onClick={() => handleGoToKanban(activity.id)} className='h-8 px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5' title='Abrir Kanban da atividade'>
-																		<span className='icon-[lucide--external-link] size-3' />
-																		Abrir Kanban
-																	</Button>
 																</div>
 															) : (
 																<div className='flex items-center gap-2 text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-md'>
