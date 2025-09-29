@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { toast } from '@/lib/toast'
 import { formatDateBR } from '@/lib/dateUtils'
+import { useAdminCheck } from '@/hooks/useAdminCheck'
 
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -41,6 +42,9 @@ export default function UsersPage() {
 	// Estados do modal de exclusão
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 	const [userToDelete, setUserToDelete] = useState<UserWithGroup | null>(null)
+
+	// Verificar se usuário é administrador
+	const { isAdmin } = useAdminCheck()
 
 	// Carregar dados
 	useEffect(() => {
@@ -224,11 +228,13 @@ export default function UsersPage() {
 						<Select name='groupFilter' selected={groupFilter} onChange={(value) => setGroupFilter(value)} options={[{ value: 'all', label: 'Todos os grupos' }, ...groups.map((g) => ({ value: g.id, label: g.name }))]} placeholder='Filtrar por grupo' />
 					</div>
 
-					{/* Botão Criar */}
-					<Button onClick={openCreateForm} className='flex items-center gap-2'>
-						<span className='icon-[lucide--plus] size-4' />
-						Novo usuário
-					</Button>
+					{/* Botão Criar - apenas para administradores */}
+					{isAdmin && (
+						<Button onClick={openCreateForm} className='flex items-center gap-2'>
+							<span className='icon-[lucide--plus] size-4' />
+							Novo usuário
+						</Button>
+					)}
 				</div>
 
 				{/* Estatísticas */}
@@ -274,7 +280,7 @@ export default function UsersPage() {
 							<span className='icon-[lucide--user-plus] size-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-4 block' />
 							<h3 className='text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2'>{search || statusFilter !== 'all' || groupFilter !== 'all' ? 'Nenhum usuário encontrado' : 'Nenhum usuário cadastrado'}</h3>
 							<p className='text-zinc-600 dark:text-zinc-400 mb-4'>{search || statusFilter !== 'all' || groupFilter !== 'all' ? 'Tente ajustar os filtros para encontrar o que procura.' : 'Comece criando o primeiro usuário do sistema.'}</p>
-							{!search && statusFilter === 'all' && groupFilter === 'all' && (
+							{!search && statusFilter === 'all' && groupFilter === 'all' && isAdmin && (
 								<Button onClick={openCreateForm} className='flex items-center gap-2'>
 									<span className='icon-[lucide--plus] size-4' />
 									Criar primeiro usuário
@@ -342,17 +348,24 @@ export default function UsersPage() {
 											</td>
 											<td className='px-4 py-4'>
 												<div className='flex items-center gap-2'>
-													{/* Botão Ativar/Desativar */}
-													<Button onClick={() => toggleUserStatus(user)} className={`size-8 p-0 rounded-md bg-transparent ${user.isActive ? 'hover:bg-red-50 dark:hover:bg-red-900/20' : 'hover:bg-green-50 dark:hover:bg-green-900/20'}`} title={user.isActive ? 'Desativar usuário' : 'Ativar usuário'}>
-														<span className={`size-4 ${user.isActive ? 'icon-[lucide--user-x] text-red-600 dark:text-red-400' : 'icon-[lucide--user-check] text-green-600 dark:text-green-400'}`} />
-													</Button>
+													{/* Botão Ativar/Desativar - apenas para administradores */}
+													{isAdmin && (
+														<Button onClick={() => toggleUserStatus(user)} className={`size-8 p-0 rounded-md bg-transparent ${user.isActive ? 'hover:bg-red-50 dark:hover:bg-red-900/20' : 'hover:bg-green-50 dark:hover:bg-green-900/20'}`} title={user.isActive ? 'Desativar usuário' : 'Ativar usuário'}>
+															<span className={`size-4 ${user.isActive ? 'icon-[lucide--user-x] text-red-600 dark:text-red-400' : 'icon-[lucide--user-check] text-green-600 dark:text-green-400'}`} />
+														</Button>
+													)}
 
-													<Button onClick={() => openEditForm(user)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20'>
-														<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />
-													</Button>
-													<Button onClick={() => openDeleteDialog(user)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20'>
-														<span className='icon-[lucide--trash] size-4 text-red-600 dark:text-red-400' />
-													</Button>
+													{/* Botões de Edição e Exclusão - apenas para administradores */}
+													{isAdmin && (
+														<>
+															<Button onClick={() => openEditForm(user)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20'>
+																<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />
+															</Button>
+															<Button onClick={() => openDeleteDialog(user)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20'>
+																<span className='icon-[lucide--trash] size-4 text-red-600 dark:text-red-400' />
+															</Button>
+														</>
+													)}
 												</div>
 											</td>
 										</tr>

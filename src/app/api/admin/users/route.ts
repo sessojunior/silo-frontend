@@ -5,6 +5,7 @@ import { eq, desc, ilike, and, not, inArray } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import bcrypt from 'bcryptjs'
 import { getAuthUser } from '@/lib/auth/token'
+import { requireAdmin } from '@/lib/auth/admin'
 
 // Interface para grupos de usuário
 interface UserGroupInput {
@@ -131,6 +132,12 @@ export async function POST(request: NextRequest) {
 		const user = await getAuthUser()
 		if (!user) {
 			return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
+		}
+
+		// Verificar se o usuário é administrador
+		const adminCheck = await requireAdmin(user.id)
+		if (!adminCheck.success) {
+			return NextResponse.json({ field: null, message: adminCheck.error }, { status: 403 })
 		}
 
 		const body = await request.json()
@@ -292,6 +299,12 @@ export async function PUT(request: NextRequest) {
 		const user = await getAuthUser()
 		if (!user) {
 			return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
+		}
+
+		// Verificar se o usuário é administrador
+		const adminCheck = await requireAdmin(user.id)
+		if (!adminCheck.success) {
+			return NextResponse.json({ field: null, message: adminCheck.error }, { status: 403 })
 		}
 
 		const body = await request.json()
@@ -507,6 +520,12 @@ export async function DELETE(request: NextRequest) {
 		const user = await getAuthUser()
 		if (!user) {
 			return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
+		}
+
+		// Verificar se o usuário é administrador
+		const adminCheck = await requireAdmin(user.id)
+		if (!adminCheck.success) {
+			return NextResponse.json({ field: null, message: adminCheck.error }, { status: 403 })
 		}
 
 		const { searchParams } = new URL(request.url)

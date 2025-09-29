@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { toast } from '@/lib/toast'
 import { formatDateBR } from '@/lib/dateUtils'
+import { useAdminCheck } from '@/hooks/useAdminCheck'
 
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -36,6 +37,9 @@ export default function GroupsPage() {
 	const [userSelectorOpen, setUserSelectorOpen] = useState(false)
 	const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
 	const groupRefs = useRef<Map<string, GroupUsersSectionRef>>(new Map())
+
+	// Verificar se usuário é administrador
+	const { isAdmin } = useAdminCheck()
 
 	// Carregar grupos
 	useEffect(() => {
@@ -188,11 +192,13 @@ export default function GroupsPage() {
 						</div>
 					</div>
 
-					{/* Botão Criar */}
-					<Button onClick={openCreateForm} className='flex items-center gap-2'>
-						<span className='icon-[lucide--plus] size-4' />
-						Novo grupo
-					</Button>
+					{/* Botão Criar - apenas para administradores */}
+					{isAdmin && (
+						<Button onClick={openCreateForm} className='flex items-center gap-2'>
+							<span className='icon-[lucide--plus] size-4' />
+							Novo grupo
+						</Button>
+					)}
 				</div>
 
 				{/* Estatísticas */}
@@ -303,12 +309,20 @@ export default function GroupsPage() {
 															<Button onClick={() => openUserSelector(group.id)} className='size-8 p-0 rounded-md bg-transparent hover:bg-green-50 dark:hover:bg-green-900/20' title='Gerenciar Usuários'>
 																<span className='icon-[lucide--users] size-4 text-green-600 dark:text-green-400' />
 															</Button>
-															<Button onClick={() => openEditForm(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20' title='Editar Grupo'>
-																<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />
-															</Button>
-															<Button onClick={() => openDeleteDialog(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20' title='Excluir Grupo'>
-																<span className='icon-[lucide--trash] size-4 text-red-600 dark:text-red-400' />
-															</Button>
+															{/* Botões de Edição e Exclusão - apenas para administradores */}
+															{isAdmin && (
+																<>
+																	<Button onClick={() => openEditForm(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20' title='Editar Grupo'>
+																		<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />
+																	</Button>
+																	{/* Não permitir exclusão do grupo Administradores */}
+																	{group.name !== 'Administradores' && (
+																		<Button onClick={() => openDeleteDialog(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20' title='Excluir Grupo'>
+																			<span className='icon-[lucide--trash] size-4 text-red-600 dark:text-red-400' />
+																		</Button>
+																	)}
+																</>
+															)}
 														</div>
 													</td>
 												</tr>

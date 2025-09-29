@@ -4,6 +4,7 @@ import { group, userGroup, chatMessage } from '@/lib/db/schema'
 import { eq, desc, ilike, and, sql, not, inArray } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { getAuthUser } from '@/lib/auth/token'
+import { requireAdmin } from '@/lib/auth/admin'
 
 // GET - Listar grupos com busca e filtros
 export async function GET(request: NextRequest) {
@@ -66,6 +67,12 @@ export async function POST(request: NextRequest) {
 		const user = await getAuthUser()
 		if (!user) {
 			return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
+		}
+
+		// Verificar se o usuário é administrador
+		const adminCheck = await requireAdmin(user.id)
+		if (!adminCheck.success) {
+			return NextResponse.json({ field: null, message: adminCheck.error }, { status: 403 })
 		}
 
 		const body = await request.json()
@@ -147,6 +154,12 @@ export async function PUT(request: NextRequest) {
 			return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
 		}
 
+		// Verificar se o usuário é administrador
+		const adminCheck = await requireAdmin(user.id)
+		if (!adminCheck.success) {
+			return NextResponse.json({ field: null, message: adminCheck.error }, { status: 403 })
+		}
+
 		const body = await request.json()
 		const { id, name, description, icon, color, active, isDefault, maxUsers } = body
 
@@ -188,6 +201,35 @@ export async function PUT(request: NextRequest) {
 			)
 		}
 
+		// Verificar se é o grupo Administradores e proteger contra mudanças críticas
+		if (existingGroup[0].name === 'Administradores') {
+			// Não permitir desativar o grupo Administradores
+			if (active === false) {
+				return NextResponse.json(
+					{
+						success: false,
+						field: 'active',
+						message: 'Não é possível desativar o grupo Administradores. Este grupo é essencial para o funcionamento do sistema.',
+					},
+					{ status: 400 },
+				)
+			}
+
+			// Não permitir alterar o nome do grupo Administradores
+			if (name.trim() !== 'Administradores') {
+				return NextResponse.json(
+					{
+						success: false,
+						field: 'name',
+						message: 'Não é possível alterar o nome do grupo Administradores.',
+					},
+					{ status: 400 },
+				)
+			}
+
+			console.log('⚠️ Tentativa de alteração crítica no grupo Administradores bloqueada')
+		}
+
 		// Verificar se nome já existe em outro grupo
 		const duplicateGroup = await db
 			.select()
@@ -204,14 +246,6 @@ export async function PUT(request: NextRequest) {
 				},
 				{ status: 400 },
 			)
-		}
-
-		// Se marcado como padrão, remover padrão dos outros grupos
-		if (isDefault && !existingGroup[0].isDefault) {
-			await db
-				.update(group)
-				.set({ isDefault: false, updatedAt: sql`NOW()` })
-				.where(and(eq(group.isDefault, true), not(eq(group.id, id))))
 		}
 
 		// Atualizar grupo
@@ -254,6 +288,12 @@ export async function DELETE(request: NextRequest) {
 			return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
 		}
 
+		// Verificar se o usuário é administrador
+		const adminCheck = await requireAdmin(user.id)
+		if (!adminCheck.success) {
+			return NextResponse.json({ field: null, message: adminCheck.error }, { status: 403 })
+		}
+
 		const { searchParams } = new URL(request.url)
 		const id = searchParams.get('id')
 
@@ -288,6 +328,17 @@ export async function DELETE(request: NextRequest) {
 				{
 					success: false,
 					message: 'Não é possível excluir o grupo padrão.',
+				},
+				{ status: 400 },
+			)
+		}
+
+		// Verificar se é o grupo Administradores
+		if (existingGroup[0].name === 'Administradores') {
+			return NextResponse.json(
+				{
+					success: false,
+					message: 'Não é possível excluir o grupo Administradores. Este grupo é essencial para o funcionamento do sistema.',
 				},
 				{ status: 400 },
 			)
