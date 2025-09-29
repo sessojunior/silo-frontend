@@ -13,9 +13,10 @@ interface PinProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange
 	isInvalid?: boolean
 	invalidMessage?: string
 	placeholder?: string
+	compact?: boolean
 }
 
-export default function Pin({ id, name, value = '', setValue, length, isInvalid = false, invalidMessage = '', className, ...props }: PinProps) {
+export default function Pin({ id, name, value = '', setValue, length, isInvalid = false, invalidMessage = '', compact = false, className, ...props }: PinProps) {
 	const [values, setValues] = useState<string[]>(() => Array.from({ length }, (_, i) => value[i]?.toUpperCase() || ''))
 
 	const inputRefs = useRef<(HTMLInputElement | null)[]>([])
@@ -120,7 +121,7 @@ export default function Pin({ id, name, value = '', setValue, length, isInvalid 
 
 	return (
 		<>
-			<div id={id} className='flex justify-between gap-x-3'>
+			<div id={id} className={compact ? 'flex justify-start gap-4' : 'flex justify-between gap-x-3'}>
 				{Array.from({ length }).map((_, index) => (
 					<input
 						key={index}

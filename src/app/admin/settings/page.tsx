@@ -7,6 +7,7 @@ import { toast } from '@/lib/toast'
 import Label from '@/components/ui/Label'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import Pin from '@/components/ui/Pin'
 import Select from '@/components/ui/Select'
 import Switch from '@/components/ui/Switch'
 import PhotoUploadLocal from '@/components/ui/PhotoUploadLocal'
@@ -57,6 +58,12 @@ export default function SettingsPage() {
 	// Security tab state
 	const [email, setEmail] = useState(currentUser?.email || '')
 	const [password, setPassword] = useState('')
+
+	// Email change verification state
+	const [showEmailVerification, setShowEmailVerification] = useState(false)
+	const [emailVerificationCode, setEmailVerificationCode] = useState('')
+	const [emailChangeRequestId, setEmailChangeRequestId] = useState('')
+	const [emailChangeNewEmail, setEmailChangeNewEmail] = useState('')
 
 	// Atualizar estados quando dados do contexto mudarem
 	useEffect(() => {
@@ -307,8 +314,9 @@ export default function SettingsPage() {
 		setForm({ field: null, message: '' })
 
 		try {
-			const res = await fetch('/api/user-email', {
-				method: 'PUT',
+			// Solicita alteração de email - envia código OTP
+			const res = await fetch('/api/user-email-change', {
+				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email: formatEmail }),
 			})
@@ -322,13 +330,78 @@ export default function SettingsPage() {
 					title: data.message,
 				})
 			} else {
+				// Salva o requestId para confirmação posterior
+				setEmailChangeRequestId(data.requestId)
+				setEmailChangeNewEmail(formatEmail)
+				setShowEmailVerification(true)
+				
 				toast({
 					type: 'success',
-					title: 'O e-mail foi alterado com sucesso.',
+					title: 'Código enviado',
+					description: 'Um código de verificação foi enviado para o novo e-mail.',
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao atualizar email:', error)
+			console.error('❌ Erro ao solicitar alteração de email:', error)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado. Tente novamente.',
+			})
+		} finally {
+			setLoadingEmail(false)
+		}
+	}
+
+	const handleConfirmEmailChange = async (e: React.FormEvent) => {
+		e.preventDefault()
+
+		if (!emailVerificationCode || !emailChangeRequestId || !emailChangeNewEmail) {
+			setForm({ field: 'code', message: 'Código de verificação é obrigatório.' })
+			return
+		}
+
+		setLoadingEmail(true)
+		setForm({ field: null, message: '' })
+
+		try {
+			// Confirma alteração de email com código OTP
+			const res = await fetch('/api/user-email-change', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ 
+					requestId: emailChangeRequestId,
+					code: emailVerificationCode,
+					newEmail: emailChangeNewEmail
+				}),
+			})
+
+			const data = await res.json()
+
+			if (!res.ok) {
+				setForm({ field: data.field, message: data.message })
+				toast({
+					type: 'error',
+					title: data.message,
+				})
+			} else {
+				// Atualiza contexto com novo email
+				updateUser({ email: emailChangeNewEmail })
+				
+				// Limpa estados
+				setShowEmailVerification(false)
+				setEmailVerificationCode('')
+				setEmailChangeRequestId('')
+				setEmailChangeNewEmail('')
+				setEmail('')
+				
+				toast({
+					type: 'success',
+					title: 'E-mail alterado com sucesso!',
+					description: 'Seu e-mail foi alterado e verificado.',
+				})
+			}
+		} catch (error) {
+			console.error('❌ Erro ao confirmar alteração de email:', error)
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -573,32 +646,96 @@ export default function SettingsPage() {
 					<p className='text-sm text-zinc-600 dark:text-zinc-400'>Altere seu e-mail de acesso ao sistema. Um código de confirmação será enviado para o novo e-mail.</p>
 				</div>
 
-				<form onSubmit={handleUpdateEmail} className='space-y-4'>
-					<fieldset className='space-y-4' disabled={loadingEmail}>
-						<div>
-							<Label htmlFor='email' isInvalid={form?.field === 'email'} required>
-								Novo e-mail
-							</Label>
-							<Input type='email' id='email' name='email' autoComplete='email' placeholder='seuemail@inpe.br' value={email} setValue={setEmail} minLength={8} maxLength={255} required isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
-						</div>
+				{!showEmailVerification ? (
+					<form onSubmit={handleUpdateEmail} className='space-y-4'>
+						<fieldset className='space-y-4' disabled={loadingEmail}>
+							<div>
+								<Label htmlFor='email' isInvalid={form?.field === 'email'} required>
+									Novo e-mail
+								</Label>
+								<Input type='email' id='email' name='email' autoComplete='email' placeholder='seuemail@inpe.br' value={email} setValue={setEmail} minLength={8} maxLength={255} required isInvalid={form?.field === 'email'} invalidMessage={form?.message} />
+							</div>
 
-						<div className='flex justify-end'>
-							<Button type='submit' disabled={loadingEmail} style='bordered'>
-								{loadingEmail ? (
-									<>
-										<span className='icon-[lucide--loader-circle] animate-spin size-4' />
-										Aguarde...
-									</>
-								) : (
-									<>
-										<span className='icon-[lucide--mail] size-4' />
-										Alterar E-mail
-									</>
-								)}
-							</Button>
-						</div>
-					</fieldset>
-				</form>
+							<div className='flex justify-end'>
+								<Button type='submit' disabled={loadingEmail} style='bordered'>
+									{loadingEmail ? (
+										<>
+											<span className='icon-[lucide--loader-circle] animate-spin size-4' />
+											Enviando código...
+										</>
+									) : (
+										<>
+											<span className='icon-[lucide--mail] size-4' />
+											Alterar E-mail
+										</>
+									)}
+								</Button>
+							</div>
+						</fieldset>
+					</form>
+				) : (
+					<form onSubmit={handleConfirmEmailChange} className='space-y-4'>
+						<fieldset className='space-y-4' disabled={loadingEmail}>
+							<div className='bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4'>
+								<div className='flex items-start gap-3'>
+									<span className='icon-[lucide--mail] size-5 text-blue-600 dark:text-blue-400 mt-0.5' />
+									<div>
+										<h4 className='font-medium text-blue-900 dark:text-blue-100 mb-1'>Código de Verificação Enviado</h4>
+										<p className='text-sm text-blue-800 dark:text-blue-200'>
+											Enviamos um código de verificação para <strong>{emailChangeNewEmail}</strong>. 
+											Digite o código abaixo para confirmar a alteração do seu e-mail.
+										</p>
+									</div>
+								</div>
+							</div>
+
+							<div>
+								<Label htmlFor='verificationCode' isInvalid={form?.field === 'code'} required>
+									Código de Verificação
+								</Label>
+								<Pin 
+									id='verificationCode' 
+									name='verificationCode' 
+									length={5}
+									value={emailVerificationCode} 
+									setValue={setEmailVerificationCode} 
+									isInvalid={form?.field === 'code'} 
+									invalidMessage={form?.message}
+									compact={true}
+								/>
+							</div>
+
+							<div className='flex justify-between'>
+								<Button 
+									type='button' 
+									onClick={() => {
+										setShowEmailVerification(false)
+										setEmailVerificationCode('')
+										setEmailChangeRequestId('')
+										setEmailChangeNewEmail('')
+									}}
+									style='bordered'
+									disabled={loadingEmail}
+								>
+									Cancelar
+								</Button>
+								<Button type='submit' disabled={loadingEmail} style='bordered'>
+									{loadingEmail ? (
+										<>
+											<span className='icon-[lucide--loader-circle] animate-spin size-4' />
+											Confirmando...
+										</>
+									) : (
+										<>
+											<span className='icon-[lucide--check] size-4' />
+											Confirmar Alteração
+										</>
+									)}
+								</Button>
+							</div>
+						</fieldset>
+					</form>
+				)}
 			</div>
 
 			{/* Divider */}
