@@ -226,7 +226,21 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 					<Label htmlFor='name' required>
 						Nome do Grupo
 					</Label>
-					<Input type='text' id='name' name='name' value={formData.name} setValue={(value) => handleInputChange('name', value)} placeholder='Digite o nome do grupo' disabled={loading} required />
+					<Input 
+						type='text' 
+						id='name' 
+						name='name' 
+						value={formData.name} 
+						setValue={(value) => handleInputChange('name', value)} 
+						placeholder='Digite o nome do grupo' 
+						disabled={loading || (group?.name === 'Administradores')} 
+						required 
+					/>
+					{group?.name === 'Administradores' && (
+						<p className='text-sm text-amber-600 dark:text-amber-400 mt-1'>
+							⚠️ O nome do grupo &quot;Administradores&quot; não pode ser alterado.
+						</p>
+					)}
 				</div>
 
 				{/* Descrição */}
@@ -268,19 +282,70 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 
 				{/* Switches */}
 				<div className='space-y-4'>
-					<Switch id='active' name='active' checked={formData.active} onChange={(checked) => handleInputChange('active', checked)} title='Grupo ativo' description='Grupos inativos não aparecerão para novos usuários' disabled={loading} />
+					<Switch 
+						id='active' 
+						name='active' 
+						checked={formData.active} 
+						onChange={(checked) => handleInputChange('active', checked)} 
+						title='Grupo ativo' 
+						description={group?.name === 'Administradores' ? 'O grupo Administradores deve sempre permanecer ativo' : 'Grupos inativos não aparecerão para novos usuários'} 
+						disabled={loading || (group?.name === 'Administradores')} 
+					/>
 
-					<Switch id='isDefault' name='isDefault' checked={formData.isDefault} onChange={(checked) => handleInputChange('isDefault', checked)} title='Grupo padrão' description='Novos usuários serão automaticamente atribuídos a este grupo' disabled={loading} />
+					<Switch 
+						id='isDefault' 
+						name='isDefault' 
+						checked={formData.isDefault} 
+						onChange={(checked) => handleInputChange('isDefault', checked)} 
+						title='Grupo padrão' 
+						description={
+							group?.name === 'Administradores' 
+								? 'O grupo Administradores não pode ser o grupo padrão do sistema'
+								: (group?.isDefault && formData.isDefault)
+									? 'Este grupo já é padrão. Para alterar, marque outro grupo como padrão.'
+									: 'Novos usuários serão automaticamente atribuídos a este grupo'
+						} 
+						disabled={loading || (group?.name === 'Administradores') || (group?.isDefault && formData.isDefault)} 
+					/>
 				</div>
 
+				{/* Aviso sobre grupo padrão */}
+				{(group?.isDefault && formData.isDefault) && group?.name !== 'Administradores' && (
+					<div className='p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg'>
+						<div className='flex items-start gap-3'>
+							<span className='icon-[lucide--info] size-5 text-blue-600 dark:text-blue-400 mt-0.5' />
+							<div>
+								<h4 className='font-medium text-blue-900 dark:text-blue-100 mb-1'>Grupo Padrão Ativo</h4>
+								<p className='text-sm text-blue-800 dark:text-blue-200'>Este grupo está marcado como padrão. Para alterar, marque outro grupo como padrão, desta forma este grupo será automaticamente desmarcado.</p>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* Aviso sobre Grupo Administradores */}
+				{group?.name === 'Administradores' && (
+					<div className='p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg'>
+						<div className='flex items-start gap-3'>
+							<span className='icon-[lucide--shield-alert] size-5 text-red-600 dark:text-red-400 mt-0.5' />
+							<div>
+								<h4 className='font-medium text-red-900 dark:text-red-100 mb-1'>Grupo Administradores</h4>
+								<p className='text-sm text-red-800 dark:text-red-200'>Este é um grupo crítico do sistema. O nome, status ativo e configuração de grupo padrão não podem ser alterados.</p>
+							</div>
+						</div>
+					</div>
+				)}
+
 				{/* Aviso sobre Grupo Padrão */}
-				{formData.isDefault && (
+				{(!group?.isDefault && formData.isDefault) && group?.name !== 'Administradores' && (
 					<div className='p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg'>
 						<div className='flex items-start gap-3'>
 							<span className='icon-[lucide--info] size-5 text-amber-600 dark:text-amber-400 mt-0.5' />
 							<div>
 								<h4 className='font-medium text-amber-900 dark:text-amber-100 mb-1'>Grupo Padrão</h4>
-								<p className='text-sm text-amber-800 dark:text-amber-200'>Ao marcar este grupo como padrão, todos os outros grupos perderão essa configuração automaticamente.</p>
+								<p className='text-sm text-amber-800 dark:text-amber-200'>
+									Ao marcar este grupo como padrão, todos os outros grupos perderão essa configuração automaticamente. 
+									Apenas um grupo pode ser padrão por vez.
+								</p>
 							</div>
 						</div>
 					</div>

@@ -215,6 +215,18 @@ export async function PUT(request: NextRequest) {
 				)
 			}
 
+			// Não permitir tornar o grupo Administradores como padrão
+			if (isDefault === true) {
+				return NextResponse.json(
+					{
+						success: false,
+						field: 'isDefault',
+						message: 'Não é possível tornar o grupo Administradores como padrão. Este grupo é especial e não deve ser o grupo padrão do sistema.',
+					},
+					{ status: 400 },
+				)
+			}
+
 			// Não permitir alterar o nome do grupo Administradores
 			if (name.trim() !== 'Administradores') {
 				return NextResponse.json(
@@ -246,6 +258,34 @@ export async function PUT(request: NextRequest) {
 				},
 				{ status: 400 },
 			)
+		}
+
+		// Verificar se está tentando desmarcar o último grupo padrão
+		if (isDefault === false) {
+			// Verificar se este grupo é o único grupo padrão
+			const currentDefaultGroups = await db
+				.select()
+				.from(group)
+				.where(eq(group.isDefault, true))
+
+			if (currentDefaultGroups.length === 1 && currentDefaultGroups[0].id === id) {
+				return NextResponse.json(
+					{
+						success: false,
+						field: 'isDefault',
+						message: 'Não é possível desmarcar o último grupo padrão. Deve haver sempre pelo menos um grupo padrão no sistema.',
+					},
+					{ status: 400 },
+				)
+			}
+		}
+
+		// Se marcado como padrão, remover padrão dos outros grupos
+		if (isDefault) {
+			await db
+				.update(group)
+				.set({ isDefault: false, updatedAt: sql`NOW()` })
+				.where(eq(group.isDefault, true))
 		}
 
 		// Atualizar grupo
