@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { toast } from '@/lib/toast'
 import { formatDateBR } from '@/lib/dateUtils'
 import { useAdminCheck } from '@/hooks/useAdminCheck'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -45,6 +46,7 @@ export default function UsersPage() {
 
 	// Verificar se usuário é administrador
 	const { isAdmin, loading: adminLoading } = useAdminCheck()
+	const { currentUser } = useCurrentUser()
 
 	// Carregar dados
 	useEffect(() => {
@@ -146,6 +148,16 @@ export default function UsersPage() {
 	}
 
 	async function toggleUserStatus(user: UserWithGroup) {
+		// Verificar se é o próprio usuário
+		if (currentUser && user.id === currentUser.id) {
+			toast({
+				type: 'error',
+				title: 'Ação não permitida',
+				description: 'Você não pode desativar sua própria conta.',
+			})
+			return
+		}
+
 		const newStatus = !user.isActive
 		const action = newStatus ? 'ativando' : 'desativando'
 
@@ -353,18 +365,31 @@ export default function UsersPage() {
 											{!adminLoading && isAdmin && (
 												<td className='px-4 py-4'>
 													<div className='flex items-center gap-2'>
-														{/* Botão Ativar/Desativar */}
-														<Button onClick={() => toggleUserStatus(user)} className={`size-8 p-0 rounded-md bg-transparent ${user.isActive ? 'hover:bg-red-50 dark:hover:bg-red-900/20' : 'hover:bg-green-50 dark:hover:bg-green-900/20'}`} title={user.isActive ? 'Desativar usuário' : 'Ativar usuário'}>
-															<span className={`size-4 ${user.isActive ? 'icon-[lucide--user-x] text-red-600 dark:text-red-400' : 'icon-[lucide--user-check] text-green-600 dark:text-green-400'}`} />
-														</Button>
+														{/* Botão Ativar/Desativar - não permitir para próprio usuário */}
+														{currentUser && user.id === currentUser.id ? (
+															<Button disabled className='size-8 p-0 rounded-md bg-transparent opacity-50 cursor-not-allowed' title='Você não pode desativar sua própria conta'>
+																<span className={`size-4 ${user.isActive ? 'icon-[lucide--user-x] text-gray-400' : 'icon-[lucide--user-check] text-gray-400'}`} />
+															</Button>
+														) : (
+															<Button onClick={() => toggleUserStatus(user)} className={`size-8 p-0 rounded-md bg-transparent ${user.isActive ? 'hover:bg-red-50 dark:hover:bg-red-900/20' : 'hover:bg-green-50 dark:hover:bg-green-900/20'}`} title={user.isActive ? 'Desativar usuário' : 'Ativar usuário'}>
+																<span className={`size-4 ${user.isActive ? 'icon-[lucide--user-x] text-red-600 dark:text-red-400' : 'icon-[lucide--user-check] text-green-600 dark:text-green-400'}`} />
+															</Button>
+														)}
 
 														{/* Botões de Edição e Exclusão */}
 														<Button onClick={() => openEditForm(user)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20'>
 															<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />
 														</Button>
-														<Button onClick={() => openDeleteDialog(user)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20'>
-															<span className='icon-[lucide--trash] size-4 text-red-600 dark:text-red-400' />
-														</Button>
+														{/* Não permitir exclusão do próprio usuário */}
+														{currentUser && user.id === currentUser.id ? (
+															<Button disabled className='size-8 p-0 rounded-md bg-transparent opacity-50 cursor-not-allowed' title='Você não pode excluir sua própria conta'>
+																<span className='icon-[lucide--trash] size-4 text-gray-400' />
+															</Button>
+														) : (
+															<Button onClick={() => openDeleteDialog(user)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20'>
+																<span className='icon-[lucide--trash] size-4 text-red-600 dark:text-red-400' />
+															</Button>
+														)}
 													</div>
 												</td>
 											)}

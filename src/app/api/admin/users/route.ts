@@ -409,6 +409,85 @@ export async function PUT(request: NextRequest) {
 			)
 		}
 
+		// Proteções para auto-alteração
+		if (user.id === id) {
+			console.log('⚠️ Usuário tentando alterar a si mesmo:', user.email)
+
+			// Não permitir alterar nome próprio
+			if (name !== existingUser[0].name) {
+				return NextResponse.json(
+					{
+						success: false,
+						field: 'name',
+						message: 'Você não pode alterar seu próprio nome.',
+					},
+					{ status: 400 },
+				)
+			}
+
+			// Não permitir alterar email próprio
+			if (email !== existingUser[0].email) {
+				return NextResponse.json(
+					{
+						success: false,
+						field: 'email',
+						message: 'Você não pode alterar seu próprio email.',
+					},
+					{ status: 400 },
+				)
+			}
+
+			// Não permitir desativar a si mesmo
+			if (isActive === false) {
+				return NextResponse.json(
+					{
+						success: false,
+						field: 'isActive',
+						message: 'Você não pode desativar sua própria conta.',
+					},
+					{ status: 400 },
+				)
+			}
+
+			// Não permitir desmarcar email verificado
+			if (emailVerified === false) {
+				return NextResponse.json(
+					{
+						success: false,
+						field: 'emailVerified',
+						message: 'Você não pode desmarcar seu próprio email como não verificado.',
+					},
+					{ status: 400 },
+				)
+			}
+
+			// Verificar se está tentando se remover do grupo Administradores
+			const currentUserGroups = await db
+				.select({ groupId: userGroup.groupId, groupName: group.name })
+				.from(userGroup)
+				.innerJoin(group, eq(userGroup.groupId, group.id))
+				.where(eq(userGroup.userId, id))
+
+			const isCurrentlyAdmin = currentUserGroups.some(ug => ug.groupName === 'Administradores')
+			const willBeAdmin = userGroups.some(ug => {
+				const group = existingGroups.find(g => g.id === ug.groupId)
+				return group?.name === 'Administradores'
+			})
+
+			if (isCurrentlyAdmin && !willBeAdmin) {
+				return NextResponse.json(
+					{
+						success: false,
+						field: 'groups',
+						message: 'Você não pode se remover do grupo Administradores.',
+					},
+					{ status: 400 },
+				)
+			}
+
+			console.log('✅ Auto-alteração permitida para campos seguros')
+		}
+
 		// Preparar dados para atualização
 		const updatedData: {
 			name: string

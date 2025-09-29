@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from '@/lib/toast'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 import Offcanvas from '@/components/ui/Offcanvas'
 import Input from '@/components/ui/Input'
@@ -38,6 +39,7 @@ interface UserFormOffcanvasProps {
 
 export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuccess }: UserFormOffcanvasProps) {
 	const [loading, setLoading] = useState(false)
+	const { currentUser } = useCurrentUser()
 	const [formData, setFormData] = useState({
 		name: '',
 		email: '',
@@ -47,6 +49,7 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 	const [selectedGroups, setSelectedGroups] = useState<SelectedGroup[]>([])
 
 	const isEditing = !!user
+	const isCurrentUser = !!(currentUser && user && currentUser.id === user.id)
 
 	useEffect(() => {
 		if (isOpen) {
@@ -157,14 +160,36 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 					<label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
 						Nome <span className='text-red-500'>*</span>
 					</label>
-					<Input type='text' placeholder='Digite o nome do usuário' value={formData.name} setValue={(value) => setFormData((prev) => ({ ...prev, name: value }))} />
+					<Input 
+						type='text' 
+						placeholder='Digite o nome do usuário' 
+						value={formData.name} 
+						setValue={(value) => setFormData((prev) => ({ ...prev, name: value }))} 
+						disabled={loading || isCurrentUser}
+					/>
+					{isCurrentUser && (
+						<p className='text-sm text-amber-600 dark:text-amber-400 mt-1'>
+							⚠️ Você não pode alterar seu próprio nome.
+						</p>
+					)}
 				</div>
 
 				<div>
 					<label className='block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2'>
 						Email <span className='text-red-500'>*</span>
 					</label>
-					<Input type='email' placeholder='Digite o email do usuário' value={formData.email} setValue={(value) => setFormData((prev) => ({ ...prev, email: value }))} />
+					<Input 
+						type='email' 
+						placeholder='Digite o email do usuário' 
+						value={formData.email} 
+						setValue={(value) => setFormData((prev) => ({ ...prev, email: value }))} 
+						disabled={loading || isCurrentUser}
+					/>
+					{isCurrentUser && (
+						<p className='text-sm text-amber-600 dark:text-amber-400 mt-1'>
+							⚠️ Você não pode alterar seu próprio email.
+						</p>
+					)}
 				</div>
 
 				<div>
@@ -174,6 +199,9 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 					<div className='max-h-64 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-1 pb-2'>
 						{groups.map((group) => {
 							const isSelected = selectedGroups.some((sg) => sg.groupId === group.id)
+							const isAdminGroup = group.name === 'Administradores'
+							const isCurrentUserInAdminGroup = isCurrentUser && isAdminGroup && isSelected
+							const isDisabled = loading || isCurrentUserInAdminGroup
 
 							return (
 								<div key={group.id} className='flex items-center hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-md py-1 px-2'>
@@ -189,11 +217,11 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 											}
 										}}
 										className='h-4 w-4 text-blue-600 border-zinc-300 rounded focus:ring-blue-500'
-										disabled={loading}
+										disabled={isDisabled}
 									/>
 									<div className='flex items-center'>
 										<span className={`icon-[lucide--${group.icon}] size-4`} style={{ color: group.color || '#6b7280' }} />
-										<label htmlFor={`group-${group.id}`} className='text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer'>
+										<label htmlFor={`group-${group.id}`} className={`text-sm font-medium text-zinc-700 dark:text-zinc-300 ${isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
 											{group.name}
 										</label>
 									</div>
@@ -201,6 +229,14 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 							)
 						})}
 					</div>
+					{isCurrentUser && selectedGroups.some(sg => {
+						const group = groups.find(g => g.id === sg.groupId)
+						return group?.name === 'Administradores'
+					}) && (
+						<p className='text-sm text-amber-600 dark:text-amber-400 mt-1'>
+							⚠️ Você não pode se remover do grupo Administradores.
+						</p>
+					)}
 
 					{selectedGroups.length === 0 && <p className='text-xs text-zinc-500 dark:text-zinc-400 mt-1'>Selecione pelo menos um grupo</p>}
 
@@ -212,9 +248,25 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 				</div>
 
 				<div className='space-y-4'>
-					<Switch id='emailVerified' name='emailVerified' checked={formData.emailVerified} onChange={(checked) => setFormData((prev) => ({ ...prev, emailVerified: checked }))} title='Email Verificado' description='Marque se o email do usuário foi verificado' disabled={loading} />
+					<Switch 
+						id='emailVerified' 
+						name='emailVerified' 
+						checked={formData.emailVerified} 
+						onChange={(checked) => setFormData((prev) => ({ ...prev, emailVerified: checked }))} 
+						title='Email Verificado' 
+						description={isCurrentUser ? 'Você não pode desmarcar seu próprio email como não verificado' : 'Marque se o email do usuário foi verificado'} 
+						disabled={loading || isCurrentUser} 
+					/>
 
-					<Switch id='isActive' name='isActive' checked={formData.isActive} onChange={(checked) => setFormData((prev) => ({ ...prev, isActive: checked }))} title='Usuário Ativo' description='Usuários inativos não conseguem fazer login' disabled={loading} />
+					<Switch 
+						id='isActive' 
+						name='isActive' 
+						checked={formData.isActive} 
+						onChange={(checked) => setFormData((prev) => ({ ...prev, isActive: checked }))} 
+						title='Usuário Ativo' 
+						description={isCurrentUser ? 'Você não pode desativar sua própria conta' : 'Usuários inativos não conseguem fazer login'} 
+						disabled={loading || isCurrentUser} 
+					/>
 				</div>
 
 				<div className='flex gap-3 pt-4'>
