@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { useUser } from '@/context/UserContext'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useChat, ChatGroup, ChatUser } from '@/context/ChatContext'
 import { formatDateBR } from '@/lib/dateUtils'
 
@@ -13,7 +13,7 @@ type ChatSidebarProps = {
 }
 
 export default function ChatSidebar({ activeTargetId, activeTargetType, onTargetSelect }: ChatSidebarProps) {
-	const user = useUser()
+	const { currentUser } = useCurrentUser()
 	const { groups, users, totalUnread, currentPresence, updatePresence } = useChat()
 
 	const [searchQuery, setSearchQuery] = useState('')
@@ -61,11 +61,11 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 			<div className='border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800'>
 				<div className='flex items-center gap-3 mb-3 p-4 border-b border-zinc-200 dark:border-zinc-700'>
 					<div className='relative'>
-						<Image src={user.image} alt={user.name} width={40} height={40} className='rounded-full object-cover' unoptimized={user.image.startsWith('blob:')} />
+						<Image src={currentUser?.image || '/images/profile.png'} alt={currentUser?.name || 'Usuário'} width={40} height={40} className='rounded-full object-cover' unoptimized={currentUser?.image?.startsWith('blob:')} />
 						<div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${statusInfo.color}`} />
 					</div>
 					<div className='flex-1'>
-						<h2 className='font-semibold text-sm text-zinc-900 dark:text-white'>{user.name}</h2>
+						<h2 className='font-semibold text-sm text-zinc-900 dark:text-white'>{currentUser?.name || 'Usuário'}</h2>
 						<div className='flex items-center gap-2'>
 							<div className={`w-2 h-2 rounded-full ${statusInfo.color}`} />
 							<p className={`text-xs ${statusInfo.textColor}`}>{statusInfo.label}</p>

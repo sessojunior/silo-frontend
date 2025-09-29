@@ -1,6 +1,7 @@
 'use client'
 
 import { useSidebar } from '@/context/SidebarContext'
+import { useChat } from '@/context/ChatContext'
 import SidebarHeader from '@/components/admin/sidebar/SidebarHeader'
 import SidebarFooter from '@/components/admin/sidebar/SidebarFooter'
 import SidebarMenu from '@/components/admin/sidebar/SidebarMenu'
@@ -22,12 +23,19 @@ export type SidebarProps = {
 
 export default function Sidebar() {
 	const { isOpenSidebar, closeSidebar } = useSidebar()
+	const { currentPresence } = useChat()
 	const [chatEnabled, setChatEnabled] = useState(true)
 	const [products, setProducts] = useState<Product[]>([])
 	const [projects, setProjects] = useState<Project[]>([])
 
 	// Verificar se o chat está habilitado para o usuário
 	useEffect(() => {
+		// Se o usuário está offline, o chat está desabilitado
+		if (currentPresence === 'offline') {
+			setChatEnabled(false)
+			return
+		}
+
 		const checkChatEnabled = async () => {
 			try {
 				const response = await fetch('/api/user-preferences')
@@ -54,7 +62,7 @@ export default function Sidebar() {
 		return () => {
 			window.removeEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
 		}
-	}, [])
+	}, [currentPresence])
 
 	// Obter dados dos produtos
 	useEffect(() => {

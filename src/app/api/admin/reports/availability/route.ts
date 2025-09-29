@@ -82,27 +82,20 @@ export async function GET(request: Request) {
 					const successRate = (completedActivities / totalActivities) * 100
 					availabilityPercentage = Math.round(successRate * 10) / 10
 				} else {
-					// Se não há atividades, usar dados realistas baseados no produto
-					// Simular diferentes níveis de disponibilidade para demonstração
-					const productAvailability = {
-						BAM: 76.6,
-						'BRAMS AMS 15KM': 71.0,
-						SMEC: 78.2,
-						WRF: 75.8,
-					}
-					availabilityPercentage = productAvailability[prod.name as keyof typeof productAvailability] || 75.0
-
-					// Simular atividades para demonstração
-					const simulatedActivities = Math.floor(Math.random() * 50) + 50 // 50-100 atividades
-					const simulatedCompleted = Math.floor(simulatedActivities * (availabilityPercentage / 100))
-					const simulatedFailed = simulatedActivities - simulatedCompleted
-
-					console.log(`🎭 Simulando dados para ${prod.name}: ${simulatedActivities} atividades, ${simulatedCompleted} concluídas, ${simulatedFailed} falharam`)
-
-					// Atualizar contadores com dados simulados
-					totalActivities = simulatedActivities
-					completedActivities = simulatedCompleted
-					failedActivities = simulatedFailed
+				// Se não há atividades, usar dados baseados em configurações padrão
+				// Calcular disponibilidade baseada em dados reais quando disponíveis
+				if (totalActivities === 0) {
+					// Para produtos sem atividades, assumir status estável
+					availabilityPercentage = 0
+					totalActivities = 0
+					completedActivities = 0
+					failedActivities = 0
+					console.log(`📊 ${prod.name}: Sem atividades registradas - Status estável assumido`)
+				} else {
+					// Calcular disponibilidade real baseada nas atividades
+					availabilityPercentage = totalActivities > 0 ? (completedActivities / totalActivities) * 100 : 0
+					console.log(`📊 ${prod.name}: ${totalActivities} atividades, ${completedActivities} concluídas, ${failedActivities} falharam - Disponibilidade: ${availabilityPercentage.toFixed(1)}%`)
+				}
 				}
 
 				// Determinar status do produto baseado na disponibilidade

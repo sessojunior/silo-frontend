@@ -5,6 +5,7 @@ import TopbarButton from '@/components/admin/topbar/TopbarButton'
 import TopbarDivider from '@/components/admin/topbar/TopbarDivider'
 import ChatNotificationButton from '@/components/admin/topbar/ChatNotificationButton'
 import { useSidebar } from '@/context/SidebarContext'
+import { useChat } from '@/context/ChatContext'
 import { useState, useEffect } from 'react'
 
 export type AccountLinkProps = {
@@ -18,10 +19,17 @@ export type AccountProps = AccountLinkProps[]
 
 export default function Topbar() {
 	const { isOpenSidebar } = useSidebar()
+	const { currentPresence } = useChat()
 	const [chatEnabled, setChatEnabled] = useState(true)
 
 	// Verificar se o chat está habilitado para o usuário
 	useEffect(() => {
+		// Se o usuário está offline, o chat está desabilitado
+		if (currentPresence === 'offline') {
+			setChatEnabled(false)
+			return
+		}
+
 		const checkChatEnabled = async () => {
 			try {
 				const response = await fetch('/api/user-preferences')
@@ -48,7 +56,7 @@ export default function Topbar() {
 		return () => {
 			window.removeEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
 		}
-	}, [])
+	}, [currentPresence])
 
 	// Dados da conta para o dropdown da barra do topo
 	const account: AccountProps = [

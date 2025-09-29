@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
-import { useUser } from '@/context/UserContext'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 // === TIPOS ULTRA SIMPLIFICADOS ===
 
@@ -71,7 +71,7 @@ type ChatContextType = {
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
-	const user = useUser()
+	const { currentUser } = useCurrentUser()
 
 	// Estados principais
 	const [groups, setGroups] = useState<ChatGroup[]>([])
@@ -81,6 +81,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	const [currentPresence, setCurrentPresence] = useState<PresenceStatus>('offline')
 	const [isLoading] = useState(false)
 	const [lastSync, setLastSync] = useState<string | null>(null)
+	const [chatEnabled, setChatEnabled] = useState(true)
 
 	// Controles de polling
 	const pollingInterval = useRef<NodeJS.Timeout | null>(null)
@@ -460,7 +461,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			if (response.ok) {
 				const data = await response.json()
 				// Usar novo campo currentUserPresence da API
-				if (!data.currentUserPresence && user) {
+				if (!data.currentUserPresence && currentUser) {
 					console.log('🔵 [ChatContext] Primeira vez - definindo como online')
 					updatePresence('online')
 				} else if (data.currentUserPresence) {
@@ -474,13 +475,46 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		} catch (error) {
 			console.error('❌ [ChatContext] Erro ao verificar presença existente:', error)
 		}
-	}, [user, updatePresence])
+	}, [currentUser, updatePresence])
 
 	// === INICIALIZAÇÃO ===
 
+	// Verificar preferências do chat
 	useEffect(() => {
-		if (user) {
-			console.log('🔵 [ChatContext] Usuário logado, inicializando chat...')
+		const checkChatPreference = async () => {
+			try {
+				const response = await fetch('/api/user-preferences')
+				if (response.ok) {
+					const data = await response.json()
+					const enabled = data.userPreferences?.chatEnabled !== false
+					setChatEnabled(enabled)
+					console.log('🔵 [ChatContext] Preferência de chat:', enabled ? 'HABILITADO' : 'DESABILITADO')
+				}
+			} catch (error) {
+				console.error('❌ [ChatContext] Erro ao verificar preferências do chat:', error)
+				setChatEnabled(true) // Default para habilitado em caso de erro
+			}
+		}
+
+		checkChatPreference()
+
+		// Listener para mudanças de preferência
+		const handleChatPreferenceChange = (event: CustomEvent) => {
+			const { chatEnabled: newChatEnabled } = event.detail
+			setChatEnabled(newChatEnabled)
+			console.log('🔵 [ChatContext] Preferência de chat alterada:', newChatEnabled ? 'HABILITADO' : 'DESABILITADO')
+		}
+
+		window.addEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
+
+		return () => {
+			window.removeEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
+		}
+	}, [])
+
+	useEffect(() => {
+		if (currentUser && chatEnabled) {
+			console.log('🔵 [ChatContext] Usuário logado e chat habilitado, inicializando chat...')
 			initializePresence()
 			loadSidebarData()
 			// Definir timestamp antes de iniciar polling para primeira execução limpa
@@ -490,7 +524,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				startPolling()
 			}, 500)
 		} else {
-			console.log('🔵 [ChatContext] Usuário deslogado, parando polling...')
+			console.log('🔵 [ChatContext] Chat desabilitado ou usuário deslogado, parando polling...')
 			stopPolling()
 			setCurrentPresence('offline')
 		}
@@ -499,7 +533,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			stopPolling()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [user]) // Intencionalmente apenas [user] para evitar loop infinito
+	}, [currentUser, chatEnabled]) // Intencionalmente apenas [currentUser, chatEnabled] para evitar loop infinito
 
 	// Cleanup ao desmontar
 	useEffect(() => {

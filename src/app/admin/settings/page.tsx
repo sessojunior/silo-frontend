@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { isValidName, isValidEmail, isValidPassword } from '@/lib/auth/validate'
 import { toast } from '@/lib/toast'
 
@@ -12,6 +12,7 @@ import Switch from '@/components/ui/Switch'
 import PhotoUploadLocal from '@/components/ui/PhotoUploadLocal'
 import InputPasswordHints from '@/components/ui/InputPasswordHints'
 
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useUser } from '@/context/UserContext'
 
 type TabType = 'profile' | 'preferences' | 'security'
@@ -22,7 +23,8 @@ interface FormState {
 }
 
 export default function SettingsPage() {
-	const user = useUser()
+	const { currentUser } = useCurrentUser()
+	const { userProfile, userPreferences, updateUser, updateUserProfile, updateUserPreferences } = useUser()
 	const [activeTab, setActiveTab] = useState<TabType>('profile')
 	const [loadingProfile, setLoadingProfile] = useState(false)
 	const [loadingPreferences, setLoadingPreferences] = useState(false)
@@ -30,19 +32,19 @@ export default function SettingsPage() {
 	const [loadingPassword, setLoadingPassword] = useState(false)
 	const [form, setForm] = useState<FormState>({ field: null, message: '' })
 
-	// Profile tab state
-	const [name, setName] = useState('')
-	const [genre, setGenre] = useState('')
-	const [role, setRole] = useState('')
-	const [phone, setPhone] = useState('')
-	const [company, setCompany] = useState('')
-	const [location, setLocation] = useState('')
-	const [team, setTeam] = useState('')
-	const [image, setImage] = useState(user?.image || '')
+	// Profile tab state - usar dados do contexto quando disponível
+	const [name, setName] = useState(currentUser?.name || '')
+	const [genre, setGenre] = useState(userProfile?.genre || '')
+	const [role, setRole] = useState(userProfile?.role || '')
+	const [phone, setPhone] = useState(userProfile?.phone || '')
+	const [company, setCompany] = useState(userProfile?.company || '')
+	const [location, setLocation] = useState(userProfile?.location || '')
+	const [team, setTeam] = useState(userProfile?.team || '')
+	const [image, setImage] = useState(currentUser?.image || '')
 
-	// Preferences tab state
-	const [chatEnabled, setChatEnabled] = useState(true)
-	const [showWelcome, setShowWelcome] = useState<boolean>(true)
+	// Preferences tab state - usar dados do contexto quando disponível
+	const [chatEnabled, setChatEnabled] = useState(userPreferences?.chatEnabled ?? true)
+	const [showWelcome, setShowWelcome] = useState<boolean>(userPreferences?.showWelcome ?? true)
 
 	// Leitura rápida do localStorage na montagem
 	useEffect(() => {
@@ -53,14 +55,90 @@ export default function SettingsPage() {
 	}, [])
 
 	// Security tab state
-	const [email, setEmail] = useState(user?.email || '')
+	const [email, setEmail] = useState(currentUser?.email || '')
 	const [password, setPassword] = useState('')
 
-	// Load data on component mount and when activeTab changes
+	// Atualizar estados quando dados do contexto mudarem
+	useEffect(() => {
+		if (currentUser) {
+			setName(currentUser.name || '')
+			setImage(currentUser.image || '')
+			setEmail(currentUser.email || '')
+		}
+		if (userProfile) {
+			setGenre(userProfile.genre || '')
+			setRole(userProfile.role || '')
+			setPhone(userProfile.phone || '')
+			setCompany(userProfile.company || '')
+			setLocation(userProfile.location || '')
+			setTeam(userProfile.team || '')
+		}
+		if (userPreferences) {
+			setChatEnabled(userPreferences.chatEnabled ?? true)
+			setShowWelcome(userPreferences.showWelcome ?? true)
+		}
+	}, [currentUser, userProfile, userPreferences])
+
+	const fetchAllData = useCallback(async () => {
+		setLoadingProfile(true)
+		try {
+			// Se já temos dados do contexto, usar eles diretamente
+			if (currentUser && userProfile && userPreferences) {
+				setName(currentUser.name || '')
+				setImage(currentUser.image || '')
+				setEmail(currentUser.email || '')
+				setGenre(userProfile.genre || '')
+				setRole(userProfile.role || '')
+				setPhone(userProfile.phone || '')
+				setCompany(userProfile.company || '')
+				setLocation(userProfile.location || '')
+				setTeam(userProfile.team || '')
+				setChatEnabled(userPreferences.chatEnabled ?? true)
+				setLoadingProfile(false)
+				return
+			}
+
+			// Se não temos todos os dados do contexto, fazer fetch manual
+			const profileRes = await fetch('/api/user-profile')
+			const profileData = await profileRes.json()
+
+			if (profileRes.ok) {
+				const { user: userData, userProfile: userProfileData } = profileData
+				setName(userData?.name || '')
+				setImage(userData?.image || '')
+				setEmail(userData?.email || '')
+				setGenre(userProfileData?.genre || '')
+				setRole(userProfileData?.role || '')
+				setPhone(userProfileData?.phone || '')
+				setCompany(userProfileData?.company || '')
+				setLocation(userProfileData?.location || '')
+				setTeam(userProfileData?.team || '')
+			}
+
+			// Fetch user preferences
+			const preferencesRes = await fetch('/api/user-preferences')
+			const preferencesData = await preferencesRes.json()
+
+			if (preferencesRes.ok) {
+				const { userPreferences } = preferencesData
+				setChatEnabled(userPreferences?.chatEnabled ?? true)
+			}
+		} catch (error) {
+			console.error('❌ Erro ao carregar dados do usuário:', error)
+			toast({
+				type: 'error',
+				title: 'Erro inesperado ao carregar dados do usuário.',
+			})
+		} finally {
+			setLoadingProfile(false)
+		}
+	}, [currentUser, userProfile, userPreferences])
+
+	// Load data on component mount
 	useEffect(() => {
 		// Carregar dados apenas na montagem inicial para evitar sobrescrever estado local
 		fetchAllData()
-	}, []) // Remover activeTab da dependência para evitar recarregar preferências
+	}, [fetchAllData])
 
 	// Navigation items
 	const navigationItems = [
@@ -83,45 +161,6 @@ export default function SettingsPage() {
 			description: 'E-mail e senha',
 		},
 	]
-
-	const fetchAllData = async () => {
-		setLoadingProfile(true)
-		try {
-			// Fetch user profile
-			const profileRes = await fetch('/api/user-profile')
-			const profileData = await profileRes.json()
-
-			if (profileRes.ok) {
-				const { user: userData, userProfile } = profileData
-				setName(userData?.name || '')
-				setImage(userData?.image || '')
-				setGenre(userProfile?.genre || '')
-				setRole(userProfile?.role || '')
-				setPhone(userProfile?.phone || '')
-				setCompany(userProfile?.company || '')
-				setLocation(userProfile?.location || '')
-				setTeam(userProfile?.team || '')
-			}
-
-			// Fetch user preferences
-			const preferencesRes = await fetch('/api/user-preferences')
-			const preferencesData = await preferencesRes.json()
-
-			if (preferencesRes.ok) {
-				const { userPreferences } = preferencesData
-				// Lógica mais clara para chatEnabled: se não existir, usar true como padrão
-				setChatEnabled(userPreferences?.chatEnabled ?? true)
-			}
-		} catch (error) {
-			console.error('❌ Erro ao carregar dados do usuário:', error)
-			toast({
-				type: 'error',
-				title: 'Erro inesperado ao carregar dados do usuário.',
-			})
-		} finally {
-			setLoadingProfile(false)
-		}
-	}
 
 	const handleUpdateProfile = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -171,6 +210,17 @@ export default function SettingsPage() {
 					title: data.message,
 				})
 			} else {
+				// Atualizar contexto com os novos dados
+				updateUser({ name: format.name })
+				updateUserProfile({
+					genre: format.genre,
+					role: format.role,
+					phone: format.phone,
+					company: format.company,
+					location: format.location,
+					team: format.team,
+				})
+				
 				toast({
 					type: 'success',
 					title: 'Dados do perfil alterados com sucesso.',
@@ -209,6 +259,9 @@ export default function SettingsPage() {
 					title: data.message,
 				})
 			} else {
+				// Atualizar contexto com as novas preferências
+				updateUserPreferences({ chatEnabled })
+				
 				toast({
 					type: 'success',
 					title: 'Preferências alteradas com sucesso.',
@@ -618,7 +671,7 @@ export default function SettingsPage() {
 	}
 
 	return (
-		<div className='w-full'>
+		<div className='w-full bg-white dark:bg-zinc-800'>
 			{/* Header */}
 			<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
 				<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Configurações</h1>
@@ -626,7 +679,7 @@ export default function SettingsPage() {
 			</div>
 
 			{/* Content */}
-			<div className='p-6'>
+			<div className='p-6 bg-white dark:bg-zinc-800'>
 				<div className='max-w-7xl mx-auto'>
 					{/* Mobile Navigation Dropdown */}
 					<div className='lg:hidden mb-6'>

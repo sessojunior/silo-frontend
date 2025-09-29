@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { productProblem, productProblemCategory, product } from '@/lib/db/schema'
-import { eq, and, gte, lte, ne } from 'drizzle-orm'
+import { productProblem, productProblemCategory, product, authUser, productSolution } from '@/lib/db/schema'
+import { eq, and, gte, lte, ne, inArray, sql } from 'drizzle-orm'
 import { getToday, getDaysAgo, formatDate } from '@/lib/dateUtils'
 import { NO_INCIDENTS_CATEGORY_ID, NO_INCIDENTS_CATEGORY_NAME } from '@/lib/constants'
 
@@ -64,24 +64,52 @@ export async function GET(request: Request) {
 		console.log('✅ Categorias encontradas:', categories.length)
 
 		// Calcular problemas por categoria (excluindo "Não houve incidentes")
-		const problemsByCategory = categories
-			.filter((cat) => cat.name !== NO_INCIDENTS_CATEGORY_NAME) // ← FILTRO AUTOMÁTICO
-			.map((category) => {
-				const categoryProblems = problems.filter((p) => p.problemCategoryId === category.id)
-				const problemsCount = categoryProblems.length
+		const problemsByCategory = await Promise.all(
+			categories
+				.filter((cat) => cat.name !== NO_INCIDENTS_CATEGORY_NAME) // ← FILTRO AUTOMÁTICO
+				.map(async (category) => {
+					const categoryProblems = problems.filter((p) => p.problemCategoryId === category.id)
+					const problemsCount = categoryProblems.length
 
-				// Calcular tempo médio de resolução (mockado por enquanto)
-				const avgResolutionHours = 2.5
+					// Calcular tempo médio de resolução baseado em soluções reais
+					let avgResolutionHours = 0
+					if (problemsCount > 0) {
+						// Buscar soluções para problemas desta categoria
+						const categoryProblemIds = categoryProblems.map(p => p.id)
+						const solutions = await db
+							.select({
+								productProblemId: productSolution.productProblemId,
+								createdAt: productSolution.createdAt,
+							})
+							.from(productSolution)
+							.where(inArray(productSolution.productProblemId, categoryProblemIds))
 
-				return {
-					id: category.id,
-					name: category.name,
-					color: category.color || '#6b7280',
-					problemsCount,
-					avgResolutionHours,
-				}
-			})
-			.filter((cat) => cat.problemsCount > 0) // Apenas categorias com problemas
+						// Calcular tempo médio de resolução
+						if (solutions.length > 0) {
+							const resolutionTimes = solutions.map(sol => {
+								const problem = categoryProblems.find(p => p.id === sol.productProblemId)
+								if (problem) {
+									const resolutionTimeMs = sol.createdAt.getTime() - problem.createdAt.getTime()
+									return resolutionTimeMs / (1000 * 60 * 60) // Converter para horas
+								}
+								return 0
+							}).filter(time => time > 0)
+
+							if (resolutionTimes.length > 0) {
+								avgResolutionHours = resolutionTimes.reduce((sum, time) => sum + time, 0) / resolutionTimes.length
+							}
+						}
+					}
+
+					return {
+						id: category.id,
+						name: category.name,
+						color: category.color || '#6b7280',
+						problemsCount,
+						avgResolutionHours,
+					}
+				})
+		).then(results => results.filter((cat) => cat.problemsCount > 0)) // Apenas categorias com problemas
 
 		// Calcular problemas por produto
 		const productsWithProblems = await db
@@ -114,11 +142,41 @@ export async function GET(request: Request) {
 		const totalProblems = problems.length
 		const avgResolutionHours = problemsByCategory.length > 0 ? Math.round((problemsByCategory.reduce((sum, cat) => sum + cat.avgResolutionHours, 0) / problemsByCategory.length) * 10) / 10 : 0
 
-		// Top problemas (mais recentes)
-		const topProblems = problems.slice(0, 5).map((problem) => {
+		// Top problemas (mais recentes) com dados reais
+		const topProblems = await Promise.all(problems.slice(0, 5).map(async (problem) => {
 			const productInfo = productsWithProblems.find((p) => p.id === problem.productId)
 			const categoryInfo = categories.find((c) => c.id === problem.problemCategoryId)
-			const userInfo = { name: 'Usuário' } // Mockado por enquanto
+			
+			// Buscar informações reais do usuário
+			const userInfo = await db
+				.select({ name: authUser.name })
+				.from(authUser)
+				.where(eq(authUser.id, problem.userId))
+				.limit(1)
+
+			// Contar soluções reais para este problema
+			const solutionsCount = await db
+				.select({ count: sql<number>`count(*)` })
+				.from(productSolution)
+				.where(eq(productSolution.productProblemId, problem.id))
+
+			// Calcular tempo médio de resolução real
+			const solutions = await db
+				.select({ createdAt: productSolution.createdAt })
+				.from(productSolution)
+				.where(eq(productSolution.productProblemId, problem.id))
+
+			let avgResolutionHours = 0
+			if (solutions.length > 0) {
+				const resolutionTimes = solutions.map(sol => {
+					const resolutionTimeMs = sol.createdAt.getTime() - problem.createdAt.getTime()
+					return resolutionTimeMs / (1000 * 60 * 60) // Converter para horas
+				}).filter(time => time > 0)
+
+				if (resolutionTimes.length > 0) {
+					avgResolutionHours = resolutionTimes.reduce((sum, time) => sum + time, 0) / resolutionTimes.length
+				}
+			}
 
 			return {
 				id: problem.id,
@@ -134,11 +192,11 @@ export async function GET(request: Request) {
 					name: categoryInfo?.name || 'Sem categoria',
 					color: categoryInfo?.color || '#6b7280',
 				},
-				reportedBy: userInfo.name,
-				solutionsCount: Math.floor(Math.random() * 5) + 1, // Mockado por enquanto
-				avgResolutionHours: Math.floor(Math.random() * 8) + 1, // Mockado por enquanto
+				reportedBy: userInfo[0]?.name || 'Usuário',
+				solutionsCount: solutionsCount[0]?.count || 0,
+				avgResolutionHours: Math.round(avgResolutionHours * 10) / 10,
 			}
-		})
+		}))
 
 		console.log('✅ Relatório finalizado:', {
 			totalProblems,

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { useUser } from '@/context/UserContext'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { toast } from '@/lib/toast'
 import { formatDateBR } from '@/lib/dateUtils'
 import { ProductProblem, ProductProblemImage } from '@/lib/db/schema'
@@ -47,7 +47,7 @@ interface SolutionWithDetails {
 
 export default function ProblemsPage() {
 	const { slug } = useParams()
-	const user = useUser()
+	const { currentUser } = useCurrentUser()
 	const [problems, setProblems] = useState<ProductProblemWithCategory[]>([])
 	const [problem, setProblem] = useState<ProductProblemWithCategory | null>(null)
 	const [solutions, setSolutions] = useState<SolutionWithDetails[]>([])
@@ -136,7 +136,7 @@ export default function ProblemsPage() {
 			// Sobrescreve isMine para cada solução
 			const solutionsWithIsMine = (solutionsData.items || []).map((sol: SolutionWithDetails) => ({
 				...sol,
-				isMine: sol.user?.id === user.id,
+				isMine: sol.user?.id === currentUser?.id,
 			}))
 
 			// A API já retorna as soluções ordenadas por data de criação (mais recentes primeiro)
@@ -536,7 +536,7 @@ export default function ProblemsPage() {
 		const solutionsData = await solutionsRes.json()
 		const solutionsWithIsMine = (solutionsData.items || []).map((sol: SolutionWithDetails) => ({
 			...sol,
-			isMine: sol.user?.id === user.id,
+			isMine: sol.user?.id === currentUser?.id,
 		}))
 
 		console.log(

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useChat } from '@/context/ChatContext'
-import { useUser } from '@/context/UserContext'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import MessageBubble from './MessageBubble'
 import EmojiPicker from './EmojiPicker'
 import type { ChatMessage, ChatGroup, ChatUser } from '@/context/ChatContext'
@@ -18,7 +18,7 @@ type ChatAreaProps = {
 
 export default function ChatArea({ activeTargetId, activeTargetType, activeTarget, onToggleSidebar }: ChatAreaProps) {
 	const { messages, sendMessage, loadMessages, loadOlderMessages, markMessageAsRead } = useChat()
-	const user = useUser()
+	const { currentUser } = useCurrentUser()
 
 	const [messageText, setMessageText] = useState('')
 	const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -160,7 +160,7 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 			// Marcar mensagens não lidas como lidas após delay (apenas para userMessage)
 			if (activeTargetType === 'user') {
 				const targetMessages = messages[activeTargetId]
-				const unreadMessages = targetMessages.filter((msg) => msg.senderUserId !== user.id && msg.readAt === null)
+				const unreadMessages = targetMessages.filter((msg) => msg.senderUserId !== currentUser?.id && msg.readAt === null)
 
 				if (unreadMessages.length > 0) {
 					setTimeout(() => {
@@ -171,7 +171,7 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 				}
 			}
 		}
-	}, [messages, activeTargetId, activeTargetType, markMessageAsRead, scrollToBottom, shouldAutoScroll, user.id])
+	}, [messages, activeTargetId, activeTargetType, markMessageAsRead, scrollToBottom, shouldAutoScroll, currentUser?.id])
 
 	// Reset auto-scroll ao trocar de conversa
 	useEffect(() => {
@@ -390,7 +390,7 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 
 						{/* Lista de mensagens */}
 						{targetMessages.map((message: ChatMessage) => (
-							<MessageBubble key={message.id} message={convertMessageForBubble(message)} isOwnMessage={message.senderUserId === user.id} showAvatar={true} readStatus={activeTargetType === 'user' ? (message.readAt ? 'read' : 'delivered') : 'sent'} readCount={0} totalParticipants={0} />
+							<MessageBubble key={message.id} message={convertMessageForBubble(message)} isOwnMessage={message.senderUserId === currentUser?.id} showAvatar={true} readStatus={activeTargetType === 'user' ? (message.readAt ? 'read' : 'delivered') : 'sent'} readCount={0} totalParticipants={0} />
 						))}
 					</>
 				)}

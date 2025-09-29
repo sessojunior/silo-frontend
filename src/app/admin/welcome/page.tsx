@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import InputCheckbox from '@/components/ui/InputCheckbox'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useUser } from '@/context/UserContext'
 
 interface Step {
@@ -16,7 +17,8 @@ interface Step {
 }
 
 export default function WelcomePage() {
-	const user = useUser()
+	const { currentUser, loading: userLoading } = useCurrentUser()
+	const { userProfile } = useUser()
 	const router = useRouter()
 
 	const [steps, setSteps] = useState<Step[]>([])
@@ -27,39 +29,112 @@ export default function WelcomePage() {
 		async function loadData() {
 			// === 1. Verificar Perfil do Usuário Logado ===
 			let profileCompleted = false
-			try {
-				const res = await fetch('/api/user-profile')
-				if (res.ok) {
-					const data = await res.json()
-					const profile = data?.userProfile || {}
-
-					// Verificar se o perfil está completo (todos os campos obrigatórios preenchidos)
-					// NOTA: Foto NÃO faz parte dos requisitos de perfil
-					const hasName = Boolean(data?.user?.name && data.user.name.trim().length > 0)
-					const hasGenre = Boolean(profile?.genre && profile.genre.trim().length > 0)
-					const hasRole = Boolean(profile?.role && profile.role.trim().length > 0)
-					const hasPhone = Boolean(profile?.phone && profile.phone.trim().length > 0)
-					const hasCompany = Boolean(profile?.company && profile.company.trim().length > 0)
-					const hasLocation = Boolean(profile?.location && profile.location.trim().length > 0)
-					const hasTeam = Boolean(profile?.team && profile.team.trim().length > 0)
-
-					// Perfil completo se tiver: nome, gênero, função, telefone, empresa, localização e equipe
-					profileCompleted = hasName && hasGenre && hasRole && hasPhone && hasCompany && hasLocation && hasTeam
-
-					console.log('🔵 [WelcomePage] Perfil do usuário:', {
-						hasName,
-						hasGenre,
-						hasRole,
-						hasPhone,
-						hasCompany,
-						hasLocation,
-						hasTeam,
-						profileCompleted,
-					})
+			
+			// Usar dados do contexto se disponível, senão fazer fetch
+			if (currentUser && userProfile) {
+				// Verificar se o perfil está completo usando dados do contexto
+				const hasName = Boolean(currentUser.name && currentUser.name.trim().length > 0)
+				const hasGenre = Boolean(userProfile.genre && userProfile.genre.trim().length > 0)
+				const hasRole = Boolean(userProfile.role && userProfile.role.trim().length > 0)
+				const hasPhone = Boolean(userProfile.phone && userProfile.phone.trim().length > 0)
+				const hasCompany = Boolean(userProfile.company && userProfile.company.trim().length > 0)
+				const hasLocation = Boolean(userProfile.location && userProfile.location.trim().length > 0)
+				const hasTeam = Boolean(userProfile.team && userProfile.team.trim().length > 0)
+				
+				// Perfil completo se tiver: nome, gênero, função, telefone, empresa, localização e equipe
+				profileCompleted = hasName && hasGenre && hasRole && hasPhone && hasCompany && hasLocation && hasTeam
+				
+				console.log('🔵 [WelcomePage] Perfil do usuário (contexto):', {
+					hasName,
+					hasGenre,
+					hasRole,
+					hasPhone,
+					hasCompany,
+					hasLocation,
+					hasTeam,
+					profileCompleted
+				})
+			} else if (currentUser) {
+				// Se temos currentUser mas não userProfile, fazer fetch apenas do perfil
+				try {
+					const res = await fetch('/api/user-profile')
+					if (res.ok) {
+						const data = await res.json()
+						const profile = data?.userProfile || {}
+						
+						const hasName = Boolean(currentUser.name && currentUser.name.trim().length > 0)
+						const hasGenre = Boolean(profile?.genre && profile.genre.trim().length > 0)
+						const hasRole = Boolean(profile?.role && profile.role.trim().length > 0)
+						const hasPhone = Boolean(profile?.phone && profile.phone.trim().length > 0)
+						const hasCompany = Boolean(profile?.company && profile.company.trim().length > 0)
+						const hasLocation = Boolean(profile?.location && profile.location.trim().length > 0)
+						const hasTeam = Boolean(profile?.team && profile.team.trim().length > 0)
+						
+						// Perfil completo se tiver: nome, gênero, função, telefone, empresa, localização e equipe
+						profileCompleted = hasName && hasGenre && hasRole && hasPhone && hasCompany && hasLocation && hasTeam
+						
+						console.log('🔵 [WelcomePage] Perfil do usuário (fetch):', {
+							hasName,
+							hasGenre,
+							hasRole,
+							hasPhone,
+							hasCompany,
+							hasLocation,
+							hasTeam,
+							profileCompleted
+						})
+						
+						console.log('🔵 [WelcomePage] Perfil do usuário:', {
+							hasName,
+							hasGenre,
+							hasRole,
+							hasPhone,
+							hasCompany,
+							hasLocation,
+							hasTeam,
+							profileCompleted,
+						})
+					}
+				} catch (error) {
+					console.error('❌ [WelcomePage] Erro ao carregar perfil:', error)
+					profileCompleted = false
 				}
-			} catch (error) {
-				console.error('❌ [WelcomePage] Erro ao carregar perfil:', error)
-				profileCompleted = false
+			} else if (!userLoading) {
+				// Se não há currentUser e não está carregando, fazer fetch manual
+				try {
+					const res = await fetch('/api/user-profile')
+					if (res.ok) {
+						const data = await res.json()
+						const profile = data?.userProfile || {}
+
+						// Verificar se o perfil está completo (todos os campos obrigatórios preenchidos)
+						// NOTA: Foto NÃO faz parte dos requisitos de perfil
+						const hasName = Boolean(data?.user?.name && data.user.name.trim().length > 0)
+						const hasGenre = Boolean(profile?.genre && profile.genre.trim().length > 0)
+						const hasRole = Boolean(profile?.role && profile.role.trim().length > 0)
+						const hasPhone = Boolean(profile?.phone && profile.phone.trim().length > 0)
+						const hasCompany = Boolean(profile?.company && profile.company.trim().length > 0)
+						const hasLocation = Boolean(profile?.location && profile.location.trim().length > 0)
+						const hasTeam = Boolean(profile?.team && profile.team.trim().length > 0)
+
+						// Perfil completo se tiver: nome, gênero, função, telefone, empresa, localização e equipe
+						profileCompleted = hasName && hasGenre && hasRole && hasPhone && hasCompany && hasLocation && hasTeam
+
+						console.log('🔵 [WelcomePage] Perfil do usuário:', {
+							hasName,
+							hasGenre,
+							hasRole,
+							hasPhone,
+							hasCompany,
+							hasLocation,
+							hasTeam,
+							profileCompleted,
+						})
+					}
+				} catch (error) {
+					console.error('❌ [WelcomePage] Erro ao carregar perfil:', error)
+					profileCompleted = false
+				}
 			}
 
 			// === 2. Verificar Produtos (qualquer usuário) ===
@@ -151,7 +226,7 @@ export default function WelcomePage() {
 		}
 
 		loadData()
-	}, [])
+	}, [currentUser, userProfile, userLoading])
 
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
@@ -186,7 +261,7 @@ export default function WelcomePage() {
 		<div className='w-full flex min-h-full flex-col items-center justify-center p-8 text-zinc-600 dark:text-zinc-200'>
 			<div className='mb-8 max-w-2xl'>
 				<h1 className='text-center text-3xl font-bold tracking-tight'>
-					Bem-vindo <span className='text-blue-600'>{user?.name?.split(' ')[0] || 'Usuário'}</span> 👋
+					Bem-vindo <span className='text-blue-600'>{currentUser?.name?.split(' ')[0] || 'Usuário'}</span> 👋
 				</h1>
 				<p className='mt-1 text-center text-base'>Siga as etapas abaixo para finalizar a configuração inicial.</p>
 			</div>

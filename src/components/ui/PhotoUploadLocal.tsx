@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { toast } from '@/lib/toast'
+import { useUser } from '@/context/UserContext'
 
 /**
  * Componente de upload de foto de perfil usando servidor local
@@ -16,6 +17,7 @@ type PhotoUploadLocalProps = {
 }
 
 export default function PhotoUploadLocal({ image, className }: PhotoUploadLocalProps) {
+	const { updateUser } = useUser()
 	const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 	const [isInvalid, setIsInvalid] = useState(false)
 	const [invalidMessage, setInvalidMessage] = useState('')
@@ -82,6 +84,10 @@ export default function PhotoUploadLocal({ image, className }: PhotoUploadLocalP
 				if (apiRes.ok) {
 					setPreviewUrl(`${url}?t=${Date.now()}`)
 					setIsInvalid(false)
+					
+					// Atualizar contexto com nova imagem
+					updateUser({ image: url })
+					
 					toast({ type: 'success', title: 'Imagem atualizada', description: 'Sua imagem de perfil foi alterada com sucesso.' })
 				} else {
 					throw new Error('Erro ao atualizar imagem no banco de dados')
@@ -106,6 +112,10 @@ export default function PhotoUploadLocal({ image, className }: PhotoUploadLocalP
 			const ok = await fetch('/api/user-profile-image', { method: 'DELETE' }).then((r) => r.ok)
 			if (ok) {
 				setPreviewUrl(null)
+				
+				// Atualizar contexto removendo imagem
+				updateUser({ image: '/images/profile.png' })
+				
 				toast({ type: 'success', title: 'Imagem removida', description: 'Sua imagem de perfil foi removida.' })
 			} else {
 				throw new Error('Não foi possível remover a imagem.')
