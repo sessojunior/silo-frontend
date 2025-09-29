@@ -324,8 +324,6 @@ async function seed() {
 			}
 		}
 
-		const categoryIdsArray = Array.from(categoryMap.values())
-
 		// === 4.2 VERIFICAR SE EXISTEM ATIVIDADES DE PRODUTO ===
 		const activityExisting = await db.select().from(schema.productActivity).limit(1)
 		if (activityExisting.length === 0) {
