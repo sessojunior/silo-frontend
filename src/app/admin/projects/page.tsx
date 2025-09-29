@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/lib/toast'
 import { formatDateBR } from '@/lib/dateUtils'
@@ -49,10 +49,121 @@ export default function ProjectsPage() {
 	// Estado para controlar qual projeto tem dropdown expandido
 	const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null)
 
-	// Carregar projetos (simulando API com dados mock)
+	// Função para calcular progresso real de um projeto baseado nas tarefas do Kanban
+	const calculateProjectProgress = useCallback(async (projectId: string): Promise<number> => {
+		try {
+			console.log('🔍 Calculando progresso real para projeto:', projectId)
+			
+			// Buscar atividades do projeto
+			const activitiesResponse = await fetch(`/api/admin/projects/${projectId}/activities`)
+			if (!activitiesResponse.ok) {
+				console.log('⚠️ Erro ao buscar atividades do projeto:', projectId)
+				return 0
+			}
+			
+			const activitiesData = await activitiesResponse.json()
+			if (!activitiesData.success || !activitiesData.activities) {
+				console.log('⚠️ Nenhuma atividade encontrada para projeto:', projectId)
+				return 0
+			}
+			
+			let totalTasks = 0
+			let completedTasks = 0
+			
+			// Para cada atividade, buscar suas tarefas e calcular progresso
+			for (const activity of activitiesData.activities) {
+				try {
+					const tasksResponse = await fetch(`/api/admin/projects/${projectId}/activities/${activity.id}/tasks`)
+					if (tasksResponse.ok) {
+						const tasksData = await tasksResponse.json()
+						if (tasksData.success && tasksData.tasks) {
+							// Contar tarefas por status
+							if (typeof tasksData.tasks === 'object' && !Array.isArray(tasksData.tasks)) {
+								for (const status in tasksData.tasks) {
+									if (Array.isArray(tasksData.tasks[status])) {
+										totalTasks += tasksData.tasks[status].length
+										if (status === 'done') {
+											completedTasks += tasksData.tasks[status].length
+										}
+									}
+								}
+							}
+						}
+					}
+				} catch (error) {
+					console.log('⚠️ Erro ao buscar tarefas da atividade:', activity.id, error)
+				}
+			}
+			
+			const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+			console.log(`✅ Progresso calculado para projeto ${projectId}: ${progressPercentage}% (${completedTasks}/${totalTasks} tarefas)`)
+			
+			return progressPercentage
+		} catch (error) {
+			console.error('❌ Erro ao calcular progresso do projeto:', projectId, error)
+			return 0
+		}
+	}, [])
+
+	// Função para carregar projetos com progresso real
+	const fetchProjects = useCallback(async () => {
+		try {
+			setLoading(true)
+			console.log('🔵 Carregando projetos...')
+
+			const response = await fetch('/api/admin/projects')
+
+			if (!response.ok) {
+				throw new Error(`Erro HTTP: ${response.status}`)
+			}
+
+			const projectsData: ProjectDB[] = await response.json()
+
+			// Converter dados do banco para formato da interface e calcular progresso real
+			const formattedProjects: Project[] = await Promise.all(
+				projectsData.map(async (project) => {
+					// Calcular progresso real baseado nas tarefas do Kanban
+					const realProgress = await calculateProjectProgress(project.id)
+					
+					return {
+						id: project.id,
+						name: project.name,
+						shortDescription: project.shortDescription,
+						description: project.description,
+						status: project.status,
+						priority: project.priority,
+						startDate: project.startDate,
+						endDate: project.endDate,
+						// Campos padrão para compatibilidade com interface existente
+						icon: 'folder',
+						color: '#3b82f6',
+						progress: realProgress, // Progresso real calculado baseado nas tarefas
+						members: [], // Sem membros por enquanto
+						activities: [], // Sem atividades por enquanto
+						createdAt: new Date(project.createdAt).toISOString(),
+						updatedAt: new Date(project.updatedAt).toISOString(),
+					}
+				})
+			)
+
+			setProjects(formattedProjects)
+			console.log('✅ Projetos carregados com progresso real:', formattedProjects.length)
+		} catch (error) {
+			console.error('❌ Erro ao carregar projetos:', error)
+			toast({
+				type: 'error',
+				title: 'Erro ao carregar projetos',
+				description: 'Não foi possível carregar os projetos. Tente novamente.',
+			})
+		} finally {
+			setLoading(false)
+		}
+	}, [calculateProjectProgress])
+
+	// Carregar projetos
 	useEffect(() => {
 		fetchProjects()
-	}, [])
+	}, [fetchProjects])
 
 	// Filtrar projetos
 	useEffect(() => {
@@ -71,52 +182,6 @@ export default function ProjectsPage() {
 		setFilteredProjects(filtered)
 	}, [projects, search, statusFilter])
 
-	async function fetchProjects() {
-		try {
-			setLoading(true)
-			console.log('🔵 Carregando projetos...')
-
-			const response = await fetch('/api/admin/projects')
-
-			if (!response.ok) {
-				throw new Error(`Erro HTTP: ${response.status}`)
-			}
-
-			const projectsData: ProjectDB[] = await response.json()
-
-			// Converter dados do banco para formato da interface
-			const formattedProjects: Project[] = projectsData.map((project) => ({
-				id: project.id,
-				name: project.name,
-				shortDescription: project.shortDescription,
-				description: project.description,
-				status: project.status,
-				priority: project.priority,
-				startDate: project.startDate,
-				endDate: project.endDate,
-				// Campos padrão para compatibilidade com interface existente
-				icon: 'folder',
-				color: '#3b82f6',
-				progress: Math.floor(Math.random() * 101), // Progresso aleatório por enquanto
-				members: [], // Sem membros por enquanto
-				activities: [], // Sem atividades por enquanto
-				createdAt: new Date(project.createdAt).toISOString(),
-				updatedAt: new Date(project.updatedAt).toISOString(),
-			}))
-
-			setProjects(formattedProjects)
-			console.log('✅ Projetos carregados:', formattedProjects.length)
-		} catch (error) {
-			console.error('❌ Erro ao carregar projetos:', error)
-			toast({
-				type: 'error',
-				title: 'Erro ao carregar projetos',
-				description: 'Não foi possível carregar os projetos. Tente novamente.',
-			})
-		} finally {
-			setLoading(false)
-		}
-	}
 
 	function openCreateForm() {
 		console.log('🔵 Abrindo formulário para novo projeto')
