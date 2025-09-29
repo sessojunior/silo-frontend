@@ -307,30 +307,28 @@ export default function GroupsPage() {
 													<td className='px-4 py-4 cursor-pointer' onClick={() => toggleGroupExpansion(group.id)}>
 														<div className='text-xs text-zinc-500 dark:text-zinc-400'>{formatDateBR(new Date(group.createdAt).toISOString().split('T')[0])}</div>
 													</td>
-													<td className='px-4 py-4'>
-														<div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
-															{/* Botão Gerenciar Usuários - apenas para administradores */}
-															{!adminLoading && isAdmin && (
+													{/* Célula de Ações - apenas para administradores */}
+													{!adminLoading && isAdmin && (
+														<td className='px-4 py-4'>
+															<div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
+																{/* Botão Gerenciar Usuários */}
 																<Button onClick={() => openUserSelector(group.id)} className='size-8 p-0 rounded-md bg-transparent hover:bg-green-50 dark:hover:bg-green-900/20' title='Gerenciar Usuários'>
 																	<span className='icon-[lucide--users] size-4 text-green-600 dark:text-green-400' />
 																</Button>
-															)}
-															{/* Botões de Edição e Exclusão - apenas para administradores */}
-															{!adminLoading && isAdmin && (
-																<>
-																	<Button onClick={() => openEditForm(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20' title='Editar Grupo'>
-																		<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />
+
+																{/* Botões de Edição e Exclusão */}
+																<Button onClick={() => openEditForm(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20' title='Editar Grupo'>
+																	<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />
+																</Button>
+																{/* Não permitir exclusão do grupo Administradores */}
+																{group.name !== 'Administradores' && (
+																	<Button onClick={() => openDeleteDialog(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20' title='Excluir Grupo'>
+																		<span className='icon-[lucide--trash] size-4 text-red-600 dark:text-red-400' />
 																	</Button>
-																	{/* Não permitir exclusão do grupo Administradores */}
-																	{group.name !== 'Administradores' && (
-																		<Button onClick={() => openDeleteDialog(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20' title='Excluir Grupo'>
-																			<span className='icon-[lucide--trash] size-4 text-red-600 dark:text-red-400' />
-																		</Button>
-																	)}
-																</>
-															)}
-														</div>
-													</td>
+																)}
+															</div>
+														</td>
+													)}
 												</tr>
 												{/* Seção de usuários expandida */}
 												<GroupUsersSection

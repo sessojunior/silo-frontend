@@ -349,28 +349,25 @@ export default function UsersPage() {
 											<td className='px-4 py-4'>
 												<div className='text-xs text-zinc-500 dark:text-zinc-400'>{formatLastLogin(user.lastLogin)}</div>
 											</td>
-											<td className='px-4 py-4'>
-												<div className='flex items-center gap-2'>
-													{/* Botão Ativar/Desativar - apenas para administradores */}
-													{isAdmin && (
+											{/* Célula de Ações - apenas para administradores */}
+											{!adminLoading && isAdmin && (
+												<td className='px-4 py-4'>
+													<div className='flex items-center gap-2'>
+														{/* Botão Ativar/Desativar */}
 														<Button onClick={() => toggleUserStatus(user)} className={`size-8 p-0 rounded-md bg-transparent ${user.isActive ? 'hover:bg-red-50 dark:hover:bg-red-900/20' : 'hover:bg-green-50 dark:hover:bg-green-900/20'}`} title={user.isActive ? 'Desativar usuário' : 'Ativar usuário'}>
 															<span className={`size-4 ${user.isActive ? 'icon-[lucide--user-x] text-red-600 dark:text-red-400' : 'icon-[lucide--user-check] text-green-600 dark:text-green-400'}`} />
 														</Button>
-													)}
 
-													{/* Botões de Edição e Exclusão - apenas para administradores */}
-													{isAdmin && (
-														<>
-															<Button onClick={() => openEditForm(user)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20'>
-																<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />
-															</Button>
-															<Button onClick={() => openDeleteDialog(user)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20'>
-																<span className='icon-[lucide--trash] size-4 text-red-600 dark:text-red-400' />
-															</Button>
-														</>
-													)}
-												</div>
-											</td>
+														{/* Botões de Edição e Exclusão */}
+														<Button onClick={() => openEditForm(user)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20'>
+															<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />
+														</Button>
+														<Button onClick={() => openDeleteDialog(user)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20'>
+															<span className='icon-[lucide--trash] size-4 text-red-600 dark:text-red-400' />
+														</Button>
+													</div>
+												</td>
+											)}
 										</tr>
 									))}
 								</tbody>
