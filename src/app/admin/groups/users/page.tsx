@@ -44,7 +44,7 @@ export default function UsersPage() {
 	const [userToDelete, setUserToDelete] = useState<UserWithGroup | null>(null)
 
 	// Verificar se usuário é administrador
-	const { isAdmin } = useAdminCheck()
+	const { isAdmin, loading: adminLoading } = useAdminCheck()
 
 	// Carregar dados
 	useEffect(() => {
@@ -296,7 +296,10 @@ export default function UsersPage() {
 										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Email</th>
 										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Grupo</th>
 										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Último Acesso</th>
-										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Ações</th>
+										{/* Coluna Ações - apenas para administradores */}
+										{!adminLoading && isAdmin && (
+											<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Ações</th>
+										)}
 									</tr>
 								</thead>
 								<tbody className='divide-y divide-zinc-200 dark:divide-zinc-700'>

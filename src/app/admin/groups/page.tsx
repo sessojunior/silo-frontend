@@ -39,7 +39,7 @@ export default function GroupsPage() {
 	const groupRefs = useRef<Map<string, GroupUsersSectionRef>>(new Map())
 
 	// Verificar se usuário é administrador
-	const { isAdmin } = useAdminCheck()
+	const { isAdmin, loading: adminLoading } = useAdminCheck()
 
 	// Carregar grupos
 	useEffect(() => {
@@ -269,7 +269,10 @@ export default function GroupsPage() {
 										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Descrição</th>
 										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Limite</th>
 										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Criado em</th>
-										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Ações</th>
+										{/* Coluna Ações - apenas para administradores */}
+										{!adminLoading && isAdmin && (
+											<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Ações</th>
+										)}
 									</tr>
 								</thead>
 								<tbody className='divide-y divide-zinc-200 dark:divide-zinc-700'>
@@ -306,11 +309,14 @@ export default function GroupsPage() {
 													</td>
 													<td className='px-4 py-4'>
 														<div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
-															<Button onClick={() => openUserSelector(group.id)} className='size-8 p-0 rounded-md bg-transparent hover:bg-green-50 dark:hover:bg-green-900/20' title='Gerenciar Usuários'>
-																<span className='icon-[lucide--users] size-4 text-green-600 dark:text-green-400' />
-															</Button>
+															{/* Botão Gerenciar Usuários - apenas para administradores */}
+															{!adminLoading && isAdmin && (
+																<Button onClick={() => openUserSelector(group.id)} className='size-8 p-0 rounded-md bg-transparent hover:bg-green-50 dark:hover:bg-green-900/20' title='Gerenciar Usuários'>
+																	<span className='icon-[lucide--users] size-4 text-green-600 dark:text-green-400' />
+																</Button>
+															)}
 															{/* Botões de Edição e Exclusão - apenas para administradores */}
-															{isAdmin && (
+															{!adminLoading && isAdmin && (
 																<>
 																	<Button onClick={() => openEditForm(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20' title='Editar Grupo'>
 																		<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />

@@ -4,7 +4,7 @@ import * as schema from '@/lib/db/schema'
 export type ProductData = Pick<typeof schema.product.$inferInsert, 'name' | 'slug' | 'available' | 'priority' | 'turns'>
 export type GroupData = Omit<typeof schema.group.$inferInsert, 'id' | 'createdAt' | 'updatedAt'>
 export type ContactData = Omit<typeof schema.contact.$inferInsert, 'id' | 'createdAt' | 'updatedAt'>
-export type TestUserData = Pick<typeof schema.authUser.$inferInsert, 'name' | 'email' | 'password' | 'emailVerified' | 'isActive'> & { groupName: string }
+export type TestUserData = Pick<typeof schema.authUser.$inferInsert, 'name' | 'email' | 'emailVerified' | 'isActive'> & { groupName: string }
 export type ProjectData = Omit<typeof schema.project.$inferInsert, 'id' | 'createdAt' | 'updatedAt'>
 export type ManualData = { productSlug: string; description: string }
 
@@ -98,7 +98,6 @@ export const testUsers: TestUserData[] = [
 	{
 		name: 'Alex',
 		email: 'alex@inpe.br',
-		password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
 		emailVerified: true,
 		isActive: true,
 		groupName: 'Administradores',
@@ -106,7 +105,6 @@ export const testUsers: TestUserData[] = [
 	{
 		name: 'Fabiano',
 		email: 'fabiano@inpe.br',
-		password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
 		emailVerified: true,
 		isActive: true,
 		groupName: 'Operadores',
@@ -114,7 +112,6 @@ export const testUsers: TestUserData[] = [
 	{
 		name: 'André',
 		email: 'andre@inpe.br',
-		password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
 		emailVerified: true,
 		isActive: true,
 		groupName: 'Suporte',
@@ -122,7 +119,6 @@ export const testUsers: TestUserData[] = [
 	{
 		name: 'Marcos',
 		email: 'marcos@inpe.br',
-		password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
 		emailVerified: true,
 		isActive: true,
 		groupName: 'Operadores',

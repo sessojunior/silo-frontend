@@ -28,18 +28,23 @@ export function useAdminCheck(): AdminCheckResult {
 			
 			console.log('🔍 Verificando se usuário atual é administrador...')
 			
-			// Fazer uma chamada para uma API que verifica se o usuário é admin
-			// Usamos a API de usuários com um filtro específico para verificar permissões
-			const response = await fetch('/api/admin/users?search=&status=all&groupId=')
+			// Fazer uma chamada para a API específica de verificação de administrador
+			const response = await fetch('/api/admin/check-admin')
 			
-			if (response.status === 403) {
-				// Se retornar 403, significa que não é administrador
+			if (response.ok) {
+				const data = await response.json()
+				if (data.success) {
+					setIsAdmin(data.isAdmin)
+					console.log('✅ Status de administrador verificado:', data.isAdmin)
+				} else {
+					setIsAdmin(false)
+					setError(data.error || 'Erro ao verificar permissões')
+					console.log('❌ Erro na resposta da API:', data.error)
+				}
+			} else if (response.status === 401) {
+				// Usuário não autenticado
 				setIsAdmin(false)
-				console.log('❌ Usuário não é administrador (403)')
-			} else if (response.ok) {
-				// Se conseguir acessar a API de usuários, é administrador
-				setIsAdmin(true)
-				console.log('✅ Usuário é administrador')
+				console.log('❌ Usuário não autenticado')
 			} else {
 				// Outros erros
 				setIsAdmin(false)

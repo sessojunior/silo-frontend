@@ -127,7 +127,7 @@ async function seed() {
 				name: 'Mario Junior',
 				email: 'teste@inpe.br',
 				emailVerified: true,
-				password: hashedPassword,
+				password: hashedPassword, // senha: #Admin123
 				isActive: true,
 				lastLogin: null,
 			})
@@ -199,6 +199,9 @@ async function seed() {
 		if (usersToCreate.length > 0) {
 			console.log('🔵 Criando usuários de teste para chat...')
 			const createdUserIds: string[] = []
+			
+			// Gerar hash da senha padrão para todos os usuários de teste
+			const hashedPassword = await hashPassword('#User123')
 
 			for (const user of usersToCreate) {
 				const newUserId = randomUUID()
@@ -207,7 +210,7 @@ async function seed() {
 					id: newUserId,
 					name: user.name,
 					email: user.email,
-					password: user.password,
+					password: hashedPassword, // senha: #User123
 					emailVerified: user.emailVerified,
 					isActive: user.isActive,
 				})
