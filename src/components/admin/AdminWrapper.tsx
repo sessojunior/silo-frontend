@@ -4,10 +4,14 @@ import Sidebar from '@/components/admin/sidebar/Sidebar'
 import Topbar from '@/components/admin/topbar/Topbar'
 import Toast from '@/components/ui/Toast'
 import ChatPollingController from '@/components/admin/ChatPollingController'
+import ThemeInitializer from '@/components/admin/ThemeInitializer'
 
 export default function AdminWrapper({ children }: { children: React.ReactNode }) {
 	return (
 		<>
+			{/* Inicializador de tema */}
+			<ThemeInitializer />
+			
 			<SidebarProvider>
 				{/* Controlador de polling do chat */}
 				<ChatPollingController />
