@@ -132,16 +132,27 @@ async function seed() {
 				lastLogin: null,
 			})
 
-			// Adicionar a TODOS os grupos ativos (não apenas o padrão)
-			console.log('🔵 Adicionando Mario Junior a todos os grupos ativos...')
-			for (const group of insertedGroups.filter((g) => g.active)) {
+			// Adicionar aos grupos específicos conforme especificação
+			console.log('🔵 Adicionando Mario Junior aos grupos Administradores e Suporte...')
+			const adminGroup = insertedGroups.find((g) => g.name === 'Administradores')
+			const supportGroup = insertedGroups.find((g) => g.name === 'Suporte')
+			
+			if (adminGroup) {
 				await db.insert(schema.userGroup).values({
 					userId: userId,
-					groupId: group.id,
-					role: group.name === 'Administradores' ? 'admin' : 'member',
+					groupId: adminGroup.id,
+					role: 'admin',
 				})
 			}
-			console.log(`✅ Mario Junior adicionado a ${insertedGroups.filter((g) => g.active).length} grupos!`)
+			
+			if (supportGroup) {
+				await db.insert(schema.userGroup).values({
+					userId: userId,
+					groupId: supportGroup.id,
+					role: 'member',
+				})
+			}
+			console.log('✅ Mario Junior adicionado aos grupos Administradores e Suporte!')
 
 			// Criar perfil
 			await db.insert(schema.userProfile).values({
@@ -159,7 +170,7 @@ async function seed() {
 			await db.insert(schema.userPreferences).values({
 				id: randomUUID(),
 				userId: userId,
-				chatEnabled: true, // Chat ativado por padrão
+				chatEnabled: false, // Chat desativado conforme especificação
 			})
 
 			console.log('✅ Usuário Mario Junior criado com sucesso!')
@@ -211,60 +222,33 @@ async function seed() {
 				createdUserIds.push(newUserId)
 			}
 
-			// Associar TODOS os usuários criados a TODOS os grupos ativos (para chat)
-			console.log('🔵 Associando usuários a todos os grupos ativos...')
-			const activeGroups = insertedGroups.filter((g) => g.active)
-
-			for (const newUserId of createdUserIds) {
-				for (const group of activeGroups) {
+			// Associar usuários aos grupos específicos conforme especificação
+			console.log('🔵 Associando usuários aos grupos específicos...')
+			
+			for (let i = 0; i < usersToCreate.length; i++) {
+				const user = usersToCreate[i]
+				const newUserId = createdUserIds[i]
+				
+				// Encontrar o grupo baseado no groupName do usuário
+				const targetGroup = insertedGroups.find((g) => g.name === user.groupName)
+				
+				if (targetGroup) {
 					await db.insert(schema.userGroup).values({
 						userId: newUserId,
-						groupId: group.id,
-						role: 'member', // Todos como members, apenas Mario Junior é admin
+						groupId: targetGroup.id,
+						role: 'member',
 					})
+					console.log(`✅ ${user.name} associado ao grupo ${user.groupName}`)
 				}
 			}
 
-			console.log(`✅ ${usersToCreate.length} usuários de teste criados e associados a ${activeGroups.length} grupos cada!`)
+			console.log(`✅ ${usersToCreate.length} usuários de teste criados e associados aos grupos específicos!`)
 		} else {
 			console.log('⚠️ Usuários de teste já existem, pulando...')
 		}
 
-		// === GARANTIR QUE TODOS OS USUÁRIOS VEJAM TODOS OS GRUPOS (PARA CHAT) ===
-		console.log('🔵 Verificando associações usuário-grupo para chat...')
-
-		// Buscar todos os usuários ativos
-		const allActiveUsers = await db.select().from(schema.authUser).where(eq(schema.authUser.isActive, true))
-		const allActiveGroups = insertedGroups.filter((g) => g.active)
-
-		// Verificar se algum usuário não está associado a todos os grupos
-		let missingAssociations = 0
-
-		for (const user of allActiveUsers) {
-			const userGroups = await db.select({ groupId: schema.userGroup.groupId }).from(schema.userGroup).where(eq(schema.userGroup.userId, user.id))
-
-			const userGroupIds = new Set(userGroups.map((ug) => ug.groupId))
-
-			for (const group of allActiveGroups) {
-				if (!userGroupIds.has(group.id)) {
-					// Usuário não está no grupo, adicionar
-					await db.insert(schema.userGroup).values({
-						userId: user.id,
-						groupId: group.id,
-						role: group.name === 'Administradores' && user.email === 'teste@inpe.br' ? 'admin' : 'member',
-					})
-					missingAssociations++
-				}
-			}
-		}
-
-		if (missingAssociations > 0) {
-			console.log(`✅ ${missingAssociations} associações faltantes adicionadas!`)
-		} else {
-			console.log('✅ Todos os usuários já estão associados a todos os grupos!')
-		}
-
-		console.log(`📊 Total: ${allActiveUsers.length} usuários × ${allActiveGroups.length} grupos = chat completo!`)
+		// === VERIFICAÇÃO DE ASSOCIAÇÕES USUÁRIO-GRUPO ===
+		console.log('✅ Associações usuário-grupo configuradas conforme especificação')
 
 		// === 4. CRIAR PRODUTOS ===
 		if (!productsCheck.hasData) {
@@ -298,45 +282,38 @@ async function seed() {
 					},
 					{
 						id: randomUUID(),
-						name: 'Rede externa',
-						color: '#1E40AF',
+						name: 'Dados indisponíveis',
+						color: '#7C3AED', // violeta
 						isSystem: false,
 						sortOrder: 1,
 					},
 					{
 						id: randomUUID(),
-						name: 'Servidor indisponível',
-						color: '#DC2626',
+						name: 'Rede externa',
+						color: '#DC2626', // vermelho
 						isSystem: false,
 						sortOrder: 2,
 					},
 					{
 						id: randomUUID(),
-						name: 'Falha humana',
-						color: '#F59E0B',
+						name: 'Rede interna',
+						color: '#EC4899', // rosa
 						isSystem: false,
 						sortOrder: 3,
 					},
 					{
 						id: randomUUID(),
-						name: 'Rede interna',
-						color: '#10B981',
+						name: 'Erro no modelo',
+						color: '#F59E0B', // laranja
 						isSystem: false,
 						sortOrder: 4,
 					},
 					{
 						id: randomUUID(),
-						name: 'Erro no modelo',
-						color: '#7C3AED',
+						name: 'Falha humana',
+						color: '#92400E', // marrom
 						isSystem: false,
 						sortOrder: 5,
-					},
-					{
-						id: randomUUID(),
-						name: 'Dados indisponíveis',
-						color: '#6B7280',
-						isSystem: false,
-						sortOrder: 6,
 					},
 				]
 
@@ -349,99 +326,12 @@ async function seed() {
 
 		const categoryIdsArray = Array.from(categoryMap.values())
 
-		// === 4.2 CRIAR ATIVIDADES DE PRODUTO (60 dias × 4 turnos) ===
+		// === 4.2 VERIFICAR SE EXISTEM ATIVIDADES DE PRODUTO ===
 		const activityExisting = await db.select().from(schema.productActivity).limit(1)
 		if (activityExisting.length === 0) {
-			console.log('🔵 Gerando histórico de product_activity (60 dias)...')
-			const statusPool = ['completed', 'pending', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended'] as const
-
-			const descriptionSamples: Record<string, string[]> = {
-				pending: ['Rodada não iniciada no horário programado', 'Execução pendente, aguardar próximo turno', 'Execução atrasada; necessário iniciar manualmente'],
-				not_run: ['Modelo não executou no turno previsto', 'Execução falhou, sem saída gerada', 'Turno perdido; verificar agendamento'],
-				with_problems: ['Saída gerada com inconsistências', 'Modelo concluiu com erros de validação', 'Resultados suspeitos; revisar parâmetros'],
-				run_again: ['Necessário reexecutar devido a dados de entrada corrigidos', 'Solicitada nova execução pelo usuário', 'Reprocessamento agendado'],
-				under_support: ['Execução em análise pela equipe do IO', 'Intervenção técnica em andamento', 'Suporte investigando problema de infraestrutura'],
-				suspended: ['Rodada suspensa por manutenção programada', 'Execução pausada por falta de recursos', 'Processo suspenso até nova ordem'],
-			}
-
-			const productsAll = await db.select().from(schema.product)
-			for (const prod of productsAll.slice(0, 4)) {
-				for (let d = 0; d < 90; d++) {
-					const day = new Date()
-					day.setDate(day.getDate() - d)
-					const dateStr = day.toISOString().slice(0, 10)
-					for (const turn of [0, 6, 12, 18]) {
-						const rnd = Math.random()
-						let status: (typeof statusPool)[number] = 'completed'
-						if (rnd > 0.7) {
-							status = statusPool[Math.floor(Math.random() * statusPool.length)]
-						}
-
-						const randomDescription = descriptionSamples[status]?.[Math.floor(Math.random() * (descriptionSamples[status]?.length || 1))] || null
-
-						await db.insert(schema.productActivity).values({
-							id: randomUUID(),
-							productId: prod.id,
-							userId: userId || prod.id, // fallback qualquer
-							date: dateStr as unknown as string,
-							turn,
-							status,
-							problemCategoryId: status === 'completed' ? null : categoryIdsArray[Math.floor(Math.random() * categoryIdsArray.length)],
-							description: randomDescription,
-						})
-					}
-				}
-			}
-			console.log('✅ product_activity gerado!')
+			console.log('⚠️ Nenhuma atividade de produto encontrada - sistema iniciado sem histórico fake')
 		} else {
-			console.log('⚠️ product_activity já possui dados, mas vamos recriar para o BAM...')
-
-			// Buscar o produto BAM
-			const bamProduct = await db.select().from(schema.product).where(eq(schema.product.slug, 'bam')).limit(1)
-
-			if (bamProduct.length > 0) {
-				// Remover atividades antigas do BAM
-				await db.delete(schema.productActivity).where(eq(schema.productActivity.productId, bamProduct[0].id))
-				console.log('✅ Atividades antigas do BAM removidas')
-
-				// Criar atividades para o BAM (90 dias × 4 turnos)
-				const statusPool = ['completed', 'pending', 'not_run', 'with_problems', 'run_again', 'under_support', 'suspended'] as const
-				const descriptionSamples: Record<string, string[]> = {
-					pending: ['Rodada não iniciada no horário programado', 'Execução pendente, aguardar próximo turno', 'Execução atrasada; necessário iniciar manualmente'],
-					not_run: ['Modelo não executou no turno previsto', 'Execução falhou, sem saída gerada', 'Turno perdido; verificar agendamento'],
-					with_problems: ['Saída gerada com inconsistências', 'Modelo concluiu com erros de validação', 'Resultados suspeitos; revisar parâmetros'],
-					run_again: ['Necessário reexecutar devido a dados de entrada corrigidos', 'Solicitada nova execução pelo usuário', 'Reprocessamento agendado'],
-					under_support: ['Execução em análise pela equipe do IO', 'Intervenção técnica em andamento', 'Suporte investigando problema de infraestrutura'],
-					suspended: ['Rodada suspensa por manutenção programada', 'Execução pausada por falta de recursos', 'Processo suspenso até nova ordem'],
-				}
-
-				for (let d = 0; d < 90; d++) {
-					const day = new Date()
-					day.setDate(day.getDate() - d)
-					const dateStr = day.toISOString().slice(0, 10)
-					for (const turn of [0, 6, 12, 18]) {
-						const rnd = Math.random()
-						let status: (typeof statusPool)[number] = 'completed'
-						if (rnd > 0.7) {
-							status = statusPool[Math.floor(Math.random() * statusPool.length)]
-						}
-
-						const randomDescription = descriptionSamples[status]?.[Math.floor(Math.random() * (descriptionSamples[status]?.length || 1))] || null
-
-						await db.insert(schema.productActivity).values({
-							id: randomUUID(),
-							productId: bamProduct[0].id,
-							userId: userId || bamProduct[0].id,
-							date: dateStr as unknown as string,
-							turn,
-							status,
-							problemCategoryId: status === 'completed' ? null : categoryIdsArray[Math.floor(Math.random() * categoryIdsArray.length)],
-							description: randomDescription,
-						})
-					}
-				}
-				console.log('✅ Atividades do BAM recriadas (90 dias × 4 turnos)!')
-			}
+			console.log('⚠️ Atividades de produto já existem - mantendo dados existentes')
 		}
 
 		// === 4.3 CRIAR HISTÓRICO DE ATIVIDADES APENAS PARA BAM (DATA ATUAL) ===
@@ -743,10 +633,6 @@ Investigação inicial aponta para falha no sistema RAID do servidor principal d
 			// Mapeamento de projetos para seus respectivos grupos de atividades
 			const projectActivityMapping = [
 				{ projectIndex: 0, activities: projectActivitiesData.meteorologia }, // Sistema de Monitoramento Meteorológico
-				{ projectIndex: 1, activities: projectActivitiesData.clima }, // Migração para Nuvem INPE
-				{ projectIndex: 2, activities: projectActivitiesData.portal }, // Portal de Dados Abertos
-				{ projectIndex: 3, activities: projectActivitiesData.previsao }, // Modernização da Rede de Observação
-				{ projectIndex: 4, activities: projectActivitiesData.infraestrutura }, // Sistema de Backup Distribuído (SEM ATIVIDADES)
 			]
 
 			let totalActivitiesCreated = 0
@@ -814,74 +700,7 @@ Investigação inicial aponta para falha no sistema RAID do servidor principal d
 
 			await db.insert(schema.chatUserPresence).values(userPresenceData)
 			console.log(`✅ Status de presença criado para ${allUsers.length} usuários!`)
-
-			// Criar mensagens de exemplo (groupMessage e userMessage)
-			if (allUsers.length >= 3) {
-				console.log('🔵 Criando mensagens de exemplo...')
-				const exampleMessages = []
-				const now = new Date()
-
-				// Mensagens para grupos (groupMessage)
-				const activeGroups = insertedGroups.filter((g) => g.active).slice(0, 3) // Primeiros 3 grupos
-				const messageUsers = allUsers.slice(0, 3) // Primeiros 3 usuários
-
-				for (let i = 0; i < activeGroups.length; i++) {
-					const group = activeGroups[i]
-					const user = messageUsers[i % messageUsers.length]
-					const minutesAgo = (i + 1) * 10
-					const messageTime = new Date(now.getTime() - minutesAgo * 60 * 1000)
-
-					exampleMessages.push({
-						content: `Mensagem de exemplo no grupo ${group.name} - Bem-vindos ao sistema de chat!`,
-						senderUserId: user.id,
-						receiverGroupId: group.id,
-						receiverUserId: null,
-						createdAt: messageTime,
-						readAt: null, // Grupos nunca têm readAt
-					})
-				}
-
-				// Mensagens privadas entre usuários (userMessage)
-				if (allUsers.length >= 2) {
-					const sender = allUsers[0] // Mario Junior
-					const receiver = allUsers[1] // Primeiro usuário de teste
-
-					// Conversa privada (userMessage - lida)
-					exampleMessages.push({
-						content: 'Olá! Como está o andamento do projeto?',
-						senderUserId: sender.id,
-						receiverGroupId: null,
-						receiverUserId: receiver.id,
-						createdAt: new Date(now.getTime() - 30 * 60 * 1000), // 30 min atrás
-						readAt: new Date(now.getTime() - 25 * 60 * 1000), // Lida 25 min atrás
-					})
-
-					// Resposta (userMessage - não lida)
-					exampleMessages.push({
-						content: 'Oi! O projeto está indo bem, acabei de finalizar a primeira fase.',
-						senderUserId: receiver.id,
-						receiverGroupId: null,
-						receiverUserId: sender.id,
-						createdAt: new Date(now.getTime() - 20 * 60 * 1000), // 20 min atrás
-						readAt: null, // Não lida (para demonstrar contador)
-					})
-
-					// Mais uma mensagem não lida
-					exampleMessages.push({
-						content: 'Podemos agendar uma reunião para revisar os resultados?',
-						senderUserId: receiver.id,
-						receiverGroupId: null,
-						receiverUserId: sender.id,
-						createdAt: new Date(now.getTime() - 15 * 60 * 1000), // 15 min atrás
-						readAt: null, // Não lida
-					})
-				}
-
-				await db.insert(schema.chatMessage).values(exampleMessages)
-				console.log(`✅ ${exampleMessages.length} mensagens de exemplo criadas!`)
-				console.log(`   - ${activeGroups.length} mensagens para grupos (groupMessage)`)
-				console.log(`   - ${exampleMessages.length - activeGroups.length} mensagens privadas (userMessage)`)
-			}
+			console.log('⚠️ Sistema iniciado sem mensagens fake - chat será usado conforme necessidade real')
 		} else {
 			console.log('⚠️ Sistema de chat já existe, pulando...')
 		}
@@ -900,21 +719,21 @@ Investigação inicial aponta para falha no sistema RAID do servidor principal d
 		if (allActivities.length > 0) {
 			let totalTasksCreated = 0
 
-			for (const project of insertedProjects.slice(0, 3)) {
-				// Apenas primeiros 3 projetos
+			for (const project of insertedProjects.slice(0, 1)) {
+				// Apenas o primeiro projeto (único projeto)
 				const projectActivities = allActivities.filter((a) => a.projectId === project.id)
 
 				if (projectActivities.length > 0) {
 					console.log(`   🔵 Criando tarefas para projeto "${project.name}" (${projectActivities.length} atividades)...`)
 
-					// Para cada atividade, criar pelo menos 6 tarefas
+					// Para cada atividade, criar exatamente 8 tarefas
 					for (const activity of projectActivities) {
 						console.log(`     🔵 Criando tarefas para atividade "${activity.name}"...`)
 
-						// Criar 6+ tarefas de exemplo para esta atividade
+						// Criar exatamente 8 tarefas para esta atividade
 						const tasksToCreate = []
 
-						// Templates de tarefas com distribuição por status
+						// Templates de tarefas com distribuição por status (8 tarefas)
 						const taskTemplates = [
 							{ name: 'Configurar ambiente de desenvolvimento', status: 'todo', category: 'Infraestrutura', priority: 'high' },
 							{ name: 'Implementar funcionalidade principal', status: 'todo', category: 'Desenvolvimento', priority: 'urgent' },

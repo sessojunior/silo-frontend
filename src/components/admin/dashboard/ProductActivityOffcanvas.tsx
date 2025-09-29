@@ -84,10 +84,15 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 	}, [status])
 
 	const updateIncidentsForStatus = (allOptions: SelectOption[], currentStatus: string) => {
-		// Se o status for "Concluído", incluir "Não houve incidentes"
-		// Caso contrário, filtrar essa opção
+		// Se o status for "Concluído", permitir campo vazio OU seleção de incidentes
+		// Caso contrário, obrigar seleção de incidente real
 		if (currentStatus === 'completed') {
-			setIncidents(allOptions)
+			// Incluir opção vazia para permitir null quando não há incidentes
+			const optionsWithEmpty = [
+				{ label: 'Nenhum incidente', value: '' },
+				...allOptions.filter((option) => option.value !== NO_INCIDENTS_CATEGORY_ID)
+			]
+			setIncidents(optionsWithEmpty)
 		} else {
 			setIncidents(allOptions.filter((option) => option.value !== NO_INCIDENTS_CATEGORY_ID))
 		}
@@ -146,7 +151,7 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 				turn,
 				status,
 				description,
-				problemCategoryId: incidentId,
+				problemCategoryId: incidentId === '' ? null : incidentId,
 			}
 			const url = '/api/admin/products/activities'
 			let method: 'POST' | 'PUT' = 'POST'

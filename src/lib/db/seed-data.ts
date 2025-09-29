@@ -22,7 +22,7 @@ export const products: ProductData[] = [
 	{ name: 'BAM', slug: 'bam', available: true, priority: 'normal', turns: ['0'] },
 	{ name: 'SMEC', slug: 'smec', available: true, priority: 'high', turns: ['0', '12'] },
 	{ name: 'BRAMS AMS 15KM', slug: 'brams-ams-15km', available: true, priority: 'urgent', turns: ['0', '6', '12', '18'] },
-	{ name: 'WRF', slug: 'wrf', available: true, priority: 'low', turns: ['0', '6', '12', '18'] },
+	{ name: 'WRF', slug: 'wrf', available: true, priority: 'low', turns: ['0'] },
 ]
 
 export const groups: GroupData[] = [
@@ -36,30 +36,12 @@ export const groups: GroupData[] = [
 		maxUsers: 5,
 	},
 	{
-		name: 'Meteorologistas',
-		description: 'Profissionais especializados em meteorologia',
-		icon: 'icon-[lucide--cloud-drizzle]',
-		color: '#2563EB',
-		active: true,
-		isDefault: true,
-		maxUsers: null,
-	},
-	{
-		name: 'Pesquisadores',
-		description: 'Pesquisadores e cientistas do INPE',
-		icon: 'icon-[lucide--microscope]',
-		color: '#7C3AED',
-		active: true,
-		isDefault: false,
-		maxUsers: null,
-	},
-	{
 		name: 'Operadores',
 		description: 'Operadores responsáveis pelo funcionamento dos sistemas',
 		icon: 'icon-[lucide--settings]',
 		color: '#059669',
 		active: true,
-		isDefault: false,
+		isDefault: true,
 		maxUsers: 10,
 	},
 	{
@@ -84,100 +66,66 @@ export const groups: GroupData[] = [
 
 export const contacts: ContactData[] = [
 	{
-		name: 'Carlos Eduardo Silva',
-		role: 'Coordenador de Meteorologia',
-		team: 'CPTEC',
-		email: 'carlos.silva@inpe.br',
+		name: 'Carlos',
+		role: 'Coordenador de infraestrutura',
+		team: 'WEB',
+		email: 'carlos@inpe.br',
 		phone: '+55 12 3208-6000',
 		image: null,
 		active: true,
 	},
 	{
-		name: 'Maria Fernanda Santos',
-		role: 'Pesquisadora Sênior',
-		team: 'Modelagem Numérica',
-		email: 'maria.santos@inpe.br',
+		name: 'Rogério',
+		role: 'Analista de sistemas',
+		team: 'Pesquisas',
+		email: 'rogerio@inpe.br',
 		phone: '+55 12 3208-6001',
 		image: null,
 		active: true,
 	},
 	{
-		name: 'João Alberto Costa',
-		role: 'Especialista em Sistemas',
-		team: 'Infraestrutura',
-		email: 'joao.costa@inpe.br',
+		name: 'Luis',
+		role: 'Administrador de sistemas',
+		team: 'Supercomputação',
+		email: 'luis@inpe.br',
 		phone: '+55 12 3208-6002',
 		image: null,
 		active: true,
-	},
-	{
-		name: 'Ana Paula Lima',
-		role: 'Analista de Sistemas',
-		team: 'Desenvolvimento',
-		email: 'ana.lima@inpe.br',
-		phone: '+55 12 3208-6003',
-		image: null,
-		active: true,
-	},
-	{
-		name: 'Roberto Ferreira',
-		role: 'Coordenador de Pesquisa',
-		team: 'P&D',
-		email: 'roberto.ferreira@inpe.br',
-		phone: '+55 12 3208-6004',
-		image: null,
-		active: false,
 	},
 ]
 
 export const testUsers: TestUserData[] = [
 	{
-		name: 'Ana Silva',
-		email: 'ana.silva@inpe.br',
+		name: 'Alex',
+		email: 'alex@inpe.br',
 		password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
 		emailVerified: true,
 		isActive: true,
-		groupName: 'Meteorologistas',
+		groupName: 'Administradores',
 	},
 	{
-		name: 'Carlos Santos',
-		email: 'carlos.santos@inpe.br',
-		password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-		emailVerified: true,
-		isActive: true,
-		groupName: 'Pesquisadores',
-	},
-	{
-		name: 'Beatriz Lima',
-		email: 'beatriz.lima@inpe.br',
+		name: 'Fabiano',
+		email: 'fabiano@inpe.br',
 		password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
 		emailVerified: true,
 		isActive: true,
 		groupName: 'Operadores',
 	},
 	{
-		name: 'Diego Ferreira',
-		email: 'diego.ferreira@inpe.br',
+		name: 'André',
+		email: 'andre@inpe.br',
 		password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
 		emailVerified: true,
 		isActive: true,
 		groupName: 'Suporte',
 	},
 	{
-		name: 'Elena Costa',
-		email: 'elena.costa@inpe.br',
-		password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-		emailVerified: true,
-		isActive: false,
-		groupName: 'Visitantes',
-	},
-	{
-		name: 'Fernando Rocha',
-		email: 'fernando.rocha@inpe.br',
+		name: 'Marcos',
+		email: 'marcos@inpe.br',
 		password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
 		emailVerified: true,
 		isActive: true,
-		groupName: 'Meteorologistas',
+		groupName: 'Operadores',
 	},
 ]
 
@@ -361,42 +309,6 @@ export const projectsData: ProjectData[] = [
 		priority: 'high',
 		status: 'active',
 	},
-	{
-		name: 'Migração para Nuvem INPE',
-		shortDescription: 'Migração de aplicações críticas para infraestrutura em nuvem',
-		description: 'Projeto estratégico para migrar as principais aplicações do CPTEC para uma infraestrutura híbrida na nuvem, garantindo escalabilidade, disponibilidade e redução de custos operacionais.',
-		startDate: '2024-02-01',
-		endDate: '2025-01-31',
-		priority: 'urgent',
-		status: 'active',
-	},
-	{
-		name: 'Portal de Dados Abertos',
-		shortDescription: 'Desenvolvimento de portal para disponibilização de dados científicos',
-		description: 'Criação de uma plataforma web para disponibilizar dados meteorológicos e climáticos para a comunidade científica e sociedade civil, com APIs REST e interface intuitiva.',
-		startDate: '2023-08-01',
-		endDate: '2024-07-31',
-		priority: 'medium',
-		status: 'completed',
-	},
-	{
-		name: 'Modernização da Rede de Observação',
-		shortDescription: 'Atualização de equipamentos de observação meteorológica',
-		description: 'Projeto para substituir equipamentos de observação meteorológica obsoletos por tecnologia moderna, incluindo estações automáticas e sensores de última geração.',
-		startDate: '2024-03-01',
-		endDate: null,
-		priority: 'low',
-		status: 'paused',
-	},
-	{
-		name: 'Sistema de Backup Distribuído',
-		shortDescription: 'Implementação de sistema de backup distribuído para dados críticos',
-		description: 'Desenvolvimento de solução de backup distribuído para proteção de dados meteorológicos históricos e operacionais, com replicação geográfica e recuperação automática.',
-		startDate: '2023-11-01',
-		endDate: '2024-02-29',
-		priority: 'medium',
-		status: 'cancelled',
-	},
 ]
 
 export const helpDocumentation = `# 📚 Manual do Usuário - Sistema SILO
@@ -488,92 +400,71 @@ export const manualData: ManualData[] = [
 		description: `# Manual do Sistema BAM
 
 ## Introdução
-O Sistema de Análise e Previsão Global (BAM) é o modelo numérico operacional do CPTEC para previsão meteorológica global.
+O Sistema de Análise e Previsão Global (BAM) é o modelo numérico operacional do CPTEC para previsão meteorológica global. Este sistema utiliza dados atmosféricos globais para gerar previsões de tempo de curto a médio prazo.
 
-## Instalação e Configuração
-### Requisitos do Sistema
-- Sistema Operacional: Linux (Ubuntu 18.04+ ou CentOS 7+)
-- Memória RAM: Mínimo 32GB, recomendado 64GB
-- Espaço em Disco: 500GB disponíveis
-- Processador: Intel Xeon ou equivalente
-
-### Dependências
-- Python 3.8+
-- NetCDF4 libraries
-- FORTRAN compiler (gfortran)
-- MPI libraries
+## Configuração
+O BAM requer configuração específica de parâmetros meteorológicos e condições iniciais. O sistema utiliza dados de entrada do GFS (Global Forecast System) e processa informações atmosféricas em resolução global.
 
 ## Utilização
-### Execução Básica
-\`\`\`bash
-./run_bam.sh --config config/bam_operational.conf
-\`\`\`
-
-### Configurações Avançadas
-O arquivo de configuração permite ajustar:
-- Resolução da grade
-- Período de integração
-- Condições iniciais
-- Parametrizações físicas`,
+O sistema executa automaticamente no turno 0h (meia-noite) e gera produtos de previsão meteorológica global. Os resultados são disponibilizados através de interfaces web e APIs para consulta pelos usuários autorizados.`,
 	},
 	{
 		productSlug: 'smec',
 		description: `# Manual do Sistema SMEC
 
 ## Introdução
-O Sistema de Meteorologia e Climatologia (SMEC) é responsável pelo processamento e análise de dados meteorológicos.
+O Sistema de Meteorologia e Climatologia (SMEC) é responsável pelo processamento e análise de dados meteorológicos operacionais. Este sistema integra dados observacionais e de modelos numéricos para fornecer informações meteorológicas precisas.
 
 ## Configuração
-### Base de Dados
-- PostgreSQL 12+
-- Estrutura otimizada para séries temporais
-- Índices específicos para consultas meteorológicas
+O SMEC opera nos turnos 0h e 12h, processando dados meteorológicos em tempo real. O sistema utiliza algoritmos de análise objetiva e assimilação de dados para gerar campos meteorológicos analisados.
 
-### APIs Disponíveis
-- REST API para consulta de dados
-- Polling inteligente para atualizações
-- GraphQL para consultas complexas`,
+## Utilização
+O sistema processa dados meteorológicos automaticamente e disponibiliza produtos de análise e previsão através de interfaces web. Os usuários podem acessar mapas meteorológicos, gráficos e dados numéricos através do portal web.`,
 	},
 	{
 		productSlug: 'brams-ams-15km',
 		description: `# Manual do BRAMS AMS 15KM
 
 ## Introdução
-O Brazilian Regional Atmospheric Modeling System com resolução de 15km para a América do Sul.
+O Brazilian Regional Atmospheric Modeling System com resolução de 15km é um modelo meteorológico regional de alta resolução para a América do Sul. Este sistema fornece previsões detalhadas para regiões específicas do continente.
 
-## Características Técnicas
-- Grade: 15km de resolução
-- Domínio: América do Sul
-- Níveis verticais: 42 níveis sigma
-- Timestep: 60 segundos`,
+## Configuração
+O BRAMS opera nos turnos 0h, 6h, 12h e 18h com resolução horizontal de 15km. O modelo utiliza condições de contorno do BAM e processa dados meteorológicos regionais com alta precisão espacial e temporal.
+
+## Utilização
+O sistema gera previsões meteorológicas regionais com alta resolução espacial. Os produtos incluem mapas de precipitação, temperatura, vento e outros parâmetros meteorológicos específicos para a América do Sul.`,
 	},
 	{
 		productSlug: 'wrf',
 		description: `# Manual do Sistema WRF
 
 ## Introdução
-Weather Research and Forecasting model implementado no CPTEC para simulações de alta resolução.
+O Weather Research and Forecasting (WRF) é um modelo meteorológico de alta resolução implementado no CPTEC para simulações meteorológicas detalhadas. Este sistema é amplamente utilizado para pesquisa e previsão meteorológica.
 
 ## Configuração
-### Domínios Aninhados
-- Domínio 1: 27km (América do Sul)
-- Domínio 2: 9km (Brasil)
-- Domínio 3: 3km (Região de interesse)`,
+O WRF opera no turno 0h utilizando dados de entrada do modelo global. O sistema pode ser configurado para diferentes domínios geográficos e resoluções espaciais conforme a necessidade específica da aplicação.
+
+## Utilização
+O sistema executa simulações meteorológicas de alta resolução e gera produtos específicos para análise e previsão. Os resultados são utilizados tanto para operação meteorológica quanto para pesquisa científica em meteorologia.`,
 	},
 ]
 
 // Funções auxiliares para gerar dados dinâmicos
 export function generateProblems() {
-	return problemTitles.slice(0, 5).map((title, index) => ({
-		title,
-		description: problemDescriptions[index] ? problemDescriptions[index].join('\n\n') : `Descrição detalhada do problema: ${title}`,
-	}))
+	return [
+		{
+			title: 'Falha na execução do modelo',
+			description: 'O modelo apresentou erro durante a execução devido a problemas de conectividade com o servidor de dados meteorológicos. O sistema não conseguiu baixar os dados de entrada necessários para o processamento.',
+		},
+	]
 }
 
 export function generateSolutions() {
-	return solutionDescriptions.slice(0, 10).map((description) => ({
-		description,
-	}))
+	return [
+		{
+			description: 'Verificar a conectividade de rede e reiniciar o serviço de dados meteorológicos. Se o problema persistir, contatar a equipe de infraestrutura para verificação dos servidores.',
+		},
+	]
 }
 
 // === DADOS DO CHAT ULTRA SIMPLIFICADO ===
@@ -582,10 +473,10 @@ export function generateSolutions() {
 
 // Atividades de exemplo para projetos - organizadas por projeto
 export const projectActivitiesData = {
-	// PROJETO 1: Sistema de Monitoramento Meteorológico - 6 atividades
+	// PROJETO 1: Sistema de Monitoramento Meteorológico - 5 atividades
 	meteorologia: [
 		{
-			name: 'Análise de Requisitos do Sistema',
+			name: 'Análise e Requisitos do Sistema',
 			description: 'Levantamento detalhado dos requisitos funcionais e não funcionais para monitoramento meteorológico em tempo real',
 			category: 'Análise',
 			estimatedDays: 5,
@@ -595,8 +486,8 @@ export const projectActivitiesData = {
 			status: 'done',
 		},
 		{
-			name: 'Design da Interface de Dashboards',
-			description: 'Criação de mockups e protótipos para dashboards de visualização de dados meteorológicos',
+			name: 'Design da Interface',
+			description: 'Criação de mockups e protótipos para interface de visualização de dados meteorológicos',
 			category: 'Design',
 			estimatedDays: 8,
 			startDate: '2024-01-21',
@@ -605,7 +496,7 @@ export const projectActivitiesData = {
 			status: 'done',
 		},
 		{
-			name: 'Implementação da API de Dados Meteorológicos',
+			name: 'Implementação do Backend',
 			description: 'Desenvolvimento das APIs REST para coleta, processamento e disponibilização de dados meteorológicos',
 			category: 'Desenvolvimento',
 			estimatedDays: 15,
@@ -615,7 +506,7 @@ export const projectActivitiesData = {
 			status: 'progress',
 		},
 		{
-			name: 'Desenvolvimento da Interface de Visualização',
+			name: 'Desenvolvimento da Interface',
 			description: 'Implementação dos componentes React para visualização de mapas, gráficos e alertas meteorológicos',
 			category: 'Desenvolvimento',
 			estimatedDays: 12,
@@ -625,18 +516,8 @@ export const projectActivitiesData = {
 			status: 'progress',
 		},
 		{
-			name: 'Sistema de Alertas Automatizados',
-			description: 'Implementação do sistema de alertas automáticos baseado em thresholds meteorológicos',
-			category: 'Desenvolvimento',
-			estimatedDays: 10,
-			startDate: '2024-02-15',
-			endDate: '2024-02-25',
-			priority: 'high',
-			status: 'todo',
-		},
-		{
-			name: 'Testes de Performance e Carga',
-			description: 'Validação da performance do sistema com grandes volumes de dados meteorológicos',
+			name: 'Testes e Deploy',
+			description: 'Validação da performance do sistema com grandes volumes de dados meteorológicos e deploy em produção',
 			category: 'Testes',
 			estimatedDays: 6,
 			startDate: '2024-02-26',
@@ -646,168 +527,9 @@ export const projectActivitiesData = {
 		},
 	],
 
-	// PROJETO 2: Migração para Nuvem INPE - 5 atividades
-	clima: [
-		{
-			name: 'Análise de Arquitetura de Nuvem',
-			description: 'Estudo da arquitetura atual e definição da estratégia de migração para infraestrutura híbrida em nuvem',
-			category: 'Arquitetura',
-			estimatedDays: 8,
-			startDate: '2024-02-01',
-			endDate: '2024-02-09',
-			priority: 'urgent',
-			status: 'done',
-		},
-		{
-			name: 'Configuração de Ambiente de Nuvem',
-			description: 'Setup inicial da infraestrutura em nuvem com containers, orquestração e políticas de segurança',
-			category: 'Infraestrutura',
-			estimatedDays: 12,
-			startDate: '2024-02-10',
-			endDate: '2024-02-22',
-			priority: 'urgent',
-			status: 'done',
-		},
-		{
-			name: 'Migração de Aplicações Críticas',
-			description: 'Migração dos sistemas críticos do CPTEC para ambiente de nuvem com zero downtime',
-			category: 'Migração',
-			estimatedDays: 25,
-			startDate: '2024-02-15',
-			endDate: '2024-03-12',
-			priority: 'urgent',
-			status: 'progress',
-		},
-		{
-			name: 'Implementação de Monitoramento e Alertas',
-			description: 'Sistema de monitoramento 24/7 com alertas automáticos para infraestrutura de nuvem',
-			category: 'Monitoramento',
-			estimatedDays: 10,
-			startDate: '2024-03-01',
-			endDate: '2024-03-11',
-			priority: 'high',
-			status: 'progress',
-		},
-		{
-			name: 'Otimização de Custos e Performance',
-			description: 'Análise e otimização dos recursos de nuvem para redução de custos e melhoria de performance',
-			category: 'Otimização',
-			estimatedDays: 15,
-			startDate: '2024-03-13',
-			endDate: '2024-03-28',
-			priority: 'medium',
-			status: 'todo',
-		},
-	],
-
-	// PROJETO 3: Modernização da Rede de Observação - 4 atividades
-	previsao: [
-		{
-			name: 'Avaliação de Equipamentos Obsoletos',
-			description: 'Diagnóstico completo da rede atual de observação meteorológica e identificação de equipamentos a serem substituídos',
-			category: 'Diagnóstico',
-			estimatedDays: 10,
-			startDate: '2024-03-01',
-			endDate: '2024-03-11',
-			priority: 'high',
-			status: 'done',
-		},
-		{
-			name: 'Especificação de Novos Sensores',
-			description: 'Definição técnica e especificação de estações automáticas e sensores de última geração',
-			category: 'Especificação',
-			estimatedDays: 12,
-			startDate: '2024-03-12',
-			endDate: '2024-03-24',
-			priority: 'high',
-			status: 'progress',
-		},
-		{
-			name: 'Instalação de Estações Automáticas',
-			description: 'Instalação física e configuração de novas estações meteorológicas automáticas',
-			category: 'Instalação',
-			estimatedDays: 20,
-			startDate: '2024-03-25',
-			endDate: '2024-04-14',
-			priority: 'medium',
-			status: 'todo',
-		},
-		{
-			name: 'Calibração e Testes de Validação',
-			description: 'Calibração dos novos equipamentos e validação dos dados coletados com padrões internacionais',
-			category: 'Validação',
-			estimatedDays: 8,
-			startDate: '2024-04-15',
-			endDate: '2024-04-23',
-			priority: 'high',
-			status: 'todo',
-		},
-	],
-
-	// PROJETO 4: Portal de Dados Abertos - 6 atividades
-	portal: [
-		{
-			name: 'Levantamento de Requisitos Legais',
-			description: 'Análise dos requisitos da Lei de Acesso à Informação e LGPD para portal de dados abertos',
-			category: 'Análise',
-			estimatedDays: 4,
-			startDate: '2024-01-12',
-			endDate: '2024-01-16',
-			priority: 'high',
-			status: 'done',
-		},
-		{
-			name: 'Design UX/UI do Portal',
-			description: 'Criação da experiência do usuário e interface visual focada em acessibilidade e usabilidade',
-			category: 'Design',
-			estimatedDays: 9,
-			startDate: '2024-01-17',
-			endDate: '2024-01-26',
-			priority: 'high',
-			status: 'done',
-		},
-		{
-			name: 'API de Catálogo de Dados',
-			description: 'Desenvolvimento da API RESTful para catalogação e busca de datasets meteorológicos',
-			category: 'Desenvolvimento',
-			estimatedDays: 12,
-			startDate: '2024-01-27',
-			endDate: '2024-02-08',
-			priority: 'urgent',
-			status: 'progress',
-		},
-		{
-			name: 'Sistema de Download e Streaming',
-			description: 'Implementação de sistema otimizado para download de grandes arquivos e streaming de dados',
-			category: 'Desenvolvimento',
-			estimatedDays: 14,
-			startDate: '2024-02-05',
-			endDate: '2024-02-19',
-			priority: 'high',
-			status: 'progress',
-		},
-		{
-			name: 'Documentação Interativa da API',
-			description: 'Criação de documentação interativa com exemplos práticos e playground para desenvolvedores',
-			category: 'Documentação',
-			estimatedDays: 5,
-			startDate: '2024-02-20',
-			endDate: '2024-02-25',
-			priority: 'medium',
-			status: 'todo',
-		},
-		{
-			name: 'Testes de Segurança e Compliance',
-			description: 'Auditoria de segurança e validação de compliance com regulamentações de dados governamentais',
-			category: 'Segurança',
-			estimatedDays: 7,
-			startDate: '2024-02-26',
-			endDate: '2024-03-05',
-			priority: 'high',
-			status: 'todo',
-		},
-	],
-
-	// PROJETO 5: Sistema de Backup Distribuído - ESTE FICARÁ SEM ATIVIDADES (projeto cancelado)
+	// Outros projetos sem atividades
+	clima: [],
+	portal: [],
+	previsao: [],
 	infraestrutura: [],
 }
