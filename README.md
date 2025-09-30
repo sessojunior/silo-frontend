@@ -60,6 +60,106 @@
 
 ### 🎯 **CONQUISTA MAIS RECENTE**
 
+**STATUS**: ✅ **SISTEMA DE PROTEÇÕES DE SEGURANÇA E ALTERAÇÃO DE EMAIL SEGURA IMPLEMENTADO!**
+
+**IMPLEMENTAÇÕES FINALIZADAS**:
+
+1. **✅ Proteções de Auto-Modificação**: Sistema completo de proteção contra auto-modificação de usuários
+2. **✅ Alteração de Email Segura**: Fluxo de alteração de email com verificação OTP
+3. **✅ Validação de Domínio @inpe.br**: Proteção consistente em todos os endpoints
+4. **✅ Sistema de Contexto de Usuário**: Gerenciamento centralizado de dados do usuário
+5. **✅ Otimização de APIs**: Redução de chamadas redundantes e melhor performance
+6. **✅ Dados Reais**: Substituição de dados simulados por dados reais do banco
+
+**ARQUITETURA DE SEGURANÇA IMPLEMENTADA**:
+
+- **Proteção Frontend**: Desabilitação de campos e botões para auto-modificação
+- **Proteção Backend**: Validações robustas em todas as APIs de usuário
+- **Alteração de Email**: Fluxo de 2 etapas com OTP enviado para novo email
+- **Validação de Domínio**: Consistência em registro, login, recuperação e alteração de email
+- **Contexto Global**: UserContext para atualizações em tempo real sem reload
+- **Hook Otimizado**: useCurrentUser integrado com UserContext para performance
+
+**IMPACTO NO SISTEMA**:
+Esta implementação estabelece **política de segurança institucional rigorosa** com proteções completas contra auto-modificação, fluxo seguro de alteração de email e validação consistente de domínio @inpe.br em todo o sistema.
+
+**DETALHAMENTO TÉCNICO DAS IMPLEMENTAÇÕES**:
+
+#### **🔒 Sistema de Proteções de Auto-Modificação**
+
+**Proteção Frontend**:
+- **Página de Usuários** (`/admin/groups/users`): Botões de desativar/excluir desabilitados para usuário atual
+- **Formulário de Edição**: Campos nome/email desabilitados, switches de status desabilitados
+- **Grupo Administradores**: Usuário não pode se remover do grupo Administradores
+- **Mensagens Contextuais**: Toasts informativos para ações não permitidas
+
+**Proteção Backend**:
+- **API de Usuários** (`/api/admin/users`): Validações robustas contra auto-modificação
+- **Validações Implementadas**:
+  - ❌ Alterar próprio nome
+  - ❌ Alterar próprio email
+  - ❌ Desativar própria conta
+  - ❌ Desmarcar próprio email como não verificado
+  - ❌ Remover-se do grupo Administradores
+
+#### **📧 Sistema de Alteração de Email Segura**
+
+**Fluxo de 2 Etapas**:
+1. **Solicitação**: Usuário informa novo email → OTP enviado para novo email
+2. **Confirmação**: Usuário informa código OTP → Email alterado e verificado
+
+**Arquitetura Implementada**:
+- **API Endpoint**: `/api/user-email-change` (POST para solicitar, PUT para confirmar)
+- **Validações**: Formato de email, domínio @inpe.br, email não duplicado
+- **Segurança**: Código OTP com expiração, validação de IP, rate limiting
+- **UI Padronizada**: Componente Pin com layout compacto igual ao login
+
+#### **🌐 Validação de Domínio @inpe.br Consistente**
+
+**Endpoints Protegidos**:
+- ✅ **Registro** (`/api/auth/register`)
+- ✅ **Login por email** (`/api/auth/login-email`)
+- ✅ **Recuperação de senha** (`/api/auth/forget-password`)
+- ✅ **Login Google** (`/api/auth/callback/google`)
+- ✅ **Alteração de email** (`/api/user-email-change`) ← **NOVO**
+
+**Função Centralizada**:
+```typescript
+// src/lib/auth/validate.ts
+export function isValidDomain(email: string): boolean {
+    const lowerEmail = email.toLowerCase().trim()
+    return lowerEmail.endsWith('@inpe.br')
+}
+```
+
+#### **🔄 Sistema de Contexto de Usuário**
+
+**UserContext Implementado**:
+- **Estado Global**: `user`, `userProfile`, `userPreferences` centralizados
+- **Atualizações em Tempo Real**: Mudanças aplicadas sem reload da página
+- **Hooks Especializados**: `useUser()`, `useUserProfile()`, `useUserPreferences()`
+- **Integração com useCurrentUser**: Hook otimizado usando contexto
+
+**Componentes Otimizados**:
+- **Settings Page**: Usa contexto para dados do usuário
+- **Welcome Page**: Prioriza dados do contexto antes de fetch manual
+- **Topbar/Sidebar**: Usa contexto para status do chat
+- **PhotoUploadLocal**: Atualiza contexto após upload/deleção
+
+#### **📊 Substituição de Dados Simulados**
+
+**APIs Corrigidas**:
+- **Relatórios de Disponibilidade**: Cálculo real baseado em atividades do banco
+- **Relatórios de Problemas**: Métricas reais de resolução e categorias
+- **Dashboard**: Dados reais de produtos e status
+
+**Benefícios**:
+- **Precisão**: Relatórios com dados reais de produção
+- **Confiabilidade**: Métricas baseadas em dados reais do sistema
+- **Manutenibilidade**: Lógica centralizada e consistente
+
+### 🎯 **CONQUISTA ANTERIOR**
+
 **STATUS**: ✅ **SISTEMA DE CORES PADRONIZADO E BUILD PRODUCTION-READY IMPLEMENTADO!**
 
 **PROBLEMA RESOLVIDO**:
@@ -708,11 +808,11 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 - **SEGURANÇA**: Controle total sobre arquivos, sem dependências externas
 - **PERFORMANCE**: Otimização automática de imagens e thumbnails
 
-### 📊 **PROGRESSO ATUAL: 95%** (16 de 16 funcionalidades completas + Segurança institucional rigorosa + Testes automatizados 153 + Dark mode 100% + Sistema de Relatórios 100% + Controle de Chat 100% + Sistema de Notificações 100% + Dados de Produção 100% + **Sistema de Cores Padronizado 100%** + **Build Production-Ready 100%** + **Correção Turnos Múltiplos 100%**)
+### 📊 **PROGRESSO ATUAL: 98%** (16 de 16 funcionalidades completas + Segurança institucional rigorosa + Testes automatizados 153 + Dark mode 100% + Sistema de Relatórios 100% + Controle de Chat 100% + Sistema de Notificações 100% + Dados de Produção 100% + **Sistema de Cores Padronizado 100%** + **Build Production-Ready 100%** + **Correção Turnos Múltiplos 100%** + **Proteções de Segurança 100%** + **Alteração de Email Segura 100%**)
 
-**✅ Funcionalidades Implementadas**: 16 sistemas 100% operacionais + Políticas segurança CPTEC/INPE + Testes automatizados + Dark mode completo + Sistema de Relatórios + Controle de Chat + Sistema de Notificações + Dados de Produção + **Sistema de Cores Centralizado** + **Build Limpo**  
-**✅ Fase Atual**: **Sistema de Cores Padronizado e Build Production-Ready COMPLETAMENTE FINALIZADOS**  
-**🔴 BLOQUEADORES CRÍTICOS PARA PRODUÇÃO**: Testes manuais rigorosos + Migração de infraestrutura (Neon → PostgreSQL local + UploadThing → Nginx local)  
+**✅ Funcionalidades Implementadas**: 16 sistemas 100% operacionais + Políticas segurança CPTEC/INPE + Testes automatizados + Dark mode completo + Sistema de Relatórios + Controle de Chat + Sistema de Notificações + Dados de Produção + **Sistema de Cores Centralizado** + **Build Limpo** + **Proteções de Auto-Modificação** + **Alteração de Email Segura** + **Validação de Domínio Consistente**  
+**✅ Fase Atual**: **Sistema de Proteções de Segurança e Alteração de Email Segura COMPLETAMENTE FINALIZADOS**  
+**🔴 BLOQUEADORES CRÍTICOS PARA PRODUÇÃO**: Testes manuais rigorosos + Migração de infraestrutura (Neon → PostgreSQL local)  
 **📈 Estimativa Conclusão**: Sistema 100% production-ready para CPTEC/INPE após migração de infraestrutura
 
 ### 🎯 **ROADMAP ATUALIZADO**
@@ -733,18 +833,199 @@ Implementação de coleta automática de dados e relatórios automáticos para t
 
 **🎯 SISTEMA SILO - STATUS ATUALIZADO**:
 
-✅ **DESENVOLVIMENTO**: **95% COMPLETO**  
+✅ **DESENVOLVIMENTO**: **98% COMPLETO**  
 ✅ **FUNCIONALIDADES**: **16 sistemas principais 100% operacionais**  
 ✅ **QUALIDADE**: **153 testes automatizados implementados**  
-✅ **BUILD**: **76 páginas compiladas, zero erros TypeScript/ESLint**  
+✅ **BUILD**: **83 páginas compiladas, zero erros TypeScript/ESLint**  
 ✅ **ARQUITETURA**: **Sistema de cores padronizado, problemas críticos resolvidos**  
+✅ **SEGURANÇA**: **Proteções de auto-modificação e alteração de email segura implementadas**  
 🔴 **BLOQUEADOR**: **Migração de infraestrutura para ambiente CPTEC/INPE**
 
-**PRÓXIMO MARCO**: Migração completa para infraestrutura local (PostgreSQL + Nginx) e deploy em produção no CPTEC/INPE.
+**PRÓXIMO MARCO**: Migração completa para infraestrutura local (PostgreSQL) e deploy em produção no CPTEC/INPE.
 
-**✅ RELATÓRIOS AVANÇADOS IMPLEMENTADOS**: Sistema de relatórios com interface responsiva, gráficos ApexCharts e APIs funcionais já está operacional.
+**✅ PROTEÇÕES DE SEGURANÇA IMPLEMENTADAS**: Sistema completo de proteções contra auto-modificação, fluxo seguro de alteração de email com OTP e validação consistente de domínio @inpe.br em todo o sistema.
 
-**✅ CONTROLE DE CHAT IMPLEMENTADO**: Sistema de controle para ativar/desativar chat, reduzindo consumo de banco de dados e ocultando funcionalidades quando desabilitado.
+**✅ ALTERAÇÃO DE EMAIL SEGURA IMPLEMENTADA**: Fluxo de 2 etapas com verificação OTP enviado para o novo email, garantindo segurança máxima na alteração de credenciais.
+
+**✅ CONTEXTO DE USUÁRIO IMPLEMENTADO**: Sistema centralizado de gerenciamento de dados do usuário com atualizações em tempo real sem reload da página.
+
+**✅ DADOS REAIS IMPLEMENTADOS**: Substituição completa de dados simulados por dados reais do banco de dados em relatórios e métricas.
+
+---
+
+## 📁 **ESTRUTURA DE DIRETÓRIOS ATUALIZADA**
+
+### 🏗️ **ARQUITETURA DO PROJETO**
+
+```
+silo-frontend/
+├── 📁 src/
+│   ├── 📁 app/                          # Next.js App Router
+│   │   ├── 📁 (auth)/                   # Rotas de autenticação
+│   │   │   ├── login/                   # Login com email/senha
+│   │   │   ├── login-email/             # Login apenas com email
+│   │   │   ├── register/                # Cadastro de usuários
+│   │   │   ├── forget-password/         # Recuperação de senha
+│   │   │   └── logout/                  # Logout do sistema
+│   │   ├── 📁 admin/                     # Área administrativa
+│   │   │   ├── dashboard/               # Dashboard principal
+│   │   │   ├── groups/                  # Gestão de grupos e usuários
+│   │   │   │   └── users/               # Lista e edição de usuários
+│   │   │   ├── products/                # Gestão de produtos meteorológicos
+│   │   │   │   └── [slug]/              # Página individual do produto
+│   │   │   │       ├── problems/         # Problemas do produto
+│   │   │   │       └── solutions/        # Soluções do produto
+│   │   │   ├── projects/                # Gestão de projetos
+│   │   │   │   └── [projectId]/        # Projeto específico
+│   │   │   │       └── activities/       # Atividades do projeto
+│   │   │   │           └── [activityId]/ # Atividade específica
+│   │   │   ├── contacts/                # Gestão de contatos
+│   │   │   ├── chat/                    # Sistema de chat WhatsApp-like
+│   │   │   ├── help/                    # Sistema de ajuda e documentação
+│   │   │   ├── reports/                 # Relatórios avançados
+│   │   │   │   └── [id]/                # Relatório específico
+│   │   │   ├── settings/                # Configurações do usuário
+│   │   │   └── welcome/                 # Página de boas-vindas
+│   │   ├── 📁 api/                       # APIs do sistema
+│   │   │   ├── 📁 auth/                  # APIs de autenticação
+│   │   │   │   ├── register/             # Cadastro de usuários
+│   │   │   │   ├── login/                # Login com senha
+│   │   │   │   ├── login-email/          # Login apenas com email
+│   │   │   │   ├── forget-password/      # Recuperação de senha
+│   │   │   │   ├── callback/google/      # OAuth Google
+│   │   │   │   ├── verify-code/         # Verificação de códigos OTP
+│   │   │   │   └── send-password/       # Envio de nova senha
+│   │   │   ├── 📁 admin/                 # APIs administrativas
+│   │   │   │   ├── users/                # CRUD de usuários
+│   │   │   │   ├── groups/               # CRUD de grupos
+│   │   │   │   ├── products/             # CRUD de produtos
+│   │   │   │   ├── projects/             # CRUD de projetos
+│   │   │   │   ├── contacts/             # CRUD de contatos
+│   │   │   │   ├── chat/                 # APIs do sistema de chat
+│   │   │   │   ├── reports/              # APIs de relatórios
+│   │   │   │   └── dashboard/            # APIs do dashboard
+│   │   │   ├── 📁 (user)/                # APIs do usuário
+│   │   │   │   ├── user-profile/         # Perfil do usuário
+│   │   │   │   ├── user-preferences/    # Preferências do usuário
+│   │   │   │   ├── user-email-change/    # Alteração de email (NOVO)
+│   │   │   │   ├── user-password/        # Alteração de senha
+│   │   │   │   └── user-profile-image/   # Upload de imagem
+│   │   │   └── upload/                   # Proxy para upload de arquivos
+│   │   └── 📁 (site)/                    # Página inicial pública
+│   ├── 📁 components/                     # Componentes React
+│   │   ├── 📁 admin/                      # Componentes administrativos
+│   │   │   ├── 📁 dashboard/              # Componentes do dashboard
+│   │   │   ├── 📁 groups/                 # Componentes de grupos
+│   │   │   ├── 📁 products/                # Componentes de produtos
+│   │   │   ├── 📁 projects/                # Componentes de projetos
+│   │   │   ├── 📁 contacts/                # Componentes de contatos
+│   │   │   ├── 📁 chat/                    # Componentes do chat
+│   │   │   ├── 📁 help/                    # Componentes de ajuda
+│   │   │   ├── 📁 reports/                 # Componentes de relatórios
+│   │   │   ├── 📁 settings/                # Componentes de configurações
+│   │   │   ├── 📁 sidebar/                 # Barra lateral
+│   │   │   └── 📁 topbar/                  # Barra superior
+│   │   ├── 📁 auth/                        # Componentes de autenticação
+│   │   └── 📁 ui/                          # Componentes de interface
+│   │       ├── Pin.tsx                     # Input de código OTP (NOVO)
+│   │       ├── PhotoUploadLocal.tsx        # Upload de fotos local
+│   │       └── ...                         # Outros componentes UI
+│   ├── 📁 context/                         # Contextos React
+│   │   ├── UserContext.tsx                 # Contexto do usuário (NOVO)
+│   │   ├── ChatContext.tsx                 # Contexto do chat
+│   │   └── SidebarContext.tsx              # Contexto da sidebar
+│   ├── 📁 hooks/                           # Hooks customizados
+│   │   ├── useCurrentUser.ts               # Hook do usuário atual (NOVO)
+│   │   └── useChatPolling.ts               # Hook de polling do chat
+│   ├── 📁 lib/                             # Bibliotecas e utilitários
+│   │   ├── 📁 auth/                        # Autenticação e segurança
+│   │   │   ├── validate.ts                 # Validações (inclui @inpe.br)
+│   │   │   ├── code.ts                     # Geração de códigos OTP
+│   │   │   ├── hash.ts                     # Hash de senhas
+│   │   │   ├── token.ts                    # Tokens JWT
+│   │   │   ├── session.ts                  # Sessões
+│   │   │   ├── oauth.ts                    # OAuth Google
+│   │   │   └── user-groups.ts              # Grupos de usuários
+│   │   ├── 📁 db/                          # Banco de dados
+│   │   │   ├── index.ts                    # Conexão principal
+│   │   │   ├── schema.ts                   # Schema Drizzle
+│   │   │   ├── seed.ts                     # Dados iniciais
+│   │   │   └── migrations/                 # Migrações
+│   │   ├── constants.ts                     # Constantes do sistema
+│   │   ├── dateConfig.ts                   # Configuração de datas
+│   │   ├── dateUtils.ts                     # Utilitários de data
+│   │   ├── productStatus.ts                # Status de produtos
+│   │   ├── profileImage.ts                 # Imagens de perfil
+│   │   ├── rateLimit.ts                    # Limitação de taxa
+│   │   ├── sendEmail.ts                    # Envio de emails
+│   │   ├── theme.ts                        # Tema dark/light
+│   │   ├── toast.ts                        # Notificações
+│   │   └── utils.ts                        # Utilitários gerais
+│   └── 📁 types/                           # Tipos TypeScript
+│       └── projects.ts                     # Tipos de projetos
+├── 📁 fileserver/                          # Servidor de arquivos local
+│   ├── 📁 src/
+│   │   └── server.js                       # Servidor Express + Multer
+│   ├── 📁 uploads/                         # Arquivos organizados
+│   │   ├── avatars/                        # Avatars com thumbnails
+│   │   ├── contacts/                       # Fotos de contatos
+│   │   ├── problems/                       # Imagens de problemas
+│   │   ├── solutions/                      # Imagens de soluções
+│   │   ├── general/                        # Uploads genéricos
+│   │   └── temp/                           # Arquivos temporários
+│   ├── package.json                        # Dependências do servidor
+│   └── README.md                           # Documentação do servidor
+├── 📁 tests/                               # Testes automatizados
+│   ├── 📁 fixtures/                         # Dados de teste
+│   ├── 📁 utils/                           # Utilitários de teste
+│   ├── 01-authentication.spec.ts           # Testes de autenticação
+│   ├── 02a-dashboard-basic.spec.ts         # Testes básicos do dashboard
+│   ├── 02b-dashboard-charts.spec.ts        # Testes de gráficos
+│   ├── 03a-products-crud.spec.ts          # Testes de produtos
+│   ├── 04a-contacts-crud.spec.ts          # Testes de contatos
+│   ├── 05a-groups-basic.spec.ts           # Testes de grupos
+│   ├── 06a-chat-basic.spec.ts             # Testes de chat
+│   ├── 07a-projects-basic.spec.ts         # Testes de projetos
+│   ├── 08a-settings-profile.spec.ts      # Testes de configurações
+│   ├── 09a-help-basic.spec.ts             # Testes de ajuda
+│   └── 10a-integration-navigation.spec.ts # Testes de integração
+├── 📁 drizzle/                             # Migrações do banco
+├── 📁 public/                              # Arquivos estáticos
+│   └── 📁 images/                          # Imagens do sistema
+├── 📁 test-results/                         # Resultados dos testes
+├── 📁 playwright-report/                   # Relatórios Playwright
+├── docker-compose.yml                      # Orquestração Docker
+├── Dockerfile                              # Container Next.js
+├── drizzle.config.ts                       # Configuração Drizzle
+├── next.config.ts                          # Configuração Next.js
+├── package.json                            # Dependências principais
+├── playwright.config.ts                     # Configuração Playwright
+├── tsconfig.json                           # Configuração TypeScript
+└── README.md                               # Documentação principal
+```
+
+### 🔧 **ARQUIVOS PRINCIPAIS IMPLEMENTADOS RECENTEMENTE**
+
+#### **🔒 Segurança e Proteções**
+- `src/app/api/(user)/user-email-change/route.ts` - **NOVO**: Alteração segura de email com OTP
+- `src/lib/auth/code.ts` - **ATUALIZADO**: Função `generateEmailChangeCode` para alteração de email
+- `src/app/api/admin/users/route.ts` - **ATUALIZADO**: Proteções contra auto-modificação
+- `src/components/admin/users/UserFormOffcanvas.tsx` - **ATUALIZADO**: Proteções frontend
+- `src/components/admin/groups/GroupFormOffcanvas.tsx` - **ATUALIZADO**: Proteção grupo Administradores
+
+#### **🔄 Contexto e Hooks**
+- `src/context/UserContext.tsx` - **NOVO**: Contexto global do usuário
+- `src/hooks/useCurrentUser.ts` - **NOVO**: Hook otimizado para usuário atual
+- `src/app/admin/settings/page.tsx` - **ATUALIZADO**: Integração com contexto
+- `src/app/admin/welcome/page.tsx` - **ATUALIZADO**: Uso do hook otimizado
+
+#### **🎨 Interface e Componentes**
+- `src/components/ui/Pin.tsx` - **ATUALIZADO**: Prop `compact` para layout otimizado
+- `src/components/ui/PhotoUploadLocal.tsx` - **ATUALIZADO**: Integração com contexto
+
+#### **📊 Dados Reais**
+- `src/app/api/admin/reports/availability/route.ts` - **ATUALIZADO**: Dados reais de disponibilidade
+- `src/app/api/admin/reports/problems/route.ts` - **ATUALIZADO**: Dados reais de problemas
 
 ---
 
