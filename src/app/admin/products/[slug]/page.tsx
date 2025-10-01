@@ -42,7 +42,49 @@ function convertDependenciesToTreeNodes(dependencies: ProductDependency[]): Tree
 	}))
 }
 
-// Tipos para os dados da API
+// === SISTEMA DE CACHE INTELIGENTE ===
+
+interface CacheItem<T> {
+	data: T
+	timestamp: number
+	ttl: number
+}
+
+class ProductDataCache {
+	private cache = new Map<string, CacheItem<unknown>>()
+	
+	set<T>(key: string, data: T, ttl: number = 300000) { // 5 min default
+		this.cache.set(key, { data, timestamp: Date.now(), ttl })
+	}
+	
+	get<T>(key: string): T | null {
+		const item = this.cache.get(key)
+		if (!item) return null
+		
+		if (Date.now() - item.timestamp > item.ttl) {
+			this.cache.delete(key)
+			return null
+		}
+		
+		return item.data as T
+	}
+	
+	invalidate(pattern: string) {
+		for (const key of this.cache.keys()) {
+			if (key.includes(pattern)) {
+				this.cache.delete(key)
+			}
+		}
+	}
+	
+	clear() {
+		this.cache.clear()
+	}
+}
+
+const productCache = new ProductDataCache()
+
+// === TIPOS PARA OS DADOS DA API ===
 interface ProductDependency {
 	id: string
 	name: string
@@ -329,39 +371,93 @@ export default function ProductsPage() {
 		fetchProductId()
 	}, [slug])
 
-	// Busca os dados quando temos o productId
+	// Busca os dados quando temos o productId - COM CACHE INTELIGENTE
 	useEffect(() => {
 		if (!productId) return
 
 		const fetchData = async () => {
 			setLoading(true)
 			try {
-				const [depsRes, contactsRes, manualRes, problemsRes] = await Promise.all([fetch(`/api/admin/products/dependencies?productId=${productId}`), fetch(`/api/admin/products/contacts?productId=${productId}`), fetch(`/api/admin/products/manual?productId=${productId}`), fetch(`/api/admin/products/problems?slug=${slug}`)])
+				// Verificar cache primeiro
+				const cacheKey = `product-${productId}-${slug}`
+				const cachedData = productCache.get<{
+					dependencies: ProductDependency[]
+					contacts: unknown[]
+					manual: unknown | null
+					problemsCount: number
+					solutionsCount: number
+					lastUpdated: string | null
+				}>(cacheKey)
+				
+				if (cachedData) {
+					console.log('✅ [Cache] Dados carregados do cache:', cacheKey)
+					setDependencies(cachedData.dependencies || [])
+					setContacts((cachedData.contacts as ProductContact[]) || [])
+					setManual((cachedData.manual as ProductManual) || null)
+					setProblemsCount(cachedData.problemsCount || 0)
+					setSolutionsCount(cachedData.solutionsCount || 0)
+					setLastUpdated(cachedData.lastUpdated ? new Date(cachedData.lastUpdated) : null)
+					setLoading(false)
+					return
+				}
 
-				const [depsData, contactsData, manualData, problemsData] = await Promise.all([depsRes.json(), contactsRes.json(), manualRes.json(), problemsRes.json()])
+				console.log('🔵 [Cache] Cache miss - buscando dados da API:', cacheKey)
+				
+				const [depsRes, contactsRes, manualRes, problemsRes] = await Promise.all([
+					fetch(`/api/admin/products/dependencies?productId=${productId}`), 
+					fetch(`/api/admin/products/contacts?productId=${productId}`), 
+					fetch(`/api/admin/products/manual?productId=${productId}`), 
+					fetch(`/api/admin/products/problems?slug=${slug}`)
+				])
 
-				setDependencies(depsData.dependencies || [])
-				setContacts(contactsData.data?.contacts || [])
-				setManual(manualData.data || null)
+				const [depsData, contactsData, manualData, problemsData] = await Promise.all([
+					depsRes.json(), 
+					contactsRes.json(), 
+					manualRes.json(), 
+					problemsRes.json()
+				])
 
-				// Contagem de problemas
+				const dependencies = depsData.dependencies || []
+				const contacts = contactsData.data?.contacts || []
+				const manual = manualData.data || null
 				const problems = problemsData.items || []
-				setProblemsCount(problems.length)
+				const problemsCount = problems.length
+
+				setDependencies(dependencies)
+				setContacts(contacts)
+				setManual(manual)
+				setProblemsCount(problemsCount)
 
 				// 🚀 OTIMIZAÇÃO: Uma única chamada para obter summary de soluções
-				// Substitui múltiplas chamadas por query SQL otimizada
 				const solutionsSummaryRes = await fetch(`/api/admin/products/solutions/summary?productSlug=${slug}`)
 				const solutionsSummaryData = await solutionsSummaryRes.json()
 
+				let solutionsCount = 0
+				let lastUpdated: Date | null = null
+
 				if (solutionsSummaryData.success) {
-					setSolutionsCount(solutionsSummaryData.data.totalSolutions)
-					setLastUpdated(solutionsSummaryData.data.lastUpdated ? new Date(solutionsSummaryData.data.lastUpdated) : null)
+					solutionsCount = solutionsSummaryData.data.totalSolutions
+					lastUpdated = solutionsSummaryData.data.lastUpdated ? new Date(solutionsSummaryData.data.lastUpdated) : null
 					console.log('✅ Summary de soluções obtido:', solutionsSummaryData.data)
 				} else {
 					console.error('❌ Erro ao buscar summary de soluções:', solutionsSummaryData.error)
-					setSolutionsCount(0)
-					setLastUpdated(null)
 				}
+
+				setSolutionsCount(solutionsCount)
+				setLastUpdated(lastUpdated)
+
+				// Salvar no cache com TTL de 5 minutos
+				const dataToCache = {
+					dependencies,
+					contacts,
+					manual,
+					problemsCount,
+					solutionsCount,
+					lastUpdated: lastUpdated?.toISOString() || null
+				}
+				productCache.set(cacheKey, dataToCache, 300000) // 5 minutos
+				console.log('✅ [Cache] Dados salvos no cache:', cacheKey)
+
 			} catch (error) {
 				console.error('❌ Erro ao buscar dados:', error)
 			} finally {
@@ -372,10 +468,14 @@ export default function ProductsPage() {
 		fetchData()
 	}, [productId, slug])
 
-	// Função para recarregar dependências (apenas para casos de erro)
+	// Função para recarregar dependências (apenas para casos de erro) - COM CACHE
 	const refreshDependencies = async () => {
 		if (!productId) return
 		try {
+			// Invalidar cache antes de recarregar
+			productCache.invalidate(`product-${productId}`)
+			console.log('🔄 [Cache] Cache invalidado para recarregamento de dependências')
+			
 			const res = await fetch(`/api/admin/products/dependencies?productId=${productId}`)
 			const data = await res.json()
 			setDependencies(data.dependencies || [])
@@ -384,10 +484,14 @@ export default function ProductsPage() {
 		}
 	}
 
-	// Função para recarregar contatos
+	// Função para recarregar contatos - COM CACHE
 	const refreshContacts = async () => {
 		if (!productId) return
 		try {
+			// Invalidar cache antes de recarregar
+			productCache.invalidate(`product-${productId}`)
+			console.log('🔄 [Cache] Cache invalidado para recarregamento de contatos')
+			
 			const res = await fetch(`/api/admin/products/contacts?productId=${productId}`)
 			const data = await res.json()
 			setContacts(data.data?.contacts || [])
@@ -545,7 +649,7 @@ export default function ProductsPage() {
 		setDeleteDialogOpen(true)
 	}
 
-	// Confirmar exclusão
+	// Confirmar exclusão - COM CACHE
 	const handleConfirmDelete = async () => {
 		if (!itemToDelete) return
 		setFormLoading(true)
@@ -557,6 +661,12 @@ export default function ProductsPage() {
 			})
 
 			if (res.ok) {
+				// Invalidar cache após exclusão
+				if (productId) {
+					productCache.invalidate(`product-${productId}`)
+					console.log('🔄 [Cache] Cache invalidado após exclusão de dependência')
+				}
+				
 				toast({
 					type: 'success',
 					title: 'Dependência excluída com sucesso!',

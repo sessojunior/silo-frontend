@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto'
 import bcrypt from 'bcryptjs'
 import { getAuthUser } from '@/lib/auth/token'
 import { requireAdmin } from '@/lib/auth/admin'
+import { isValidEmail, isValidDomain } from '@/lib/auth/validate'
 
 // Interface para grupos de usuário
 interface UserGroupInput {
@@ -160,12 +161,25 @@ export async function POST(request: NextRequest) {
 			)
 		}
 
-		if (!email || !email.includes('@')) {
+		// Validação de email robusta
+		if (!email || !isValidEmail(email)) {
 			return NextResponse.json(
 				{
 					success: false,
 					field: 'email',
-					message: 'Email válido é obrigatório.',
+					message: 'Email inválido.',
+				},
+				{ status: 400 },
+			)
+		}
+
+		// Validação de domínio @inpe.br
+		if (!isValidDomain(email)) {
+			return NextResponse.json(
+				{
+					success: false,
+					field: 'email',
+					message: 'Apenas e-mails do domínio @inpe.br são permitidos.',
 				},
 				{ status: 400 },
 			)
@@ -338,12 +352,25 @@ export async function PUT(request: NextRequest) {
 			)
 		}
 
-		if (!email || !email.includes('@')) {
+		// Validação de email robusta
+		if (!email || !isValidEmail(email)) {
 			return NextResponse.json(
 				{
 					success: false,
 					field: 'email',
-					message: 'Email válido é obrigatório.',
+					message: 'Email inválido.',
+				},
+				{ status: 400 },
+			)
+		}
+
+		// Validação de domínio @inpe.br
+		if (!isValidDomain(email)) {
+			return NextResponse.json(
+				{
+					success: false,
+					field: 'email',
+					message: 'Apenas e-mails do domínio @inpe.br são permitidos.',
 				},
 				{ status: 400 },
 			)

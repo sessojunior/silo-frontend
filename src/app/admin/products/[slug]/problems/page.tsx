@@ -6,6 +6,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { toast } from '@/lib/toast'
 import { formatDateBR } from '@/lib/dateUtils'
 import { ProductProblem, ProductProblemImage } from '@/lib/db/schema'
+import { ProductProblemWithCategory, SolutionWithDetails } from '@/types/products'
 import Lightbox from '@/components/ui/Lightbox'
 import ProblemFormOffcanvas from '@/components/admin/products/ProblemFormOffcanvas'
 import SolutionFormModal from '@/components/admin/products/SolutionFormModal'
@@ -14,36 +15,6 @@ import { ProblemsListColumn } from '@/components/admin/products/ProblemsListColu
 import { ProblemDetailColumn } from '@/components/admin/products/ProblemDetailColumn'
 import { ProblemSolutionsSection } from '@/components/admin/products/ProblemSolutionsSection'
 import ProblemCategoryOffcanvas from '@/components/admin/products/ProblemCategoryOffcanvas'
-
-// Tipo estendido para incluir dados da categoria
-interface ProductProblemWithCategory extends ProductProblem {
-	categoryName?: string | null
-	categoryColor?: string | null
-}
-
-// Tipo customizado para soluções retornadas pela API
-interface SolutionWithDetails {
-	id: string
-	replyId: string | null
-	date: Date
-	description: string
-	verified: boolean
-	user: {
-		id: string
-		name: string
-		image: string
-	}
-	image: {
-		image: string
-		description: string
-	} | null
-	images: Array<{
-		id: string
-		image: string
-		description: string
-	}>
-	isMine: boolean
-}
 
 export default function ProblemsPage() {
 	const { slug } = useParams()
@@ -328,9 +299,29 @@ export default function ProblemsPage() {
 					})
 				}
 			}
-		} catch {
-			setFormError('Erro ao salvar problema.')
-			toast({ type: 'error', title: 'Erro', description: 'Erro ao salvar problema.' })
+		} catch (error) {
+			console.error('❌ Erro ao salvar problema:', error)
+			
+			let errorMessage = 'Erro ao salvar problema.'
+			let errorTitle = 'Erro'
+			
+			if (error instanceof Error) {
+				if (error.message.includes('network') || error.message.includes('fetch')) {
+					errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.'
+					errorTitle = 'Erro de Conexão'
+				} else if (error.message.includes('timeout')) {
+					errorMessage = 'Operação demorou muito para responder. Tente novamente.'
+					errorTitle = 'Timeout'
+				} else if (error.message.includes('validation')) {
+					errorMessage = 'Dados inválidos. Verifique os campos obrigatórios.'
+					errorTitle = 'Dados Inválidos'
+				} else {
+					errorMessage = error.message
+				}
+			}
+			
+			setFormError(errorMessage)
+			toast({ type: 'error', title: errorTitle, description: errorMessage })
 		} finally {
 			setFormLoading(false)
 		}
@@ -383,8 +374,28 @@ export default function ProblemsPage() {
 					description: data.message || 'Erro ao excluir problema.',
 				})
 			}
-		} catch {
-			toast({ type: 'error', title: 'Erro', description: 'Erro ao excluir problema.' })
+		} catch (error) {
+			console.error('❌ Erro ao excluir problema:', error)
+			
+			let errorMessage = 'Erro ao excluir problema.'
+			let errorTitle = 'Erro'
+			
+			if (error instanceof Error) {
+				if (error.message.includes('network') || error.message.includes('fetch')) {
+					errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.'
+					errorTitle = 'Erro de Conexão'
+				} else if (error.message.includes('timeout')) {
+					errorMessage = 'Operação demorou muito para responder. Tente novamente.'
+					errorTitle = 'Timeout'
+				} else if (error.message.includes('permission') || error.message.includes('unauthorized')) {
+					errorMessage = 'Você não tem permissão para excluir este problema.'
+					errorTitle = 'Permissão Negada'
+				} else {
+					errorMessage = error.message
+				}
+			}
+			
+			toast({ type: 'error', title: errorTitle, description: errorMessage })
 		} finally {
 			setDeleteLoading(false)
 		}
@@ -488,9 +499,29 @@ export default function ProblemsPage() {
 					description: data.message || 'Erro ao salvar solução.',
 				})
 			}
-		} catch {
-			setSolutionError('Erro ao salvar solução.')
-			toast({ type: 'error', title: 'Erro', description: 'Erro ao salvar solução.' })
+		} catch (error) {
+			console.error('❌ Erro ao salvar solução:', error)
+			
+			let errorMessage = 'Erro ao salvar solução.'
+			let errorTitle = 'Erro'
+			
+			if (error instanceof Error) {
+				if (error.message.includes('network') || error.message.includes('fetch')) {
+					errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.'
+					errorTitle = 'Erro de Conexão'
+				} else if (error.message.includes('timeout')) {
+					errorMessage = 'Operação demorou muito para responder. Tente novamente.'
+					errorTitle = 'Timeout'
+				} else if (error.message.includes('validation')) {
+					errorMessage = 'Dados inválidos. Verifique os campos obrigatórios.'
+					errorTitle = 'Dados Inválidos'
+				} else {
+					errorMessage = error.message
+				}
+			}
+			
+			setSolutionError(errorMessage)
+			toast({ type: 'error', title: errorTitle, description: errorMessage })
 		} finally {
 			setSolutionLoading(false)
 		}
@@ -523,8 +554,28 @@ export default function ProblemsPage() {
 			} else {
 				toast({ type: 'error', title: 'Erro ao excluir solução' })
 			}
-		} catch {
-			toast({ type: 'error', title: 'Erro ao excluir solução' })
+		} catch (error) {
+			console.error('❌ Erro ao excluir solução:', error)
+			
+			let errorMessage = 'Erro ao excluir solução.'
+			let errorTitle = 'Erro'
+			
+			if (error instanceof Error) {
+				if (error.message.includes('network') || error.message.includes('fetch')) {
+					errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.'
+					errorTitle = 'Erro de Conexão'
+				} else if (error.message.includes('timeout')) {
+					errorMessage = 'Operação demorou muito para responder. Tente novamente.'
+					errorTitle = 'Timeout'
+				} else if (error.message.includes('permission') || error.message.includes('unauthorized')) {
+					errorMessage = 'Você não tem permissão para excluir esta solução.'
+					errorTitle = 'Permissão Negada'
+				} else {
+					errorMessage = error.message
+				}
+			}
+			
+			toast({ type: 'error', title: errorTitle, description: errorMessage })
 		} finally {
 			setDeleteSolutionLoading(false)
 		}

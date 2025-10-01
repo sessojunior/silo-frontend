@@ -15,12 +15,99 @@ interface ReportFilters {
 	endDate?: Date
 }
 
+// Interfaces específicas para cada tipo de relatório
+interface AvailabilityReportData {
+	products: Array<{
+		id: string
+		name: string
+		availabilityPercentage: number
+		totalActivities: number
+		completedActivities: number
+		failedActivities: number
+		lastActivity?: Date
+	}>
+	summary: {
+		totalProducts: number
+		averageAvailability: number
+		totalActivities: number
+		completedActivities: number
+		failedActivities: number
+	}
+}
+
+interface ProblemsReportData {
+	categories: Array<{
+		id: string
+		name: string
+		color: string
+		problemsCount: number
+		avgResolutionHours: number
+	}>
+	topProblems: Array<{
+		id: string
+		title: string
+		categoryName: string
+		categoryColor: string
+		solutionsCount: number
+		avgResolutionHours: number
+		userInfo: {
+			name: string
+			image: string
+		}
+		createdAt: Date
+	}>
+	summary: {
+		totalProblems: number
+		totalSolutions: number
+		averageResolutionHours: number
+	}
+}
+
+interface PerformanceReportData {
+	metrics: Array<{
+		name: string
+		value: number
+		unit: string
+		trend: 'up' | 'down' | 'stable'
+		change: number
+	}>
+	chartData: Array<{
+		date: string
+		value: number
+	}>
+}
+
+interface ProjectsReportData {
+	projects: Array<{
+		id: string
+		name: string
+		status: string
+		progress: number
+		startDate: Date
+		endDate?: Date
+		tasksCount: number
+		completedTasks: number
+	}>
+	summary: {
+		totalProjects: number
+		activeProjects: number
+		completedProjects: number
+		averageProgress: number
+	}
+}
+
+type ReportDataStructure = 
+	| AvailabilityReportData 
+	| ProblemsReportData 
+	| PerformanceReportData 
+	| ProjectsReportData
+
 interface ReportData {
 	id: string
 	title: string
 	description: string
 	type: 'availability' | 'problems' | 'performance' | 'projects'
-	data: Record<string, unknown>
+	data: ReportDataStructure
 	filters: ReportFilters
 }
 
@@ -209,13 +296,13 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 					{/* Gráfico Principal */}
 					<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
 						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>Visualização dos Dados</h3>
-						<ReportChart type='bar' data={report.data} reportType={report.type} />
+								<ReportChart type='bar' data={report.data as unknown as Record<string, unknown>} reportType={report.type} />
 					</div>
 
 					{/* Métricas */}
 					<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
 						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>Métricas Principais</h3>
-						<div className='space-y-3 sm:space-y-4'>{renderMetrics(report.data, report.type)}</div>
+								<div className='space-y-3 sm:space-y-4'>{renderMetrics(report.data as unknown as Record<string, unknown>, report.type)}</div>
 					</div>
 				</div>
 
@@ -224,12 +311,12 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 					<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
 						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>Tendências de Performance</h3>
 						<p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>Evolução da pontuação, problemas, soluções e tarefas concluídas por usuário</p>
-						<ReportChart type='line' data={report.data} reportType={report.type} />
+								<ReportChart type='line' data={report.data as unknown as Record<string, unknown>} reportType={report.type} />
 					</div>
 					<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
 						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>{report.type === 'availability' ? 'Distribuição por Nível de Disponibilidade' : 'Distribuição de Atividades'}</h3>
 						<p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>{report.type === 'availability' ? 'Classificação dos produtos por nível de disponibilidade: Disponível (≥90%), Atenção (70-89%), Crítico (<70%)' : 'Proporção entre tarefas atribuídas e concluídas na equipe'}</p>
-						<ReportChart type='donut' data={report.data} reportType={report.type} />
+						<ReportChart type='donut' data={report.data as unknown as Record<string, unknown>} reportType={report.type} />
 					</div>
 				</div>
 
@@ -238,7 +325,7 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 					<div className='mt-6 sm:mt-8'>
 						<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
 							<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>Detalhamento dos Projetos</h3>
-							{renderProjectsTable(report.data)}
+								{renderProjectsTable(report.data as unknown as Record<string, unknown>)}
 						</div>
 					</div>
 				)}
@@ -248,7 +335,7 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 					<div className='mt-6 sm:mt-8'>
 						<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
 							<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>Detalhamento dos Produtos</h3>
-							{renderAvailabilityTable(report.data)}
+								{renderAvailabilityTable(report.data as unknown as Record<string, unknown>)}
 						</div>
 					</div>
 				)}
@@ -258,7 +345,7 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 					<div className='mt-6 sm:mt-8'>
 						<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
 							<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>Detalhamento dos Problemas</h3>
-							{renderProblemsTable(report.data)}
+								{renderProblemsTable(report.data as unknown as Record<string, unknown>)}
 						</div>
 					</div>
 				)}
@@ -268,7 +355,7 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 					<div className='mt-6 sm:mt-8'>
 						<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
 							<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>Detalhamento da Performance da Equipe</h3>
-							{renderPerformanceTable(report.data)}
+								{renderPerformanceTable(report.data as unknown as Record<string, unknown>)}
 						</div>
 					</div>
 				)}
