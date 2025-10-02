@@ -109,8 +109,8 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 						Grupos ({groups.length})
 					</button>
 					<button onClick={() => setActiveTab('users')} className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-colors ${activeTab === 'users' ? 'bg-blue-500 text-white' : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-600'}`}>
-						<span className='icon-[lucide--message-circle] w-3 h-3 inline mr-1' />
-						Conversas ({users.filter((u) => u.unreadCount > 0).length})
+						<span className='icon-[lucide--user] w-3 h-3 inline mr-1' />
+						Usuários ({users.length})
 					</button>
 				</div>
 			</div>
@@ -119,7 +119,7 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 				{/* Busca */}
 				<div className='relative'>
 					<span className='icon-[lucide--search] absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400' />
-					<input type='text' placeholder={activeTab === 'groups' ? 'Buscar grupos...' : 'Buscar conversas...'} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className='w-full pr-10 pl-4 py-2 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-300 rounded-lg border border-zinc-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-400' />
+					<input type='text' placeholder={activeTab === 'groups' ? 'Buscar conversas em grupos...' : 'Buscar conversas com usuários...'} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className='w-full pr-10 pl-4 py-2 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-300 rounded-lg border border-zinc-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-400' />
 				</div>
 			</div>
 
@@ -144,8 +144,8 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 					<div className='py-2'>
 						{filteredUsers.length === 0 ? (
 							<div className='p-6 text-center text-zinc-500 dark:text-zinc-400'>
-								<span className='icon-[lucide--message-circle] w-8 h-8 mx-auto mb-2 opacity-50' />
-								<p className='text-sm'>{searchQuery ? 'Nenhuma conversa encontrada' : 'Nenhuma conversa ativa'}</p>
+								<span className='icon-[lucide--user] w-8 h-8 mx-auto mb-2 opacity-50' />
+								<p className='text-sm'>{searchQuery ? 'Nenhum usuário encontrado' : 'Nenhum usuário disponível'}</p>
 							</div>
 						) : (
 							filteredUsers.map((chatUser) => <UserItem key={chatUser.id} user={chatUser} isActive={chatUser.id === activeTargetId && activeTargetType === 'user'} onClick={() => onTargetSelect(chatUser.id, 'user')} />)
@@ -157,7 +157,7 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 			{/* Footer com informações */}
 			<div className='p-3 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900'>
 				<div className='flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400'>
-					<span>{activeTab === 'groups' ? `${filteredGroups.length} grupos` : `${filteredUsers.length} conversas`}</span>
+					<span>{activeTab === 'groups' ? `${filteredGroups.length} grupos` : `${filteredUsers.length} usuários`}</span>
 					<span className='flex items-center gap-1'>
 						{totalUnread > 0 && <span className='bg-blue-500 text-white px-2 py-0.5 rounded-full text-xs font-medium'>{totalUnread}</span>}
 						<div className={`w-2 h-2 rounded-full ${statusInfo.color}`} />

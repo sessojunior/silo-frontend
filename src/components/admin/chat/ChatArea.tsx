@@ -345,7 +345,29 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 			</div>
 
 			{/* Área de Mensagens */}
-			<div ref={messagesContainerRef} onScroll={handleScroll} className={`px-4 py-4 space-y-4 ${targetMessages.length > 0 ? 'flex-1 overflow-y-auto min-h-0' : 'flex-1 flex items-center justify-center'}`}>
+			<div 
+				ref={messagesContainerRef} 
+				onScroll={handleScroll} 
+				className={`${targetMessages.length > 0 ? 'flex-1 overflow-y-auto min-h-0' : 'flex-1 flex items-center justify-center'} relative`}
+			>
+				{/* Fundo para light mode */}
+				<div 
+					className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+					style={{
+						backgroundImage: 'url(/images/chat_light.jpg)'
+					}}
+				/>
+				
+				{/* Fundo para dark mode */}
+				<div 
+					className="absolute inset-0 bg-cover bg-center bg-no-repeat dark:opacity-100 opacity-0"
+					style={{
+						backgroundImage: 'url(/images/chat_dark.jpg)'
+					}}
+				/>
+				
+				{/* Conteúdo das mensagens */}
+				<div className="relative z-10 px-4 py-4 space-y-4">
 				{isLoading ? (
 					<div className='text-center text-zinc-500 dark:text-zinc-400'>
 						<div className='flex items-center justify-center gap-3 mb-4'>
@@ -382,12 +404,32 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 						)}
 
 						{/* Lista de mensagens */}
-						{targetMessages.map((message: ChatMessage) => (
-							<MessageBubble key={message.id} message={convertMessageForBubble(message)} isOwnMessage={message.senderUserId === currentUser?.id} showAvatar={true} readStatus={activeTargetType === 'user' ? (message.readAt ? 'read' : 'delivered') : 'sent'} readCount={0} totalParticipants={0} />
-						))}
+						{targetMessages.map((message: ChatMessage, index: number) => {
+							const isOwnMessage = message.senderUserId === currentUser?.id
+							const previousMessage = index > 0 ? targetMessages[index - 1] : null
+							const isConsecutiveFromSameUser = previousMessage && previousMessage.senderUserId === message.senderUserId
+							
+							// Mostrar avatar/nome apenas se:
+							// 1. Não é mensagem própria
+							// 2. É primeira mensagem do usuário OU não é consecutiva do mesmo usuário
+							const shouldShowAvatar = !isOwnMessage && (!previousMessage || !isConsecutiveFromSameUser)
+							
+							return (
+								<MessageBubble 
+									key={message.id} 
+									message={convertMessageForBubble(message)} 
+									isOwnMessage={isOwnMessage} 
+									showAvatar={shouldShowAvatar} 
+									readStatus={activeTargetType === 'user' ? (message.readAt ? 'read' : 'delivered') : 'sent'} 
+									readCount={0} 
+									totalParticipants={0} 
+								/>
+							)
+						})}
 					</>
 				)}
 				<div ref={messagesEndRef} />
+				</div>
 			</div>
 
 			{/* Botão para voltar ao final (quando usuário scrollou para cima) */}
@@ -409,10 +451,10 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 
 			{/* Input de Mensagem */}
 			<div className='bg-white dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700 p-4 flex-shrink-0'>
-				<div className='flex items-end gap-3'>
+				<div className='flex items-center gap-3'>
 					{/* Botão emoji com dropdown */}
 					<div className='relative'>
-						<button onClick={() => setShowEmojiPicker(!showEmojiPicker)} disabled={isSending} className='p-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed' title='Emojis'>
+						<button onClick={() => setShowEmojiPicker(!showEmojiPicker)} disabled={isSending} className='flex items-center justify-center size-10 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed' title='Emojis'>
 							<span className='icon-[lucide--smile] w-5 h-5' />
 						</button>
 
@@ -448,15 +490,22 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 					</div>
 
 					{/* Botão enviar */}
-					<Button onClick={handleSendMessage} disabled={!messageText.trim() || isSending} className='h-10 w-10 p-0'>
-						{isSending ? <div className='h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent' /> : <span className='icon-[lucide--send] w-4 h-4' />}
-					</Button>
-				</div>
-
-				{/* Dica de atalho */}
-				<div className='flex items-center justify-between mt-2'>
-					<p className='text-xs text-zinc-500 dark:text-zinc-400'>Enter para enviar • Shift+Enter para nova linha</p>
-					{activeTargetType === 'user' && <p className='text-xs text-zinc-500 dark:text-zinc-400'>Mensagens privadas são marcadas como lidas automaticamente</p>}
+					<div className="relative group">
+						<Button onClick={handleSendMessage} disabled={!messageText.trim() || isSending} className='size-10 p-0'>
+							{isSending ? <div className='h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent' /> : <span className='icon-[lucide--send] w-4 h-4' />}
+						</Button>
+						
+						{/* Tooltip */}
+						<div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+							<div className="space-y-1">
+								<div>Enter para enviar</div>
+								<div>Shift+Enter para nova linha</div>
+								{activeTargetType === 'user' && <div className="text-zinc-300 dark:text-zinc-600">Mensagens privadas são marcadas como lidas automaticamente</div>}
+							</div>
+							{/* Seta do tooltip */}
+							<div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-zinc-900 dark:border-t-zinc-100"></div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
