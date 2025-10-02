@@ -20,7 +20,7 @@ export type ChatUser = {
 	name: string
 	email: string
 	isActive: boolean
-	presenceStatus: 'online' | 'away' | 'busy' | 'offline'
+	presenceStatus: 'visible' | 'invisible'
 	lastActivity: Date | null
 	unreadCount: number
 	lastMessage: string | null
@@ -40,7 +40,7 @@ export type ChatMessage = {
 	messageType: 'groupMessage' | 'userMessage'
 }
 
-export type PresenceStatus = 'online' | 'away' | 'busy' | 'offline'
+export type PresenceStatus = 'visible' | 'invisible'
 
 type ChatContextType = {
 	// Estados principais
@@ -58,6 +58,7 @@ type ChatContextType = {
 	loadOlderMessages: (targetId: string, type: 'group' | 'user', page: number) => Promise<{ messages: ChatMessage[]; hasMore: boolean }>
 	sendMessage: (content: string, receiverGroupId?: string, receiverUserId?: string) => Promise<void>
 	markMessageAsRead: (messageId: string) => Promise<void>
+	markMessagesAsRead: (targetId: string, type: 'group' | 'user') => Promise<void>
 	deleteMessage: (messageId: string) => Promise<void>
 
 	// Sistema de presença
@@ -79,8 +80,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	const [users, setUsers] = useState<ChatUser[]>([])
 	const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({})
 	const [totalUnread, setTotalUnread] = useState(0)
-	const [currentPresence, setCurrentPresence] = useState<PresenceStatus>('offline')
-	const [isLoading] = useState(false)
+	const [currentPresence, setCurrentPresence] = useState<PresenceStatus>('invisible')
+	const [isLoading, setIsLoading] = useState(true)
 	const [lastSync, setLastSync] = useState<string | null>(null)
 	const [chatEnabled, setChatEnabled] = useState(true)
 
@@ -92,6 +93,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 	const loadSidebarData = useCallback(async () => {
 		try {
+			setIsLoading(true)
 			console.log('🔵 [ChatContext] Carregando dados da sidebar...')
 			const response = await fetch('/api/admin/chat/sidebar')
 
@@ -111,6 +113,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			}
 		} catch (error) {
 			console.error('❌ [ChatContext] Erro na requisição sidebar:', error)
+		} finally {
+			setIsLoading(false)
 		}
 	}, [])
 
@@ -259,8 +263,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			try {
 				console.log('🔵 [ChatContext] Marcando mensagem como lida:', messageId)
 
-				const response = await fetch(`/api/admin/chat/messages/${messageId}`, {
-					method: 'PATCH',
+				const response = await fetch(`/api/admin/chat/messages/${messageId}/read`, {
+					method: 'POST',
 				})
 
 				if (response.ok) {
@@ -315,6 +319,46 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			console.error('❌ [ChatContext] Erro na requisição excluir mensagem:', error)
 		}
 	}, [])
+
+	// Marcar todas as mensagens de uma conversa como lidas
+	const markMessagesAsRead = useCallback(async (targetId: string, type: 'group' | 'user') => {
+		try {
+			const response = await fetch('/api/admin/chat/messages/read', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ targetId, type }),
+			})
+
+			if (response.ok) {
+				const data = await response.json()
+				console.log('✅ [ChatContext] Mensagens marcadas como lidas:', data.updatedCount)
+
+				// Atualizar estado local - marcar mensagens como lidas
+				setMessages((prev) => {
+					const updated = { ...prev }
+					const targetMessages = updated[targetId] || []
+					
+					updated[targetId] = targetMessages.map((msg) => {
+						// Marcar como lida apenas mensagens de outros usuários que não estão lidas
+						if (!msg.readAt && msg.senderUserId !== currentUser?.id) {
+							return { ...msg, readAt: new Date() }
+						}
+						return msg
+					})
+					
+					return updated
+				})
+
+				// Recarregar dados da sidebar para atualizar contadores
+				await loadSidebarData()
+			} else {
+				const errorData = await response.json()
+				console.error('❌ [ChatContext] Erro ao marcar mensagens como lidas:', errorData.error)
+			}
+		} catch (error) {
+			console.error('❌ [ChatContext] Erro na requisição marcar como lidas:', error)
+		}
+	}, [currentUser?.id, loadSidebarData])
 
 	// === SISTEMA DE PRESENÇA ===
 
@@ -385,11 +429,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 								if (targetId) {
 									const existingMessages = updated[targetId] || []
 									// Verificar se a mensagem já existe para evitar duplicatas
-									const messageExists = existingMessages.some((existingMsg) => existingMsg.id === msg.id)
+									const existingMsgIndex = existingMessages.findIndex((existingMsg) => existingMsg.id === msg.id)
 
-									if (!messageExists) {
+									if (existingMsgIndex === -1) {
+										// Mensagem nova - adicionar
 										updated[targetId] = [...existingMessages, msg]
 										reallyNewMessagesCount++
+									} else {
+										// Mensagem existente - atualizar apenas campos que podem mudar (como readAt)
+										const existingMsg = existingMessages[existingMsgIndex]
+										if (existingMsg.readAt !== msg.readAt) {
+											updated[targetId] = existingMessages.map((m, index) => 
+												index === existingMsgIndex ? { ...m, readAt: msg.readAt } : m
+											)
+											console.log('🔵 [ChatContext] Atualizando readAt da mensagem:', msg.id, 'para:', msg.readAt)
+										}
 									}
 								}
 							})
@@ -463,8 +517,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				const data = await response.json()
 				// Usar novo campo currentUserPresence da API
 				if (!data.currentUserPresence && currentUser) {
-					console.log('🔵 [ChatContext] Primeira vez - definindo como online')
-					updatePresence('online')
+					console.log('🔵 [ChatContext] Primeira vez - definindo como visível')
+					updatePresence('visible')
 				} else if (data.currentUserPresence) {
 					console.log('🔵 [ChatContext] Preservando status existente:', data.currentUserPresence.status)
 					setCurrentPresence(data.currentUserPresence.status)
@@ -527,7 +581,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		} else {
 			console.log('🔵 [ChatContext] Chat desabilitado ou usuário deslogado, parando polling...')
 			stopPolling()
-			setCurrentPresence('offline')
+			setCurrentPresence('invisible')
 		}
 
 		return () => {
@@ -556,6 +610,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		loadOlderMessages,
 		sendMessage,
 		markMessageAsRead,
+		markMessagesAsRead,
 		deleteMessage,
 		updatePresence,
 		sendHeartbeat,

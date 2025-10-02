@@ -77,20 +77,10 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 		if (message.messageType === 'userMessage') {
 			if (message.readAt) {
 				// 2 checks azuis: Lido pelo destinatário
-				return (
-					<div className='flex -space-x-1'>
-						<span className='icon-[lucide--check] w-3 h-3 text-blue-300' />
-						<span className='icon-[lucide--check] w-3 h-3 text-blue-300' />
-					</div>
-				)
+				return <span className='icon-[lucide--check-check] w-3 h-3 text-blue-300' />
 			} else {
 				// 2 checks brancos: Entregue mas não lido
-				return (
-					<div className='flex -space-x-1'>
-						<span className='icon-[lucide--check] w-3 h-3 text-white' />
-						<span className='icon-[lucide--check] w-3 h-3 text-white' />
-					</div>
-				)
+				return <span className='icon-[lucide--check-check] w-3 h-3 text-white' />
 			}
 		}
 
@@ -101,20 +91,10 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 				return <span className='icon-[lucide--check] w-3 h-3 text-white' />
 			case 'delivered':
 				// 2 checks brancos: Entregue
-				return (
-					<div className='flex -space-x-1'>
-						<span className='icon-[lucide--check] w-3 h-3 text-white' />
-						<span className='icon-[lucide--check] w-3 h-3 text-white' />
-					</div>
-				)
+				return <span className='icon-[lucide--check-check] w-3 h-3 text-white' />
 			case 'read':
 				// 2 checks azuis: Lido
-				return (
-					<div className='flex -space-x-1'>
-						<span className='icon-[lucide--check] w-3 h-3 text-blue-300' />
-						<span className='icon-[lucide--check] w-3 h-3 text-blue-300' />
-					</div>
-				)
+				return <span className='icon-[lucide--check-check] w-3 h-3 text-blue-300' />
 			default:
 				return null
 		}

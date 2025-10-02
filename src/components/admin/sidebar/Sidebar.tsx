@@ -43,9 +43,9 @@ export default function Sidebar() {
 						userPreferences: data.userPreferences
 					})
 					
-					// Só desabilitar se estiver offline E não estiver habilitado nas preferências
-					if (currentPresence === 'offline' && !enabled) {
-						console.log('🔍 [Sidebar] Chat desabilitado: offline + preferência desabilitada')
+					// Só desabilitar se estiver invisível E não estiver habilitado nas preferências
+					if (currentPresence === 'invisible' && !enabled) {
+						console.log('🔍 [Sidebar] Chat desabilitado: invisível + preferência desabilitada')
 						setChatEnabled(false)
 					} else {
 						console.log('🔍 [Sidebar] Chat habilitado:', enabled)
@@ -67,12 +67,12 @@ export default function Sidebar() {
 				currentPresence
 			})
 			
-			// Só desabilitar se estiver offline E não estiver habilitado nas preferências
-			if (currentPresence === 'offline' && !newChatEnabled) {
-				setChatEnabled(false)
-			} else {
-				setChatEnabled(newChatEnabled)
-			}
+		// Só desabilitar se estiver invisível E não estiver habilitado nas preferências
+		if (currentPresence === 'invisible' && !newChatEnabled) {
+			setChatEnabled(false)
+		} else {
+			setChatEnabled(newChatEnabled)
+		}
 		}
 
 		window.addEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)

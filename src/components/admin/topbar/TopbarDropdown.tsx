@@ -18,16 +18,12 @@ export default function TopbarDropdown({ account }: { account: AccountProps }) {
 	// Mapear status do chat para cores do avatar
 	const getPresenceColor = (status: string) => {
 		switch (status) {
-			case 'online':
+			case 'visible':
 				return 'bg-green-400'
-			case 'away':
-				return 'bg-yellow-400'
-			case 'busy':
+			case 'invisible':
 				return 'bg-red-400'
-			case 'offline':
-				return 'bg-gray-400'
 			default:
-				return 'bg-teal-400' // cor padrão quando não há status
+				return 'bg-gray-400'
 		}
 	}
 

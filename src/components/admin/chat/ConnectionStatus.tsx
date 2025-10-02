@@ -5,8 +5,8 @@ import { useChat } from '@/context/ChatContext'
 export default function ConnectionStatus() {
 	const { currentPresence, isLoading } = useChat()
 
-	// Se está online, não mostrar nada
-	if (currentPresence === 'online') {
+	// Se está visível, não mostrar nada
+	if (currentPresence === 'visible') {
 		return null
 	}
 

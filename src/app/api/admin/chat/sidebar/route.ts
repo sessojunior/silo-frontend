@@ -20,7 +20,7 @@ interface ChatUser {
 	name: string
 	email: string
 	isActive: boolean
-	presenceStatus: 'online' | 'away' | 'busy' | 'offline'
+	presenceStatus: 'visible' | 'invisible'
 	lastActivity: Date | null
 	unreadCount: number
 	lastMessage: string | null
@@ -157,7 +157,7 @@ export async function GET() {
 				name: activeUser.name,
 				email: activeUser.email,
 				isActive: activeUser.isActive,
-				presenceStatus: (presence?.status || 'offline') as ChatUser['presenceStatus'],
+				presenceStatus: (presence?.status || 'invisible') as ChatUser['presenceStatus'],
 				lastActivity: presence?.lastActivity || null,
 				unreadCount,
 				lastMessage: lastMessage?.content || null,
@@ -168,18 +168,18 @@ export async function GET() {
 		// MOSTRAR TODOS OS USUÁRIOS ATIVOS para permitir contato
 		// (não filtrar por interação - todos ficam disponíveis)
 
-		// Ordenar chatUsers: não lidas primeiro, online segundo, depois por nome
+		// Ordenar chatUsers: não lidas primeiro, visíveis segundo, depois por nome
 		chatUsers.sort((a, b) => {
 			// 1. Prioridade: mensagens não lidas
 			if (a.unreadCount !== b.unreadCount) {
 				return b.unreadCount - a.unreadCount
 			}
 
-			// 2. Prioridade: usuários online
-			if (a.presenceStatus === 'online' && b.presenceStatus !== 'online') {
+			// 2. Prioridade: usuários visíveis
+			if (a.presenceStatus === 'visible' && b.presenceStatus !== 'visible') {
 				return -1
 			}
-			if (b.presenceStatus === 'online' && a.presenceStatus !== 'online') {
+			if (b.presenceStatus === 'visible' && a.presenceStatus !== 'visible') {
 				return 1
 			}
 

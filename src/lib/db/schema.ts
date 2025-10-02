@@ -297,7 +297,7 @@ export const chatUserPresence = pgTable('chat_user_presence', {
 	userId: text('user_id')
 		.primaryKey()
 		.references(() => authUser.id, { onDelete: 'cascade' }),
-	status: text('status').notNull().default('offline'), // 'online' | 'away' | 'busy' | 'offline'
+	status: text('status').notNull().default('invisible'), // 'visible' | 'invisible'
 	lastActivity: timestamp('last_activity').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })

@@ -27,7 +27,7 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 	const filteredUsers = users.filter((chatUser) => chatUser.name?.toLowerCase().includes(searchQuery.toLowerCase()) || chatUser.email?.toLowerCase().includes(searchQuery.toLowerCase()))
 
 	// Alterar status do usuário
-	const handleStatusChange = async (newStatus: 'online' | 'away' | 'busy' | 'offline') => {
+	const handleStatusChange = async (newStatus: 'visible' | 'invisible') => {
 		try {
 			await updatePresence(newStatus)
 			setShowStatusMenu(false)
@@ -40,16 +40,12 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 	// Obter informações do status atual
 	const getStatusInfo = (status: string) => {
 		switch (status) {
-			case 'online':
-				return { label: 'Online', color: 'bg-green-400', textColor: 'text-green-500' }
-			case 'away':
-				return { label: 'Ausente', color: 'bg-yellow-400', textColor: 'text-yellow-500' }
-			case 'busy':
-				return { label: 'Ocupado', color: 'bg-red-400', textColor: 'text-red-500' }
-			case 'offline':
-				return { label: 'Offline', color: 'bg-gray-400', textColor: 'text-gray-500' }
+			case 'visible':
+				return { label: 'Visível', color: 'bg-green-400', textColor: 'text-green-500' }
+			case 'invisible':
+				return { label: 'Invisível', color: 'bg-red-400', textColor: 'text-red-500' }
 			default:
-				return { label: 'Online', color: 'bg-green-400', textColor: 'text-green-500' }
+				return { label: 'Invisível', color: 'bg-red-400', textColor: 'text-red-500' }
 		}
 	}
 
@@ -67,7 +63,6 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 					<div className='flex-1'>
 						<h2 className='font-semibold text-sm text-zinc-900 dark:text-white'>{currentUser?.name || 'Usuário'}</h2>
 						<div className='flex items-center gap-2'>
-							<div className={`w-2 h-2 rounded-full ${statusInfo.color}`} />
 							<p className={`text-xs ${statusInfo.textColor}`}>{statusInfo.label}</p>
 						</div>
 					</div>
@@ -85,12 +80,15 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 								<div className='absolute right-0 top-full mt-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg py-2 w-48 z-50'>
 									<div className='px-3 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-700'>Alterar Status</div>
 									{[
-										{ key: 'online', label: 'Online', color: 'bg-green-400' },
-										{ key: 'away', label: 'Ausente', color: 'bg-yellow-400' },
-										{ key: 'busy', label: 'Ocupado', color: 'bg-red-400' },
-										{ key: 'offline', label: 'Offline', color: 'bg-gray-400' },
+										{ key: 'visible', label: 'Visível', color: 'bg-green-400' },
+										{ key: 'invisible', label: 'Invisível', color: 'bg-red-400' },
 									].map((status) => (
-										<button key={status.key} onClick={() => handleStatusChange(status.key as 'online' | 'away' | 'busy' | 'offline')} className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors ${currentPresence === status.key ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
+										<button 
+											key={status.key} 
+											onClick={() => handleStatusChange(status.key as 'visible' | 'invisible')} 
+											className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors ${currentPresence === status.key ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+											title={status.key === 'invisible' ? 'Status usado para férias, licença, aposentado, saiu da empresa, usuário inativo etc.' : ''}
+										>
 											<div className={`w-3 h-3 rounded-full ${status.color}`} />
 											<span className='text-sm text-zinc-900 dark:text-white'>{status.label}</span>
 											{currentPresence === status.key && <span className='icon-[lucide--check] w-4 h-4 text-blue-500 ml-auto' />}
@@ -222,14 +220,12 @@ function GroupItem({ group, isActive, onClick }: { group: ChatGroup; isActive: b
 function UserItem({ user, isActive, onClick }: { user: ChatUser; isActive: boolean; onClick: () => void }) {
 	const getPresenceColor = (status: string) => {
 		switch (status) {
-			case 'online':
+			case 'visible':
 				return 'bg-green-400'
-			case 'away':
-				return 'bg-yellow-400'
-			case 'busy':
+			case 'invisible':
 				return 'bg-red-400'
 			default:
-				return 'bg-gray-400'
+				return 'bg-red-400'
 		}
 	}
 

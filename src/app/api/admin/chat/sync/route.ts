@@ -42,8 +42,6 @@ export async function GET(request: NextRequest) {
 		const sinceTimestamp = searchParams.get('since')
 		const sinceDate = sinceTimestamp ? new Date(sinceTimestamp) : new Date(Date.now() - 5 * 60 * 1000) // 5 minutos atrás por padrão
 
-		console.log('🔵 Chat sync iniciado:', { userId: user.id, since: sinceDate.toISOString() })
-
 		// 1. Buscar novas mensagens (groupMessage + userMessage)
 		const newMessages = await db
 			.select({
@@ -94,12 +92,6 @@ export async function GET(request: NextRequest) {
 		const fiveSecondsAgo = new Date(Date.now() - 5 * 1000)
 		const filteredPresence = updatedPresence.filter((p) => p.updatedAt > fiveSecondsAgo)
 
-		console.log('🔍 Filtro presença:', {
-			total: updatedPresence.length,
-			filtered: filteredPresence.length,
-			cutoff: fiveSecondsAgo.toISOString(),
-		})
-
 		// 3. Calcular contadores não lidas APENAS para userMessage
 		let unreadCounts = { groups: {}, users: {} }
 
@@ -145,15 +137,6 @@ export async function GET(request: NextRequest) {
 			unreadCounts,
 			timestamp: new Date().toISOString(),
 		}
-
-		console.log('✅ Chat sync concluído:', {
-			newMessages: newMessages.length,
-			presenceUpdates: filteredPresence.length,
-			presenceFiltered: updatedPresence.length - filteredPresence.length,
-			unreadUsers: Object.keys(unreadCounts.users).length,
-			hasUpdates: newMessages.length > 0,
-			sinceTimestamp: sinceTimestamp || 'default (5min)',
-		})
 
 		return NextResponse.json(response)
 	} catch (error) {

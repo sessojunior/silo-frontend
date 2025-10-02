@@ -8,13 +8,13 @@ import { getAuthUser } from '@/lib/auth/token'
 interface PresenceStatus {
 	userId: string
 	userName: string
-	status: 'online' | 'away' | 'busy' | 'offline'
+	status: 'visible' | 'invisible'
 	lastActivity: Date
 	updatedAt: Date
 }
 
 interface UpdatePresenceRequest {
-	status: 'online' | 'away' | 'busy' | 'offline'
+	status: 'visible' | 'invisible'
 }
 
 // GET: Buscar status de presença de todos os chatUsers
@@ -47,15 +47,15 @@ export async function GET() {
 		const updatedPresence: PresenceStatus[] = presenceData.map((p) => {
 			let autoStatus = p.status
 
-			// Auto-atualização de status baseado em inatividade (apenas se online)
-			if (p.status === 'online') {
-				if (p.lastActivity < thirtyMinutesAgo) {
-					autoStatus = 'offline'
-				} else if (p.lastActivity < fiveMinutesAgo) {
-					autoStatus = 'away'
-				}
+		// Auto-atualização de status baseado em inatividade (apenas se visible)
+		if (p.status === 'visible') {
+			if (p.lastActivity < thirtyMinutesAgo) {
+				autoStatus = 'invisible'
+			} else if (p.lastActivity < fiveMinutesAgo) {
+				autoStatus = 'invisible'
 			}
-			// Status manuais (away, busy, offline) são preservados
+		}
+		// Status manuais (invisible) são preservados
 
 			return {
 				userId: p.userId,
@@ -98,9 +98,9 @@ export async function POST(request: NextRequest) {
 		const { status } = body
 
 		// Validar status
-		const validStatuses = ['online', 'away', 'busy', 'offline']
+		const validStatuses = ['visible', 'invisible']
 		if (!status || !validStatuses.includes(status)) {
-			return NextResponse.json({ error: 'Status inválido. Use: online, away, busy ou offline' }, { status: 400 })
+			return NextResponse.json({ error: 'Status inválido. Use: visible ou invisible' }, { status: 400 })
 		}
 
 		console.log('🔵 Atualizando status de presença:', { userId: user.id, status })
@@ -160,10 +160,10 @@ export async function PATCH() {
 		const existingPresence = await db.select().from(schema.chatUserPresence).where(eq(schema.chatUserPresence.userId, user.id)).limit(1)
 
 		if (existingPresence.length === 0) {
-			// Criar apenas como online se for primeira vez (não sobrescrever status manual)
+			// Criar apenas como visible se for primeira vez (não sobrescrever status manual)
 			await db.insert(schema.chatUserPresence).values({
 				userId: user.id,
-				status: 'online', // Apenas primeira vez
+				status: 'visible', // Apenas primeira vez
 				lastActivity: now,
 				updatedAt: now,
 			})

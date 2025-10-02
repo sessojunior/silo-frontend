@@ -695,7 +695,7 @@ Investigação inicial aponta para falha no sistema RAID do servidor principal d
 			// Criar status de presença para todos usuários
 			const userPresenceData = allUsers.map((user) => ({
 				userId: user.id,
-				status: 'offline' as const,
+				status: 'invisible' as const,
 				lastActivity: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
 			}))
 

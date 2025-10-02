@@ -40,7 +40,7 @@ export default function ChatNotificationButton() {
 		await loadSidebarData()
 	}
 
-	const handlePresenceChange = async (status: 'online' | 'away' | 'busy' | 'offline') => {
+	const handlePresenceChange = async (status: 'visible' | 'invisible') => {
 		console.log('🔵 [ChatNotificationButton] Alterando status para:', status)
 		await updatePresence(status)
 		console.log('✅ [ChatNotificationButton] Status alterado na TopBar para:', status)
@@ -54,27 +54,23 @@ export default function ChatNotificationButton() {
 
 	const getPresenceColor = (status: string) => {
 		switch (status) {
-			case 'online':
+			case 'visible':
 				return 'bg-green-500'
-			case 'away':
-				return 'bg-yellow-500'
-			case 'busy':
+			case 'invisible':
 				return 'bg-red-500'
 			default:
-				return 'bg-gray-500'
+				return 'bg-red-500'
 		}
 	}
 
 	const getPresenceText = (status: string) => {
 		switch (status) {
-			case 'online':
-				return 'Online'
-			case 'away':
-				return 'Ausente'
-			case 'busy':
-				return 'Ocupado'
+			case 'visible':
+				return 'Visível'
+			case 'invisible':
+				return 'Invisível'
 			default:
-				return 'Offline'
+				return 'Invisível'
 		}
 	}
 
@@ -111,10 +107,6 @@ export default function ChatNotificationButton() {
 							<div className='flex items-center justify-between'>
 								<div className='flex items-center gap-2'>
 									<h3 className='font-semibold text-zinc-900 dark:text-zinc-100'>Chat</h3>
-									<div className='flex items-center gap-1'>
-										<div className={`w-2 h-2 rounded-full ${getPresenceColor(currentPresence)}`} />
-										<span className='text-xs text-zinc-500 dark:text-zinc-400'>{getPresenceText(currentPresence)}</span>
-									</div>
 								</div>
 								<div className='flex items-center gap-2'>
 									<button onClick={handleRefresh} className='p-1 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 rounded transition-colors'>
@@ -136,17 +128,24 @@ export default function ChatNotificationButton() {
 
 						{/* Mudança Rápida de Status */}
 						<div className='px-4 py-2 border-b border-zinc-200 dark:border-zinc-700'>
-							<div className='flex items-center gap-2'>
-								<span className='text-xs text-zinc-500 dark:text-zinc-400'>Status:</span>
+							<div className='flex items-center justify-between'>
+								<div className='flex items-center gap-2'>
+									<span className='text-xs text-zinc-500 dark:text-zinc-400'>Status:</span>
+									<span className='text-sm font-medium text-zinc-900 dark:text-zinc-100'>{getPresenceText(currentPresence)}</span>
+								</div>
 								<div className='flex gap-1'>
 									{[
-										{ status: 'online', color: 'bg-green-500', label: 'Online' },
-										{ status: 'away', color: 'bg-yellow-500', label: 'Ausente' },
-										{ status: 'busy', color: 'bg-red-500', label: 'Ocupado' },
-										{ status: 'offline', color: 'bg-gray-500', label: 'Offline' },
+										{ status: 'visible', color: 'bg-green-500', label: 'Visível' },
+										{ status: 'invisible', color: 'bg-red-500', label: 'Invisível' },
 									].map(({ status, color, label }) => (
-										<button key={status} onClick={() => handlePresenceChange(status as 'online' | 'away' | 'busy' | 'offline')} className={`w-6 h-6 rounded-full border-2 transition-all ${currentPresence === status ? 'border-blue-500' : 'border-transparent hover:border-zinc-300 dark:hover:border-zinc-600'}`} title={label}>
+										<button 
+											key={status} 
+											onClick={() => handlePresenceChange(status as 'visible' | 'invisible')} 
+											className={`w-6 h-6 rounded-full border-2 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${currentPresence === status ? 'outline-none border-white ring-2 ring-blue-500' : 'border-transparent hover:border-zinc-300 dark:hover:border-zinc-600'}`} 
+											title={status === 'invisible' ? 'Status usado para férias, licença, aposentado, saiu da empresa, usuário inativo etc.' : label}
+										>
 											<div className={`w-full h-full rounded-full ${color}`} />
+											<span className='sr-only'>{label}</span>
 										</button>
 									))}
 								</div>

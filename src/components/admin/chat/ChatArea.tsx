@@ -17,7 +17,7 @@ type ChatAreaProps = {
 }
 
 export default function ChatArea({ activeTargetId, activeTargetType, activeTarget, onToggleSidebar }: ChatAreaProps) {
-	const { messages, sendMessage, loadMessages, loadOlderMessages, markMessageAsRead } = useChat()
+	const { messages, sendMessage, loadMessages, loadOlderMessages, markMessageAsRead, markMessagesAsRead } = useChat()
 	const { currentUser } = useCurrentUser()
 
 	const [messageText, setMessageText] = useState('')
@@ -64,6 +64,27 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 			})
 		}
 	}, [activeTargetId, activeTargetType, loadMessages])
+
+	// Marcar mensagens como lidas quando usuário visualiza a conversa
+	useEffect(() => {
+		if (activeTargetId && activeTargetType && targetMessages.length > 0) {
+			// Verificar se há mensagens não lidas de outros usuários
+			const hasUnreadMessages = targetMessages.some(
+				(msg) => !msg.readAt && msg.senderUserId !== currentUser?.id
+			)
+
+			if (hasUnreadMessages) {
+				console.log('🔵 [ChatArea] Marcando mensagens como lidas:', {
+					targetId: activeTargetId,
+					type: activeTargetType,
+					totalMessages: targetMessages.length
+				})
+
+				// Marcar todas as mensagens não lidas como lidas
+				markMessagesAsRead(activeTargetId, activeTargetType)
+			}
+		}
+	}, [activeTargetId, activeTargetType, targetMessages, currentUser?.id, markMessagesAsRead])
 
 	// Verificar se usuário está no final da página (para auto-scroll)
 	const isAtBottom = useCallback(() => {
@@ -273,14 +294,12 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 			const chatUser = activeTarget as ChatUser
 			const getPresenceText = (status: string) => {
 				switch (status) {
-					case 'online':
-						return 'Online'
-					case 'away':
-						return 'Ausente'
-					case 'busy':
-						return 'Ocupado'
+					case 'visible':
+						return 'Visível'
+					case 'invisible':
+						return 'Invisível'
 					default:
-						return 'Offline'
+						return 'Invisível'
 				}
 			}
 
@@ -336,7 +355,7 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 					<div className='flex items-center gap-3 text-sm'>
 						{activeTargetType === 'user' && (
 							<div className='flex items-center gap-2'>
-								<div className={`w-2 h-2 rounded-full ${(activeTarget as ChatUser).presenceStatus === 'online' ? 'bg-green-400' : (activeTarget as ChatUser).presenceStatus === 'away' ? 'bg-yellow-400' : (activeTarget as ChatUser).presenceStatus === 'busy' ? 'bg-red-400' : 'bg-gray-400'}`} />
+								<div className={`w-2 h-2 rounded-full ${(activeTarget as ChatUser).presenceStatus === 'visible' ? 'bg-green-400' : 'bg-red-400'}`} />
 							</div>
 						)}
 						<span className='text-zinc-500 dark:text-zinc-400 hidden sm:inline'>{targetMessages.length} mensagens</span>
@@ -348,24 +367,8 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 			<div 
 				ref={messagesContainerRef} 
 				onScroll={handleScroll} 
-				className={`${targetMessages.length > 0 ? 'flex-1 overflow-y-auto min-h-0' : 'flex-1 flex items-center justify-center'} relative`}
+				className={`${targetMessages.length > 0 ? 'flex-1 overflow-y-auto min-h-0' : 'flex-1 flex items-center justify-center'} relative bg-cover bg-center bg-no-repeat bg-fixed bg-[url('/images/chat-light.jpg')] dark:bg-[url('/images/chat-dark.jpg')]`}
 			>
-				{/* Fundo para light mode */}
-				<div 
-					className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-					style={{
-						backgroundImage: 'url(/images/chat_light.jpg)'
-					}}
-				/>
-				
-				{/* Fundo para dark mode */}
-				<div 
-					className="absolute inset-0 bg-cover bg-center bg-no-repeat dark:opacity-100 opacity-0"
-					style={{
-						backgroundImage: 'url(/images/chat_dark.jpg)'
-					}}
-				/>
-				
 				{/* Conteúdo das mensagens */}
 				<div className="relative z-10 px-4 py-4 space-y-4">
 				{isLoading ? (
@@ -420,7 +423,7 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 									message={convertMessageForBubble(message)} 
 									isOwnMessage={isOwnMessage} 
 									showAvatar={shouldShowAvatar} 
-									readStatus={activeTargetType === 'user' ? (message.readAt ? 'read' : 'delivered') : 'sent'} 
+									readStatus={isOwnMessage ? (message.readAt ? 'read' : 'delivered') : 'sent'} 
 									readCount={0} 
 									totalParticipants={0} 
 								/>
@@ -434,14 +437,14 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 
 			{/* Botão para voltar ao final (quando usuário scrollou para cima) */}
 			{isUserScrolling && (
-				<div className='absolute bottom-20 right-6 z-10'>
+				<div className='absolute bottom-24 right-7 z-10'>
 					<button
 						onClick={() => {
 							scrollToBottom(true)
 							setShouldAutoScroll(true)
 							setIsUserScrolling(false)
 						}}
-						className='flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg transition-colors'
+						className='flex items-center gap-2 bg-zinc-500 hover:bg-zinc-600 dark:bg-zinc-600 dark:hover:bg-zinc-700 text-white px-4 py-2 rounded-full shadow-lg transition-colors'
 					>
 						<span className='icon-[lucide--arrow-down] w-4 h-4' />
 						<span className='text-sm font-medium'>Voltar ao final</span>
