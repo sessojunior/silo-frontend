@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { desc, gt, and, or, exists, isNull, eq } from 'drizzle-orm'
+import { desc, gt, and, or, exists, isNull, eq, ne } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import * as schema from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
@@ -126,9 +126,11 @@ export async function GET(request: NextRequest) {
 				receiverGroupId: schema.chatMessage.receiverGroupId,
 			})
 			.from(schema.chatMessage)
+			.innerJoin(schema.userGroup, eq(schema.userGroup.groupId, schema.chatMessage.receiverGroupId))
 			.where(
 				and(
-					eq(schema.chatMessage.receiverUserId, user.id), // Mensagens para o usuário atual
+					eq(schema.userGroup.userId, user.id), // Usuário é membro do grupo
+					ne(schema.chatMessage.senderUserId, user.id), // Mensagens de OUTROS usuários
 					isNull(schema.chatMessage.readAt), // Não lida
 					isNull(schema.chatMessage.deletedAt), // Não excluída
 				),
@@ -141,7 +143,8 @@ export async function GET(request: NextRequest) {
 				const unreadByGroup = await db
 					.select({ id: schema.chatMessage.id })
 					.from(schema.chatMessage)
-					.where(and(eq(schema.chatMessage.receiverGroupId, msgCount.receiverGroupId), eq(schema.chatMessage.receiverUserId, user.id), isNull(schema.chatMessage.readAt), isNull(schema.chatMessage.deletedAt)))
+					.innerJoin(schema.userGroup, eq(schema.userGroup.groupId, schema.chatMessage.receiverGroupId))
+					.where(and(eq(schema.userGroup.userId, user.id), eq(schema.chatMessage.receiverGroupId, msgCount.receiverGroupId), ne(schema.chatMessage.senderUserId, user.id), isNull(schema.chatMessage.readAt), isNull(schema.chatMessage.deletedAt)))
 
 				groupsCount[msgCount.receiverGroupId] = unreadByGroup.length
 			}
@@ -151,6 +154,19 @@ export async function GET(request: NextRequest) {
 			groups: groupsCount, // Contadores reais para grupos
 			users: usersCount,
 		}
+
+		console.log('🔵 [API Sync] Novas mensagens encontradas:', newMessages.length)
+		console.log('🔵 [API Sync] Detalhes das novas mensagens:', newMessages.map(msg => ({
+			id: msg.id,
+			content: msg.content,
+			senderUserId: msg.senderUserId,
+			senderName: msg.senderName,
+			receiverGroupId: msg.receiverGroupId,
+			receiverUserId: msg.receiverUserId,
+			createdAt: msg.createdAt,
+			readAt: msg.readAt,
+			isFromCurrentUser: msg.senderUserId === user.id
+		})))
 
 		// 4. Mapear tipo de mensagem
 		const messagesWithType = newMessages.map((msg) => ({

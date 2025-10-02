@@ -12,7 +12,9 @@ export type ChatGroup = {
 	icon: string
 	color: string
 	active: boolean
-	unreadCount: number // Sempre 0 para grupos
+	unreadCount: number
+	lastMessage: string | null
+	lastMessageAt: Date | null
 }
 
 export type ChatUser = {
@@ -281,6 +283,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 					// Recarregar sidebar para atualizar contadores
 					loadSidebarData()
+					
+					// Disparar evento para atualizar dropdown de notificações
+					window.dispatchEvent(new CustomEvent('messagesRead'))
 				} else {
 					const errorData = await response.json()
 					console.error('❌ [ChatContext] Erro ao marcar como lida:', errorData.error)
@@ -394,6 +399,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 				// Recarregar dados da sidebar para sincronizar
 				await loadSidebarData()
+				
+				// Disparar evento para atualizar dropdown de notificações
+				window.dispatchEvent(new CustomEvent('messagesRead'))
 			} else {
 				const errorData = await response.json()
 				console.error('❌ [ChatContext] Erro ao marcar mensagens como lidas:', errorData.error)
@@ -602,12 +610,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		const checkChatPreference = async () => {
 			try {
+				console.log('🔵 [ChatContext] Verificando preferências do chat...')
 				const response = await fetch('/api/user-preferences')
 				if (response.ok) {
 					const data = await response.json()
 					const enabled = data.userPreferences?.chatEnabled !== false
 					setChatEnabled(enabled)
-					console.log('🔵 [ChatContext] Preferência de chat:', enabled ? 'HABILITADO' : 'DESABILITADO')
+					console.log('🔵 [ChatContext] Preferência de chat:', enabled ? 'HABILITADO' : 'DESABILITADO', {
+						rawData: data.userPreferences,
+						chatEnabled: data.userPreferences?.chatEnabled
+					})
+				} else {
+					console.error('❌ [ChatContext] Erro na resposta da API de preferências:', response.status)
+					setChatEnabled(true) // Default para habilitado em caso de erro
 				}
 			} catch (error) {
 				console.error('❌ [ChatContext] Erro ao verificar preferências do chat:', error)
@@ -632,6 +647,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	}, [])
 
 	useEffect(() => {
+		console.log('🔵 [ChatContext] useEffect executado:', {
+			currentUser: currentUser ? `${currentUser.name} (${currentUser.id})` : 'null',
+			chatEnabled,
+			loading: currentUser === null ? 'loading' : 'loaded'
+		})
+		
 		if (currentUser && chatEnabled) {
 			console.log('🔵 [ChatContext] Usuário logado e chat habilitado, inicializando chat...')
 			initializePresence()
@@ -643,7 +664,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				startPolling()
 			}, 500)
 		} else {
-			console.log('🔵 [ChatContext] Chat desabilitado ou usuário deslogado, parando polling...')
+			console.log('🔵 [ChatContext] Chat desabilitado ou usuário deslogado, parando polling...', {
+				currentUser: currentUser ? 'present' : 'null',
+				chatEnabled
+			})
 			stopPolling()
 			setCurrentPresence('invisible')
 		}
@@ -662,12 +686,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	}, [stopPolling])
 
 	// Recarregar dados da sidebar quando totalUnread mudar significativamente
-	useEffect(() => {
-		if (totalUnread > 0) {
-			console.log('🔵 [ChatContext] totalUnread mudou para:', totalUnread, '- recarregando sidebar')
-			loadSidebarData()
-		}
-	}, [totalUnread, loadSidebarData])
+	// Removido para evitar recarregamentos desnecessários - o polling já atualiza os dados
+	// useEffect(() => {
+	// 	if (totalUnread > 0) {
+	// 		console.log('🔵 [ChatContext] totalUnread mudou para:', totalUnread, '- recarregando sidebar')
+	// 		loadSidebarData()
+	// 	}
+	// }, [totalUnread])
 
 	const value: ChatContextType = {
 		groups,

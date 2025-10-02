@@ -12,7 +12,9 @@ interface ChatGroup {
 	icon: string
 	color: string
 	active: boolean
-	unreadCount: number // Sempre 0 para grupos
+	unreadCount: number
+	lastMessage: string | null
+	lastMessageAt: Date | null
 }
 
 interface ChatUser {
@@ -58,15 +60,18 @@ export async function GET() {
 			.where(and(eq(schema.userGroup.userId, user.id), eq(schema.group.active, true)))
 
 		// 4. CONTAR MENSAGENS NÃO LIDAS POR GRUPO
+		// Para grupos, contar mensagens onde o usuário é membro do grupo E não são do próprio usuário
 		const groupUnreadCountsRaw = await db
 			.select({
 				receiverGroupId: schema.chatMessage.receiverGroupId,
 				unreadCount: count(schema.chatMessage.id),
 			})
 			.from(schema.chatMessage)
+			.innerJoin(schema.userGroup, eq(schema.userGroup.groupId, schema.chatMessage.receiverGroupId))
 			.where(
 				and(
-					eq(schema.chatMessage.receiverUserId, user.id), // Mensagens para o usuário atual
+					eq(schema.userGroup.userId, user.id), // Usuário é membro do grupo
+					ne(schema.chatMessage.senderUserId, user.id), // Mensagens de OUTROS usuários
 					isNull(schema.chatMessage.readAt), // Não lida
 					isNull(schema.chatMessage.deletedAt), // Não excluída
 				),
@@ -75,16 +80,61 @@ export async function GET() {
 
 		const groupUnreadMap = new Map(groupUnreadCountsRaw.map((g) => [g.receiverGroupId, g.unreadCount]))
 
-		// Mapear chatGroups com contagem real de não lidas
-		const chatGroups: ChatGroup[] = userGroups.map((g) => ({
-			id: g.groupId,
-			name: g.groupName,
-			description: g.groupDescription,
-			icon: g.groupIcon,
-			color: g.groupColor,
-			active: g.groupActive,
-			unreadCount: groupUnreadMap.get(g.groupId) || 0, // Contagem real de mensagens não lidas
-		}))
+		// 4.1. BUSCAR ÚLTIMA MENSAGEM POR GRUPO
+		const groupLastMessagesRaw = await db
+			.select({
+				receiverGroupId: schema.chatMessage.receiverGroupId,
+				content: schema.chatMessage.content,
+				createdAt: schema.chatMessage.createdAt,
+			})
+			.from(schema.chatMessage)
+			.innerJoin(schema.userGroup, eq(schema.userGroup.groupId, schema.chatMessage.receiverGroupId))
+			.where(
+				and(
+					eq(schema.userGroup.userId, user.id), // Usuário é membro do grupo
+					isNull(schema.chatMessage.deletedAt), // Não excluída
+				),
+			)
+			.orderBy(desc(schema.chatMessage.createdAt))
+
+		// Agrupar por grupo e pegar a mais recente
+		const groupLastMessageMap = new Map<string, { content: string; createdAt: Date }>()
+		console.log('🔵 [API Sidebar] Mensagens de grupos encontradas:', groupLastMessagesRaw.length)
+		console.log('🔵 [API Sidebar] Detalhes das mensagens de grupos:', groupLastMessagesRaw.map(msg => ({
+			groupId: msg.receiverGroupId,
+			content: msg.content,
+			createdAt: msg.createdAt
+		})))
+		
+		for (const msg of groupLastMessagesRaw) {
+			if (msg.receiverGroupId && !groupLastMessageMap.has(msg.receiverGroupId)) {
+				groupLastMessageMap.set(msg.receiverGroupId, {
+					content: msg.content,
+					createdAt: msg.createdAt,
+				})
+				console.log('🔵 [API Sidebar] Última mensagem do grupo:', {
+					groupId: msg.receiverGroupId,
+					content: msg.content,
+					createdAt: msg.createdAt
+				})
+			}
+		}
+
+		// Mapear chatGroups com contagem real de não lidas e última mensagem
+		const chatGroups: ChatGroup[] = userGroups.map((g) => {
+			const lastMessageData = groupLastMessageMap.get(g.groupId)
+			return {
+				id: g.groupId,
+				name: g.groupName,
+				description: g.groupDescription,
+				icon: g.groupIcon,
+				color: g.groupColor,
+				active: g.groupActive,
+				unreadCount: groupUnreadMap.get(g.groupId) || 0, // Contagem real de mensagens não lidas
+				lastMessage: lastMessageData?.content || null,
+				lastMessageAt: lastMessageData?.createdAt || null,
+			}
+		})
 
 		// 2. BUSCAR TODOS USUARIOS ATIVOS (exceto atual)
 		const allActiveUsers = await db
@@ -149,6 +199,15 @@ export async function GET() {
 
 		// Mapear última mensagem por usuário (considerando como "outro usuário" na conversa)
 		const lastMessageMap = new Map<string, { content: string; createdAt: Date }>()
+		console.log('🔵 [API Sidebar] Mensagens de usuários encontradas:', lastMessagesRaw.length)
+		console.log('🔵 [API Sidebar] Detalhes das mensagens de usuários:', lastMessagesRaw.map(msg => ({
+			senderUserId: msg.senderUserId,
+			receiverUserId: msg.receiverUserId,
+			content: msg.content,
+			createdAt: msg.createdAt,
+			isFromCurrentUser: msg.senderUserId === user.id
+		})))
+		
 		for (const msg of lastMessagesRaw) {
 			// Determinar o "outro usuário" da conversa
 			const otherUserId =
@@ -160,6 +219,12 @@ export async function GET() {
 				lastMessageMap.set(otherUserId, {
 					content: msg.content,
 					createdAt: msg.createdAt,
+				})
+				console.log('🔵 [API Sidebar] Última mensagem do usuário:', {
+					otherUserId,
+					content: msg.content,
+					createdAt: msg.createdAt,
+					isFromCurrentUser: msg.senderUserId === user.id
 				})
 			}
 		}
@@ -216,8 +281,10 @@ export async function GET() {
 			return a.name.localeCompare(b.name)
 		})
 
-		// 7. CALCULAR TOTAL DE NÃO LIDAS
-		const totalUnread = chatUsers.reduce((sum: number, user: ChatUser) => sum + user.unreadCount, 0)
+		// 7. CALCULAR TOTAL DE NÃO LIDAS (usuários + grupos)
+		const userUnreadTotal = chatUsers.reduce((sum: number, user: ChatUser) => sum + user.unreadCount, 0)
+		const groupUnreadTotal = chatGroups.reduce((sum: number, group: ChatGroup) => sum + group.unreadCount, 0)
+		const totalUnread = userUnreadTotal + groupUnreadTotal
 
 		const sidebarData: SidebarData = {
 			groups: chatGroups,
@@ -228,6 +295,8 @@ export async function GET() {
 		console.log('✅ Dados da sidebar carregados:', {
 			groups: chatGroups.length,
 			users: chatUsers.length,
+			userUnreadTotal,
+			groupUnreadTotal,
 			totalUnread,
 		})
 
