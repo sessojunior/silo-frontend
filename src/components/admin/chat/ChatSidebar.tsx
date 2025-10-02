@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useChat, ChatGroup, ChatUser } from '@/context/ChatContext'
@@ -13,6 +14,8 @@ type ChatSidebarProps = {
 }
 
 export default function ChatSidebar({ activeTargetId, activeTargetType, onTargetSelect }: ChatSidebarProps) {
+	const router = useRouter()
+	const pathname = usePathname()
 	const { currentUser } = useCurrentUser()
 	const { groups, users, totalUnread, currentPresence, updatePresence, isLoading } = useChat()
 
@@ -46,6 +49,20 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 		} catch (error) {
 			console.error('❌ [ChatSidebar] Erro ao alterar status:', error)
 		}
+	}
+
+	// Navegar para aba específica
+	const handleTabChange = (tab: 'groups' | 'users') => {
+		console.log('🔵 [ChatSidebar] Mudando para aba:', tab)
+		setActiveTab(tab)
+		router.push(`/admin/chat/${tab}`)
+	}
+
+	// Navegar para conversa específica
+	const handleConversationSelect = (targetId: string, type: 'group' | 'user') => {
+		console.log('🔵 [ChatSidebar] Selecionando conversa:', { targetId, type })
+		onTargetSelect(targetId, type)
+		router.push(`/admin/chat/${type === 'group' ? 'groups' : 'users'}/${targetId}`)
 	}
 
 	// Obter informações do status atual
@@ -113,11 +130,11 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 
 				{/* Abas */}
 				<div className='flex mb-3 bg-white dark:bg-zinc-700 rounded-lg p-1 m-4'>
-					<button onClick={() => setActiveTab('groups')} className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-colors ${activeTab === 'groups' ? 'bg-blue-500 text-white' : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-600'}`}>
+					<button onClick={() => handleTabChange('groups')} className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-colors ${activeTab === 'groups' ? 'bg-blue-500 text-white' : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-600'}`}>
 						<span className='icon-[lucide--users] w-3 h-3 inline mr-1' />
 						Grupos ({groups.length})
 					</button>
-					<button onClick={() => setActiveTab('users')} className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-colors ${activeTab === 'users' ? 'bg-blue-500 text-white' : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-600'}`}>
+					<button onClick={() => handleTabChange('users')} className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-colors ${activeTab === 'users' ? 'bg-blue-500 text-white' : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-600'}`}>
 						<span className='icon-[lucide--user] w-3 h-3 inline mr-1' />
 						Usuários ({users.length})
 					</button>
@@ -126,9 +143,11 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 
 			<div className='border-b border-zinc-200 dark:border-zinc-700 p-4'>
 				{/* Busca */}
-				<div className='relative'>
-					<span className='icon-[lucide--search] absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400' />
-					<input type='text' placeholder={activeTab === 'groups' ? 'Buscar conversas em grupos...' : 'Buscar conversas com usuários...'} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className='w-full pr-10 pl-4 py-2 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-300 rounded-lg border border-zinc-300 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-400' />
+				<div className='relative flex flex-1 h-10'>
+					<input type='text' placeholder={activeTab === 'groups' ? 'Procurar conversas em grupos...' : 'Procurar conversas com usuários...'} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className='block w-full rounded-lg border-zinc-200 px-4 py-2.5 pe-11 sm:py-3 sm:text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:ring-blue-500' />
+					<div className='pointer-events-none absolute inset-y-0 end-0 z-20 flex items-center pe-4'>
+						<span className='icon-[lucide--search] ml-1 size-4 shrink-0 text-zinc-400 dark:text-zinc-500'></span>
+					</div>
 				</div>
 			</div>
 
@@ -151,7 +170,7 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 					) : (
 						<div>
 							{filteredGroups.map((group) => (
-								<GroupItem key={group.id} group={group} isActive={group.id === activeTargetId && activeTargetType === 'group'} onClick={() => onTargetSelect(group.id, 'group')} />
+								<GroupItem key={group.id} group={group} isActive={group.id === activeTargetId && activeTargetType === 'group'} onClick={() => handleConversationSelect(group.id, 'group')} />
 							))}
 						</div>
 					)
@@ -172,7 +191,7 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 									<p className='text-sm'>{searchQuery ? 'Nenhum usuário encontrado' : 'Nenhum usuário disponível'}</p>
 								</div>
 							) : (
-								filteredUsers.map((chatUser) => <UserItem key={chatUser.id} user={chatUser} isActive={chatUser.id === activeTargetId && activeTargetType === 'user'} onClick={() => onTargetSelect(chatUser.id, 'user')} />)
+								filteredUsers.map((chatUser) => <UserItem key={chatUser.id} user={chatUser} isActive={chatUser.id === activeTargetId && activeTargetType === 'user'} onClick={() => handleConversationSelect(chatUser.id, 'user')} />)
 							)}
 						</div>
 					)

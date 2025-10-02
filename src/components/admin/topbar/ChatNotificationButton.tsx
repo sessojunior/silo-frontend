@@ -522,9 +522,9 @@ export default function ChatNotificationButton() {
 											onClick={() => {
 												setIsOpen(false)
 												if (conversation.type === 'group') {
-													router.push(`/admin/chat?groupId=${conversation.id}`)
+													router.push(`/admin/chat/groups/${conversation.id}`)
 												} else {
-													router.push(`/admin/chat?userId=${conversation.id}`)
+													router.push(`/admin/chat/users/${conversation.id}`)
 												}
 											}}
 										>
@@ -580,7 +580,7 @@ export default function ChatNotificationButton() {
 								className='w-full text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 py-2 rounded transition-colors'
 								onClick={() => {
 									setIsOpen(false)
-									router.push('/admin/chat')
+									router.push('/admin/chat/groups')
 								}}
 							>
 								Ver todas as conversas
