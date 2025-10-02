@@ -79,16 +79,16 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 				// 2 checks azuis: Lido pelo destinatário
 				return (
 					<div className='flex -space-x-1'>
-						<span className='icon-[lucide--check] w-3 h-3 text-blue-400' />
-						<span className='icon-[lucide--check] w-3 h-3 text-blue-400' />
+						<span className='icon-[lucide--check] w-3 h-3 text-blue-300' />
+						<span className='icon-[lucide--check] w-3 h-3 text-blue-300' />
 					</div>
 				)
 			} else {
-				// 2 checks cinza: Entregue mas não lido
+				// 2 checks brancos: Entregue mas não lido
 				return (
 					<div className='flex -space-x-1'>
-						<span className='icon-[lucide--check] w-3 h-3 text-zinc-400' />
-						<span className='icon-[lucide--check] w-3 h-3 text-zinc-400' />
+						<span className='icon-[lucide--check] w-3 h-3 text-white' />
+						<span className='icon-[lucide--check] w-3 h-3 text-white' />
 					</div>
 				)
 			}
@@ -97,22 +97,22 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 		// Para groupMessage, usar readStatus prop
 		switch (readStatus) {
 			case 'sent':
-				// 1 check cinza: Enviado
-				return <span className='icon-[lucide--check] w-3 h-3 text-zinc-400' />
+				// 1 check branco: Enviado
+				return <span className='icon-[lucide--check] w-3 h-3 text-white' />
 			case 'delivered':
-				// 2 checks cinza: Entregue
+				// 2 checks brancos: Entregue
 				return (
 					<div className='flex -space-x-1'>
-						<span className='icon-[lucide--check] w-3 h-3 text-zinc-400' />
-						<span className='icon-[lucide--check] w-3 h-3 text-zinc-400' />
+						<span className='icon-[lucide--check] w-3 h-3 text-white' />
+						<span className='icon-[lucide--check] w-3 h-3 text-white' />
 					</div>
 				)
 			case 'read':
 				// 2 checks azuis: Lido
 				return (
 					<div className='flex -space-x-1'>
-						<span className='icon-[lucide--check] w-3 h-3 text-blue-400' />
-						<span className='icon-[lucide--check] w-3 h-3 text-blue-400' />
+						<span className='icon-[lucide--check] w-3 h-3 text-blue-300' />
+						<span className='icon-[lucide--check] w-3 h-3 text-blue-300' />
 					</div>
 				)
 			default:

@@ -14,7 +14,7 @@ type ChatSidebarProps = {
 
 export default function ChatSidebar({ activeTargetId, activeTargetType, onTargetSelect }: ChatSidebarProps) {
 	const { currentUser } = useCurrentUser()
-	const { groups, users, totalUnread, currentPresence, updatePresence } = useChat()
+	const { groups, users, totalUnread, currentPresence, updatePresence, isLoading } = useChat()
 
 	const [searchQuery, setSearchQuery] = useState('')
 	const [activeTab, setActiveTab] = useState<'groups' | 'users'>('groups')
@@ -127,7 +127,14 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 			<div className='flex-1 overflow-y-auto'>
 				{activeTab === 'groups' ? (
 					// Lista de Grupos
-					filteredGroups.length === 0 ? (
+					isLoading ? (
+						<div className='p-6 text-center text-zinc-500 dark:text-zinc-400'>
+							<div className='flex items-center justify-center gap-3 mb-2'>
+								<div className='h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600'></div>
+								<span className='text-sm'>Carregando grupos...</span>
+							</div>
+						</div>
+					) : filteredGroups.length === 0 ? (
 						<div className='p-6 text-center text-zinc-500 dark:text-zinc-400'>
 							<span className='icon-[lucide--users] w-8 h-8 mx-auto mb-2 opacity-50' />
 							<p className='text-sm'>{searchQuery ? 'Nenhum grupo encontrado' : 'Nenhum grupo disponível'}</p>
@@ -141,16 +148,25 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 					)
 				) : (
 					// Lista de Usuários
-					<div className='py-2'>
-						{filteredUsers.length === 0 ? (
-							<div className='p-6 text-center text-zinc-500 dark:text-zinc-400'>
-								<span className='icon-[lucide--user] w-8 h-8 mx-auto mb-2 opacity-50' />
-								<p className='text-sm'>{searchQuery ? 'Nenhum usuário encontrado' : 'Nenhum usuário disponível'}</p>
+					isLoading ? (
+						<div className='p-6 text-center text-zinc-500 dark:text-zinc-400'>
+							<div className='flex items-center justify-center gap-3 mb-2'>
+								<div className='h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600'></div>
+								<span className='text-sm'>Carregando usuários...</span>
 							</div>
-						) : (
-							filteredUsers.map((chatUser) => <UserItem key={chatUser.id} user={chatUser} isActive={chatUser.id === activeTargetId && activeTargetType === 'user'} onClick={() => onTargetSelect(chatUser.id, 'user')} />)
-						)}
-					</div>
+						</div>
+					) : (
+						<div className='py-2'>
+							{filteredUsers.length === 0 ? (
+								<div className='p-6 text-center text-zinc-500 dark:text-zinc-400'>
+									<span className='icon-[lucide--user] w-8 h-8 mx-auto mb-2 opacity-50' />
+									<p className='text-sm'>{searchQuery ? 'Nenhum usuário encontrado' : 'Nenhum usuário disponível'}</p>
+								</div>
+							) : (
+								filteredUsers.map((chatUser) => <UserItem key={chatUser.id} user={chatUser} isActive={chatUser.id === activeTargetId && activeTargetType === 'user'} onClick={() => onTargetSelect(chatUser.id, 'user')} />)
+							)}
+						</div>
+					)
 				)}
 			</div>
 
