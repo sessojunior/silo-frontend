@@ -70,7 +70,7 @@ export default function Topbar() {
 			id: '4',
 			icon: 'icon-[lucide--log-out]',
 			title: 'Sair',
-			url: '/logout',
+			url: '/api/logout',
 		},
 	]
 
