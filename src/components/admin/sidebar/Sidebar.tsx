@@ -30,19 +30,27 @@ export default function Sidebar() {
 
 	// Verificar se o chat está habilitado para o usuário
 	useEffect(() => {
-		// Se o usuário está offline, o chat está desabilitado
-		if (currentPresence === 'offline') {
-			setChatEnabled(false)
-			return
-		}
-
 		const checkChatEnabled = async () => {
 			try {
 				const response = await fetch('/api/user-preferences')
 				if (response.ok) {
 					const data = await response.json()
 					const enabled = data.userPreferences?.chatEnabled !== false
-					setChatEnabled(enabled)
+					
+					console.log('🔍 [Sidebar] Verificando chat:', {
+						currentPresence,
+						preferenceEnabled: enabled,
+						userPreferences: data.userPreferences
+					})
+					
+					// Só desabilitar se estiver offline E não estiver habilitado nas preferências
+					if (currentPresence === 'offline' && !enabled) {
+						console.log('🔍 [Sidebar] Chat desabilitado: offline + preferência desabilitada')
+						setChatEnabled(false)
+					} else {
+						console.log('🔍 [Sidebar] Chat habilitado:', enabled)
+						setChatEnabled(enabled)
+					}
 				}
 			} catch (error) {
 				console.error('❌ [Sidebar] Erro ao verificar preferências do chat:', error)
@@ -53,7 +61,18 @@ export default function Sidebar() {
 
 		// Listener para atualização automática quando preferência de chat mudar
 		const handleChatPreferenceChange = (event: CustomEvent) => {
-			setChatEnabled(event.detail.chatEnabled)
+			const newChatEnabled = event.detail.chatEnabled
+			console.log('🔍 [Sidebar] Evento chatPreferenceChanged:', {
+				newChatEnabled,
+				currentPresence
+			})
+			
+			// Só desabilitar se estiver offline E não estiver habilitado nas preferências
+			if (currentPresence === 'offline' && !newChatEnabled) {
+				setChatEnabled(false)
+			} else {
+				setChatEnabled(newChatEnabled)
+			}
 		}
 
 		window.addEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
@@ -133,6 +152,9 @@ export default function Sidebar() {
 
 		fetchProjects()
 	}, [])
+
+	// Log para debug do estado do chat
+	console.log('🔍 [Sidebar] Renderizando menu com chatEnabled:', chatEnabled)
 
 	// Dados para o menu lateral
 	const sidebar: SidebarProps = {

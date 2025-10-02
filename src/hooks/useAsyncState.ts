@@ -218,7 +218,7 @@ export function useMutation<TData, TVariables>(
 
 	const mutate = useCallback(async (variables: TVariables): Promise<TData | null> => {
 		return asyncState.execute(variables)
-	}, [asyncState.execute])
+	}, [asyncState])
 
 	return {
 		...asyncState,
@@ -282,7 +282,7 @@ export function useQuery<T>(
 			}, refetchInterval)
 			return () => clearInterval(interval)
 		}
-	}, [refetchInterval, asyncState.loading, asyncState.refetch])
+	}, [refetchInterval, asyncState])
 
 	// Refetch quando a janela ganha foco
 	useEffect(() => {
@@ -294,12 +294,12 @@ export function useQuery<T>(
 			window.addEventListener('focus', handleFocus)
 			return () => window.removeEventListener('focus', handleFocus)
 		}
-	}, [refetchOnWindowFocus, isStale, asyncState.refetch])
+	}, [refetchOnWindowFocus, isStale, asyncState])
 
 	const invalidate = useCallback(() => {
 		setIsStale(true)
 		asyncState.refetch()
-	}, [asyncState.refetch])
+	}, [asyncState])
 
 	return {
 		...asyncState,

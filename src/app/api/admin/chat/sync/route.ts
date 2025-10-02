@@ -89,15 +89,15 @@ export async function GET(request: NextRequest) {
 			.from(schema.chatUserPresence)
 			.where(gt(schema.chatUserPresence.updatedAt, sinceDate))
 
-		// FILTRO ANTI-LOOP: Só retornar mudanças de presença se forem MUITO recentes (últimos 10 segundos)
+		// FILTRO ANTI-LOOP: Só retornar mudanças de presença se forem recentes (últimos 5 segundos)
 		// Isso evita loops infinitos retornando sempre a mesma mudança
-		const tenSecondsAgo = new Date(Date.now() - 10 * 1000)
-		const filteredPresence = updatedPresence.filter((p) => p.updatedAt > tenSecondsAgo)
+		const fiveSecondsAgo = new Date(Date.now() - 5 * 1000)
+		const filteredPresence = updatedPresence.filter((p) => p.updatedAt > fiveSecondsAgo)
 
 		console.log('🔍 Filtro presença:', {
 			total: updatedPresence.length,
 			filtered: filteredPresence.length,
-			cutoff: tenSecondsAgo.toISOString(),
+			cutoff: fiveSecondsAgo.toISOString(),
 		})
 
 		// 3. Calcular contadores não lidas APENAS para userMessage

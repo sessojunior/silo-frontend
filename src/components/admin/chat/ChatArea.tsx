@@ -245,22 +245,15 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 	const convertMessageForBubble = (message: ChatMessage) => {
 		return {
 			id: message.id,
-			channelId: activeTargetId || '', // Para compatibilidade
-			senderId: message.senderUserId,
-			senderName: message.senderName,
-			senderEmail: '', // Campo não usado no contexto atual
 			content: message.content,
-			messageType: 'text', // Sempre texto por enquanto
-			fileUrl: null,
-			fileName: null,
-			fileSize: null,
-			fileMimeType: null,
-			replyToId: null,
-			threadCount: 0,
-			isEdited: false,
-			editedAt: null,
+			senderUserId: message.senderUserId,
+			senderName: message.senderName,
+			receiverGroupId: message.receiverGroupId,
+			receiverUserId: message.receiverUserId,
 			createdAt: message.createdAt,
-			deletedAt: null,
+			readAt: message.readAt,
+			deletedAt: message.deletedAt,
+			messageType: message.messageType,
 		}
 	}
 

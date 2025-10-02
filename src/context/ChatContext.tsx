@@ -36,6 +36,7 @@ export type ChatMessage = {
 	receiverUserId: string | null
 	createdAt: Date
 	readAt: Date | null
+	deletedAt: Date | null
 	messageType: 'groupMessage' | 'userMessage'
 }
 
@@ -428,13 +429,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			return
 		}
 
-		console.log('🔵 [ChatContext] Iniciando polling (5 segundos)')
+		console.log('🔵 [ChatContext] Iniciando polling (10 segundos)')
 		isPollingActive.current = true
 
 		pollingInterval.current = setInterval(() => {
 			syncMessages()
 			sendHeartbeat()
-		}, 5000) // 5 segundos conforme especificado
+		}, 10000) // 10 segundos para reduzir carga no servidor
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []) // Intencionalmente sem dependências para evitar loop infinito
 

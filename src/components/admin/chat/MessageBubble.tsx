@@ -5,28 +5,21 @@ import { formatDateTimeBR } from '@/lib/dateUtils'
 type MessageBubbleProps = {
 	message: {
 		id: string
-		channelId: string
-		senderId: string
+		content: string
+		senderUserId: string
 		senderName: string
-		senderEmail: string
-		content: string | null
-		messageType: string
-		fileUrl: string | null
-		fileName: string | null
-		fileSize: number | null
-		fileMimeType: string | null
-		replyToId: string | null
-		threadCount: number
-		isEdited: boolean
-		editedAt: Date | null
+		receiverGroupId: string | null
+		receiverUserId: string | null
 		createdAt: Date
+		readAt: Date | null
 		deletedAt: Date | null
+		messageType: 'groupMessage' | 'userMessage'
 	}
 	isOwnMessage: boolean
 	showAvatar: boolean
-	readStatus?: 'sent' | 'delivered' | 'read' // Status de leitura
-	readCount?: number // Quantos usuários leram
-	totalParticipants?: number // Total de participantes do canal
+	readStatus?: 'sent' | 'delivered' | 'read' // Status de leitura (apenas para userMessage)
+	readCount?: number // Quantos usuários leram (apenas para groupMessage)
+	totalParticipants?: number // Total de participantes do grupo (apenas para groupMessage)
 }
 
 export default function MessageBubble({ message, isOwnMessage, showAvatar, readStatus = 'sent', readCount = 0, totalParticipants = 0 }: MessageBubbleProps) {
@@ -47,6 +40,26 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 	const renderReadStatus = () => {
 		if (!isOwnMessage) return null
 
+		// Para userMessage, usar readAt para determinar status
+		if (message.messageType === 'userMessage') {
+			if (message.readAt) {
+				return (
+					<div className='flex -space-x-1'>
+						<span className='icon-[lucide--check] w-3 h-3 text-green-500' />
+						<span className='icon-[lucide--check] w-3 h-3 text-green-500' />
+					</div>
+				)
+			} else {
+				return (
+					<div className='flex -space-x-1'>
+						<span className='icon-[lucide--check] w-3 h-3 text-zinc-400' />
+						<span className='icon-[lucide--check] w-3 h-3 text-zinc-400' />
+					</div>
+				)
+			}
+		}
+
+		// Para groupMessage, usar readStatus prop
 		switch (readStatus) {
 			case 'sent':
 				return <span className='icon-[lucide--check] w-3 h-3 text-zinc-400' />
@@ -90,22 +103,14 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 						${isOwnMessage ? 'bg-blue-500 text-white rounded-br-md' : 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-600 rounded-bl-md'}
 					`}
 				>
-					{/* Indicador de resposta */}
-					{message.replyToId && (
-						<div className={`text-xs mb-2 p-2 rounded ${isOwnMessage ? 'bg-blue-600' : 'bg-zinc-100 dark:bg-zinc-600'}`}>
-							<span className='opacity-75'>Respondendo a uma mensagem</span>
-						</div>
-					)}
-
 					{/* Conteúdo da mensagem */}
-					{message.messageType === 'text' && message.content && <p className='text-sm whitespace-pre-wrap break-words overflow-hidden'>{message.content}</p>}
+					{message.content && <p className='text-sm whitespace-pre-wrap break-words overflow-hidden'>{message.content}</p>}
 
-					{/* Mensagem de arquivo */}
-					{message.messageType === 'file' && message.fileUrl && (
-						<div className='flex items-center gap-2'>
-							<span className='icon-[lucide--paperclip] w-4 h-4' />
-							<span className='text-sm'>{message.fileName}</span>
-							{message.fileSize && <span className='text-xs opacity-75'>({(message.fileSize / 1024).toFixed(1)} KB)</span>}
+					{/* Indicador de exclusão */}
+					{message.deletedAt && (
+						<div className='text-xs opacity-75 italic'>
+							<span className='icon-[lucide--trash-2] w-3 h-3 inline mr-1' />
+							Mensagem excluída
 						</div>
 					)}
 
@@ -113,15 +118,12 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 					<div className={`flex items-center gap-1 mt-1 text-xs ${isOwnMessage ? 'text-blue-100' : 'text-zinc-500 dark:text-zinc-400'}`}>
 						<span>{timeDisplay}</span>
 
-						{/* Indicador de editado */}
-						{message.isEdited && <span className='opacity-75'>(editado)</span>}
-
 						{/* Status de entrega/leitura (apenas para mensagens próprias) */}
 						{isOwnMessage && (
 							<div className='flex items-center gap-1 ml-1'>
 								{renderReadStatus()}
 								{/* Contador de leitura para grupos */}
-								{readStatus === 'read' && totalParticipants > 1 && readCount > 0 && (
+								{message.messageType === 'groupMessage' && totalParticipants > 1 && readCount > 0 && (
 									<span className='text-xs opacity-75'>
 										{readCount}/{totalParticipants}
 									</span>
