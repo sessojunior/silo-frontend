@@ -63,15 +63,8 @@ export default function ChatPage() {
 		})
 	}, [activeTargetId, activeTargetType])
 
-	// Auto-selecionar primeiro grupo se nenhum target estiver selecionado
-	useEffect(() => {
-		if (!activeTargetId && groups?.length > 0) {
-			const firstGroup = groups[0]
-			console.log('🔵 [ChatPage] Auto-selecionando primeiro grupo:', firstGroup.name)
-			setActiveTargetId(firstGroup.id)
-			setActiveTargetType('group')
-		}
-	}, [groups, activeTargetId])
+	// Removido: Auto-seleção do primeiro grupo
+	// O usuário deve clicar manualmente em um grupo para abrir a conversa
 
 	// Handler para seleção de target (grupo ou usuário)
 	const handleTargetSelect = (targetId: string, type: 'group' | 'user') => {

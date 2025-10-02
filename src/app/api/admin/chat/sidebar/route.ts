@@ -57,7 +57,25 @@ export async function GET() {
 			.innerJoin(schema.group, eq(schema.userGroup.groupId, schema.group.id))
 			.where(and(eq(schema.userGroup.userId, user.id), eq(schema.group.active, true)))
 
-		// Mapear chatGroups (sempre 0 não lidas)
+		// 4. CONTAR MENSAGENS NÃO LIDAS POR GRUPO
+		const groupUnreadCountsRaw = await db
+			.select({
+				receiverGroupId: schema.chatMessage.receiverGroupId,
+				unreadCount: count(schema.chatMessage.id),
+			})
+			.from(schema.chatMessage)
+			.where(
+				and(
+					eq(schema.chatMessage.receiverUserId, user.id), // Mensagens para o usuário atual
+					isNull(schema.chatMessage.readAt), // Não lida
+					isNull(schema.chatMessage.deletedAt), // Não excluída
+				),
+			)
+			.groupBy(schema.chatMessage.receiverGroupId)
+
+		const groupUnreadMap = new Map(groupUnreadCountsRaw.map((g) => [g.receiverGroupId, g.unreadCount]))
+
+		// Mapear chatGroups com contagem real de não lidas
 		const chatGroups: ChatGroup[] = userGroups.map((g) => ({
 			id: g.groupId,
 			name: g.groupName,
@@ -65,7 +83,7 @@ export async function GET() {
 			icon: g.groupIcon,
 			color: g.groupColor,
 			active: g.groupActive,
-			unreadCount: 0, // Grupos não têm controle de leitura
+			unreadCount: groupUnreadMap.get(g.groupId) || 0, // Contagem real de mensagens não lidas
 		}))
 
 		// 2. BUSCAR TODOS USUARIOS ATIVOS (exceto atual)
@@ -90,7 +108,7 @@ export async function GET() {
 
 		const presenceMap = new Map(presenceData.map((p) => [p.userId, { status: p.status, lastActivity: p.lastActivity }]))
 
-		// 4. CONTAR MENSAGENS NÃO LIDAS POR USUÁRIO
+		// 5. CONTAR MENSAGENS NÃO LIDAS POR USUÁRIO
 		const unreadCountsRaw = await db
 			.select({
 				senderUserId: schema.chatMessage.senderUserId,
@@ -108,7 +126,7 @@ export async function GET() {
 
 		const unreadMap = new Map(unreadCountsRaw.map((u) => [u.senderUserId, u.unreadCount]))
 
-		// 5. BUSCAR ÚLTIMA MENSAGEM POR USUÁRIO (enviadas e recebidas)
+		// 6. BUSCAR ÚLTIMA MENSAGEM POR USUÁRIO (enviadas e recebidas)
 		const lastMessagesRaw = await db
 			.select({
 				senderUserId: schema.chatMessage.senderUserId,
@@ -146,7 +164,7 @@ export async function GET() {
 			}
 		}
 
-		// 6. MONTAR LISTA DE CHATUSERS
+		// 7. MONTAR LISTA DE CHATUSERS
 		const chatUsers: ChatUser[] = allActiveUsers.map((activeUser) => {
 			const presence = presenceMap.get(activeUser.id)
 			const unreadCount = unreadMap.get(activeUser.id) || 0

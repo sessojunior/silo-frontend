@@ -206,6 +206,9 @@ function GroupItem({ group, isActive, onClick }: { group: ChatGroup; isActive: b
 			<div className='flex-1 min-w-0'>
 				<div className='flex items-center justify-between mb-1'>
 					<h3 className={`font-medium text-sm truncate ${isActive ? 'text-blue-700 dark:text-blue-300' : 'text-zinc-900 dark:text-zinc-100'}`}>{group.name}</h3>
+					<div className='flex items-center gap-1'>
+						{group.unreadCount > 0 && <span className='flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white'>{group.unreadCount > 99 ? '99+' : group.unreadCount}</span>}
+					</div>
 				</div>
 				<p className='text-xs text-zinc-500 dark:text-zinc-400 truncate'>{group.description || 'Grupo organizacional'}</p>
 			</div>

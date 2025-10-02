@@ -76,11 +76,11 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 		// Para userMessage, usar readAt para determinar status
 		if (message.messageType === 'userMessage') {
 			if (message.readAt) {
-				// 2 checks azuis: Lido pelo destinatário
-				return <span className='icon-[lucide--check-check] w-3 h-3 text-blue-300' />
+				// 2 checks verdes: Lido pelo destinatário (estilo WhatsApp)
+				return <span className='icon-[lucide--check-check] w-3 h-3 text-green-500' />
 			} else {
-				// 2 checks brancos: Entregue mas não lido
-				return <span className='icon-[lucide--check-check] w-3 h-3 text-white' />
+				// 2 checks azuis: Entregue mas não lido
+				return <span className='icon-[lucide--check-check] w-3 h-3 text-blue-500' />
 			}
 		}
 
@@ -90,11 +90,11 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 				// 1 check branco: Enviado
 				return <span className='icon-[lucide--check] w-3 h-3 text-white' />
 			case 'delivered':
-				// 2 checks brancos: Entregue
-				return <span className='icon-[lucide--check-check] w-3 h-3 text-white' />
+				// 2 checks azuis: Entregue
+				return <span className='icon-[lucide--check-check] w-3 h-3 text-blue-500' />
 			case 'read':
-				// 2 checks azuis: Lido
-				return <span className='icon-[lucide--check-check] w-3 h-3 text-blue-300' />
+				// 2 checks verdes: Lido (estilo WhatsApp)
+				return <span className='icon-[lucide--check-check] w-3 h-3 text-green-500' />
 			default:
 				return null
 		}

@@ -1,18 +1,55 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useChat, ChatUser } from '@/context/ChatContext'
+import { useChat } from '@/context/ChatContext'
 import { formatDateTimeBR } from '@/lib/dateUtils'
 
 export default function ChatNotificationButton() {
 	const [isOpen, setIsOpen] = useState(false)
+	const [localCurrentPresence, setLocalCurrentPresence] = useState<'visible' | 'invisible'>('invisible')
 	const router = useRouter()
-	const { users, totalUnread, currentPresence, updatePresence, loadSidebarData } = useChat()
+	const { groups, users, totalUnread, currentPresence, updatePresence, loadSidebarData } = useChat()
 
-	// Mostrar as 5 conversas mais recentes (com prioridade para não lidas)
-	const recentConversations = users
-		.filter((user) => user.lastMessage || user.unreadCount > 0) // Apenas quem já conversou
+	// Mostrar as 5 conversas mais recentes (grupos + usuários, com prioridade para não lidas)
+	const recentConversations = [
+		// Grupos com mensagens não lidas
+		...groups
+			.filter((group) => group.unreadCount > 0)
+			.map((group) => ({
+				id: group.id,
+				name: group.name,
+				type: 'group' as const,
+				unreadCount: group.unreadCount,
+				lastMessageAt: null, // Grupos não têm lastMessageAt na API atual
+				lastMessage: null,
+				presenceStatus: 'visible' as const, // Grupos sempre visíveis
+			})),
+		// Usuários com mensagens não lidas
+		...users
+			.filter((user) => user.unreadCount > 0)
+			.map((user) => ({
+				id: user.id,
+				name: user.name,
+				type: 'user' as const,
+				unreadCount: user.unreadCount,
+				lastMessageAt: user.lastMessageAt,
+				lastMessage: user.lastMessage,
+				presenceStatus: user.presenceStatus,
+			})),
+		// Usuários com conversas recentes (sem mensagens não lidas)
+		...users
+			.filter((user) => user.lastMessage && user.unreadCount === 0)
+			.map((user) => ({
+				id: user.id,
+				name: user.name,
+				type: 'user' as const,
+				unreadCount: user.unreadCount,
+				lastMessageAt: user.lastMessageAt,
+				lastMessage: user.lastMessage,
+				presenceStatus: user.presenceStatus,
+			})),
+	]
 		.sort((a, b) => {
 			// 1. Prioridade: mensagens não lidas
 			if (a.unreadCount !== b.unreadCount) {
@@ -42,14 +79,63 @@ export default function ChatNotificationButton() {
 
 	const handlePresenceChange = async (status: 'visible' | 'invisible') => {
 		console.log('🔵 [ChatNotificationButton] Alterando status para:', status)
+		setLocalCurrentPresence(status) // Atualizar estado local imediatamente
 		await updatePresence(status)
 		console.log('✅ [ChatNotificationButton] Status alterado na TopBar para:', status)
 	}
 
+	// Debug: Log do currentPresence para investigação
+	console.log('🔵 [ChatNotificationButton] currentPresence (contexto):', currentPresence)
+	console.log('🔵 [ChatNotificationButton] localCurrentPresence (local):', localCurrentPresence)
+	console.log('🔵 [ChatNotificationButton] totalUnread atual:', totalUnread)
+	console.log('🔵 [ChatNotificationButton] recentConversations:', recentConversations.length)
+
+	// Função para buscar o status atual da API
+	const fetchCurrentPresence = async () => {
+		try {
+			const response = await fetch('/api/admin/chat/presence')
+			if (response.ok) {
+				const data = await response.json()
+				if (data.currentUserPresence) {
+					console.log('🔵 [ChatNotificationButton] Status atual da API:', data.currentUserPresence.status)
+					setLocalCurrentPresence(data.currentUserPresence.status)
+				}
+			}
+		} catch (error) {
+			console.error('❌ [ChatNotificationButton] Erro ao buscar status atual:', error)
+		}
+	}
+
+	// Sincronizar com o currentPresence do contexto
+	useEffect(() => {
+		if (currentPresence && currentPresence !== 'invisible') {
+			setLocalCurrentPresence(currentPresence)
+		}
+	}, [currentPresence])
+
+	// Forçar atualização do currentPresence quando o dropdown abrir
+	useEffect(() => {
+		if (isOpen) {
+			console.log('🔵 [ChatNotificationButton] Dropdown aberto - buscando status atual da API')
+			fetchCurrentPresence()
+			// Pequeno delay para garantir que o estado seja atualizado
+			setTimeout(() => {
+				loadSidebarData()
+			}, 100)
+		}
+	}, [isOpen, loadSidebarData])
+
 	const handleButtonClick = (e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
-		setIsOpen(!isOpen)
+		const newIsOpen = !isOpen
+		setIsOpen(newIsOpen)
+		
+		// Forçar atualização dos dados quando abrir o dropdown
+		if (newIsOpen) {
+			console.log('🔵 [ChatNotificationButton] Abrindo dropdown - forçando atualização')
+			loadSidebarData()
+		}
 	}
 
 	const getPresenceColor = (status: string) => {
@@ -131,7 +217,7 @@ export default function ChatNotificationButton() {
 							<div className='flex items-center justify-between'>
 								<div className='flex items-center gap-2'>
 									<span className='text-xs text-zinc-500 dark:text-zinc-400'>Status:</span>
-									<span className='text-sm font-medium text-zinc-900 dark:text-zinc-100'>{getPresenceText(currentPresence)}</span>
+									<span className='text-sm font-medium text-zinc-900 dark:text-zinc-100'>{getPresenceText(localCurrentPresence)}</span>
 								</div>
 								<div className='flex gap-1'>
 									{[
@@ -141,7 +227,7 @@ export default function ChatNotificationButton() {
 										<button 
 											key={status} 
 											onClick={() => handlePresenceChange(status as 'visible' | 'invisible')} 
-											className={`w-6 h-6 rounded-full border-2 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${currentPresence === status ? 'outline-none border-white ring-2 ring-blue-500' : 'border-transparent hover:border-zinc-300 dark:hover:border-zinc-600'}`} 
+											className={`w-6 h-6 rounded-full border-2 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${localCurrentPresence === status ? 'outline-none border-white ring-2 ring-blue-500' : 'border-transparent hover:border-zinc-300 dark:hover:border-zinc-600'}`} 
 											title={status === 'invisible' ? 'Status usado para férias, licença, aposentado, saiu da empresa, usuário inativo etc.' : label}
 										>
 											<div className={`w-full h-full rounded-full ${color}`} />
@@ -162,30 +248,52 @@ export default function ChatNotificationButton() {
 								</div>
 							) : (
 								<div className='divide-y divide-zinc-200 dark:divide-zinc-700'>
-									{recentConversations.map((user: ChatUser) => (
+									{recentConversations.map((conversation) => (
 										<div
-											key={user.id}
+											key={`${conversation.type}-${conversation.id}`}
 											className='px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 cursor-pointer transition-colors'
 											onClick={() => {
 												setIsOpen(false)
-												router.push(`/admin/chat?userId=${user.id}`)
+												if (conversation.type === 'group') {
+													router.push(`/admin/chat?groupId=${conversation.id}`)
+												} else {
+													router.push(`/admin/chat?userId=${conversation.id}`)
+												}
 											}}
 										>
 											<div className='flex items-center justify-between'>
 												<div className='flex items-center gap-3 min-w-0 flex-1'>
 													<div className='relative'>
-														<div className='w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold'>{user.name.charAt(0).toUpperCase()}</div>
-														<div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-800 ${getPresenceColor(user.presenceStatus)}`} />
+														{conversation.type === 'group' ? (
+															<div className='w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center text-white text-sm font-semibold'>
+																<span className='icon-[lucide--users] w-4 h-4' />
+															</div>
+														) : (
+															<div className='w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold'>{conversation.name.charAt(0).toUpperCase()}</div>
+														)}
+														{conversation.type === 'user' && (
+															<div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-800 ${getPresenceColor(conversation.presenceStatus)}`} />
+														)}
 													</div>
 													<div className='min-w-0 flex-1'>
 														<div className='flex items-center justify-between'>
-															<p className='text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate'>{user.name}</p>
+															<p className='text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate'>{conversation.name}</p>
 															<div className='flex items-center gap-1'>
-																<span className='text-xs text-zinc-500 dark:text-zinc-400'>{user.lastMessageAt && formatDateTimeBR(new Date(user.lastMessageAt).toISOString().split('T')[0], new Date(user.lastMessageAt).toISOString().split('T')[1]?.split('.')[0]).split(' ')[1]}</span>
-																<span className='flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white'>{user.unreadCount > 99 ? '99+' : user.unreadCount}</span>
+																{conversation.lastMessageAt && (
+																	<span className='text-xs text-zinc-500 dark:text-zinc-400'>
+																		{formatDateTimeBR(new Date(conversation.lastMessageAt).toISOString().split('T')[0], new Date(conversation.lastMessageAt).toISOString().split('T')[1]?.split('.')[0]).split(' ')[1]}
+																	</span>
+																)}
+																{conversation.unreadCount > 0 && (
+																	<span className='flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white'>
+																		{conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+																	</span>
+																)}
 															</div>
 														</div>
-														{user.lastMessage && <p className='text-xs text-zinc-500 dark:text-zinc-400 truncate mt-0.5'>{user.lastMessage}</p>}
+														{conversation.lastMessage && (
+															<p className='text-xs text-zinc-500 dark:text-zinc-400 truncate mt-0.5'>{conversation.lastMessage}</p>
+														)}
 													</div>
 												</div>
 											</div>

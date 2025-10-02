@@ -349,7 +349,50 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 					return updated
 				})
 
-				// Recarregar dados da sidebar para atualizar contadores
+				// Atualizar contadores da sidebar dinamicamente
+				if (type === 'user') {
+					// Para usuários, reduzir contagem do sender
+					const targetUser = users.find(u => u.id === targetId)
+					const unreadToSubtract = targetUser?.unreadCount || 0
+					
+					setUsers((prev) => prev.map((user) => {
+						if (user.id === targetId) {
+							return { ...user, unreadCount: 0 }
+						}
+						return user
+					}))
+					
+					// Atualizar totalUnread
+					setTotalUnread((prev) => prev - unreadToSubtract)
+					
+					console.log('🔵 [ChatContext] Contador de usuário atualizado:', {
+						userId: targetId,
+						subtracted: unreadToSubtract,
+						newTotal: totalUnread - unreadToSubtract
+					})
+				} else if (type === 'group') {
+					// Para grupos, reduzir contagem do grupo
+					const targetGroup = groups.find(g => g.id === targetId)
+					const unreadToSubtract = targetGroup?.unreadCount || 0
+					
+					setGroups((prev) => prev.map((group) => {
+						if (group.id === targetId) {
+							return { ...group, unreadCount: 0 }
+						}
+						return group
+					}))
+					
+					// Atualizar totalUnread
+					setTotalUnread((prev) => prev - unreadToSubtract)
+					
+					console.log('🔵 [ChatContext] Contador de grupo atualizado:', {
+						groupId: targetId,
+						subtracted: unreadToSubtract,
+						newTotal: totalUnread - unreadToSubtract
+					})
+				}
+
+				// Recarregar dados da sidebar para sincronizar
 				await loadSidebarData()
 			} else {
 				const errorData = await response.json()
@@ -358,14 +401,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		} catch (error) {
 			console.error('❌ [ChatContext] Erro na requisição marcar como lidas:', error)
 		}
-	}, [currentUser?.id, loadSidebarData])
+	}, [currentUser?.id, loadSidebarData, users, groups, totalUnread])
 
 	// === SISTEMA DE PRESENÇA ===
 
 	const updatePresence = useCallback(async (status: PresenceStatus) => {
 		try {
-			console.log('🔵 [ChatContext] Atualizando presença:', status)
-
 			const response = await fetch('/api/admin/chat/presence', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -375,6 +416,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			if (response.ok) {
 				console.log('✅ [ChatContext] Presença atualizada:', status)
 				setCurrentPresence(status)
+				console.log('🔵 [ChatContext] currentPresence definido para:', status)
 			} else {
 				const errorData = await response.json()
 				console.error('❌ [ChatContext] Erro ao atualizar presença:', errorData.error)
@@ -454,8 +496,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 					// Atualizar contadores
 					if (data.unreadCounts) {
 						const userCounts = data.unreadCounts.users as Record<string, number | null>
-						const newTotalUnread = Object.values(userCounts).reduce((sum, count) => (sum || 0) + (count || 0), 0) as number
+						const groupCounts = data.unreadCounts.groups as Record<string, number | null>
+						
+						// Somar contagens de usuários e grupos
+						const userTotal = Object.values(userCounts).reduce((sum, count) => (sum || 0) + (count || 0), 0) as number
+						const groupTotal = Object.values(groupCounts).reduce((sum, count) => (sum || 0) + (count || 0), 0) as number
+						const newTotalUnread = userTotal + groupTotal
+						
 						setTotalUnread(newTotalUnread)
+						console.log('🔵 [ChatContext] Contadores atualizados:', {
+							users: userTotal,
+							groups: groupTotal,
+							total: newTotalUnread
+						})
 					}
 
 					// Recarregar sidebar APENAS se há mensagens REALMENTE novas
@@ -515,10 +568,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			const response = await fetch('/api/admin/chat/presence')
 			if (response.ok) {
 				const data = await response.json()
+				console.log('🔵 [ChatContext] Dados da API de presença:', {
+					currentUserPresence: data.currentUserPresence,
+					currentPresence: currentPresence
+				})
+				
 				// Usar novo campo currentUserPresence da API
 				if (!data.currentUserPresence && currentUser) {
 					console.log('🔵 [ChatContext] Primeira vez - definindo como visível')
-					updatePresence('visible')
+					setCurrentPresence('visible')
+					// Fazer a chamada da API para salvar o status
+					await fetch('/api/admin/chat/presence', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ status: 'visible' }),
+					})
 				} else if (data.currentUserPresence) {
 					console.log('🔵 [ChatContext] Preservando status existente:', data.currentUserPresence.status)
 					setCurrentPresence(data.currentUserPresence.status)
@@ -530,7 +594,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		} catch (error) {
 			console.error('❌ [ChatContext] Erro ao verificar presença existente:', error)
 		}
-	}, [currentUser, updatePresence])
+	}, [currentUser, currentPresence]) // Adicionado currentPresence para sincronização
 
 	// === INICIALIZAÇÃO ===
 
@@ -596,6 +660,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			stopPolling()
 		}
 	}, [stopPolling])
+
+	// Recarregar dados da sidebar quando totalUnread mudar significativamente
+	useEffect(() => {
+		if (totalUnread > 0) {
+			console.log('🔵 [ChatContext] totalUnread mudou para:', totalUnread, '- recarregando sidebar')
+			loadSidebarData()
+		}
+	}, [totalUnread, loadSidebarData])
 
 	const value: ChatContextType = {
 		groups,

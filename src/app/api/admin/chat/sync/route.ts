@@ -92,9 +92,10 @@ export async function GET(request: NextRequest) {
 		const fiveSecondsAgo = new Date(Date.now() - 5 * 1000)
 		const filteredPresence = updatedPresence.filter((p) => p.updatedAt > fiveSecondsAgo)
 
-		// 3. Calcular contadores não lidas APENAS para userMessage
+		// 3. Calcular contadores não lidas para userMessage e groupMessage
 		let unreadCounts = { groups: {}, users: {} }
 
+		// Contar mensagens não lidas por usuário (userMessage)
 		const userMessageCounts = await db
 			.selectDistinct({
 				senderUserId: schema.chatMessage.senderUserId,
@@ -119,8 +120,35 @@ export async function GET(request: NextRequest) {
 			usersCount[msgCount.senderUserId] = unreadByUser.length
 		}
 
+		// Contar mensagens não lidas por grupo (groupMessage)
+		const groupMessageCounts = await db
+			.selectDistinct({
+				receiverGroupId: schema.chatMessage.receiverGroupId,
+			})
+			.from(schema.chatMessage)
+			.where(
+				and(
+					eq(schema.chatMessage.receiverUserId, user.id), // Mensagens para o usuário atual
+					isNull(schema.chatMessage.readAt), // Não lida
+					isNull(schema.chatMessage.deletedAt), // Não excluída
+				),
+			)
+
+		// Contar mensagens não lidas por grupo
+		const groupsCount: Record<string, number> = {}
+		for (const msgCount of groupMessageCounts) {
+			if (msgCount.receiverGroupId) {
+				const unreadByGroup = await db
+					.select({ id: schema.chatMessage.id })
+					.from(schema.chatMessage)
+					.where(and(eq(schema.chatMessage.receiverGroupId, msgCount.receiverGroupId), eq(schema.chatMessage.receiverUserId, user.id), isNull(schema.chatMessage.readAt), isNull(schema.chatMessage.deletedAt)))
+
+				groupsCount[msgCount.receiverGroupId] = unreadByGroup.length
+			}
+		}
+
 		unreadCounts = {
-			groups: {}, // groupMessage não tem contadores
+			groups: groupsCount, // Contadores reais para grupos
 			users: usersCount,
 		}
 

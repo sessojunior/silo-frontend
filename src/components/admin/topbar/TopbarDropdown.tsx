@@ -9,7 +9,7 @@ import type { AccountProps } from '@/components/admin/topbar/Topbar'
 
 export default function TopbarDropdown({ account }: { account: AccountProps }) {
 	const { currentUser } = useCurrentUser()
-	const { currentPresence } = useChat()
+	const { currentPresence, isLoading } = useChat()
 
 	const [isOpen, setIsOpen] = useState(false)
 	const dropdownRef = useRef<HTMLDivElement>(null)
@@ -17,6 +17,11 @@ export default function TopbarDropdown({ account }: { account: AccountProps }) {
 
 	// Mapear status do chat para cores do avatar
 	const getPresenceColor = (status: string) => {
+		// Se ainda está carregando, sempre mostrar cinza com pulsação
+		if (isLoading) {
+			return 'bg-gray-400 animate-pulse'
+		}
+		
 		switch (status) {
 			case 'visible':
 				return 'bg-green-400'
@@ -53,7 +58,7 @@ export default function TopbarDropdown({ account }: { account: AccountProps }) {
 			<button onClick={toggleDropdown} type='button' className='group inline-flex items-center justify-center gap-x-2 rounded-full border border-transparent text-sm font-semibold text-zinc-800 focus:outline-none dark:text-white' aria-haspopup='menu' aria-expanded={isOpen}>
 				<div className='relative inline-block'>
 					<Image src={currentUser?.image || '/images/profile.png'} alt='Avatar' width={46} height={46} className='rounded-full border-2 border-zinc-200 transition-all duration-100 group-hover:border-4 group-focus:border-4 dark:border-zinc-700' />
-					<span className={`absolute right-0 bottom-0 block h-3 w-3 rounded-full ring-2 ring-white dark:ring-zinc-800 ${getPresenceColor(currentPresence)}`} />
+					<span className={`absolute right-0 bottom-0 block h-3 w-3 rounded-full ring-2 ring-white dark:ring-zinc-800 ${getPresenceColor(currentPresence)} transition-opacity duration-300`} />
 				</div>
 				<div className='flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all duration-500 group-hover:bg-zinc-100 group-focus:bg-zinc-100 dark:group-hover:bg-zinc-700 dark:group-focus:bg-zinc-700'>
 					<span className='icon-[lucide--chevron-down] size-4 shrink-0 text-zinc-400' />
