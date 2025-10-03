@@ -60,16 +60,17 @@
 
 ### 🎯 **CONQUISTA MAIS RECENTE**
 
-**STATUS**: ✅ **CORREÇÕES NO CHAT E APRIMORAMENTO COMPLETO DA UI DARK MODE IMPLEMENTADOS!**
+**STATUS**: ✅ **SISTEMA DE ROLAGEM MANUAL IMPLEMENTADO - CENÁRIOS AUTOMÁTICOS REMOVIDOS!**
 
 **IMPLEMENTAÇÕES FINALIZADAS**:
 
-1. **✅ Correções no Sistema de Chat**: Melhorias na interface e funcionalidade do chat WhatsApp-like
-2. **✅ Padronização Completa da UI Dark Mode**: Consistência visual em todos os componentes
-3. **✅ Correção de Inconsistências de Cores**: Remoção de tons azulados e padronização com paleta zinc
-4. **✅ Melhoria de Contraste e Legibilidade**: Otimização para acessibilidade e experiência do usuário
-5. **✅ Cabeçalhos Padronizados**: Interface consistente entre páginas de relatórios e grupos
-6. **✅ Fundos Consistentes**: Persistência de cores de fundo durante scroll e navegação
+1. **✅ Sistema de Rolagem Manual**: Apenas botão fixo "Ir para o fim" para navegação manual
+2. **✅ Cenários Automáticos Removidos**: Todos os 6 cenários de rolagem automática foram removidos
+3. **✅ Botão Fixo Inteligente**: Botão "Ir para o fim" fixo no canto inferior direito que aparece apenas quando não está totalmente no fim
+4. **✅ Detecção Precisa**: Verifica se usuário está TOTALMENTE no fim (≤5px) para mostrar/esconder botão
+5. **✅ Controle de Visibilidade**: Estado reativo que atualiza baseado na posição do scroll em tempo real
+6. **✅ Função Única scrollToBottom**: Uma única função para navegação manual
+7. **✅ Controle Total do Usuário**: Usuário tem controle completo sobre quando rolar
 
 **ARQUITETURA DE CORES IMPLEMENTADA**:
 
@@ -89,8 +90,127 @@
 - **ProductCalendar**: Bordas otimizadas para dark mode
 - **UI Components**: Button, Switch, Textarea, Modal com cores padronizadas
 
+**ARQUITETURA EXATA DOS CENÁRIOS DE ROLAGEM IMPLEMENTADOS**:
+
+```typescript
+// Arquivo: src/components/admin/chat/MessagesList.tsx
+
+// === FUNÇÃO ÚNICA PARA TODOS OS CENÁRIOS ===
+
+/**
+ * FUNÇÃO ÚNICA: Rola para o final da conversa
+ * Chamada após renderização em todos os cenários que precisam rolar
+ */
+const scrollToBottom = (): void => {
+    if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'end'
+        })
+    }
+}
+
+/**
+ * FUNÇÃO: Verifica se usuário está no fim da conversa
+ */
+const isUserAtBottom = (): boolean => {
+    if (!messagesContainerRef.current) return false
+    
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+    
+    return distanceFromBottom <= 50
+}
+
+/**
+ * FUNÇÃO: Verifica se usuário está TOTALMENTE no fim da conversa (para mostrar/esconder botão)
+ */
+const isUserTotallyAtBottom = (): boolean => {
+    if (!messagesContainerRef.current) return false
+    
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+    
+    // Totalmente no fim = distância <= 5px (praticamente zero)
+    return distanceFromBottom <= 5
+}
+
+// === CONTROLE DE VISIBILIDADE DO BOTÃO ===
+
+/**
+ * FUNÇÃO: Atualiza visibilidade do botão baseado na posição do scroll
+ */
+const updateScrollButtonVisibility = (): void => {
+    if (!messagesContainerRef.current || !messages.length) {
+        setShowScrollToBottomButton(false)
+        return
+    }
+
+    const isTotallyAtBottom = isUserTotallyAtBottom()
+    setShowScrollToBottomButton(!isTotallyAtBottom)
+}
+
+/**
+ * EFFECT: Detecta mudanças no scroll para controlar visibilidade do botão
+ */
+useEffect(() => {
+    const container = messagesContainerRef.current
+    if (!container) return
+
+    const handleScroll = (): void => {
+        updateScrollButtonVisibility()
+    }
+
+    // Adicionar listener de scroll
+    container.addEventListener('scroll', handleScroll)
+
+    // Verificar estado inicial
+    updateScrollButtonVisibility()
+
+    // Cleanup
+    return () => {
+        container.removeEventListener('scroll', handleScroll)
+    }
+}, [messages.length, messagesContainerRef.current])
+
+/**
+ * EFFECT: Atualizar visibilidade quando mensagens mudam
+ */
+useEffect(() => {
+    updateScrollButtonVisibility()
+}, [messages.length])
+
+// === SISTEMA DE ROLAGEM MANUAL ===
+
+// Apenas controle de visibilidade do botão fixo
+// Não há rolagem automática - usuário tem controle total
+
+// === BOTÃO FIXO DE NAVEGAÇÃO MANUAL ===
+
+{/* Botão fixo "Ir para o fim" - canto inferior direito */}
+{showScrollToBottomButton && (
+    <div className="absolute bottom-4 right-4 z-10">
+        <button
+            onClick={scrollToBottom}
+            className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105"
+            title="Ir para o fim da conversa"
+        >
+            <span className="icon-[lucide--arrow-down] w-5 h-5" />
+        </button>
+    </div>
+)}
+```
+
+**SISTEMA DE ROLAGEM MANUAL IMPLEMENTADO**:
+
+- ✅ **ROLAGEM AUTOMÁTICA REMOVIDA**: Todos os 6 cenários de rolagem automática foram removidos
+- ✅ **CONTROLE TOTAL DO USUÁRIO**: Usuário decide quando rolar usando o botão fixo
+- ✅ **BOTÃO FIXO INTELIGENTE**: Aparece apenas quando não está totalmente no fim (≤5px)
+- ✅ **NAVEGAÇÃO MANUAL**: scrollToBottom() chamada apenas quando usuário clica no botão
+- ✅ **EXPERIÊNCIA SIMPLIFICADA**: Sem rolagem automática intrusiva
+
 **IMPACTO NO SISTEMA**:
-Esta implementação estabelece **experiência visual completamente consistente** com paleta zinc unificada, remoção de tons azulados inconsistentes, melhor contraste para acessibilidade e interface padronizada em todo o sistema.
+Esta implementação estabelece **sistema de rolagem manual simplificado** com remoção completa de rolagem automática intrusiva, controle total do usuário sobre navegação, botão fixo inteligente que aparece apenas quando necessário, experiência não intrusiva e navegação intuitiva baseada em decisão consciente do usuário.
 
 ### 🎯 **CONQUISTA ANTERIOR**
 
