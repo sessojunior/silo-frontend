@@ -77,6 +77,7 @@ export default function ChatArea({ activeTargetId, activeTargetType, activeTarge
 				olderMessagesRemaining={olderMessagesRemaining}
 				newerMessagesRemaining={newerMessagesRemaining}
 				currentUserId={currentUser?.id}
+				activeTargetId={activeTargetId}
 				onLoadOlderMessages={handleLoadOlderMessages}
 				onLoadNewerMessages={handleLoadNewerMessages}
 			/>

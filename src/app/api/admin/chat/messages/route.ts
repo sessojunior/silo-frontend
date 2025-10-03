@@ -89,7 +89,9 @@ export async function GET(request: NextRequest) {
 		const order = searchParams.get('order') || 'asc' // 'asc' para mais recentes, 'desc' para mais antigas
 		const before = searchParams.get('before') // Buscar mensagens anteriores a esta data
 		const after = searchParams.get('after') // Buscar mensagens posteriores a esta data
-		const offset = (page - 1) * limit
+		// Para paginação com before/after, offset deve ser baseado nas mensagens já carregadas
+		// Para paginação tradicional, usar page
+		const offset = before || after ? 0 : (page - 1) * limit
 
 		console.log('🔵 [API] Buscando mensagens:', { 
 			groupId, 
@@ -136,17 +138,17 @@ export async function GET(request: NextRequest) {
 				whereConditions.push(gt(schema.chatMessage.createdAt, new Date(after)))
 			}
 			
-			// Determinar ordenação baseada no contexto
-			// Se há 'before', estamos carregando mensagens anteriores (mais antigas) - usar ASC
-			// Se há 'after', estamos carregando mensagens posteriores (mais recentes) - usar DESC  
-			// Se não há nem 'before' nem 'after', é carregamento inicial - usar DESC para pegar as mais recentes
-			const orderDirection = before ? schema.chatMessage.createdAt : desc(schema.chatMessage.createdAt)
+		// Determinar ordenação baseada no contexto
+		// Para manter consistência, sempre usar DESC para ordenação principal
+		// O offset e limit serão ajustados conforme necessário
+		const orderDirection = desc(schema.chatMessage.createdAt)
 			
 			console.log('🔵 [API] Ordenação para grupo:', {
 				hasBefore: !!before,
 				hasAfter: !!after,
-				orderType: before ? 'ASC (mais antigas)' : 'DESC (mais recentes)',
-				beforeDate: before
+				orderType: 'DESC (consistente)',
+				beforeDate: before,
+				afterDate: after
 			})
 			
 			messages = await db
@@ -188,17 +190,17 @@ export async function GET(request: NextRequest) {
 				whereConditions.push(gt(schema.chatMessage.createdAt, new Date(after)))
 			}
 			
-			// Determinar ordenação baseada no contexto
-			// Se há 'before', estamos carregando mensagens anteriores (mais antigas) - usar ASC
-			// Se há 'after', estamos carregando mensagens posteriores (mais recentes) - usar DESC  
-			// Se não há nem 'before' nem 'after', é carregamento inicial - usar DESC para pegar as mais recentes
-			const orderDirection = before ? schema.chatMessage.createdAt : desc(schema.chatMessage.createdAt)
+		// Determinar ordenação baseada no contexto
+		// Para manter consistência, sempre usar DESC para ordenação principal
+		// O offset e limit serão ajustados conforme necessário
+		const orderDirection = desc(schema.chatMessage.createdAt)
 			
 			console.log('🔵 [API] Ordenação para usuário:', {
 				hasBefore: !!before,
 				hasAfter: !!after,
-				orderType: before ? 'ASC (mais antigas)' : 'DESC (mais recentes)',
-				beforeDate: before
+				orderType: 'DESC (consistente)',
+				beforeDate: before,
+				afterDate: after
 			})
 			
 			messages = await db
@@ -229,19 +231,35 @@ export async function GET(request: NextRequest) {
 		}))
 
 		// Determinar se há mais mensagens
-		// Sempre verificar o total real de mensagens para determinar hasMore
-		const totalCount = await getTotalMessagesCount(groupId, userId, user.id)
-		const totalLoaded = offset + messagesWithType.length
-		const hasMore = totalLoaded < totalCount
+		let hasMore = false
 		
-		console.log('🔵 [API] Cálculo de hasMore:', {
-			totalCount,
-			totalLoaded,
-			offset,
-			returnedCount: messagesWithType.length,
-			hasMore,
-			calculation: `${totalLoaded} < ${totalCount} = ${hasMore}`
-		})
+		if (before || after) {
+			// Para paginação com before/after, hasMore é baseado no limite retornado
+			hasMore = messagesWithType.length === limit
+		} else {
+			// Para paginação tradicional, verificar o total real de mensagens
+			const totalCount = await getTotalMessagesCount(groupId, userId, user.id)
+			const totalLoaded = offset + messagesWithType.length
+			hasMore = totalLoaded < totalCount
+			
+			console.log('🔵 [API] Cálculo de hasMore (tradicional):', {
+				offset,
+				returnedCount: messagesWithType.length,
+				hasMore,
+				totalCount,
+				totalLoaded,
+				calculation: `${totalLoaded} < ${totalCount} = ${hasMore}`
+			})
+		}
+		
+		if (before || after) {
+			console.log('🔵 [API] Cálculo de hasMore (before/after):', {
+				returnedCount: messagesWithType.length,
+				hasMore,
+				limit,
+				calculation: `${messagesWithType.length} === ${limit} = ${hasMore}`
+			})
+		}
 
 		console.log('✅ [API] Mensagens encontradas:', { 
 			count: messagesWithType.length, 
@@ -256,11 +274,11 @@ export async function GET(request: NextRequest) {
 			debug: {
 				returnedCount: messagesWithType.length,
 				requestedLimit: limit,
-				hasMoreCalculation: `${totalLoaded} < ${totalCount} = ${hasMore}`,
+				hasMoreCalculation: before || after 
+					? `${messagesWithType.length} === ${limit} = ${hasMore}`
+					: 'traditional pagination',
 				before: before || 'null',
-				after: after || 'null',
-				totalCount,
-				totalLoaded
+				after: after || 'null'
 			}
 		})
 

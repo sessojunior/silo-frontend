@@ -9,7 +9,7 @@ interface UseChatMessagesProps {
 }
 
 export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMessagesProps) {
-	const { messages, loadMessages, getMessagesCount, getUnreadMessages, loadMessagesBeforeUnread, loadMessagesAfterUnread, markMessagesAsRead } = useChat()
+	const { messages, loadMessages, getMessagesCount, getUnreadMessages, loadMessagesBeforeUnread, loadMessagesAfterUnread, markMessagesAsRead, setMessages } = useChat()
 	const { currentUser, loading: userLoading } = useCurrentUser()
 
 	// Estados de carregamento
@@ -18,8 +18,8 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 	const [isLoadingNewer, setIsLoadingNewer] = useState(false)
 	
 	// Estados de paginação
-	const [hasMoreOlderMessages, setHasMoreOlderMessages] = useState(true)
-	const [hasMoreNewerMessages, setHasMoreNewerMessages] = useState(true)
+	const [hasMoreOlderMessages, setHasMoreOlderMessages] = useState(false)
+	const [hasMoreNewerMessages, setHasMoreNewerMessages] = useState(false)
 	const [currentPage, setCurrentPage] = useState(1)
 	const [totalMessagesCount, setTotalMessagesCount] = useState(0)
 	
@@ -28,17 +28,37 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 
 	// Mensagens do target ativo (garantir ordem cronológica)
 	const targetMessages = useMemo(() => {
-		if (!activeTargetId) return []
+		if (!activeTargetId) {
+			console.log('🔵 [useChatMessages] Sem activeTargetId, retornando array vazio')
+			return []
+		}
 		const msgs = messages[activeTargetId] || []
+		console.log('🔵 [useChatMessages] Mensagens encontradas para target:', {
+			activeTargetId,
+			activeTargetType,
+			messagesCount: msgs.length,
+			allMessagesKeys: Object.keys(messages)
+		})
 		// Garantir ordenação cronológica (mais antiga primeiro)
 		return msgs.sort((a: ChatMessage, b: ChatMessage) => 
 			new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
 		)
-	}, [messages, activeTargetId])
+	}, [messages, activeTargetId, activeTargetType])
 
 	// Calcular mensagens restantes
 	const olderMessagesRemaining = Math.max(0, totalMessagesCount - targetMessages.length)
 	const newerMessagesRemaining = 0 // Por enquanto sempre 0, pois carregamos mensagens não lidas primeiro
+	
+	// Debug para verificar cálculo de hasMore
+	if (process.env.NODE_ENV === 'development') {
+		console.log('🔵 [useChatMessages] Debug hasMore:', {
+			targetMessages: targetMessages.length,
+			totalMessagesCount,
+			hasMoreOlderMessages,
+			olderMessagesRemaining,
+			calculation: `${targetMessages.length} < ${totalMessagesCount} = ${targetMessages.length < totalMessagesCount}`
+		})
+	}
 
 	// Carregar mensagens quando trocar de conversa
 	useEffect(() => {
@@ -64,16 +84,37 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 
 					// 1. Buscar mensagens não lidas
 					const unreadMessages = await getUnreadMessages(activeTargetId, activeTargetType, MESSAGES_PER_PAGE)
-					console.log('🔵 [useChatMessages] Mensagens não lidas encontradas:', unreadMessages.length)
+					console.log('🔵 [useChatMessages] Mensagens não lidas encontradas:', {
+						count: unreadMessages.length,
+						targetId: activeTargetId,
+						targetType: activeTargetType,
+						messages: unreadMessages.map(m => ({ id: m.id, content: m.content.substring(0, 50) + '...', senderName: m.senderName }))
+					})
 
 					// 2. Se não há mensagens não lidas, carregar mensagens recentes normalmente
 					if (unreadMessages.length === 0) {
-						console.log('🔵 [useChatMessages] Nenhuma mensagem não lida, carregando mensagens recentes...')
+						console.log('🔵 [useChatMessages] Nenhuma mensagem não lida, carregando mensagens recentes...', {
+							targetId: activeTargetId,
+							targetType: activeTargetType
+						})
 						const result = await loadMessages(activeTargetId, activeTargetType)
 						
 						// Calcular hasMore baseado no total real de mensagens
 						const loadedMessages = result.messages.length
+						console.log('🔵 [useChatMessages] Resultado do loadMessages:', {
+							loadedMessages,
+							hasMore: result.hasMore,
+							targetId: activeTargetId,
+							targetType: activeTargetType
+						})
+						
 						const totalCount = await getMessagesCount(activeTargetId, activeTargetType)
+						console.log('🔵 [useChatMessages] Total de mensagens no grupo:', {
+							totalCount,
+							targetId: activeTargetId,
+							targetType: activeTargetType
+						})
+						
 						const hasMoreOlderBasedOnTotal = loadedMessages < totalCount
 						
 						setHasMoreOlderMessages(hasMoreOlderBasedOnTotal)
@@ -87,7 +128,19 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 							calculation: `${loadedMessages} < ${totalCount} = ${hasMoreOlderBasedOnTotal}`
 						})
 					} else {
-						// 3. Há mensagens não lidas - definir como mensagens iniciais
+						// 3. Há mensagens não lidas - armazenar no estado e definir como mensagens iniciais
+						console.log('🔵 [useChatMessages] Armazenando mensagens não lidas no estado:', {
+							targetId: activeTargetId,
+							targetType: activeTargetType,
+							unreadCount: unreadMessages.length
+						})
+						
+						// Armazenar mensagens não lidas no estado do ChatContext
+						setMessages(prev => ({
+							...prev,
+							[activeTargetId]: unreadMessages
+						}))
+						
 						const totalCount = await getMessagesCount(activeTargetId, activeTargetType)
 						const hasMoreOlderBasedOnTotal = unreadMessages.length < totalCount
 						
@@ -99,7 +152,8 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 							unreadCount: unreadMessages.length,
 							totalCount,
 							hasMoreOlder: hasMoreOlderBasedOnTotal,
-							hasMoreNewer: false
+							hasMoreNewer: false,
+							storedInState: true
 						})
 					}
 				} catch (error) {
@@ -126,14 +180,20 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 		setIsLoadingOlder(true)
 
 		try {
-			// Encontrar a mensagem mais antiga das não lidas
+			// Encontrar a mensagem mais antiga carregada
 			const oldestMessage = targetMessages[0]
 			if (!oldestMessage) {
 				console.log('🔵 [useChatMessages] Nenhuma mensagem para usar como referência')
 				return
 			}
 
-			// Carregar mensagens anteriores às não lidas
+			console.log('🔵 [useChatMessages] Mensagem mais antiga como referência:', {
+				id: oldestMessage.id,
+				createdAt: oldestMessage.createdAt,
+				content: oldestMessage.content.substring(0, 50) + '...'
+			})
+
+			// Carregar mensagens anteriores à mensagem mais antiga
 			const result = await loadMessagesBeforeUnread(
 				activeTargetId, 
 				activeTargetType, 
@@ -145,7 +205,8 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 				messagesLength: result.messages.length,
 				hasMore: result.hasMore,
 				page: currentPage + 1,
-				currentMessages: targetMessages.length
+				currentMessages: targetMessages.length,
+				oldestMessageId: oldestMessage.id
 			})
 
 			if (result.messages.length > 0) {
@@ -158,7 +219,9 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 					count: result.messages.length,
 					apiHasMore: result.hasMore,
 					newPage: currentPage + 1,
-					totalMessages: targetMessages.length + result.messages.length
+					totalMessages: targetMessages.length + result.messages.length,
+					firstNewMessage: result.messages[0]?.id,
+					lastNewMessage: result.messages[result.messages.length - 1]?.id
 				})
 			} else {
 				setHasMoreOlderMessages(false)
@@ -183,14 +246,20 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 		setIsLoadingNewer(true)
 
 		try {
-			// Encontrar a mensagem mais recente das não lidas
+			// Encontrar a mensagem mais recente carregada
 			const newestMessage = targetMessages[targetMessages.length - 1]
 			if (!newestMessage) {
 				console.log('🔵 [useChatMessages] Nenhuma mensagem para usar como referência')
 				return
 			}
 
-			// Carregar mensagens posteriores às não lidas
+			console.log('🔵 [useChatMessages] Mensagem mais recente como referência:', {
+				id: newestMessage.id,
+				createdAt: newestMessage.createdAt,
+				content: newestMessage.content.substring(0, 50) + '...'
+			})
+
+			// Carregar mensagens posteriores à mensagem mais recente
 			const result = await loadMessagesAfterUnread(
 				activeTargetId, 
 				activeTargetType, 
@@ -201,7 +270,8 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 			console.log('🔵 [useChatMessages] Resultado da API loadMessagesAfterUnread:', {
 				messagesLength: result.messages.length,
 				hasMore: result.hasMore,
-				currentMessages: targetMessages.length
+				currentMessages: targetMessages.length,
+				newestMessageId: newestMessage.id
 			})
 
 			if (result.messages.length > 0) {
@@ -211,7 +281,9 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 				console.log('✅ [useChatMessages] Mensagens mais recentes carregadas:', {
 					count: result.messages.length,
 					apiHasMore: result.hasMore,
-					totalMessages: targetMessages.length + result.messages.length
+					totalMessages: targetMessages.length + result.messages.length,
+					firstNewMessage: result.messages[0]?.id,
+					lastNewMessage: result.messages[result.messages.length - 1]?.id
 				})
 			} else {
 				setHasMoreNewerMessages(false)

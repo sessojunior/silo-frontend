@@ -82,29 +82,28 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 				// 2 checks verdes: Lido pelo destinatário (estilo WhatsApp)
 				return <span className='icon-[lucide--check-check] w-3 h-3 text-green-500' />
 			} else {
-				// 2 checks azuis: Entregue mas não lido
-				return <span className='icon-[lucide--check-check] w-3 h-3 text-blue-500' />
+				// 2 checks cinzas: Entregue mas não lido
+				return <span className='icon-[lucide--check-check] w-3 h-3 text-zinc-400 dark:text-zinc-500' />
 			}
 		}
 
-		// Para groupMessage, usar readStatus prop
-		switch (readStatus) {
-			case 'sent':
-				// 1 check branco: Enviado
-				return <span className='icon-[lucide--check] w-3 h-3 text-white' />
-			case 'delivered':
-				// 2 checks azuis: Entregue
-				return <span className='icon-[lucide--check-check] w-3 h-3 text-blue-500' />
-			case 'read':
-				// 2 checks verdes: Lido (estilo WhatsApp)
+		// Para groupMessage, usar readAt para determinar status
+		if (message.messageType === 'groupMessage') {
+			if (message.readAt) {
+				// 2 checks verdes: Lido por pelo menos um membro do grupo
 				return <span className='icon-[lucide--check-check] w-3 h-3 text-green-500' />
-			default:
-				return null
+			} else {
+				// 2 checks cinzas: Entregue mas não lido
+				return <span className='icon-[lucide--check-check] w-3 h-3 text-zinc-400 dark:text-zinc-500' />
+			}
 		}
+
+		// Fallback para casos não cobertos
+		return <span className='icon-[lucide--check-check] w-3 h-3 text-zinc-400 dark:text-zinc-500' />
 	}
 
 	return (
-		<div className={`flex gap-2 ${isOwnMessageFinal ? 'flex-row-reverse' : 'flex-row'} ${showAvatar ? 'mt-4' : 'mt-1'}`}>
+		<div className={`flex gap-2 my-2 ${isOwnMessageFinal ? 'flex-row-reverse' : 'flex-row'}`}>
 			{/* Avatar (apenas para mensagens de outros usuários) */}
 			{showAvatar && !isOwnMessageFinal && (
 				<div className='flex-shrink-0'>

@@ -63,7 +63,7 @@ export default function ConversationList({ conversations, isLoading, onConversat
 		return (
 			<div className='px-4 py-8 text-center'>
 				<span className='icon-[lucide--inbox] w-12 h-12 mx-auto mb-3 text-zinc-300 dark:text-zinc-600' />
-				<p className='text-sm text-zinc-500 dark:text-zinc-400 font-medium'>Nenhuma conversa recente</p>
+				<p className='text-sm text-zinc-500 dark:text-zinc-400 font-medium'>Nenhuma mensagem não lida</p>
 				<p className='text-xs text-zinc-400 dark:text-zinc-500 mt-1'>Suas conversas aparecerão aqui</p>
 			</div>
 		)
@@ -122,7 +122,7 @@ export default function ConversationList({ conversations, isLoading, onConversat
 											<div className='flex items-center justify-start py-1'>
 												<div className='flex items-center justify-center gap-2 bg-zinc-100 dark:bg-zinc-700 px-3 py-1 rounded-full'>
 													<span className='text-xs text-zinc-500 dark:text-zinc-400'>
-														+{conversation.unreadCount - 3} {conversation.unreadCount - 3 === 1 ? 'mensagem anterior' : 'mensagens anteriores'}
+														+{conversation.unreadCount - 3} {conversation.unreadCount - 3 === 1 ? 'mensagem anterior não lida' : 'mensagens anteriores não lidas'}
 													</span>
 												</div>
 												<div className='flex-1 mx-2 h-px bg-gradient-to-r from-zinc-300 to-transparent dark:from-zinc-600'></div>
@@ -137,9 +137,8 @@ export default function ConversationList({ conversations, isLoading, onConversat
 														className='overflow-hidden text-ellipsis line-clamp-2 break-words leading-tight'
 														title={`${message.senderName}: ${message.content}`}
 													>
-														<span className='font-medium text-zinc-700 dark:text-zinc-300'>
-															{message.senderName}: {message.content}
-														</span>
+														<span className='font-medium text-zinc-700 dark:text-zinc-300'>{message.senderName}: </span>
+														<span className='font-normal text-zinc-600 dark:text-zinc-400'>{message.content}</span>
 													</div>
 												) : (
 													// Para usuários individuais: não mostrar nome

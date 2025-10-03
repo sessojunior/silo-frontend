@@ -67,6 +67,7 @@ type ChatContextType = {
 	markMessageAsRead: (messageId: string) => Promise<void>
 	markMessagesAsRead: (targetId: string, type: 'group' | 'user') => Promise<void>
 	deleteMessage: (messageId: string) => Promise<void>
+	setMessages: React.Dispatch<React.SetStateAction<Record<string, ChatMessage[]>>>
 
 	// Sistema de presença
 	updatePresence: (status: PresenceStatus) => Promise<void>
@@ -383,7 +384,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			const params = new URLSearchParams({
 				limit: limit.toString(),
 				before: beforeDate,
-				order: 'desc' // Buscar mensagens mais antigas
+				order: 'desc' // Ordenação consistente
 			})
 			if (type === 'group') {
 				params.set('groupId', targetId)
@@ -440,7 +441,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			const params = new URLSearchParams({
 				limit: limit.toString(),
 				after: afterDate,
-				order: 'asc' // Buscar mensagens mais recentes
+				order: 'desc' // Ordenação consistente
 			})
 			if (type === 'group') {
 				params.set('groupId', targetId)
@@ -806,6 +807,30 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 						})
 					}
 
+					// Atualizar presença dos usuários em tempo real
+					if (data.presence && data.presence.length > 0) {
+						console.log('🔵 [ChatContext] Atualizando presença de usuários:', data.presence.length)
+						setUsers(prevUsers => {
+							return prevUsers.map(user => {
+								const presenceUpdate = data.presence.find((p: any) => p.userId === user.id)
+								if (presenceUpdate) {
+									console.log('🔵 [ChatContext] Atualizando presença do usuário:', {
+										userId: user.id,
+										name: user.name,
+										oldStatus: user.presenceStatus,
+										newStatus: presenceUpdate.status
+									})
+									return {
+										...user,
+										presenceStatus: presenceUpdate.status as 'visible' | 'invisible',
+										lastActivity: new Date(presenceUpdate.lastActivity)
+									}
+								}
+								return user
+							})
+						})
+					}
+
 					// Recarregar sidebar APENAS se há mensagens REALMENTE novas
 					if (reallyNewMessagesCount > 0) {
 						console.log('🔵 [ChatContext] Recarregando sidebar devido a mensagens REALMENTE novas:', reallyNewMessagesCount)
@@ -815,7 +840,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 						console.log('🟡 [ChatContext] Mensagens já existentes - sem recarregamento:', data.messages.length)
 					}
 				}
-				// Logs de presença silenciados para reduzir poluição - mudanças são tratadas internamente
 
 				// Atualizar timestamp SEMPRE (mesmo sem atualizações) para evitar consultar as mesmas mudanças
 				setLastSync(data.timestamp)
@@ -1007,6 +1031,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		markMessageAsRead,
 		markMessagesAsRead,
 		deleteMessage,
+		setMessages,
 		updatePresence,
 		sendHeartbeat,
 		startPolling,
