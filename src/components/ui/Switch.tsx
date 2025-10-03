@@ -47,9 +47,9 @@ export default function Switch({ id, name, checked = false, onChange, size = 'md
 				<label htmlFor={id} className={twMerge(clsx('relative inline-block shrink-0 cursor-pointer', selectedSize.container))}>
 					<input id={id} name={name} type='checkbox' checked={checked} onChange={(e) => onChange?.(e.target.checked)} className='peer sr-only' {...props} />
 
-					<span className={twMerge('absolute inset-0 rounded-full transition-colors duration-200 ease-in-out', 'bg-gray-200 peer-checked:bg-blue-600 peer-disabled:pointer-events-none peer-disabled:opacity-50', 'dark:bg-neutral-700 dark:peer-checked:bg-blue-500')} />
+					<span className={twMerge('absolute inset-0 rounded-full transition-colors duration-200 ease-in-out', 'bg-gray-200 peer-checked:bg-blue-600 peer-disabled:pointer-events-none peer-disabled:opacity-50', 'dark:bg-zinc-700 dark:peer-checked:bg-blue-500')} />
 
-					<span className={twMerge(clsx('absolute start-0.5 top-1/2 -translate-y-1/2 rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out', 'peer-checked:translate-x-full', 'dark:bg-neutral-400 dark:peer-checked:bg-white', selectedSize.thumb))} />
+					<span className={twMerge(clsx('absolute start-0.5 top-1/2 -translate-y-1/2 rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out', 'peer-checked:translate-x-full', 'dark:bg-zinc-400 dark:peer-checked:bg-white', selectedSize.thumb))} />
 				</label>
 			</div>
 

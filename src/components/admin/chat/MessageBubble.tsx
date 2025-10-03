@@ -21,8 +21,9 @@ type MessageBubbleProps = {
 }
 
 export default function MessageBubble({ message, isOwnMessage, showAvatar, readStatus = 'sent', readCount = 0, totalParticipants = 0 }: MessageBubbleProps) {
-	// Formatar timestamp - formato apropriado para chat
-	const messageDate = new Date(message.createdAt)
+	// Garantir que isOwnMessage seja boolean e consistente
+	// Agora recebe valor estável do MessagesList, não precisa de useMemo
+	const isOwnMessageFinal = Boolean(isOwnMessage)
 
 	const formatMessageTime = (date: Date) => {
 		const now = new Date()
@@ -62,6 +63,8 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 		return `${day}/${month}/${year}, ${hours}:${minutes}`
 	}
 
+	// Formatar timestamp - formato apropriado para chat
+	const messageDate = new Date(message.createdAt)
 	const timeDisplay = formatMessageTime(messageDate)
 
 	// Avatar baseado no nome do usuário (primeira letra)
@@ -70,7 +73,7 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 	// Renderizar ícone de status de leitura
 	const renderReadStatus = () => {
 		// APENAS para mensagens próprias (como no WhatsApp)
-		if (!isOwnMessage) return null
+		if (!isOwnMessageFinal) return null
 
 		// MENSAGENS PRÓPRIAS: Status de entrega/leitura pelo destinatário
 		// Para userMessage, usar readAt para determinar status
@@ -101,28 +104,28 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 	}
 
 	return (
-		<div className={`flex gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} ${showAvatar ? 'mt-4' : 'mt-1'}`}>
+		<div className={`flex gap-2 ${isOwnMessageFinal ? 'flex-row-reverse' : 'flex-row'} ${showAvatar ? 'mt-4' : 'mt-1'}`}>
 			{/* Avatar (apenas para mensagens de outros usuários) */}
-			{showAvatar && !isOwnMessage && (
+			{showAvatar && !isOwnMessageFinal && (
 				<div className='flex-shrink-0'>
 					<div className='w-8 h-8 rounded-full bg-zinc-500 flex items-center justify-center text-white text-sm font-medium'>{avatarLetter}</div>
 				</div>
 			)}
 
 			{/* Espaçador invisível para alinhamento quando não há avatar */}
-			{!showAvatar && !isOwnMessage && (
+			{!showAvatar && !isOwnMessageFinal && (
 				<div className='flex-shrink-0 w-8 h-8' />
 			)}
 
 			{/* Conteúdo da mensagem */}
-			<div className={`flex flex-col max-w-xs lg:max-w-md ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+			<div className={`flex flex-col max-w-xs lg:max-w-md ${isOwnMessageFinal ? 'items-end' : 'items-start'}`}>
 				{/* Container do bubble com setinha */}
-				<div className={`relative ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+				<div className={`relative ${isOwnMessageFinal ? 'flex-row-reverse' : 'flex-row'}`}>
 					{/* Bubble da mensagem */}
 					<div
 						className={`
 							px-4 py-2 max-w-full break-words overflow-hidden relative
-							${isOwnMessage 
+							${isOwnMessageFinal 
 								? 'bg-blue-500 text-white rounded-b-xl rounded-l-xl' 
 								: showAvatar 
 									? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-b-xl rounded-r-xl'
@@ -131,7 +134,7 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 						`}
 					>
 						{/* Nome do remetente (dentro do bubble, apenas para mensagens de outros usuários) */}
-						{!isOwnMessage && showAvatar && (
+						{!isOwnMessageFinal && showAvatar && (
 							<div className='text-sm text-blue-500 dark:text-blue-400 font-medium'>
 								{message.senderName}
 							</div>
@@ -149,14 +152,14 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 						)}
 
 						{/* Timestamp e status de leitura */}
-						<div className={`flex items-center gap-1 mt-1 text-xs ${isOwnMessage ? 'text-blue-200' : 'text-zinc-400 dark:text-zinc-500'}`}>
+						<div className={`flex items-center gap-1 mt-1 text-xs ${isOwnMessageFinal ? 'text-blue-200' : 'text-zinc-400 dark:text-zinc-500'}`}>
 							<span>{timeDisplay}</span>
 
 							{/* Status de entrega/leitura */}
 							<div className='flex items-center gap-1 ml-1'>
 								{renderReadStatus()}
 								{/* Contador de leitura para grupos (apenas mensagens próprias) */}
-								{isOwnMessage && message.messageType === 'groupMessage' && totalParticipants > 1 && readCount > 0 && (
+								{isOwnMessageFinal && message.messageType === 'groupMessage' && totalParticipants > 1 && readCount > 0 && (
 									<span className='text-xs opacity-75'>
 										{readCount}/{totalParticipants}
 									</span>
@@ -166,7 +169,7 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 					</div>
 
 					{/* Setinha reta em cima (estilo WhatsApp) - apenas quando há avatar */}
-					{!isOwnMessage && showAvatar && (
+					{!isOwnMessageFinal && showAvatar && (
 						<div className={`
 							absolute w-0 h-0 border-solid
 							border-l-[8px] border-l-transparent 
@@ -177,7 +180,7 @@ export default function MessageBubble({ message, isOwnMessage, showAvatar, readS
 					)}
 
 					{/* Setinha para mensagens próprias - sempre aparece */}
-					{isOwnMessage && (
+					{isOwnMessageFinal && (
 						<div className={`
 							absolute w-0 h-0 border-solid
 							border-r-[8px] border-r-transparent 

@@ -232,10 +232,10 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 
 	if (loading) {
 		return (
-			<div className='min-h-screen w-full bg-gray-50 dark:bg-gray-900 p-6'>
+			<div className='w-full p-6'>
 				<div className='max-w-7xl mx-auto'>
 					<div className='flex items-center justify-center h-64'>
-						<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600'></div>
+						<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-zinc-600'></div>
 					</div>
 				</div>
 			</div>
@@ -244,7 +244,7 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 
 	if (error) {
 		return (
-			<div className='min-h-screen w-full bg-gray-50 dark:bg-gray-900 p-6'>
+			<div className='w-full p-6'>
 				<div className='max-w-7xl mx-auto'>
 					<div className='bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-6'>
 						<h2 className='text-lg font-semibold text-red-800 dark:text-red-200 mb-2'>Erro ao carregar relatório</h2>
@@ -257,7 +257,7 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 
 	if (!report) {
 		return (
-			<div className='min-h-screen w-full bg-gray-50 dark:bg-gray-900 p-6'>
+			<div className='w-full p-6'>
 				<div className='max-w-7xl mx-auto'>
 					<div className='bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6'>
 						<h2 className='text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2'>Relatório não encontrado</h2>
@@ -269,15 +269,15 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 	}
 
 	return (
-		<div className='min-h-screen w-full bg-gray-50 dark:bg-gray-900'>
+		<div className='w-full'>
 			{/* Header */}
-			<div className='bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700'>
+			<div className='bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700'>
 				<div className='mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6'>
 					<div className='flex items-center justify-between'>
 						<div className='flex items-center'>
 							<div>
-								<h1 className='text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100'>{report.title}</h1>
-								<p className='text-sm text-gray-600 dark:text-gray-400 mt-1'>{report.description}</p>
+								<h1 className='text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100'>{report.title}</h1>
+								<p className='text-sm text-zinc-600 dark:text-zinc-400 mt-1'>{report.description}</p>
 							</div>
 						</div>
 					</div>
@@ -294,28 +294,28 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 			<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8'>
 				<div className='grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8'>
 					{/* Gráfico Principal */}
-					<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
-						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>Visualização dos Dados</h3>
+					<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6'>
+						<h3 className='text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4'>Visualização dos Dados</h3>
 								<ReportChart type='bar' data={report.data as unknown as Record<string, unknown>} reportType={report.type} />
 					</div>
 
 					{/* Métricas */}
-					<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
-						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>Métricas Principais</h3>
+					<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6'>
+						<h3 className='text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4'>Métricas Principais</h3>
 								<div className='space-y-3 sm:space-y-4'>{renderMetrics(report.data as unknown as Record<string, unknown>, report.type)}</div>
 					</div>
 				</div>
 
 				{/* Gráficos Adicionais */}
 				<div className='mt-6 sm:mt-8 grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8'>
-					<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
-						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>Tendências de Performance</h3>
-						<p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>Evolução da pontuação, problemas, soluções e tarefas concluídas por usuário</p>
+					<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6'>
+						<h3 className='text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4'>Tendências de Performance</h3>
+						<p className='text-sm text-zinc-600 dark:text-zinc-400 mb-4'>Evolução da pontuação, problemas, soluções e tarefas concluídas por usuário</p>
 								<ReportChart type='line' data={report.data as unknown as Record<string, unknown>} reportType={report.type} />
 					</div>
-					<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
-						<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4'>{report.type === 'availability' ? 'Distribuição por Nível de Disponibilidade' : 'Distribuição de Atividades'}</h3>
-						<p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>{report.type === 'availability' ? 'Classificação dos produtos por nível de disponibilidade: Disponível (≥90%), Atenção (70-89%), Crítico (<70%)' : 'Proporção entre tarefas atribuídas e concluídas na equipe'}</p>
+					<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6'>
+						<h3 className='text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4'>{report.type === 'availability' ? 'Distribuição por Nível de Disponibilidade' : 'Distribuição de Atividades'}</h3>
+						<p className='text-sm text-zinc-600 dark:text-zinc-400 mb-4'>{report.type === 'availability' ? 'Classificação dos produtos por nível de disponibilidade: Disponível (≥90%), Atenção (70-89%), Crítico (<70%)' : 'Proporção entre tarefas atribuídas e concluídas na equipe'}</p>
 						<ReportChart type='donut' data={report.data as unknown as Record<string, unknown>} reportType={report.type} />
 					</div>
 				</div>
@@ -323,8 +323,8 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 				{/* Tabela Detalhada - Apenas para relatório de projetos */}
 				{report.type === 'projects' && (
 					<div className='mt-6 sm:mt-8'>
-						<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
-							<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>Detalhamento dos Projetos</h3>
+						<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6'>
+							<h3 className='text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4'>Detalhamento dos Projetos</h3>
 								{renderProjectsTable(report.data as unknown as Record<string, unknown>)}
 						</div>
 					</div>
@@ -333,8 +333,8 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 				{/* Tabela Detalhada - Apenas para relatório de disponibilidade */}
 				{report.type === 'availability' && (
 					<div className='mt-6 sm:mt-8'>
-						<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
-							<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>Detalhamento dos Produtos</h3>
+						<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6'>
+							<h3 className='text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4'>Detalhamento dos Produtos</h3>
 								{renderAvailabilityTable(report.data as unknown as Record<string, unknown>)}
 						</div>
 					</div>
@@ -343,8 +343,8 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 				{/* Tabela Detalhada - Apenas para relatório de problemas */}
 				{report.type === 'problems' && (
 					<div className='mt-6 sm:mt-8'>
-						<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
-							<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>Detalhamento dos Problemas</h3>
+						<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6'>
+							<h3 className='text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4'>Detalhamento dos Problemas</h3>
 								{renderProblemsTable(report.data as unknown as Record<string, unknown>)}
 						</div>
 					</div>
@@ -353,8 +353,8 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 				{/* Tabela Detalhada - Apenas para relatório de performance */}
 				{report.type === 'performance' && (
 					<div className='mt-6 sm:mt-8'>
-						<div className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6'>
-							<h3 className='text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>Detalhamento da Performance da Equipe</h3>
+						<div className='bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6'>
+							<h3 className='text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4'>Detalhamento da Performance da Equipe</h3>
 								{renderPerformanceTable(report.data as unknown as Record<string, unknown>)}
 						</div>
 					</div>
@@ -369,9 +369,9 @@ function renderMetrics(data: Record<string, unknown>, reportType: string) {
 		case 'availability':
 			return (
 				<>
-					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-950 rounded-lg space-y-2 sm:space-y-0'>
-						<span className='text-blue-800 dark:text-blue-200 font-medium text-sm sm:text-base'>Total de Produtos</span>
-						<span className='text-blue-900 dark:text-blue-100 font-bold text-lg sm:text-xl'>{(data.totalProducts as number) || 0}</span>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg space-y-2 sm:space-y-0'>
+						<span className='text-zinc-800 dark:text-zinc-200 font-medium text-sm sm:text-base'>Total de Produtos</span>
+						<span className='text-zinc-900 dark:text-zinc-100 font-bold text-lg sm:text-xl'>{(data.totalProducts as number) || 0}</span>
 					</div>
 					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-green-50 dark:bg-green-950 rounded-lg space-y-2 sm:space-y-0'>
 						<span className='text-green-800 dark:text-green-200 font-medium text-sm sm:text-base'>Disponibilidade Média</span>
@@ -397,9 +397,9 @@ function renderMetrics(data: Record<string, unknown>, reportType: string) {
 		case 'performance':
 			return (
 				<>
-					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-950 rounded-lg space-y-2 sm:space-y-0' title='Total de problemas identificados no sistema (1 ponto cada)'>
-						<span className='text-blue-800 dark:text-blue-200 font-medium text-sm sm:text-base'>Total de Problemas</span>
-						<span className='text-blue-900 dark:text-blue-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.totalProblems as number) || 0}</span>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg space-y-2 sm:space-y-0' title='Total de problemas identificados no sistema (1 ponto cada)'>
+						<span className='text-zinc-800 dark:text-zinc-200 font-medium text-sm sm:text-base'>Total de Problemas</span>
+						<span className='text-zinc-900 dark:text-zinc-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.totalProblems as number) || 0}</span>
 					</div>
 					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-green-50 dark:bg-green-950 rounded-lg space-y-2 sm:space-y-0' title='Total de soluções fornecidas para problemas (2 pontos cada)'>
 						<span className='text-green-800 dark:text-green-200 font-medium text-sm sm:text-base'>Total de Soluções</span>
@@ -413,9 +413,9 @@ function renderMetrics(data: Record<string, unknown>, reportType: string) {
 						<span className='text-orange-800 dark:text-orange-200 font-medium text-sm sm:text-base'>Participantes de Projetos</span>
 						<span className='text-orange-900 dark:text-orange-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.projectParticipants as number) || 0}</span>
 					</div>
-					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-indigo-50 dark:bg-indigo-950 rounded-lg space-y-2 sm:space-y-0' title='Taxa média de conclusão de tarefas por todos os usuários (bônus de +5 pontos se > 80%)'>
-						<span className='text-indigo-800 dark:text-indigo-200 font-medium text-sm sm:text-base'>Taxa Média de Conclusão</span>
-						<span className='text-indigo-900 dark:text-indigo-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.avgCompletionRate as number) || 0}%</span>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg space-y-2 sm:space-y-0' title='Taxa média de conclusão de tarefas por todos os usuários (bônus de +5 pontos se > 80%)'>
+						<span className='text-zinc-800 dark:text-zinc-200 font-medium text-sm sm:text-base'>Taxa Média de Conclusão</span>
+						<span className='text-zinc-900 dark:text-zinc-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.avgCompletionRate as number) || 0}%</span>
 					</div>
 				</>
 			)
@@ -423,9 +423,9 @@ function renderMetrics(data: Record<string, unknown>, reportType: string) {
 		case 'projects':
 			return (
 				<>
-					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-950 rounded-lg space-y-2 sm:space-y-0'>
-						<span className='text-blue-800 dark:text-blue-200 font-medium text-sm sm:text-base'>Total de Projetos</span>
-						<span className='text-blue-900 dark:text-blue-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.totalProjects as number) || 0}</span>
+					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg space-y-2 sm:space-y-0'>
+						<span className='text-zinc-800 dark:text-zinc-200 font-medium text-sm sm:text-base'>Total de Projetos</span>
+						<span className='text-zinc-900 dark:text-zinc-100 font-bold text-lg sm:text-xl'>{((data.summary as Record<string, unknown>)?.totalProjects as number) || 0}</span>
 					</div>
 					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 bg-green-50 dark:bg-green-950 rounded-lg space-y-2 sm:space-y-0'>
 						<span className='text-green-800 dark:text-green-200 font-medium text-sm sm:text-base'>Total de Atividades</span>
@@ -458,11 +458,11 @@ function renderProjectsTable(data: Record<string, unknown>) {
 	const getStatusColor = (status: string) => {
 		const statusColors: Record<string, string> = {
 			active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-			completed: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+			completed: 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200',
 			paused: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
 			cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 		}
-		return statusColors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+		return statusColors[status] || 'bg-gray-100 text-gray-800 dark:bg-zinc-700 dark:text-zinc-200'
 	}
 
 	const getPriorityColor = (priority: string) => {
@@ -472,7 +472,7 @@ function renderProjectsTable(data: Record<string, unknown>) {
 			medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
 			low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
 		}
-		return priorityColors[priority] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+		return priorityColors[priority] || 'bg-gray-100 text-gray-800 dark:bg-zinc-700 dark:text-zinc-200'
 	}
 
 	const getStatusLabel = (status: string) => {
@@ -511,7 +511,7 @@ function renderProjectsTable(data: Record<string, unknown>) {
 	return (
 		<div className='overflow-x-auto'>
 			<table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
-				<thead className='bg-gray-50 dark:bg-gray-700'>
+				<thead className='bg-gray-50 dark:bg-zinc-700'>
 					<tr>
 						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Projeto</th>
 						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Status</th>
@@ -522,13 +522,13 @@ function renderProjectsTable(data: Record<string, unknown>) {
 						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Usuários</th>
 					</tr>
 				</thead>
-				<tbody className='bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700'>
+				<tbody className='bg-white dark:bg-zinc-800 divide-y divide-gray-200 dark:divide-gray-700'>
 					{projectsWithProgress.map((project, index) => (
-						<tr key={project.id as string} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}>
+						<tr key={project.id as string} className={index % 2 === 0 ? 'bg-white dark:bg-zinc-800' : 'bg-gray-50 dark:bg-zinc-700'}>
 							<td className='px-6 py-4 whitespace-nowrap'>
 								<div className='flex items-center'>
 									<div className='flex-shrink-0 h-10 w-10'>
-										<div className='h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-blue-500 flex items-center justify-center'>
+										<div className='h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-zinc-500 flex items-center justify-center'>
 											<span className='text-sm font-medium text-white'>{(project.name as string)?.charAt(0)?.toUpperCase() || 'P'}</span>
 										</div>
 									</div>
@@ -548,8 +548,8 @@ function renderProjectsTable(data: Record<string, unknown>) {
 							</td>
 							<td className='px-6 py-4 whitespace-nowrap'>
 								<div className='flex items-center'>
-									<div className='w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2'>
-										<div className='bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300' style={{ width: `${(project.progress as number) || 0}%` }}></div>
+									<div className='w-16 bg-gray-200 dark:bg-zinc-700 rounded-full h-2 mr-2'>
+										<div className='bg-gradient-to-r from-zinc-500 to-purple-500 h-2 rounded-full transition-all duration-300' style={{ width: `${(project.progress as number) || 0}%` }}></div>
 									</div>
 									<span className='text-sm text-gray-900 dark:text-gray-100'>{(project.progress as number) || 0}%</span>
 								</div>
@@ -564,7 +564,7 @@ function renderProjectsTable(data: Record<string, unknown>) {
 										<div className='flex -space-x-2'>
 											{((project.users as Array<Record<string, unknown>>) || []).map((user, index) => (
 												<div key={user.id as string} className='relative' title={`${user.name as string} (${user.email as string})`} style={{ zIndex: ((project.users as Array<Record<string, unknown>>) || []).length - index }}>
-													<div className='h-8 w-8 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center border-2 border-white dark:border-gray-800 shadow-sm'>
+													<div className='h-8 w-8 rounded-full bg-gradient-to-r from-zinc-400 to-purple-500 flex items-center justify-center border-2 border-white dark:border-zinc-800 shadow-sm'>
 														<span className='text-sm font-medium text-white'>{(user.name as string)?.charAt(0)?.toUpperCase() || 'U'}</span>
 													</div>
 												</div>
@@ -602,11 +602,11 @@ function renderAvailabilityTable(data: Record<string, unknown>) {
 	const getProductStatusColor = (status: string) => {
 		const statusColors: Record<string, string> = {
 			active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-			stable: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+			stable: 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200',
 			warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
 			critical: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 		}
-		return statusColors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+		return statusColors[status] || 'bg-gray-100 text-gray-800 dark:bg-zinc-700 dark:text-zinc-200'
 	}
 
 	const getProductStatusLabel = (status: string) => {
@@ -622,7 +622,7 @@ function renderAvailabilityTable(data: Record<string, unknown>) {
 	return (
 		<div className='overflow-x-auto'>
 			<table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
-				<thead className='bg-gray-50 dark:bg-gray-700'>
+				<thead className='bg-gray-50 dark:bg-zinc-700'>
 					<tr>
 						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Produto</th>
 						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Status</th>
@@ -632,13 +632,13 @@ function renderAvailabilityTable(data: Record<string, unknown>) {
 						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Última Atividade</th>
 					</tr>
 				</thead>
-				<tbody className='bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700'>
+				<tbody className='bg-white dark:bg-zinc-800 divide-y divide-gray-200 dark:divide-gray-700'>
 					{products.map((product, index) => (
-						<tr key={product.id as string} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}>
+						<tr key={product.id as string} className={index % 2 === 0 ? 'bg-white dark:bg-zinc-800' : 'bg-gray-50 dark:bg-zinc-700'}>
 							<td className='px-6 py-4 whitespace-nowrap'>
 								<div className='flex items-center'>
 									<div className='flex-shrink-0 h-10 w-10'>
-										<div className='h-10 w-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center'>
+										<div className='h-10 w-10 rounded-full bg-gradient-to-r from-zinc-400 to-purple-500 flex items-center justify-center'>
 											<span className='text-sm font-medium text-white'>{(product.name as string)?.charAt(0)?.toUpperCase() || 'P'}</span>
 										</div>
 									</div>
@@ -655,8 +655,8 @@ function renderAvailabilityTable(data: Record<string, unknown>) {
 							</td>
 							<td className='px-6 py-4 whitespace-nowrap'>
 								<div className='flex items-center'>
-									<div className='w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2'>
-										<div className='bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300' style={{ width: `${(product.availabilityPercentage as number) || 0}%` }}></div>
+									<div className='w-16 bg-gray-200 dark:bg-zinc-700 rounded-full h-2 mr-2'>
+										<div className='bg-gradient-to-r from-green-500 to-zinc-500 h-2 rounded-full transition-all duration-300' style={{ width: `${(product.availabilityPercentage as number) || 0}%` }}></div>
 									</div>
 									<span className={`text-sm font-semibold ${getAvailabilityColor((product.availabilityPercentage as number) || 0)} px-2 py-1 rounded-full`}>{(product.availabilityPercentage as number) || 0}%</span>
 								</div>
@@ -685,19 +685,19 @@ function renderProblemsTable(data: Record<string, unknown>) {
 	const getCategoryColor = (category: string) => {
 		const categoryColors: Record<string, string> = {
 			'rede externa': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-			'rede interna': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+			'rede interna': 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200',
 			'servidor indisponível': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 			'falha humana': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
 			'erro no software': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-			outros: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
+			outros: 'bg-gray-100 text-gray-800 dark:bg-zinc-700 dark:text-zinc-200',
 		}
-		return categoryColors[category.toLowerCase()] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+		return categoryColors[category.toLowerCase()] || 'bg-gray-100 text-gray-800 dark:bg-zinc-700 dark:text-zinc-200'
 	}
 
 	return (
 		<div className='overflow-x-auto'>
 			<table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
-				<thead className='bg-gray-50 dark:bg-gray-700'>
+				<thead className='bg-gray-50 dark:bg-zinc-700'>
 					<tr>
 						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Problema</th>
 						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Produto</th>
@@ -709,9 +709,9 @@ function renderProblemsTable(data: Record<string, unknown>) {
 						<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider'>Última Atualização</th>
 					</tr>
 				</thead>
-				<tbody className='bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700'>
+				<tbody className='bg-white dark:bg-zinc-800 divide-y divide-gray-200 dark:divide-gray-700'>
 					{problems.map((problem, index) => (
-						<tr key={problem.id as string} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}>
+						<tr key={problem.id as string} className={index % 2 === 0 ? 'bg-white dark:bg-zinc-800' : 'bg-gray-50 dark:bg-zinc-700'}>
 							<td className='px-6 py-4 whitespace-nowrap'>
 								<div className='flex items-center'>
 									<div className='flex-shrink-0 h-10 w-10'>
@@ -732,7 +732,7 @@ function renderProblemsTable(data: Record<string, unknown>) {
 							<td className='px-6 py-4 whitespace-nowrap'>
 								<div className='flex items-center'>
 									<div className='flex-shrink-0 h-8 w-8'>
-										<div className='h-8 w-8 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center'>
+										<div className='h-8 w-8 rounded-full bg-gradient-to-r from-zinc-400 to-purple-500 flex items-center justify-center'>
 											<span className='text-xs font-medium text-white'>{((problem.product as Record<string, unknown>)?.name as string)?.charAt(0)?.toUpperCase() || 'P'}</span>
 										</div>
 									</div>
@@ -776,9 +776,9 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 
 	const getScoreColor = (score: number) => {
 		if (score >= 20) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-		if (score >= 10) return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+		if (score >= 10) return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200'
 		if (score >= 5) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-		return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+		return 'bg-gray-100 text-gray-800 dark:bg-zinc-700 dark:text-zinc-200'
 	}
 
 	const getScoreLabel = (score: number) => {
@@ -790,7 +790,7 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 
 	const getBadges = (user: Record<string, unknown>) => {
 		const badges = []
-		if (user.isProjectParticipant) badges.push({ text: 'Projetista', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' })
+		if (user.isProjectParticipant) badges.push({ text: 'Projetista', color: 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200' })
 		if (user.hasHighCompletionRate) badges.push({ text: 'Eficiente', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' })
 		if (user.isActiveReviewer) badges.push({ text: 'Mentor', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' })
 		return badges
@@ -801,7 +801,7 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 			{/* Tabela de Performance */}
 			<div className='overflow-x-auto'>
 				<table className='min-w-full divide-y divide-gray-200 dark:divide-gray-700'>
-					<thead className='bg-gray-50 dark:bg-gray-700'>
+					<thead className='bg-gray-50 dark:bg-zinc-700'>
 						<tr>
 							<th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider' title='Informações básicas do usuário (nome e email)'>
 								Usuário
@@ -829,15 +829,15 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 							</th>
 						</tr>
 					</thead>
-					<tbody className='bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700'>
+					<tbody className='bg-white dark:bg-zinc-800 divide-y divide-gray-200 dark:divide-gray-700'>
 						{userPerformance.map((user, index) => {
 							const badges = getBadges(user)
 							return (
-								<tr key={user.userId as string} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}>
+								<tr key={user.userId as string} className={index % 2 === 0 ? 'bg-white dark:bg-zinc-800' : 'bg-gray-50 dark:bg-zinc-700'}>
 									<td className='px-6 py-4 whitespace-nowrap'>
 										<div className='flex items-center'>
 											<div className='flex-shrink-0 h-10 w-10'>
-												<div className='h-10 w-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center'>
+												<div className='h-10 w-10 rounded-full bg-gradient-to-r from-zinc-400 to-purple-500 flex items-center justify-center'>
 													<span className='text-sm font-medium text-white'>{(user.name as string)?.charAt(0)?.toUpperCase() || 'U'}</span>
 												</div>
 											</div>
@@ -873,8 +873,8 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 									</td>
 									<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100' title={`Taxa de Conclusão: ${(user.completionRate as number) || 0}% | Bônus: ${(user.completionRate as number) >= 80 ? '+5 pontos' : '0 pontos'} | Eficiência na finalização de tarefas | ${(user.completionRate as number) >= 80 ? 'Badge &quot;Eficiente&quot; desbloqueado!' : 'Meta: 80% para bônus'}`}>
 										<div className='flex items-center'>
-											<div className='w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2'>
-												<div className='bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300' style={{ width: `${(user.completionRate as number) || 0}%` }}></div>
+											<div className='w-16 bg-gray-200 dark:bg-zinc-700 rounded-full h-2 mr-2'>
+												<div className='bg-gradient-to-r from-green-500 to-zinc-500 h-2 rounded-full transition-all duration-300' style={{ width: `${(user.completionRate as number) || 0}%` }}></div>
 											</div>
 											<span className='text-xs font-semibold'>{(user.completionRate as number) || 0}%</span>
 										</div>
@@ -896,12 +896,12 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 			</div>
 
 			{/* Seção de Regras de Pontuação */}
-			<div className='bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg p-6 border border-blue-200 dark:border-blue-800'>
-				<h3 className='text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4'>📊 Sistema de Pontuação</h3>
+			<div className='bg-gradient-to-r from-zinc-50 to-gray-50 dark:from-zinc-900 dark:to-gray-900 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700'>
+				<h3 className='text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4'>📊 Sistema de Pontuação</h3>
 				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
 					<div className='space-y-2'>
-						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Problemas e Soluções</h4>
-						<div className='text-sm text-blue-700 dark:text-blue-300'>
+						<h4 className='font-medium text-zinc-800 dark:text-zinc-200'>Problemas e Soluções</h4>
+						<div className='text-sm text-zinc-700 dark:text-zinc-300'>
 							<div>
 								• Problema criado: <span className='font-semibold'>1 ponto</span>
 							</div>
@@ -911,8 +911,8 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 						</div>
 					</div>
 					<div className='space-y-2'>
-						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Tarefas de Projetos</h4>
-						<div className='text-sm text-blue-700 dark:text-blue-300'>
+						<h4 className='font-medium text-zinc-800 dark:text-zinc-200'>Tarefas de Projetos</h4>
+						<div className='text-sm text-zinc-700 dark:text-zinc-300'>
 							<div>
 								• Tarefa concluída: <span className='font-semibold'>3 pontos</span>
 							</div>
@@ -925,8 +925,8 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 						</div>
 					</div>
 					<div className='space-y-2'>
-						<h4 className='font-medium text-blue-800 dark:text-blue-200'>Bônus e Participação</h4>
-						<div className='text-sm text-blue-700 dark:text-blue-300'>
+						<h4 className='font-medium text-zinc-800 dark:text-zinc-200'>Bônus e Participação</h4>
+						<div className='text-sm text-zinc-700 dark:text-zinc-300'>
 							<div>
 								• Projeto participado: <span className='font-semibold'>1 ponto</span>
 							</div>

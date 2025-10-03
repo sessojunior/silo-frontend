@@ -58,14 +58,14 @@ export default function Modal({ isOpen, onClose, title, children, className, sho
 			<div className={twMerge(clsx('fixed inset-0 bg-black/25 transition-opacity duration-500', shouldAnimateIn ? 'opacity-100' : 'opacity-0'))} />
 
 			{/* Container principal do modal */}
-			<div className={twMerge(clsx('relative z-10 m-4 w-full max-w-4xl transform rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-500 ease-in-out', 'dark:border-zinc-700 dark:bg-zinc-900 dark:shadow-zinc-800/70', shouldAnimateIn ? 'opacity-100 scale-100' : 'opacity-0 scale-50'))}>
+			<div className={twMerge(clsx('relative z-10 m-4 w-full max-w-4xl transform rounded-xl border border-zinc-200 bg-white shadow-sm transition-all duration-500 ease-in-out', 'dark:border-zinc-700 dark:bg-zinc-900 dark:shadow-zinc-800/70', shouldAnimateIn ? 'opacity-100 scale-100' : 'opacity-0 scale-50'))}>
 				{/* Cabeçalho */}
-				<div className='flex items-center justify-between rounded-xl border-b border-gray-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800'>
+				<div className='flex items-center justify-between rounded-xl border-b border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800'>
 					<div className='flex gap-3'>
 						<span className='icon-[lucide--folder-git-2] size-6 shrink-0 text-zinc-400 dark:text-zinc-500' />
-						{title && <h3 className='font-bold text-gray-800 dark:text-zinc-100'>{title}</h3>}
+						{title && <h3 className='font-bold text-zinc-800 dark:text-zinc-100'>{title}</h3>}
 					</div>
-					<button onClick={onClose} aria-label='Fechar modal' className='inline-flex size-8 items-center justify-center rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600 dark:focus:bg-zinc-600'>
+					<button onClick={onClose} aria-label='Fechar modal' className='inline-flex size-8 items-center justify-center rounded-full bg-zinc-100 text-zinc-800 hover:bg-zinc-200 focus:bg-zinc-200 focus:outline-none dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600 dark:focus:bg-zinc-600'>
 						<span className='sr-only'>Fechar</span>
 						<span className='icon-[lucide--x] size-4 shrink-0 text-zinc-400 dark:text-zinc-400' />
 					</button>
@@ -76,8 +76,8 @@ export default function Modal({ isOpen, onClose, title, children, className, sho
 
 				{/* Rodapé (opcional) */}
 				{showFooter && (
-					<div className='flex items-center justify-end gap-x-2 rounded-xl border-t border-gray-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800'>
-						<button onClick={onClose} aria-label='Fechar modal' className='inline-flex items-center gap-x-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-800 shadow-2xs hover:bg-gray-50 focus:bg-gray-50 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:focus:bg-zinc-800'>
+					<div className='flex items-center justify-end gap-x-2 rounded-xl border-t border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800'>
+						<button onClick={onClose} aria-label='Fechar modal' className='inline-flex items-center gap-x-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 shadow-2xs hover:bg-zinc-50 focus:bg-zinc-50 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:focus:bg-zinc-800'>
 							Fechar
 						</button>
 					</div>

@@ -89,13 +89,13 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 		{} as Record<string, ProjectTask[]>,
 	)
 
-	// Definir colunas simplificadas para o mini-kanban
+	// Definir colunas simplificadas para o mini-kanban (cores consistentes com KanbanBoard)
 	const columns = [
-		{ id: 'todo', title: 'A Fazer', color: 'bg-gray-100 dark:bg-gray-800', tasks: tasksByStatus.todo || [] },
-		{ id: 'in_progress', title: 'Progresso', color: 'bg-blue-100 dark:bg-blue-900/30', tasks: tasksByStatus.in_progress || [] },
-		{ id: 'blocked', title: 'Bloqueado', color: 'bg-red-100 dark:bg-red-900/30', tasks: tasksByStatus.blocked || [] },
-		{ id: 'review', title: 'Revisão', color: 'bg-yellow-100 dark:bg-yellow-900/30', tasks: tasksByStatus.review || [] },
-		{ id: 'done', title: 'Concluído', color: 'bg-green-100 dark:bg-green-900/30', tasks: tasksByStatus.done || [] },
+		{ id: 'todo', title: 'A Fazer', color: 'bg-stone-100 dark:bg-stone-800', tasks: tasksByStatus.todo || [] },
+		{ id: 'in_progress', title: 'Progresso', color: 'bg-blue-100 dark:bg-blue-900', tasks: tasksByStatus.in_progress || [] },
+		{ id: 'blocked', title: 'Bloqueado', color: 'bg-red-100 dark:bg-red-900', tasks: tasksByStatus.blocked || [] },
+		{ id: 'review', title: 'Revisão', color: 'bg-amber-100 dark:bg-amber-900', tasks: tasksByStatus.review || [] },
+		{ id: 'done', title: 'Concluído', color: 'bg-emerald-100 dark:bg-emerald-900', tasks: tasksByStatus.done || [] },
 	]
 
 	const getPriorityColor = (priority: ProjectTask['priority']) => {

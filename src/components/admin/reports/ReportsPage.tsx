@@ -39,15 +39,15 @@ export function ReportsPage() {
 	]
 
 	return (
-		<div className='min-h-screen w-full'>
+		<div className='w-full h-full flex flex-col'>
 			{/* Cabeçalho fixo */}
-			<div className='p-6 border-b border-zinc-200 dark:border-zinc-700'>
-				<h1 className='text-3xl font-bold text-gray-900 dark:text-gray-100'>📊 Relatórios Avançados</h1>
-				<p className='mt-2 text-gray-600 dark:text-gray-400'>Sistema completo de relatórios e análises do CPTEC</p>
+			<div className='w-full p-6 border-b border-zinc-200 dark:border-zinc-700'>
+				<h1 className='text-2xl font-bold text-zinc-900 dark:text-zinc-100'>Relatórios</h1>
+				<p className='text-zinc-600 dark:text-zinc-400 mt-1'>Sistema completo de relatórios e análises do CPTEC</p>
 			</div>
 
 			{/* Conteúdo com scroll natural */}
-			<div className='p-6'>
+			<div className='p-6 flex-1'>
 				<div className='max-w-7xl mx-auto space-y-6'>
 					{/* Cards de Relatórios Disponíveis */}
 					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto'>

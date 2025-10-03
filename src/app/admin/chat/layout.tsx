@@ -6,11 +6,7 @@ import { useChat } from '@/context/ChatContext'
 import ChatSidebar from '@/components/admin/chat/ChatSidebar'
 import ChatArea from '@/components/admin/chat/ChatArea'
 
-export default function ChatLayout({
-	children,
-}: {
-	children: React.ReactNode
-}) {
+export default function ChatLayout() {
 	const pathname = usePathname()
 	
 	// Estado global do chat
@@ -100,7 +96,7 @@ export default function ChatLayout({
 	const activeTarget = activeTargetType === 'group' ? groups.find((g) => g.id === activeTargetId) : users.find((u) => u.id === activeTargetId)
 
 	return (
-		<div className='flex flex-1 min-h-0 bg-zinc-50 dark:bg-zinc-900 overflow-hidden'>
+		<div className='flex h-full min-h-0 bg-zinc-50 dark:bg-zinc-900 overflow-hidden'>
 			{/* Sidebar de Chat - 384px (w-96) */}
 			<div
 				className={`

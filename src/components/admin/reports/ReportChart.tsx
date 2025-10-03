@@ -23,9 +23,9 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 
 	if (!isMounted) {
 		return (
-			<div className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
+			<div className={`bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-6 ${className}`}>
 				<div className='flex items-center justify-center h-64'>
-					<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
+					<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-600'></div>
 				</div>
 			</div>
 		)
@@ -247,7 +247,7 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 					color: '#374151',
 				},
 			},
-			colors: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'],
+			colors: ['#6b7280', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'],
 			legend: {
 				position: 'bottom' as const,
 				labels: {
@@ -352,10 +352,10 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 							: reportType === 'problems'
 								? data.problemsByCategory && Array.isArray(data.problemsByCategory)
 									? data.problemsByCategory.map((item: Record<string, unknown>) => (item.color as string) || '#6b7280')
-									: ['#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'] // Cores padrão para problemas
+									: ['#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#6b7280'] // Cores padrão para problemas
 								: reportType === 'projects'
-									? ['#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444', '#10b981', '#f97316'] // Cores variadas para projetos
-									: ['#3b82f6', '#10b981'], // Azul para tarefas atribuídas, verde para concluídas (performance)
+									? ['#8b5cf6', '#6b7280', '#f59e0b', '#ef4444', '#10b981', '#f97316'] // Cores variadas para projetos
+									: ['#6b7280', '#10b981'], // Cinza para tarefas atribuídas, verde para concluídas (performance)
 					legend: {
 						...baseOptions.legend,
 					},
@@ -396,7 +396,7 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 	}
 
 	return (
-		<div className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
+		<div className={`bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 p-6 ${className}`}>
 			<Chart options={chartOptions} series={chartSeries} type={type} height={height} />
 		</div>
 	)

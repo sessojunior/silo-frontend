@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { chatMessage } from '@/lib/db/schema'
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq, and, isNull, ne } from 'drizzle-orm'
 import { getAuthUser } from '@/lib/auth/token'
 
 // POST: Marcar mensagem como lida
@@ -30,8 +30,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
 		// Verificar se o usuário atual é o destinatário da mensagem
 		const isRecipient = 
-			(msg.receiverUserId === userId) || 
-			(msg.receiverGroupId && msg.senderUserId !== userId) // Para grupos, qualquer um exceto o remetente pode marcar como lida
+			(msg.receiverUserId === userId) || // Mensagem direta para o usuário
+			(msg.receiverGroupId && msg.senderUserId !== userId) // Para grupos, qualquer membro exceto o remetente pode marcar como lida
 
 		if (!isRecipient) {
 			return NextResponse.json({ error: 'Você não pode marcar esta mensagem como lida' }, { status: 403 })
@@ -99,7 +99,7 @@ export async function PUT(request: NextRequest) {
 			)
 			: and(
 				eq(chatMessage.receiverGroupId, targetId),
-				eq(chatMessage.senderUserId, userId), // Apenas mensagens de outros usuários
+				ne(chatMessage.senderUserId, userId), // Mensagens de OUTROS usuários (não do próprio usuário)
 				isNull(chatMessage.readAt)
 			)
 

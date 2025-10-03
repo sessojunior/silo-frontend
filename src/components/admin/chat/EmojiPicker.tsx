@@ -6,7 +6,6 @@ type EmojiPickerProps = {
 	isOpen: boolean
 	onClose: () => void
 	onEmojiSelect: (emoji: string) => void
-	position?: 'top' | 'bottom'
 }
 
 // Categorias de emojis organizadas
@@ -43,7 +42,7 @@ const emojiCategories = [
 	},
 ]
 
-export default function EmojiPicker({ isOpen, onClose, onEmojiSelect, position = 'top' }: EmojiPickerProps) {
+export default function EmojiPicker({ isOpen, onClose, onEmojiSelect }: EmojiPickerProps) {
 	const [activeCategory, setActiveCategory] = useState(0)
 	const [searchQuery, setSearchQuery] = useState('')
 	const dropdownRef = useRef<HTMLDivElement>(null)
@@ -82,7 +81,7 @@ export default function EmojiPicker({ isOpen, onClose, onEmojiSelect, position =
 			<div className='fixed inset-0 z-40' onClick={onClose} />
 
 			{/* Dropdown do emoji picker */}
-			<div ref={dropdownRef} className={`absolute left-0 z-50 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-xl w-80 ${position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
+			<div ref={dropdownRef} className={`relative z-50 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-xl w-80`}>
 				{/* Header com busca */}
 				<div className='p-3 border-b border-zinc-200 dark:border-zinc-700'>
 					<div className='relative'>
@@ -103,7 +102,7 @@ export default function EmojiPicker({ isOpen, onClose, onEmojiSelect, position =
 				)}
 
 				{/* Grid de emojis */}
-				<div className='p-2 max-h-64 overflow-y-auto'>
+				<div className='p-2 max-h-64 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-300 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-500 [&::-webkit-scrollbar-track]:bg-zinc-100 dark:[&::-webkit-scrollbar-track]:bg-zinc-700'>
 					{searchQuery && (
 						<div className='text-xs text-zinc-500 dark:text-zinc-400 mb-2 px-1'>
 							{filteredEmojis.length} emoji{filteredEmojis.length !== 1 ? 's' : ''} encontrado{filteredEmojis.length !== 1 ? 's' : ''}

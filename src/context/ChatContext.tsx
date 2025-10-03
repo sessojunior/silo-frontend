@@ -56,8 +56,13 @@ type ChatContextType = {
 
 	// Funções principais
 	loadSidebarData: () => Promise<void>
-	loadMessages: (targetId: string, type: 'group' | 'user') => Promise<void>
+	loadMessages: (targetId: string, type: 'group' | 'user') => Promise<{ messages: ChatMessage[]; hasMore: boolean }>
 	loadOlderMessages: (targetId: string, type: 'group' | 'user', page: number) => Promise<{ messages: ChatMessage[]; hasMore: boolean }>
+	loadNewerMessages: (targetId: string, type: 'group' | 'user', page: number) => Promise<{ messages: ChatMessage[]; hasMore: boolean }>
+	getMessagesCount: (targetId: string, type: 'group' | 'user') => Promise<number>
+	getUnreadMessages: (targetId: string, type: 'group' | 'user', limit?: number) => Promise<ChatMessage[]>
+	loadMessagesBeforeUnread: (targetId: string, type: 'group' | 'user', beforeDate: string, limit?: number) => Promise<{ messages: ChatMessage[]; hasMore: boolean }>
+	loadMessagesAfterUnread: (targetId: string, type: 'group' | 'user', afterDate: string, limit?: number) => Promise<{ messages: ChatMessage[]; hasMore: boolean }>
 	sendMessage: (content: string, receiverGroupId?: string, receiverUserId?: string) => Promise<void>
 	markMessageAsRead: (messageId: string) => Promise<void>
 	markMessagesAsRead: (targetId: string, type: 'group' | 'user') => Promise<void>
@@ -71,6 +76,11 @@ type ChatContextType = {
 	startPolling: () => void
 	stopPolling: () => void
 }
+
+// Constantes exportadas
+export const MESSAGES_PER_PAGE = 15
+export const SYNC_INITIAL_MINUTES = 5 // Minutos para buscar mensagens na primeira sincronização
+export const POLLING_INTERVAL = 10000 // 10 segundos para polling
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
 
@@ -122,45 +132,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 	const loadMessages = useCallback(async (targetId: string, type: 'group' | 'user') => {
 		try {
-			const params = new URLSearchParams({ limit: '30' }) // Reduzido para 30 mensagens iniciais
-			if (type === 'group') {
-				params.set('groupId', targetId)
-			} else {
-				params.set('userId', targetId)
-			}
-
-			console.log('🔵 [ChatContext] Carregando mensagens iniciais:', { targetId, type })
-			const response = await fetch(`/api/admin/chat/messages?${params}`)
-
-			if (response.ok) {
-				const data = await response.json()
-				console.log('✅ [ChatContext] Mensagens iniciais carregadas:', {
-					count: data.messages?.length || 0,
-					type,
-				})
-
-				// Verificar duplicatas e ordenar por data
-				const newMessages = data.messages || []
-				const uniqueMessages = newMessages.filter((msg: ChatMessage, index: number, self: ChatMessage[]) => index === self.findIndex((m: ChatMessage) => m.id === msg.id))
-
-				setMessages((prev) => ({
-					...prev,
-					[targetId]: uniqueMessages,
-				}))
-			} else {
-				console.error('❌ [ChatContext] Erro ao carregar mensagens:', response.status)
-			}
-		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição mensagens:', error)
-		}
-	}, [])
-
-	const loadOlderMessages = useCallback(async (targetId: string, type: 'group' | 'user', page: number) => {
-		try {
-			const params = new URLSearchParams({
-				limit: '30',
-				page: page.toString(),
-				order: 'desc', // Para pegar mensagens mais antigas
+			// Carregar as últimas mensagens (mais recentes primeiro)
+			const params = new URLSearchParams({ 
+				limit: MESSAGES_PER_PAGE.toString(),
+				order: 'desc' // Mais recentes primeiro
 			})
 			if (type === 'group') {
 				params.set('groupId', targetId)
@@ -168,25 +143,93 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				params.set('userId', targetId)
 			}
 
-			console.log('🔵 [ChatContext] Carregando mensagens mais antigas:', { targetId, type, page })
+			console.log(`🔵 [ChatContext] Carregando últimas ${MESSAGES_PER_PAGE} mensagens:`, { targetId, type })
 			const response = await fetch(`/api/admin/chat/messages?${params}`)
 
 			if (response.ok) {
 				const data = await response.json()
 				const newMessages = data.messages || []
-				const hasMore = newMessages.length === 30 // Se trouxe 30, provavelmente tem mais
-
-				console.log('✅ [ChatContext] Mensagens antigas carregadas:', {
+				const hasMore = data.hasMore || false // Usar hasMore da API
+				
+				console.log(`✅ [ChatContext] Últimas ${MESSAGES_PER_PAGE} mensagens carregadas:`, {
 					count: newMessages.length,
 					hasMore,
+					apiHasMore: data.hasMore,
+					type,
+				})
+
+				// Verificar duplicatas e ordenar por data (mais antigas primeiro para exibição)
+				const uniqueMessages = newMessages.filter((msg: ChatMessage, index: number, self: ChatMessage[]) => index === self.findIndex((m: ChatMessage) => m.id === msg.id))
+				
+				// Ordenar cronologicamente (mais antigas primeiro) para exibição no chat
+				const sortedMessages = uniqueMessages.sort((a: ChatMessage, b: ChatMessage) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
+				setMessages((prev) => ({
+					...prev,
+					[targetId]: sortedMessages,
+				}))
+
+				return { messages: sortedMessages, hasMore }
+			} else {
+				console.error('❌ [ChatContext] Erro ao carregar mensagens:', response.status)
+				return { messages: [], hasMore: false }
+			}
+		} catch (error) {
+			console.error('❌ [ChatContext] Erro na requisição mensagens:', error)
+			return { messages: [], hasMore: false }
+		}
+	}, [])
+
+	const loadOlderMessages = useCallback(async (targetId: string, type: 'group' | 'user', page: number) => {
+		try {
+			// Buscar mensagens mais antigas que as já carregadas
+			const existingMessages = messages[targetId] || []
+			const oldestMessage = existingMessages[0] // Primeira mensagem (mais antiga)
+			
+			const params = new URLSearchParams({
+				limit: MESSAGES_PER_PAGE.toString(),
+				page: page.toString(),
+				order: 'desc', // Buscar mensagens mais antigas
+				...(oldestMessage && { before: new Date(oldestMessage.createdAt).toISOString() }) // Buscar mensagens anteriores à mais antiga
+			})
+			if (type === 'group') {
+				params.set('groupId', targetId)
+			} else {
+				params.set('userId', targetId)
+			}
+
+			console.log('🔵 [ChatContext] Carregando mensagens anteriores:', { 
+				targetId, 
+				type, 
+				page, 
+				before: oldestMessage ? new Date(oldestMessage.createdAt).toISOString() : null
+			})
+			const response = await fetch(`/api/admin/chat/messages?${params}`)
+
+			if (response.ok) {
+				const data = await response.json()
+				const newMessages = data.messages || []
+				const hasMore = data.hasMore || false // Usar hasMore da API
+
+				console.log('✅ [ChatContext] Mensagens anteriores carregadas:', {
+					count: newMessages.length,
+					hasMore,
+					apiHasMore: data.hasMore,
 					type,
 					page,
 				})
 
+				// Ordenar cronologicamente (mais antigas primeiro)
+				const sortedNewMessages = newMessages.sort((a: ChatMessage, b: ChatMessage) => 
+					new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+				)
+
 				// Adicionar mensagens antigas no início da lista (preservando ordem cronológica)
 				setMessages((prev) => {
 					const existingMessages = prev[targetId] || []
-					const uniqueNewMessages = newMessages.filter((newMsg: ChatMessage) => !existingMessages.some((existingMsg) => existingMsg.id === newMsg.id))
+					const uniqueNewMessages = sortedNewMessages.filter((newMsg: ChatMessage) => 
+						!existingMessages.some((existingMsg) => existingMsg.id === newMsg.id)
+					)
 
 					return {
 						...prev,
@@ -194,13 +237,256 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 					}
 				})
 
-				return { messages: newMessages, hasMore }
+				return { messages: sortedNewMessages, hasMore }
 			} else {
-				console.error('❌ [ChatContext] Erro ao carregar mensagens antigas:', response.status)
+				console.error('❌ [ChatContext] Erro ao carregar mensagens anteriores:', response.status)
 				return { messages: [], hasMore: false }
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição mensagens antigas:', error)
+			console.error('❌ [ChatContext] Erro na requisição mensagens anteriores:', error)
+			return { messages: [], hasMore: false }
+		}
+	}, [messages])
+
+	const loadNewerMessages = useCallback(async (targetId: string, type: 'group' | 'user', page: number) => {
+		try {
+			// Buscar mensagens mais recentes que as já carregadas
+			const existingMessages = messages[targetId] || []
+			const newestMessage = existingMessages[existingMessages.length - 1] // Última mensagem (mais recente)
+			
+			const params = new URLSearchParams({
+				limit: MESSAGES_PER_PAGE.toString(),
+				page: page.toString(),
+				order: 'desc', // Buscar mensagens mais recentes
+				...(newestMessage && { after: new Date(newestMessage.createdAt).toISOString() }) // Buscar mensagens posteriores à mais recente
+			})
+			if (type === 'group') {
+				params.set('groupId', targetId)
+			} else {
+				params.set('userId', targetId)
+			}
+
+			console.log('🔵 [ChatContext] Carregando mensagens posteriores:', { 
+				targetId, 
+				type, 
+				page, 
+				after: newestMessage ? new Date(newestMessage.createdAt).toISOString() : null
+			})
+			const response = await fetch(`/api/admin/chat/messages?${params}`)
+
+			if (response.ok) {
+				const data = await response.json()
+				const newMessages = data.messages || []
+				const hasMore = data.hasMore || false // Usar hasMore da API
+
+				console.log('✅ [ChatContext] Mensagens posteriores carregadas:', {
+					count: newMessages.length,
+					hasMore,
+					apiHasMore: data.hasMore,
+					type,
+					page,
+				})
+
+				// Ordenar cronologicamente (mais antigas primeiro)
+				const sortedNewMessages = newMessages.sort((a: ChatMessage, b: ChatMessage) => 
+					new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+				)
+
+				// Adicionar mensagens posteriores no final da lista (preservando ordem cronológica)
+				setMessages((prev) => {
+					const existingMessages = prev[targetId] || []
+					const uniqueNewMessages = sortedNewMessages.filter((newMsg: ChatMessage) => 
+						!existingMessages.some((existingMsg) => existingMsg.id === newMsg.id)
+					)
+
+					return {
+						...prev,
+						[targetId]: [...existingMessages, ...uniqueNewMessages],
+					}
+				})
+
+				return { messages: sortedNewMessages, hasMore }
+			} else {
+				console.error('❌ [ChatContext] Erro ao carregar mensagens posteriores:', response.status)
+				return { messages: [], hasMore: false }
+			}
+		} catch (error) {
+			console.error('❌ [ChatContext] Erro na requisição mensagens posteriores:', error)
+			return { messages: [], hasMore: false }
+		}
+	}, [messages])
+
+	const getMessagesCount = useCallback(async (targetId: string, type: 'group' | 'user') => {
+		try {
+			const params = new URLSearchParams()
+			if (type === 'group') {
+				params.set('groupId', targetId)
+			} else {
+				params.set('userId', targetId)
+			}
+
+			console.log('🔵 [ChatContext] Contando mensagens:', { targetId, type })
+			const response = await fetch(`/api/admin/chat/messages/count?${params}`)
+
+			if (response.ok) {
+				const data = await response.json()
+				console.log('✅ [ChatContext] Total de mensagens:', {
+					count: data.totalCount,
+					type,
+				})
+				return data.totalCount || 0
+			} else {
+				console.error('❌ [ChatContext] Erro ao contar mensagens:', response.status)
+				return 0
+			}
+		} catch (error) {
+			console.error('❌ [ChatContext] Erro na requisição contagem:', error)
+			return 0
+		}
+	}, [])
+
+	// Buscar mensagens não lidas
+	const getUnreadMessages = useCallback(async (targetId: string, type: 'group' | 'user', limit: number = 15) => {
+		try {
+			const params = new URLSearchParams({
+				limit: limit.toString()
+			})
+			if (type === 'group') {
+				params.set('groupId', targetId)
+			} else {
+				params.set('userId', targetId)
+			}
+
+			console.log('🔵 [ChatContext] Buscando mensagens não lidas:', { targetId, type, limit })
+			const response = await fetch(`/api/admin/chat/unread-messages?${params}`)
+
+			if (response.ok) {
+				const data = await response.json()
+				console.log('✅ [ChatContext] Mensagens não lidas encontradas:', {
+					count: data.count,
+					type,
+				})
+				return data.messages || []
+			} else {
+				console.error('❌ [ChatContext] Erro ao buscar mensagens não lidas:', response.status)
+				return []
+			}
+		} catch (error) {
+			console.error('❌ [ChatContext] Erro na requisição mensagens não lidas:', error)
+			return []
+		}
+	}, [])
+
+	// Buscar mensagens anteriores às não lidas
+	const loadMessagesBeforeUnread = useCallback(async (targetId: string, type: 'group' | 'user', beforeDate: string, limit: number = 15) => {
+		try {
+			const params = new URLSearchParams({
+				limit: limit.toString(),
+				before: beforeDate,
+				order: 'desc' // Buscar mensagens mais antigas
+			})
+			if (type === 'group') {
+				params.set('groupId', targetId)
+			} else {
+				params.set('userId', targetId)
+			}
+
+			console.log('🔵 [ChatContext] Buscando mensagens anteriores às não lidas:', { targetId, type, beforeDate, limit })
+			const response = await fetch(`/api/admin/chat/messages?${params}`)
+
+			if (response.ok) {
+				const data = await response.json()
+				const newMessages = data.messages || []
+				const hasMore = data.hasMore || false
+
+				console.log('✅ [ChatContext] Mensagens anteriores às não lidas encontradas:', {
+					count: newMessages.length,
+					hasMore,
+					type,
+				})
+
+				// Ordenar cronologicamente (mais antigas primeiro)
+				const sortedNewMessages = newMessages.sort((a: ChatMessage, b: ChatMessage) => 
+					new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+				)
+
+				// Adicionar mensagens antigas no início da lista (preservando ordem cronológica)
+				setMessages((prev) => {
+					const existingMessages = prev[targetId] || []
+					const uniqueNewMessages = sortedNewMessages.filter((newMsg: ChatMessage) => 
+						!existingMessages.some((existingMsg) => existingMsg.id === newMsg.id)
+					)
+
+					return {
+						...prev,
+						[targetId]: [...uniqueNewMessages, ...existingMessages],
+					}
+				})
+
+				return { messages: sortedNewMessages, hasMore }
+			} else {
+				console.error('❌ [ChatContext] Erro ao buscar mensagens anteriores às não lidas:', response.status)
+				return { messages: [], hasMore: false }
+			}
+		} catch (error) {
+			console.error('❌ [ChatContext] Erro na requisição mensagens anteriores às não lidas:', error)
+			return { messages: [], hasMore: false }
+		}
+	}, [])
+
+	// Buscar mensagens posteriores às não lidas
+	const loadMessagesAfterUnread = useCallback(async (targetId: string, type: 'group' | 'user', afterDate: string, limit: number = 15) => {
+		try {
+			const params = new URLSearchParams({
+				limit: limit.toString(),
+				after: afterDate,
+				order: 'asc' // Buscar mensagens mais recentes
+			})
+			if (type === 'group') {
+				params.set('groupId', targetId)
+			} else {
+				params.set('userId', targetId)
+			}
+
+			console.log('🔵 [ChatContext] Buscando mensagens posteriores às não lidas:', { targetId, type, afterDate, limit })
+			const response = await fetch(`/api/admin/chat/messages?${params}`)
+
+			if (response.ok) {
+				const data = await response.json()
+				const newMessages = data.messages || []
+				const hasMore = data.hasMore || false
+
+				console.log('✅ [ChatContext] Mensagens posteriores às não lidas encontradas:', {
+					count: newMessages.length,
+					hasMore,
+					type,
+				})
+
+				// Ordenar cronologicamente (mais antigas primeiro)
+				const sortedNewMessages = newMessages.sort((a: ChatMessage, b: ChatMessage) => 
+					new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+				)
+
+				// Adicionar mensagens posteriores no final da lista (preservando ordem cronológica)
+				setMessages((prev) => {
+					const existingMessages = prev[targetId] || []
+					const uniqueNewMessages = sortedNewMessages.filter((newMsg: ChatMessage) => 
+						!existingMessages.some((existingMsg) => existingMsg.id === newMsg.id)
+					)
+
+					return {
+						...prev,
+						[targetId]: [...existingMessages, ...uniqueNewMessages],
+					}
+				})
+
+				return { messages: sortedNewMessages, hasMore }
+			} else {
+				console.error('❌ [ChatContext] Erro ao buscar mensagens posteriores às não lidas:', response.status)
+				return { messages: [], hasMore: false }
+			}
+		} catch (error) {
+			console.error('❌ [ChatContext] Erro na requisição mensagens posteriores às não lidas:', error)
 			return { messages: [], hasMore: false }
 		}
 	}, [])
@@ -288,7 +574,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 					window.dispatchEvent(new CustomEvent('messagesRead'))
 				} else {
 					const errorData = await response.json()
-					console.error('❌ [ChatContext] Erro ao marcar como lida:', errorData.error)
+					// Log apenas como info para evitar poluição de console
+					console.log('🔵 [ChatContext] Não foi possível marcar mensagem como lida:', errorData.error)
 				}
 			} catch (error) {
 				console.error('❌ [ChatContext] Erro na requisição marcar como lida:', error)
@@ -453,9 +740,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			if (lastSync) {
 				params.set('since', lastSync)
 			} else {
-				// Primeira execução - buscar apenas últimos 5 minutos para evitar "falsas mensagens novas"
-				const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-				params.set('since', fiveMinutesAgo)
+				// Primeira execução - buscar apenas últimos minutos para evitar "falsas mensagens novas"
+				const initialTimeAgo = new Date(Date.now() - SYNC_INITIAL_MINUTES * 60 * 1000).toISOString()
+				params.set('since', initialTimeAgo)
 			}
 
 			const response = await fetch(`/api/admin/chat/sync?${params}`)
@@ -523,6 +810,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 					if (reallyNewMessagesCount > 0) {
 						console.log('🔵 [ChatContext] Recarregando sidebar devido a mensagens REALMENTE novas:', reallyNewMessagesCount)
 						loadSidebarData()
+						// Note: Dropdown agora detecta mudanças via totalUnread - sem necessidade de evento
 					} else if (data.messages && data.messages.length > 0) {
 						console.log('🟡 [ChatContext] Mensagens já existentes - sem recarregamento:', data.messages.length)
 					}
@@ -533,7 +821,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				setLastSync(data.timestamp)
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na sincronização:', error)
+			// Silenciar erros de rede para evitar spam no console
+			if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+				console.log('🔵 [ChatContext] Servidor offline - tentando novamente em 10s')
+			} else {
+				console.error('❌ [ChatContext] Erro na sincronização:', error)
+			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []) // Intencionalmente sem dependências para evitar loop infinito
@@ -544,13 +837,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			return
 		}
 
-		console.log('🔵 [ChatContext] Iniciando polling (10 segundos)')
+		console.log(`🔵 [ChatContext] Iniciando polling (${POLLING_INTERVAL / 1000} segundos)`)
 		isPollingActive.current = true
 
 		pollingInterval.current = setInterval(() => {
 			syncMessages()
 			sendHeartbeat()
-		}, 10000) // 10 segundos para reduzir carga no servidor
+		}, POLLING_INTERVAL) // Intervalo configurável para reduzir carga no servidor
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []) // Intencionalmente sem dependências para evitar loop infinito
 
@@ -705,6 +998,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		loadSidebarData,
 		loadMessages,
 		loadOlderMessages,
+		loadNewerMessages,
+		getMessagesCount,
+		getUnreadMessages,
+		loadMessagesBeforeUnread,
+		loadMessagesAfterUnread,
 		sendMessage,
 		markMessageAsRead,
 		markMessagesAsRead,

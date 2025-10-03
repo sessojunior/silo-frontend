@@ -1,157 +1,142 @@
-import { NextResponse } from 'next/server'
-import { desc, and, isNull, eq, ne } from 'drizzle-orm'
+import { NextRequest, NextResponse } from 'next/server'
+import { and, or, isNull, eq, desc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import * as schema from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
 
-// GET: Buscar mensagens não lidas para o dropdown de notificações
-export async function GET() {
+export async function GET(request: NextRequest) {
 	try {
 		const user = await getAuthUser()
 		if (!user) {
 			return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		console.log('🔵 [API] Carregando mensagens não lidas para:', user.id)
+		const { searchParams } = new URL(request.url)
+		const groupId = searchParams.get('groupId')
+		const userId = searchParams.get('userId')
+		const limit = parseInt(searchParams.get('limit') || '15')
 
-		// 1. Buscar mensagens não lidas de grupos
-		const groupUnreadMessages = await db
-			.select({
-				groupId: schema.chatMessage.receiverGroupId,
-				content: schema.chatMessage.content,
-				senderName: schema.authUser.name,
-				createdAt: schema.chatMessage.createdAt,
-				readAt: schema.chatMessage.readAt, // Adicionar para debug
-				senderUserId: schema.chatMessage.senderUserId, // Adicionar para debug
-			})
-			.from(schema.chatMessage)
-			.innerJoin(schema.authUser, eq(schema.chatMessage.senderUserId, schema.authUser.id))
-			.innerJoin(schema.userGroup, eq(schema.userGroup.groupId, schema.chatMessage.receiverGroupId))
-			.where(
-				and(
-					eq(schema.userGroup.userId, user.id), // Usuário é membro do grupo
-					ne(schema.chatMessage.senderUserId, user.id), // Mensagens de OUTROS usuários
-					isNull(schema.chatMessage.readAt), // Não lida
-					isNull(schema.chatMessage.deletedAt), // Não excluída
-				),
-			)
-			.orderBy(desc(schema.chatMessage.createdAt))
-
-		console.log('🔵 [API] Mensagens de grupos encontradas:', groupUnreadMessages.length)
-		console.log('🔵 [API] Detalhes das mensagens de grupos:', groupUnreadMessages.map(msg => ({
-			groupId: msg.groupId,
-			content: msg.content, // Mostrar conteúdo completo para debug
-			senderName: msg.senderName,
-			createdAt: msg.createdAt,
-			readAt: msg.readAt,
-			senderUserId: msg.senderUserId,
-			isFromCurrentUser: msg.senderUserId === user.id
-		})))
-
-		// 2. Buscar mensagens não lidas de usuários
-		const userUnreadMessages = await db
-			.select({
-				userId: schema.chatMessage.senderUserId,
-				content: schema.chatMessage.content,
-				senderName: schema.authUser.name,
-				createdAt: schema.chatMessage.createdAt,
-				readAt: schema.chatMessage.readAt, // Adicionar para debug
-				senderUserId: schema.chatMessage.senderUserId, // Adicionar para debug
-			})
-			.from(schema.chatMessage)
-			.innerJoin(schema.authUser, eq(schema.chatMessage.senderUserId, schema.authUser.id))
-			.where(
-				and(
-					eq(schema.chatMessage.receiverUserId, user.id), // Mensagens para o usuário atual
-					isNull(schema.chatMessage.readAt), // Não lida
-					isNull(schema.chatMessage.deletedAt), // Não excluída
-				),
-			)
-			.orderBy(desc(schema.chatMessage.createdAt))
-
-		console.log('🔵 [API] Mensagens de usuários encontradas:', userUnreadMessages.length)
-		console.log('🔵 [API] Detalhes das mensagens de usuários:', userUnreadMessages.map(msg => ({
-			userId: msg.userId,
-			content: msg.content, // Mostrar conteúdo completo para debug
-			senderName: msg.senderName,
-			createdAt: msg.createdAt,
-			readAt: msg.readAt,
-			senderUserId: msg.senderUserId,
-			isFromCurrentUser: msg.senderUserId === user.id
-		})))
-
-		// 3. Agrupar mensagens por conversa e contar total
-		const unreadMessages: Record<string, {
-			messages: Array<{ content: string; senderName: string; createdAt: Date }>
-			totalCount: number
-		}> = {}
-
-		// Agrupar mensagens de grupos
-		for (const msg of groupUnreadMessages) {
-			if (msg.groupId) {
-				if (!unreadMessages[msg.groupId]) {
-					unreadMessages[msg.groupId] = { messages: [], totalCount: 0 }
-				}
-				unreadMessages[msg.groupId].messages.push({
-					content: msg.content,
-					senderName: msg.senderName,
-					createdAt: msg.createdAt,
-				})
-				unreadMessages[msg.groupId].totalCount++
-			}
+		if (!groupId && !userId) {
+			return NextResponse.json({ error: 'Especifique groupId ou userId' }, { status: 400 })
 		}
 
-		// Agrupar mensagens de usuários
-		for (const msg of userUnreadMessages) {
-			if (msg.userId) {
-				if (!unreadMessages[msg.userId]) {
-					unreadMessages[msg.userId] = { messages: [], totalCount: 0 }
-				}
-				unreadMessages[msg.userId].messages.push({
-					content: msg.content,
-					senderName: msg.senderName,
-					createdAt: msg.createdAt,
-				})
-				unreadMessages[msg.userId].totalCount++
-			}
-		}
+		let unreadMessages: Array<{
+			id: string
+			content: string
+			createdAt: Date
+			senderUserId: string
+			receiverGroupId: string | null
+			receiverUserId: string | null
+			deletedAt: Date | null
+			readAt: Date | null
+			senderName: string
+			senderEmail: string
+			senderImage: string | null
+			type: string
+			messageType: string
+		}> = []
 
-		// 4. Ordenar por data e limitar a 3 mensagens mais recentes por conversa
-		for (const conversationId in unreadMessages) {
-			const originalMessages = unreadMessages[conversationId].messages
-			unreadMessages[conversationId].messages = originalMessages
-				.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-				.slice(0, 3) // Apenas as 3 mais recentes
-			
-			console.log('🔵 [API] Processando conversa:', {
-				conversationId,
-				originalCount: originalMessages.length,
-				finalCount: unreadMessages[conversationId].messages.length,
-				totalCount: unreadMessages[conversationId].totalCount,
-				messages: unreadMessages[conversationId].messages.map(m => ({
-					content: m.content, // Mostrar conteúdo completo para debug
-					senderName: m.senderName,
-					createdAt: m.createdAt
+		if (groupId) {
+			// Verificar se usuário participa do grupo
+			const isMember = await db
+				.select()
+				.from(schema.userGroup)
+				.where(and(eq(schema.userGroup.userId, user.id), eq(schema.userGroup.groupId, groupId)))
+				.limit(1)
+
+			if (isMember.length === 0) {
+				return NextResponse.json({ error: 'Usuário não participa deste grupo' }, { status: 403 })
+			}
+
+			// Buscar mensagens não lidas do grupo (todas as mensagens do grupo são "não lidas" por padrão)
+			const messages = await db
+				.select({
+					id: schema.chatMessage.id,
+					content: schema.chatMessage.content,
+					createdAt: schema.chatMessage.createdAt,
+					senderUserId: schema.chatMessage.senderUserId,
+					receiverGroupId: schema.chatMessage.receiverGroupId,
+					receiverUserId: schema.chatMessage.receiverUserId,
+					deletedAt: schema.chatMessage.deletedAt,
+					readAt: schema.chatMessage.readAt,
+					senderName: schema.authUser.name,
+					senderEmail: schema.authUser.email,
+					senderImage: schema.authUser.image
+				})
+				.from(schema.chatMessage)
+				.innerJoin(schema.authUser, eq(schema.chatMessage.senderUserId, schema.authUser.id))
+				.where(and(
+					eq(schema.chatMessage.receiverGroupId, groupId),
+					isNull(schema.chatMessage.deletedAt)
+				))
+				.orderBy(desc(schema.chatMessage.createdAt))
+				.limit(limit)
+
+			unreadMessages = messages
+				.filter(msg => msg.senderUserId !== user.id) // Não incluir próprias mensagens
+				.map(msg => ({
+					...msg,
+					type: 'group',
+					messageType: 'groupMessage'
 				}))
-			})
+
+		} else if (userId) {
+			// Buscar mensagens não lidas da conversa entre usuários
+			const messages = await db
+				.select({
+					id: schema.chatMessage.id,
+					content: schema.chatMessage.content,
+					createdAt: schema.chatMessage.createdAt,
+					senderUserId: schema.chatMessage.senderUserId,
+					receiverGroupId: schema.chatMessage.receiverGroupId,
+					receiverUserId: schema.chatMessage.receiverUserId,
+					deletedAt: schema.chatMessage.deletedAt,
+					readAt: schema.chatMessage.readAt,
+					senderName: schema.authUser.name,
+					senderEmail: schema.authUser.email,
+					senderImage: schema.authUser.image
+				})
+				.from(schema.chatMessage)
+				.innerJoin(schema.authUser, eq(schema.chatMessage.senderUserId, schema.authUser.id))
+				.where(and(
+					or(
+						// Mensagens enviadas pelo usuário atual para o target
+						and(eq(schema.chatMessage.senderUserId, user.id), eq(schema.chatMessage.receiverUserId, userId)),
+						// Mensagens recebidas do target pelo usuário atual
+						and(eq(schema.chatMessage.senderUserId, userId), eq(schema.chatMessage.receiverUserId, user.id)),
+					),
+					isNull(schema.chatMessage.deletedAt),
+					// Mensagens não lidas: readAt é null
+					isNull(schema.chatMessage.readAt)
+				))
+				.orderBy(desc(schema.chatMessage.createdAt))
+				.limit(limit)
+
+			unreadMessages = messages
+				.filter(msg => msg.senderUserId !== user.id) // Não incluir próprias mensagens
+				.map(msg => ({
+					...msg,
+					type: 'user',
+					messageType: 'userMessage'
+				}))
 		}
 
-		console.log('✅ [API] Mensagens não lidas carregadas:', {
-			conversations: Object.keys(unreadMessages).length,
-			totalMessages: Object.values(unreadMessages).reduce((sum, conv) => sum + conv.totalCount, 0),
-			details: Object.entries(unreadMessages).map(([id, conv]) => ({
-				conversationId: id,
-				totalCount: conv.totalCount,
-				displayMessages: conv.messages.length,
-				senders: conv.messages.map(m => m.senderName)
-			})),
-			groupUnreadCount: groupUnreadMessages.length,
-			userUnreadCount: userUnreadMessages.length
+		// Ordenar cronologicamente (mais antigas primeiro)
+		unreadMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
+		console.log('✅ [API] Mensagens não lidas encontradas:', { 
+			count: unreadMessages.length, 
+			groupId, 
+			userId, 
+			currentUser: user.id 
 		})
 
-		return NextResponse.json({ unreadMessages })
+		return NextResponse.json({ 
+			messages: unreadMessages,
+			count: unreadMessages.length
+		})
 	} catch (error) {
-		console.error('❌ Erro ao carregar mensagens não lidas:', error)
+		console.error('❌ Erro ao buscar mensagens não lidas:', error)
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

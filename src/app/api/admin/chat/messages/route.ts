@@ -1,9 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { desc, and, or, isNull, eq } from 'drizzle-orm'
+import { desc, and, or, isNull, eq, lt, gt } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { db } from '@/lib/db'
 import * as schema from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
+
+// Função auxiliar para contar mensagens totais
+async function getTotalMessagesCount(groupId: string | null, userId: string | null, currentUserId: string): Promise<number> {
+	try {
+		if (groupId) {
+			// Verificar se usuário participa do grupo
+			const isMember = await db
+				.select()
+				.from(schema.userGroup)
+				.where(and(eq(schema.userGroup.userId, currentUserId), eq(schema.userGroup.groupId, groupId)))
+				.limit(1)
+
+			if (isMember.length === 0) {
+				return 0
+			}
+
+			// Contar mensagens do grupo
+			const result = await db
+				.select({ count: schema.chatMessage.id })
+				.from(schema.chatMessage)
+				.where(and(
+					eq(schema.chatMessage.receiverGroupId, groupId),
+					isNull(schema.chatMessage.deletedAt)
+				))
+
+			return result.length
+		} else if (userId) {
+			// Contar mensagens da conversa entre usuários
+			const result = await db
+				.select({ count: schema.chatMessage.id })
+				.from(schema.chatMessage)
+				.where(and(
+					or(
+						// Mensagens enviadas pelo usuário atual para o target
+						and(eq(schema.chatMessage.senderUserId, currentUserId), eq(schema.chatMessage.receiverUserId, userId)),
+						// Mensagens recebidas do target pelo usuário atual
+						and(eq(schema.chatMessage.senderUserId, userId), eq(schema.chatMessage.receiverUserId, currentUserId)),
+					),
+					isNull(schema.chatMessage.deletedAt)
+				))
+
+			return result.length
+		}
+		return 0
+	} catch (error) {
+		console.error('❌ Erro ao contar mensagens totais:', error)
+		return 0
+	}
+}
 
 // Tipos para o sistema de mensagens
 interface SendMessageRequest {
@@ -38,9 +87,23 @@ export async function GET(request: NextRequest) {
 		const limit = parseInt(searchParams.get('limit') || '30')
 		const page = parseInt(searchParams.get('page') || '1')
 		const order = searchParams.get('order') || 'asc' // 'asc' para mais recentes, 'desc' para mais antigas
+		const before = searchParams.get('before') // Buscar mensagens anteriores a esta data
+		const after = searchParams.get('after') // Buscar mensagens posteriores a esta data
 		const offset = (page - 1) * limit
 
-		console.log('🔵 Buscando mensagens:', { groupId, userId, limit, page, order, offset, currentUser: user.id })
+		console.log('🔵 [API] Buscando mensagens:', { 
+			groupId, 
+			userId, 
+			limit, 
+			page, 
+			order, 
+			before, 
+			after, 
+			offset, 
+			currentUser: user.id,
+			hasBefore: !!before,
+			hasAfter: !!after
+		})
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let messages: any[] = []
@@ -58,6 +121,34 @@ export async function GET(request: NextRequest) {
 			}
 
 			// Buscar mensagens do grupo
+			const whereConditions = [
+				eq(schema.chatMessage.receiverGroupId, groupId), 
+				isNull(schema.chatMessage.deletedAt)
+			]
+			
+			// Se before foi especificado, buscar mensagens anteriores a essa data
+			if (before) {
+				whereConditions.push(lt(schema.chatMessage.createdAt, new Date(before)))
+			}
+			
+			// Se after foi especificado, buscar mensagens posteriores a essa data
+			if (after) {
+				whereConditions.push(gt(schema.chatMessage.createdAt, new Date(after)))
+			}
+			
+			// Determinar ordenação baseada no contexto
+			// Se há 'before', estamos carregando mensagens anteriores (mais antigas) - usar ASC
+			// Se há 'after', estamos carregando mensagens posteriores (mais recentes) - usar DESC  
+			// Se não há nem 'before' nem 'after', é carregamento inicial - usar DESC para pegar as mais recentes
+			const orderDirection = before ? schema.chatMessage.createdAt : desc(schema.chatMessage.createdAt)
+			
+			console.log('🔵 [API] Ordenação para grupo:', {
+				hasBefore: !!before,
+				hasAfter: !!after,
+				orderType: before ? 'ASC (mais antigas)' : 'DESC (mais recentes)',
+				beforeDate: before
+			})
+			
 			messages = await db
 				.select({
 					id: schema.chatMessage.id,
@@ -71,12 +162,45 @@ export async function GET(request: NextRequest) {
 				})
 				.from(schema.chatMessage)
 				.innerJoin(schema.authUser, eq(schema.chatMessage.senderUserId, schema.authUser.id))
-				.where(and(eq(schema.chatMessage.receiverGroupId, groupId), isNull(schema.chatMessage.deletedAt)))
-				.orderBy(order === 'desc' ? desc(schema.chatMessage.createdAt) : schema.chatMessage.createdAt)
+				.where(and(...whereConditions))
+				.orderBy(orderDirection)
 				.limit(limit)
 				.offset(offset)
 		} else if (userId) {
 			// BUSCAR userMessage - conversa entre 2 usuários
+			const whereConditions = [
+				or(
+					// Mensagens enviadas pelo usuário atual para o target
+					and(eq(schema.chatMessage.senderUserId, user.id), eq(schema.chatMessage.receiverUserId, userId)),
+					// Mensagens recebidas do target pelo usuário atual
+					and(eq(schema.chatMessage.senderUserId, userId), eq(schema.chatMessage.receiverUserId, user.id)),
+				),
+				isNull(schema.chatMessage.deletedAt)
+			]
+			
+			// Se before foi especificado, buscar mensagens anteriores a essa data
+			if (before) {
+				whereConditions.push(lt(schema.chatMessage.createdAt, new Date(before)))
+			}
+			
+			// Se after foi especificado, buscar mensagens posteriores a essa data
+			if (after) {
+				whereConditions.push(gt(schema.chatMessage.createdAt, new Date(after)))
+			}
+			
+			// Determinar ordenação baseada no contexto
+			// Se há 'before', estamos carregando mensagens anteriores (mais antigas) - usar ASC
+			// Se há 'after', estamos carregando mensagens posteriores (mais recentes) - usar DESC  
+			// Se não há nem 'before' nem 'after', é carregamento inicial - usar DESC para pegar as mais recentes
+			const orderDirection = before ? schema.chatMessage.createdAt : desc(schema.chatMessage.createdAt)
+			
+			console.log('🔵 [API] Ordenação para usuário:', {
+				hasBefore: !!before,
+				hasAfter: !!after,
+				orderType: before ? 'ASC (mais antigas)' : 'DESC (mais recentes)',
+				beforeDate: before
+			})
+			
 			messages = await db
 				.select({
 					id: schema.chatMessage.id,
@@ -90,18 +214,8 @@ export async function GET(request: NextRequest) {
 				})
 				.from(schema.chatMessage)
 				.innerJoin(schema.authUser, eq(schema.chatMessage.senderUserId, schema.authUser.id))
-				.where(
-					and(
-						or(
-							// Mensagens enviadas pelo usuário atual para o target
-							and(eq(schema.chatMessage.senderUserId, user.id), eq(schema.chatMessage.receiverUserId, userId)),
-							// Mensagens recebidas do target pelo usuário atual
-							and(eq(schema.chatMessage.senderUserId, userId), eq(schema.chatMessage.receiverUserId, user.id)),
-						),
-						isNull(schema.chatMessage.deletedAt),
-					),
-				)
-				.orderBy(order === 'desc' ? desc(schema.chatMessage.createdAt) : schema.chatMessage.createdAt)
+				.where(and(...whereConditions))
+				.orderBy(orderDirection)
 				.limit(limit)
 				.offset(offset)
 		} else {
@@ -114,11 +228,46 @@ export async function GET(request: NextRequest) {
 			messageType: msg.receiverGroupId ? 'groupMessage' : 'userMessage',
 		}))
 
-		console.log('✅ Mensagens encontradas:', { count: messagesWithType.length, type: groupId ? 'groupMessage' : 'userMessage' })
+		// Determinar se há mais mensagens
+		// Sempre verificar o total real de mensagens para determinar hasMore
+		const totalCount = await getTotalMessagesCount(groupId, userId, user.id)
+		const totalLoaded = offset + messagesWithType.length
+		const hasMore = totalLoaded < totalCount
+		
+		console.log('🔵 [API] Cálculo de hasMore:', {
+			totalCount,
+			totalLoaded,
+			offset,
+			returnedCount: messagesWithType.length,
+			hasMore,
+			calculation: `${totalLoaded} < ${totalCount} = ${hasMore}`
+		})
+
+		console.log('✅ [API] Mensagens encontradas:', { 
+			count: messagesWithType.length, 
+			hasMore,
+			limit,
+			order,
+			before: before || 'null',
+			after: after || 'null',
+			type: groupId ? 'groupMessage' : 'userMessage',
+			offset,
+			totalRequested: limit + offset,
+			debug: {
+				returnedCount: messagesWithType.length,
+				requestedLimit: limit,
+				hasMoreCalculation: `${totalLoaded} < ${totalCount} = ${hasMore}`,
+				before: before || 'null',
+				after: after || 'null',
+				totalCount,
+				totalLoaded
+			}
+		})
 
 		return NextResponse.json({
 			messages: messagesWithType,
 			count: messagesWithType.length,
+			hasMore,
 		})
 	} catch (error) {
 		console.error('❌ Erro ao buscar mensagens:', error)

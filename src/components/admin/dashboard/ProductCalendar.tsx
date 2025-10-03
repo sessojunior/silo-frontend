@@ -93,8 +93,8 @@ export default function ProductCalendar({ calendar, turns, onDotClick }: Product
 				<div
 					key={index}
 					className={`${date.dateWeek === 'saturday' || date.dateWeek === 'sunday' ? dayWeekend : dayNormal}
-							${index === 0 ? 'border-r border-l border-zinc-200' : ''}
-							${index !== calendar.dates.length - 1 ? 'border-r border-zinc-200' : ''}`}
+							${index === 0 ? 'border-r border-l border-zinc-200 dark:border-zinc-700' : ''}
+							${index !== calendar.dates.length - 1 ? 'border-r border-zinc-200 dark:border-zinc-700' : ''}`}
 				>
 					<div className={date.dateWeek === 'saturday' || date.dateWeek === 'sunday' ? dayWeekWeekend : dayWeekNormal}>{weekDayLetter(date.dateWeek)}</div>
 					<div className={dayNumber}>{date.dateDay}</div>

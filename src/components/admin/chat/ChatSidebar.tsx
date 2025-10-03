@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useChat, ChatGroup, ChatUser } from '@/context/ChatContext'
@@ -15,7 +15,7 @@ type ChatSidebarProps = {
 
 export default function ChatSidebar({ activeTargetId, activeTargetType, onTargetSelect }: ChatSidebarProps) {
 	const router = useRouter()
-	const pathname = usePathname()
+
 	const { currentUser } = useCurrentUser()
 	const { groups, users, totalUnread, currentPresence, updatePresence, isLoading } = useChat()
 
@@ -152,7 +152,7 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 			</div>
 
 			{/* Conteúdo baseado na aba ativa */}
-			<div className='flex-1 overflow-y-auto'>
+			<div className='flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-300 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-500 [&::-webkit-scrollbar-track]:bg-zinc-100 dark:[&::-webkit-scrollbar-track]:bg-zinc-700'>
 				{activeTab === 'groups' ? (
 					// Lista de Grupos
 					isLoading ? (
