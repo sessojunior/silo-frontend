@@ -21,6 +21,7 @@ export type ChatUser = {
 	id: string
 	name: string
 	email: string
+	image?: string | null
 	isActive: boolean
 	presenceStatus: 'visible' | 'invisible'
 	lastActivity: Date | null

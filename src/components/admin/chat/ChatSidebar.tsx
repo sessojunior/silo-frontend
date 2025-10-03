@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useChat, ChatGroup, ChatUser } from '@/context/ChatContext'
 import { formatDateBR } from '@/lib/dateUtils'
+import Avatar from '@/components/ui/Avatar'
 
 type ChatSidebarProps = {
 	activeTargetId: string | null
@@ -84,10 +84,13 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 			{/* Header da Sidebar */}
 			<div className='border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800'>
 				<div className='flex items-center gap-3 mb-3 p-4 border-b border-zinc-200 dark:border-zinc-700'>
-					<div className='relative'>
-						<Image src={currentUser?.image || '/images/profile.png'} alt={currentUser?.name || 'Usuário'} width={40} height={40} className='rounded-full object-cover' unoptimized={currentUser?.image?.startsWith('blob:')} />
-						<div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${statusInfo.color}`} />
-					</div>
+					<Avatar 
+						src={currentUser?.image} 
+						name={currentUser?.name || 'Usuário'} 
+						size="md"
+						showPresence={true}
+						presenceColor={statusInfo.color}
+					/>
 					<div className='flex-1'>
 						<h2 className='font-semibold text-sm text-zinc-900 dark:text-white'>{currentUser?.name || 'Usuário'}</h2>
 						<div className='flex items-center gap-2'>
@@ -281,11 +284,13 @@ function UserItem({ user, isActive, onClick }: { user: ChatUser; isActive: boole
 	return (
 		<button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors text-left border-l-4 ${isActive ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500' : 'border-transparent'}`}>
 			{/* Avatar do Usuário */}
-			<div className='relative flex-shrink-0'>
-				<div className='w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold'>{user.name.charAt(0).toUpperCase()}</div>
-				{/* Status de presença */}
-				<div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${getPresenceColor(user.presenceStatus)}`} />
-			</div>
+			<Avatar 
+				src={user.image} 
+				name={user.name} 
+				size="md"
+				showPresence={true}
+				presenceColor={getPresenceColor(user.presenceStatus)}
+			/>
 
 			{/* Informações do Usuário */}
 			<div className='flex-1 min-w-0'>

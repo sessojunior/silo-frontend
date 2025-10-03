@@ -2,11 +2,13 @@
 
 import { useRouter } from 'next/navigation'
 import { formatDateTimeBR } from '@/lib/dateUtils'
+import Avatar from '@/components/ui/Avatar'
 
 interface Conversation {
 	id: string
 	name: string
 	type: 'group' | 'user'
+	image?: string | null
 	unreadCount: number
 	lastMessageAt?: string
 	lastMessage?: string
@@ -79,20 +81,19 @@ export default function ConversationList({ conversations, isLoading, onConversat
 				>
 					<div className='flex items-center justify-between'>
 						<div className='flex items-center gap-3 min-w-0 flex-1'>
-							<div className='relative'>
-								{conversation.type === 'group' ? (
-									<div className='w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center text-white text-sm font-semibold'>
-										<span className='icon-[lucide--users] w-4 h-4' />
-									</div>
-								) : (
-									<div className='w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold'>
-										{conversation.name.charAt(0).toUpperCase()}
-									</div>
-								)}
-								{conversation.type === 'user' && (
-									<div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-zinc-800 ${getPresenceColor(conversation.presenceStatus)}`} />
-								)}
-							</div>
+							{conversation.type === 'group' ? (
+								<div className='w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center text-white text-sm font-semibold'>
+									<span className='icon-[lucide--users] w-4 h-4' />
+								</div>
+							) : (
+								<Avatar 
+									src={conversation.image} 
+									name={conversation.name} 
+									size="sm"
+									showPresence={true}
+									presenceColor={getPresenceColor(conversation.presenceStatus)}
+								/>
+							)}
 							<div className='min-w-0 flex-1 overflow-hidden'>
 								<div className='flex items-center justify-between'>
 									<p className='text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate'>

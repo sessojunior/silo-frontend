@@ -1,4 +1,5 @@
 import Button from '@/components/ui/Button'
+import Avatar from '@/components/ui/Avatar'
 import type { ChatGroup, ChatUser } from '@/context/ChatContext'
 
 interface ChatHeaderProps {
@@ -27,13 +28,19 @@ export function ChatHeader({
 				</Button>
 				
 				<div className="flex items-center space-x-3">
-					<div className="w-10 h-10 bg-zinc-200 dark:bg-zinc-700 rounded-full flex items-center justify-center">
-						{activeTargetType === 'group' ? (
-							<span className="icon-[mdi--account-group] w-5 h-5 text-zinc-500" />
-						) : (
-							<span className="icon-[mdi--account] w-5 h-5 text-zinc-500" />
-						)}
-					</div>
+					{activeTargetType === 'group' ? (
+						<div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+							<span className="icon-[lucide--users] w-5 h-5 text-white" />
+						</div>
+					) : (
+						<Avatar 
+							src={(activeTarget as ChatUser)?.image} 
+							name={activeTarget?.name || 'Usuário'} 
+							size="md"
+							showPresence={true}
+							presenceColor={(activeTarget as ChatUser)?.presenceStatus === 'visible' ? 'bg-green-400' : 'bg-gray-400'}
+						/>
+					)}
 					<div>
 						<h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
 							{activeTarget?.name || 'Carregando...'}
