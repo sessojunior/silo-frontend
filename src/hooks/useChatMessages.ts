@@ -165,7 +165,7 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 
 			loadInitialMessages()
 		}
-	}, [activeTargetId, activeTargetType, getUnreadMessages, loadMessages, getMessagesCount])
+	}, [activeTargetId, activeTargetType, getUnreadMessages, loadMessages, getMessagesCount, setMessages])
 
 	// Função para carregar mensagens mais antigas
 	const handleLoadOlderMessages = useCallback(async () => {

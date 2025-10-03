@@ -812,7 +812,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 						console.log('🔵 [ChatContext] Atualizando presença de usuários:', data.presence.length)
 						setUsers(prevUsers => {
 							return prevUsers.map(user => {
-								const presenceUpdate = data.presence.find((p: any) => p.userId === user.id)
+								const presenceUpdate = data.presence.find((p: { userId: string; status: string; lastActivity: Date }) => p.userId === user.id)
 								if (presenceUpdate) {
 									console.log('🔵 [ChatContext] Atualizando presença do usuário:', {
 										userId: user.id,

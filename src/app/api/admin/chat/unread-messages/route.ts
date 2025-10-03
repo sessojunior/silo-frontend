@@ -4,6 +4,21 @@ import { db } from '@/lib/db'
 import * as schema from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
 
+// Tipo específico para mensagens não lidas com informações do remetente
+type UnreadMessageWithSender = {
+	id: string
+	content: string
+	createdAt: Date
+	senderUserId: string
+	receiverGroupId: string | null
+	receiverUserId: string | null
+	deletedAt: Date | null
+	readAt: Date | null
+	senderName: string
+	senderEmail: string
+	senderImage: string | null
+}
+
 export async function GET(request: NextRequest) {
 	try {
 		const user = await getAuthUser()
@@ -96,7 +111,7 @@ export async function GET(request: NextRequest) {
 			})
 
 			// Converter para formato esperado pelo frontend
-			const unreadMessages: Record<string, { messages: any[], totalCount: number }> = {}
+			const unreadMessages: Record<string, { messages: UnreadMessageWithSender[], totalCount: number }> = {}
 			conversationsMap.forEach((messages, conversationId) => {
 				// Filtrar apenas mensagens não lidas (dupla verificação)
 				const unreadOnly = messages.filter(msg => !msg.readAt)

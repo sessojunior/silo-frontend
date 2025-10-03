@@ -15,12 +15,11 @@ type MessageBubbleProps = {
 	}
 	isOwnMessage: boolean
 	showAvatar: boolean
-	readStatus?: 'sent' | 'delivered' | 'read' // Status de leitura (apenas para userMessage)
 	readCount?: number // Quantos usuários leram (apenas para groupMessage)
 	totalParticipants?: number // Total de participantes do grupo (apenas para groupMessage)
 }
 
-export default function MessageBubble({ message, isOwnMessage, showAvatar, readStatus = 'sent', readCount = 0, totalParticipants = 0 }: MessageBubbleProps) {
+export default function MessageBubble({ message, isOwnMessage, showAvatar, readCount = 0, totalParticipants = 0 }: MessageBubbleProps) {
 	// Garantir que isOwnMessage seja boolean e consistente
 	// Agora recebe valor estável do MessagesList, não precisa de useMemo
 	const isOwnMessageFinal = Boolean(isOwnMessage)

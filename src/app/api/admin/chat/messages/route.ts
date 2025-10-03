@@ -5,6 +5,18 @@ import { db } from '@/lib/db'
 import * as schema from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
 
+// Tipo específico para mensagens com informações do remetente
+type MessageWithSender = {
+	id: string
+	content: string
+	senderUserId: string
+	senderName: string
+	receiverGroupId: string | null
+	receiverUserId: string | null
+	createdAt: Date
+	readAt: Date | null
+}
+
 // Função auxiliar para contar mensagens totais
 async function getTotalMessagesCount(groupId: string | null, userId: string | null, currentUserId: string): Promise<number> {
 	try {
@@ -107,8 +119,7 @@ export async function GET(request: NextRequest) {
 			hasAfter: !!after
 		})
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		let messages: any[] = []
+		let messages: MessageWithSender[] = []
 
 		if (groupId) {
 			// BUSCAR groupMessage - verificar se usuário participa do grupo

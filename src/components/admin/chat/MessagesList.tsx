@@ -192,24 +192,6 @@ export function MessagesList({
 	}
 
 	/**
-	 * Verifica se o usuário estava no fim ANTES de uma nova mensagem ser adicionada
-	 * Esta função é mais permissiva e considera que o usuário estava no fim
-	 * se estava próximo do final (até 50px) antes da mensagem ser adicionada
-	 */
-	const wasUserAtBottomBeforeNewMessage = () => {
-		if (!messagesContainerRef.current) return false
-		
-		const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
-		const distanceFromBottom = scrollHeight - scrollTop - clientHeight
-		
-		// Tolerância maior para detectar se estava no fim antes da nova mensagem
-		const wasAtBottom = distanceFromBottom <= 50 || scrollTop >= scrollHeight - clientHeight - 10
-		
-		
-		return wasAtBottom
-	}
-
-	/**
 	 * Função para rolar suavemente até o final da lista de mensagens
 	 * Versão suave e elegante
 	 */
