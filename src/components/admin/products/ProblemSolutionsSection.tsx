@@ -3,6 +3,7 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import Button from '@/components/ui/Button'
+import Avatar from '@/components/ui/Avatar'
 import { getMarkdownClasses } from '@/lib/markdown'
 import clsx from 'clsx'
 import Image from 'next/image'
@@ -68,7 +69,11 @@ export function ProblemSolutionsSection({ solutions, expandedSolutionIds, onOpen
 			result.push(
 				<div key={reply.id} className={`flex gap-x-2 mt-2 ${marginLeft}`}>
 					<div className='size-12 shrink-0'>
-						<Image src={reply.user.image} alt={reply.user.name} className='size-full rounded-full' width={48} height={48} style={{ objectFit: 'cover' }} />
+						<Avatar 
+							src={reply.user.image} 
+							name={reply.user.name} 
+							size="lg"
+						/>
 					</div>
 					<div className='flex flex-col'>
 						<div className='flex flex-col'>
@@ -206,7 +211,11 @@ export function ProblemSolutionsSection({ solutions, expandedSolutionIds, onOpen
 						return (
 							<div key={solution.id} className='flex gap-x-2'>
 								<div className='size-12 shrink-0'>
-									<Image src={solution.user.image} alt={solution.user.name} className='size-full rounded-full' width={48} height={48} style={{ objectFit: 'cover' }} />
+									<Avatar 
+										src={solution.user.image} 
+										name={solution.user.name} 
+										size="lg"
+									/>
 								</div>
 								<div className='flex flex-col'>
 									<div className='flex flex-col'>

@@ -5,6 +5,7 @@ import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, P
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { formatDateBR, formatFullDateBR } from '@/lib/utils'
+import Avatar from '@/components/ui/Avatar'
 
 // Types
 interface Task {
@@ -211,12 +212,16 @@ function TaskCardContent({ task, showEditButton = true, onEditTask, onViewHistor
 							// Buscar o nome real do usuário dos detalhes
 							const userDetails = task.assignedUsersDetails?.find((u) => u.id === userId)
 							const userName = userDetails?.name || `Usuário ${index + 1}` // Fallback se não encontrar nome
-							const userInitial = userName.charAt(0).toUpperCase() // Primeira letra do nome real
 							const userRole = userDetails?.role || 'assignee'
 
 							return (
-								<div key={userId} className='w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 border-2 border-white dark:border-zinc-800 flex items-center justify-center text-xs font-medium text-white cursor-help' title={`${userName} (${userRole})`}>
-									{userInitial}
+								<div key={userId} className='cursor-help' title={`${userName} (${userRole})`}>
+									<Avatar 
+										src={userDetails?.image} 
+										name={userName} 
+										size="sm"
+										className="border-2 border-white dark:border-zinc-800"
+									/>
 								</div>
 							)
 						})}

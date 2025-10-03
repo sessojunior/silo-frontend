@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Button from '@/components/ui/Button'
+import Avatar from '@/components/ui/Avatar'
 
 // Tipos para os dados da API (copiados da página principal)
 interface ProductContact {
@@ -120,13 +121,11 @@ export default function ProductDetailsColumn({ contacts, problemsCount, solution
 							{contacts.map((contact) => (
 								<div key={contact.id} className='flex gap-x-2'>
 									<div className='size-12 shrink-0'>
-										{contact.image ? (
-											<Image src={contact.image} alt={contact.name} width={48} height={48} className='size-full rounded-full object-cover' />
-										) : (
-											<div className='size-12 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center'>
-												<span className='icon-[lucide--user] size-6 text-zinc-500 dark:text-zinc-400' />
-											</div>
-										)}
+										<Avatar 
+											src={contact.image} 
+											name={contact.name} 
+											size="lg"
+										/>
 									</div>
 									<div className='flex flex-col'>
 										<div className='text-base font-bold'>{contact.name}</div>

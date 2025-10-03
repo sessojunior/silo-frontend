@@ -8,6 +8,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import Avatar from '@/components/ui/Avatar'
 import Select from '@/components/ui/Select'
 import UserFormOffcanvas from '@/components/admin/users/UserFormOffcanvas'
 import UserDeleteDialog from '@/components/admin/users/UserDeleteDialog'
@@ -319,9 +320,11 @@ export default function UsersPage() {
 										<tr key={user.id} className='hover:bg-zinc-50 dark:hover:bg-zinc-800/50'>
 											<td className='px-4 py-4'>
 												<div className='flex items-center gap-3'>
-													<div className='size-10 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center'>
-														<span className='icon-[lucide--user] size-5 text-zinc-500 dark:text-zinc-400' />
-													</div>
+													<Avatar 
+														src={user.image} 
+														name={user.name} 
+														size="md"
+													/>
 													<div>
 														<div className='font-medium text-zinc-900 dark:text-zinc-100'>{user.name}</div>
 														<div className='flex items-center gap-2 mt-1'>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { ReportChart } from './ReportChart'
 import { ReportFilters } from './ReportFilters'
+import Avatar from '@/components/ui/Avatar'
 import { formatDate, formatDateBR } from '@/lib/dateUtils'
 
 interface ReportViewPageProps {
@@ -564,8 +565,13 @@ function renderProjectsTable(data: Record<string, unknown>) {
 										<div className='flex -space-x-2'>
 											{((project.users as Array<Record<string, unknown>>) || []).map((user, index) => (
 												<div key={user.id as string} className='relative' title={`${user.name as string} (${user.email as string})`} style={{ zIndex: ((project.users as Array<Record<string, unknown>>) || []).length - index }}>
-													<div className='h-8 w-8 rounded-full bg-gradient-to-r from-zinc-400 to-purple-500 flex items-center justify-center border-2 border-white dark:border-zinc-800 shadow-sm'>
-														<span className='text-sm font-medium text-white'>{(user.name as string)?.charAt(0)?.toUpperCase() || 'U'}</span>
+													<div className='h-8 w-8'>
+														<Avatar 
+															src={user.image as string} 
+															name={user.name as string || 'Usuário'} 
+															size="sm"
+															className="border-2 border-white dark:border-zinc-800 shadow-sm"
+														/>
 													</div>
 												</div>
 											))}
@@ -837,9 +843,11 @@ function renderPerformanceTable(data: Record<string, unknown>) {
 									<td className='px-6 py-4 whitespace-nowrap'>
 										<div className='flex items-center'>
 											<div className='flex-shrink-0 h-10 w-10'>
-												<div className='h-10 w-10 rounded-full bg-gradient-to-r from-zinc-400 to-purple-500 flex items-center justify-center'>
-													<span className='text-sm font-medium text-white'>{(user.name as string)?.charAt(0)?.toUpperCase() || 'U'}</span>
-												</div>
+												<Avatar 
+													src={user.image as string} 
+													name={user.name as string || 'Usuário'} 
+													size="md"
+												/>
 											</div>
 											<div className='ml-4 min-w-0 flex-1'>
 												<div className='text-sm font-medium text-gray-900 dark:text-gray-100 truncate'>{user.name as string}</div>

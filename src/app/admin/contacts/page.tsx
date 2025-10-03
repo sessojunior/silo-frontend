@@ -7,6 +7,7 @@ import { toast } from '@/lib/toast'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
+import Avatar from '@/components/ui/Avatar'
 import ContactFormOffcanvas from '@/components/admin/contacts/ContactFormOffcanvas'
 import ContactDeleteDialog from '@/components/admin/contacts/ContactDeleteDialog'
 import Image from 'next/image'
@@ -244,13 +245,11 @@ export default function ContactsPage() {
 											<tr key={contact.id} className='hover:bg-zinc-50 dark:hover:bg-zinc-800/50'>
 												<td className='px-6 py-4 whitespace-nowrap'>
 													<div className='flex items-center gap-3'>
-														{contact.image ? (
-															<Image src={contact.image} alt={contact.name} className='size-10 rounded-full object-cover' width={40} height={40} style={{ objectFit: 'cover' }} />
-														) : (
-															<div className='size-10 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center'>
-																<span className='icon-[lucide--user] size-5 text-zinc-500 dark:text-zinc-400' />
-															</div>
-														)}
+														<Avatar 
+															src={contact.image} 
+															name={contact.name} 
+															size="md"
+														/>
 														<div>
 															<div className='text-sm font-medium text-zinc-900 dark:text-zinc-100'>{contact.name}</div>
 														</div>
