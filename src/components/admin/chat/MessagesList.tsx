@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import MessageBubble from './MessageBubble'
 import { LoadMessagesButton } from './LoadMessagesButton'
 import type { ChatMessage } from '@/context/ChatContext'
@@ -13,7 +13,7 @@ interface MessagesListProps {
 	olderMessagesRemaining: number
 	newerMessagesRemaining: number
 	currentUserId?: string
-	activeTargetId?: string // ID da conversa ativa para detectar mudanças
+	activeTargetId?: string
 	onLoadOlderMessages: () => void
 	onLoadNewerMessages: () => void
 }
@@ -31,15 +31,13 @@ export function MessagesList({
 	onLoadOlderMessages,
 	onLoadNewerMessages
 }: MessagesListProps) {
-	// Criar mapa estável de isOwnMessage para evitar mudanças de lado
+	// Mapa simples para determinar se a mensagem é do usuário atual
 	const messageOwnershipMap = useMemo(() => {
 		const map = new Map<string, boolean>()
 		
 		if (currentUserId) {
 			messages.forEach((message) => {
-				const senderUserId = String(message.senderUserId || '')
-				const currentUserIdStr = String(currentUserId || '')
-				const isOwnMessage = Boolean(currentUserIdStr && senderUserId === currentUserIdStr)
+				const isOwnMessage = message.senderUserId === currentUserId
 				map.set(message.id, isOwnMessage)
 			})
 		}
@@ -47,19 +45,13 @@ export function MessagesList({
 		return map
 	}, [messages, currentUserId])
 
-	// === SISTEMA DE ROLAGEM SIMPLIFICADO ===
-	
-	// Refs para controle de rolagem
-	const messagesEndRef = useRef<HTMLDivElement>(null)
+	// Refs simples
 	const messagesContainerRef = useRef<HTMLDivElement>(null)
+	
+	// Estado para controlar visibilidade do botão
+	const [showScrollButton, setShowScrollButton] = useState(true)
 
-	// Estado para controlar visibilidade do botão "Ir para o fim"
-	const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false)
-
-	/**
-	 * FUNÇÃO ÚNICA: Rola para o final da conversa
-	 * Usada em todos os cenários que precisam rolar
-	 */
+	// Função simples para rolar para o fim
 	const scrollToBottom = (): void => {
 		if (messagesContainerRef.current) {
 			const container = messagesContainerRef.current
@@ -68,69 +60,19 @@ export function MessagesList({
 				top: container.scrollHeight,
 				behavior: 'smooth'
 			})
+			console.log(`Scroll to bottom: ${container.scrollHeight}`)
+
 		}
 	}
 
-
-	/**
-	 * FUNÇÃO: Verifica se usuário está TOTALMENTE no fim da conversa (para mostrar/esconder botão)
-	 */
-	const isUserTotallyAtBottom = (): boolean => {
-		if (!messagesContainerRef.current) return false
-		
-		const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
-		const distanceFromBottom = scrollHeight - scrollTop - clientHeight
-		
-		// Totalmente no fim = distância <= 5px (praticamente zero)
-		return distanceFromBottom <= 5
-	}
-
-	// === CONTROLE DE VISIBILIDADE DO BOTÃO ===
-
-	/**
-	 * FUNÇÃO: Atualiza visibilidade do botão baseado na posição do scroll
-	 */
-	const updateScrollButtonVisibility = (): void => {
-		if (!messagesContainerRef.current || !messages.length) {
-			setShowScrollToBottomButton(false)
-			return
-		}
-
-		const isTotallyAtBottom = isUserTotallyAtBottom()
-		setShowScrollToBottomButton(!isTotallyAtBottom)
-	}
-
-	/**
-	 * EFFECT: Detecta mudanças no scroll para controlar visibilidade do botão
-	 */
+	// Effect simples para controlar visibilidade do botão
 	useEffect(() => {
-		const container = messagesContainerRef.current
-		if (!container) return
-
-		const handleScroll = (): void => {
-			updateScrollButtonVisibility()
+		if (messages.length === 0) {
+			setShowScrollButton(false)
+		} else {
+			setShowScrollButton(true)
 		}
-
-		// Adicionar listener de scroll
-		container.addEventListener('scroll', handleScroll)
-
-		// Verificar estado inicial
-		updateScrollButtonVisibility()
-
-		// Cleanup
-		return () => {
-			container.removeEventListener('scroll', handleScroll)
-		}
-	}, [messages.length, messagesContainerRef.current])
-
-	/**
-	 * EFFECT: Atualizar visibilidade quando mensagens mudam
-	 */
-	useEffect(() => {
-		updateScrollButtonVisibility()
 	}, [messages.length])
-
-
 
 	if (isLoading) {
 		return (
@@ -227,15 +169,15 @@ export function MessagesList({
 				/>
 
 				{/* Elemento invisível para scroll automático */}
-				<div ref={messagesEndRef} />
+				<div />
 			</div>
 
 			{/* Botão fixo "Ir para o fim" - canto inferior direito */}
-			{showScrollToBottomButton && (
-				<div className="absolute bottom-32 right-6 z-10">
+			{showScrollButton && (
+				<div className="fixed bottom-32 right-6 z-10">
 					<button
 						onClick={scrollToBottom}
-						className="bg-zinc-700 hover:bg-zinc-600 text-white size-10 flex items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105"
+						className="bg-zinc-500 hover:bg-zinc-600 dark:bg-zinc-700 dark:hover:bg-zinc-600 size-10 flex items-center justify-center text-white rounded-full shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105"
 						title="Ir para o fim da conversa"
 					>
 						<span className="icon-[lucide--arrow-down] w-5 h-5" />

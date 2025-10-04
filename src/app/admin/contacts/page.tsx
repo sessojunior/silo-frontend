@@ -10,7 +10,6 @@ import Select from '@/components/ui/Select'
 import Avatar from '@/components/ui/Avatar'
 import ContactFormOffcanvas from '@/components/admin/contacts/ContactFormOffcanvas'
 import ContactDeleteDialog from '@/components/admin/contacts/ContactDeleteDialog'
-import Image from 'next/image'
 import { Contact } from '@/lib/db/schema'
 
 export default function ContactsPage() {

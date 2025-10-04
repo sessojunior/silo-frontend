@@ -6,7 +6,6 @@ interface AvatarProps {
 	size?: 'sm' | 'md' | 'lg'
 	className?: string
 	showPresence?: boolean
-	presenceStatus?: string
 	presenceColor?: string
 }
 
@@ -16,7 +15,6 @@ export default function Avatar({
 	size = 'md', 
 	className = '', 
 	showPresence = false,
-	presenceStatus,
 	presenceColor
 }: AvatarProps) {
 	// Definir tamanhos
