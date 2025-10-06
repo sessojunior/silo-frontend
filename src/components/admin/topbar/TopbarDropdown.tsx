@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useChat } from '@/context/ChatContext'
 import Avatar from '@/components/ui/Avatar'
@@ -80,10 +81,10 @@ export default function TopbarDropdown({ account }: { account: AccountProps }) {
 					{account.map((link) => {
 						const isActive = pathname === link.url
 						return (
-							<a key={link.id} href={link.url} className={`flex items-center gap-x-3 rounded-lg px-3 py-2 text-base font-medium transition-all duration-300 hover:bg-zinc-100 focus:bg-zinc-100 focus:outline-none dark:hover:bg-zinc-700 dark:hover:text-zinc-300 dark:focus:bg-zinc-700 dark:focus:text-zinc-300 ${isActive ? 'bg-zinc-100 dark:bg-zinc-700 dark:text-zinc-200' : 'text-zinc-800 dark:text-zinc-400'}`}>
+							<Link key={link.id} href={link.url} className={`flex items-center gap-x-3 rounded-lg px-3 py-2 text-base font-medium transition-all duration-300 hover:bg-zinc-100 focus:bg-zinc-100 focus:outline-none dark:hover:bg-zinc-700 dark:hover:text-zinc-300 dark:focus:bg-zinc-700 dark:focus:text-zinc-300 ${isActive ? 'bg-zinc-100 dark:bg-zinc-700 dark:text-zinc-200' : 'text-zinc-800 dark:text-zinc-400'}`}>
 								<span className={`${link.icon} size-4 shrink-0 text-zinc-400`} />
 								{link.title}
-							</a>
+							</Link>
 						)
 					})}
 				</div>
