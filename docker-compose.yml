@@ -1,42 +1,23 @@
-version: '3.9'
+version: '3.8'
 
 services:
-  # Servidor de arquivos local
+  # Servidor de arquivos
   fileserver:
-    build:
-      context: ./fileserver
-      dockerfile: Dockerfile
-    container_name: silo-fileserver
+    build: ./fileserver
     ports:
       - '4000:4000'
     environment:
-      - NODE_ENV=production
       - PORT=4000
-      - FILE_SERVER_URL=http://localhost:4000
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
-      - MAX_FILE_SIZE=4194304
-      - MAX_FILES_COUNT=3
-      - ALLOWED_EXTENSIONS=jpg,jpeg,png,webp,gif
     volumes:
-      - fileserver_uploads:/app/uploads
+      - ./fileserver/uploads:/app/uploads
     restart: unless-stopped
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:4000/health']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
-  # Aplicação Next.js principal
+  # Aplicação principal
   nextapp:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: silo-nextapp
+    build: .
     ports:
       - '3000:3000'
     environment:
-      - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=http://localhost:3000
@@ -46,18 +27,6 @@ services:
       - EMAIL_PORT=${EMAIL_PORT}
       - EMAIL_USER=${EMAIL_USER}
       - EMAIL_PASS=${EMAIL_PASS}
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
     depends_on:
-      fileserver:
-        condition: service_healthy
+      - fileserver
     restart: unless-stopped
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-volumes:
-  fileserver_uploads:
-    driver: local

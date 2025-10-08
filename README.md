@@ -1429,18 +1429,16 @@ GENERAL_QUALITY=90
 
 ---
 
-## 🐳 **DOCKER - CONTAINERIZAÇÃO COMPLETA**
+## 🐳 **DOCKER - CONTAINERIZAÇÃO**
 
-### 📋 **STATUS**: ✅ **SISTEMA DOCKER COMPLETAMENTE IMPLEMENTADO!**
+### 📋 **STATUS**: ✅ **SISTEMA DOCKER FUNCIONAL!**
 
 **IMPLEMENTAÇÕES FINALIZADAS**:
 
-1. **Multi-stage Dockerfiles**: Build otimizado para Next.js e Fileserver
-2. **Docker Compose**: Orquestração completa com dependências e health checks
-3. **Segurança**: Usuários não-root, volumes isolados, restart policies
-4. **Monitoramento**: Health checks automáticos para ambos os serviços
-5. **Persistência**: Volumes Docker para dados de upload
-6. **Documentação**: Guia completo de uso e troubleshooting
+1. **Dockerfiles simplificados**: Build direto
+2. **Docker Compose minimalista**: Apenas configurações essenciais
+3. **Volumes locais**: Mapeamento direto para facilitar desenvolvimento
+4. **Dependências simples**: Next.js aguarda fileserver estar pronto
 
 ### 🚀 **COMANDOS ESSENCIAIS**
 
@@ -1469,97 +1467,46 @@ docker-compose ps
 # Ver logs
 docker-compose logs -f
 
-# Ver logs de um serviço específico
-docker-compose logs -f nextapp
-docker-compose logs -f fileserver
-
 # Parar containers
 docker-compose down
-
-# Parar e remover volumes
-docker-compose down -v
 
 # Reconstruir apenas um serviço
 docker-compose up --build fileserver
 docker-compose up --build nextapp
-
-# Executar comandos dentro do container
-docker-compose exec nextapp npm run db:seed
-docker-compose exec fileserver ls -la uploads/
 ```
 
-### 🏗️ **ARQUITETURA DOS CONTAINERS**
+### 🏗️ **ARQUITETURA SIMPLIFICADA**
 
 #### **📦 Container Next.js (`nextapp`)**
 
-- **Imagem**: Multi-stage build otimizado
 - **Porta**: 3000
-- **Usuário**: `nextjs` (não-root para segurança)
-- **Health Check**: `/api/health`
-- **Dependências**: Aguarda `fileserver` estar saudável
+- **Dependências**: Aguarda `fileserver` estar pronto
+- **Restart**: `unless-stopped`
 
 #### **📦 Container Fileserver (`fileserver`)**
 
-- **Imagem**: Multi-stage build otimizado
 - **Porta**: 4000
-- **Usuário**: `fileserver` (não-root para segurança)
-- **Health Check**: `/health`
-- **Volumes**: `fileserver_uploads` para persistência
+- **Volumes**: Mapeamento direto para `./fileserver/uploads`
+- **Restart**: `unless-stopped`
 
-### 🔒 **SEGURANÇA IMPLEMENTADA**
+### 🔐 **VARIÁVEIS DE AMBIENTE**
 
-#### **✅ Medidas de Segurança**
-
-1. **Usuários não-root**: Ambos containers executam com usuários específicos
-2. **Health Checks**: Monitoramento automático de saúde dos serviços
-3. **Volumes isolados**: Dados de upload em volumes Docker gerenciados
-4. **Dependências**: Next.js só inicia após fileserver estar saudável
-5. **Restart Policy**: `unless-stopped` para alta disponibilidade
-
-#### **🔐 Variáveis de Ambiente**
-
-Todas as variáveis sensíveis são injetadas via `.env`:
+Configurar no arquivo `.env`:
 
 - **Banco de dados**: `DATABASE_URL`
 - **Autenticação**: `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
 - **Google OAuth**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
 - **Email**: `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`
 
-### 📊 **MONITORAMENTO**
-
-#### **🔍 Health Checks**
-
-```bash
-# Verificar saúde dos containers
-docker-compose ps
-
-# Verificar logs de health check
-docker-compose logs | grep -i health
-
-# Testar endpoints manualmente
-curl http://localhost:3000/api/health
-curl http://localhost:4000/health
-```
-
-#### **📈 Métricas de Performance**
-
-```bash
-# Ver uso de recursos
-docker stats
-
-# Ver uso de recursos de containers específicos
-docker stats silo-nextapp silo-fileserver
-```
-
 ### 🗂️ **VOLUMES E PERSISTÊNCIA**
 
-#### **📁 Volume `fileserver_uploads`**
+#### **📁 Volume Local**
 
-- **Localização**: `/app/uploads` dentro do container
-- **Persistência**: Dados mantidos entre reinicializações
+- **Mapeamento**: `./fileserver/uploads:/app/uploads`
+- **Persistência**: Dados mantidos no sistema host
 - **Estrutura**:
   ```
-  uploads/
+  fileserver/uploads/
   ├── avatars/     # Avatars com thumbnails
   ├── contacts/     # Fotos de contatos
   ├── problems/     # Imagens de problemas
@@ -1568,36 +1515,14 @@ docker stats silo-nextapp silo-fileserver
   └── temp/         # Arquivos temporários
   ```
 
-#### **💾 Backup de Volumes**
-
-```bash
-# Backup do volume de uploads
-docker run --rm -v silo_fileserver_uploads:/data -v $(pwd):/backup alpine tar czf /backup/uploads-backup.tar.gz -C /data .
-
-# Restore do volume de uploads
-docker run --rm -v silo_fileserver_uploads:/data -v $(pwd):/backup alpine tar xzf /backup/uploads-backup.tar.gz -C /data
-```
-
 ### 🚀 **PRODUÇÃO**
 
 #### **⚙️ Configurações de Produção**
 
 1. **Variáveis de ambiente**: Configurar `.env` com dados reais
 2. **Banco de dados**: Configurar PostgreSQL externo
-3. **Domínio**: Atualizar `NEXTAUTH_URL` e `NEXT_PUBLIC_APP_URL`
+3. **Domínio**: Atualizar `NEXTAUTH_URL`
 4. **SSL**: Configurar proxy reverso (Nginx/Traefik)
-
-#### **🔧 Exemplo de Deploy**
-
-```bash
-# 1. Configurar variáveis de produção
-export DATABASE_URL="postgresql://user:pass@db-host:5432/silo_prod"
-export NEXTAUTH_URL="https://silo.cptec.inpe.br"
-export NEXTAUTH_SECRET="secret-super-seguro-producao"
-
-# 2. Deploy
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-```
 
 ### 🐛 **TROUBLESHOOTING**
 
@@ -1614,28 +1539,11 @@ docker-compose logs fileserver
 docker-compose config
 ```
 
-**Health check falhando:**
-
-```bash
-# Verificar conectividade interna
-docker-compose exec nextapp curl http://fileserver:4000/health
-docker-compose exec fileserver curl http://localhost:4000/health
-```
-
 **Problemas de permissão:**
 
 ```bash
 # Verificar permissões dos volumes
 docker-compose exec fileserver ls -la uploads/
-docker-compose exec fileserver whoami
-```
-
-**Problemas de rede:**
-
-```bash
-# Verificar rede Docker
-docker network ls
-docker network inspect silo_default
 ```
 
 #### **🔧 Comandos de Debug**
@@ -1649,42 +1557,12 @@ docker-compose exec fileserver sh
 
 # Ver configuração completa
 docker-compose config
-
-# Ver imagens construídas
-docker images | grep silo
 ```
 
-### 📋 **CHECKLIST DE DEPLOY**
+### 🎯 **BENEFÍCIOS DA SIMPLIFICAÇÃO**
 
-#### **✅ Pré-Deploy**
-
-- [ ] Variáveis de ambiente configuradas
-- [ ] Banco de dados PostgreSQL configurado
-- [ ] Google OAuth configurado
-- [ ] Email SMTP configurado
-- [ ] Domínio configurado
-
-#### **✅ Deploy**
-
-- [ ] Containers construídos com sucesso
-- [ ] Health checks passando
-- [ ] Volumes montados corretamente
-- [ ] Conectividade entre containers
-- [ ] Aplicação acessível externamente
-
-#### **✅ Pós-Deploy**
-
-- [ ] Teste de upload de arquivos
-- [ ] Teste de autenticação
-- [ ] Teste de funcionalidades principais
-- [ ] Monitoramento configurado
-- [ ] Backup configurado
-
-### 🎯 **BENEFÍCIOS DA CONTAINERIZAÇÃO**
-
-- ✅ **Isolamento**: Ambientes isolados e consistentes
-- ✅ **Escalabilidade**: Fácil escalonamento horizontal
+- ✅ **Simplicidade**: Configuração mínima e direta
+- ✅ **Desenvolvimento**: Volumes locais facilitam debug
+- ✅ **Manutenção**: Menos complexidade para manter
 - ✅ **Portabilidade**: Execução em qualquer ambiente Docker
-- ✅ **Manutenção**: Atualizações e rollbacks simplificados
-- ✅ **Segurança**: Usuários não-root e isolamento de rede
-- ✅ **Monitoramento**: Health checks e métricas integradas
+- ✅ **Performance**: Build mais rápido sem multi-stage
