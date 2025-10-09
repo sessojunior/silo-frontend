@@ -198,11 +198,13 @@ export async function sendEmailCode({ email, type, code, ip }: { email: string; 
 
 	// Envia o e-mail
 
-	// Envia o e-mail com o código OTP
+	// Envia o e-mail com o código OTP usando template moderno
 	// Retorna um objeto: { success: boolean, error?: { code, message } }
 	return await sendEmail({
 		to: email,
 		subject: `Código de verificação: ${code}`,
-		text: `Utilize o seguinte código de verificação ${type === 'sign-in' ? 'para fazer login' : type === 'email-verification' ? 'para verificar seu e-mail' : type === 'forget-password' ? 'para recuperar sua senha' : 'a seguir'}: ${code}`,
+		template: 'otpCode',
+		data: { code, type: type as 'sign-in' | 'email-verification' | 'forget-password' | 'email-change' },
+		text: `Utilize o seguinte código de verificação ${type === 'sign-in' ? 'para fazer login' : type === 'email-verification' ? 'para verificar seu e-mail' : type === 'forget-password' ? 'para recuperar sua senha' : 'a seguir'}: ${code}`, // Fallback
 	})
 }

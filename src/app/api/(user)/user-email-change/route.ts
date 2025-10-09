@@ -123,19 +123,23 @@ export async function PUT(req: NextRequest) {
 		// Remove o código usado
 		await db.delete(authCode).where(eq(authCode.id, requestId))
 
-		// Envia email de confirmação para o email antigo
+		// Envia email de confirmação para o email antigo usando template moderno
 		const { sendEmail } = await import('@/lib/sendEmail')
 		await sendEmail({
 			to: user.email,
 			subject: 'E-mail alterado com sucesso',
-			text: `Seu e-mail foi alterado de ${user.email} para ${newEmail}. Se você não fez esta alteração, entre em contato conosco imediatamente.`,
+			template: 'emailChanged',
+			data: { oldEmail: user.email, newEmail },
+			text: `Seu e-mail foi alterado de ${user.email} para ${newEmail}. Se você não fez esta alteração, entre em contato conosco imediatamente.`, // Fallback
 		})
 
-		// Envia email de confirmação para o novo email
+		// Envia email de confirmação para o novo email usando template moderno
 		await sendEmail({
 			to: newEmail,
 			subject: 'E-mail alterado com sucesso',
-			text: `Seu e-mail foi alterado com sucesso para ${newEmail}. Agora você pode usar este e-mail para fazer login no sistema.`,
+			template: 'emailChanged',
+			data: { oldEmail: user.email, newEmail },
+			text: `Seu e-mail foi alterado com sucesso para ${newEmail}. Agora você pode usar este e-mail para fazer login no sistema.`, // Fallback
 		})
 
 		// Retorna sucesso

@@ -33,19 +33,23 @@ export async function PUT(req: NextRequest) {
 		}
 
 		// Envia um e-mail ao antigo e-mail avisando que o e-mail foi alterado
-		// Retorna um objeto: { success: boolean, error?: { code, message } }
+		// Usando template moderno com fallback para texto simples
 		await sendEmail({
 			to: user.email,
 			subject: `E-mail alterado para ${newEmail}`,
-			text: `O seu e-mail para utilização no Silo foi alterado de ${user.email} para ${newEmail}.`,
+			template: 'emailChanged',
+			data: { oldEmail: user.email, newEmail },
+			text: `O seu e-mail para utilização no Silo foi alterado de ${user.email} para ${newEmail}.`, // Fallback
 		})
 
 		// Envia um e-mail ao novo e-mail avisando que o e-mail foi alterado
-		// Retorna um objeto: { success: boolean, error?: { code, message } }
+		// Usando template moderno com fallback para texto simples
 		await sendEmail({
 			to: newEmail,
 			subject: `E-mail alterado para ${newEmail}`,
-			text: `O seu e-mail para utilização no Silo foi alterado de ${user.email} para ${newEmail}.`,
+			template: 'emailChanged',
+			data: { oldEmail: user.email, newEmail },
+			text: `O seu e-mail para utilização no Silo foi alterado de ${user.email} para ${newEmail}.`, // Fallback
 		})
 
 		// Retorna a resposta com sucesso

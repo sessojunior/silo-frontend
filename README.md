@@ -23,6 +23,7 @@
 - **Charts**: ApexCharts 4.7.0 para dashboard
 - **Editor**: @uiw/react-md-editor 4.0.7 para Markdown
 - **Upload de Arquivos**: Servidor de arquivos local Node.js com otimização automática
+- **Templates de Email**: Sistema de templates HTML modernos e clean para emails institucionais
 
 ---
 
@@ -41,7 +42,8 @@
 7. **Editor Markdown**: Componente com CSS inline e tema dinâmico
 8. **UI/UX Dark Mode**: Otimizada com contraste perfeito
 9. **Upload de Arquivos**: Servidor de arquivos local Node.js com otimização automática
-10. **PostgreSQL Database**: Schema otimizado e simplificado
+10. **Templates de Email**: Sistema de templates HTML modernos e clean para emails institucionais
+11. **PostgreSQL Database**: Schema otimizado e simplificado
 
 #### 🆕 **SISTEMAS AVANÇADOS COMPLETAMENTE FINALIZADOS**
 

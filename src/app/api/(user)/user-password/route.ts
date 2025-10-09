@@ -30,11 +30,13 @@ export async function PUT(req: NextRequest) {
 		if ('error' in updatePassword) return NextResponse.json({ field: 'password', message: 'Ocorreu um erro ao alterar a senha.' }, { status: 400 })
 
 		// Envia um e-mail avisando que a senha foi alterada
-		// Retorna um objeto: { success: boolean, error?: { code, message } }
+		// Usando template moderno com fallback para texto simples
 		await sendEmail({
 			to: user.email,
 			subject: `Senha alterada`,
-			text: `Sua senha no Silo foi alterada com sucesso.`,
+			template: 'passwordChanged',
+			data: { email: user.email },
+			text: `Sua senha no Silo foi alterada com sucesso.`, // Fallback
 		})
 
 		// Retorna a resposta com sucesso

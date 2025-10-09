@@ -782,11 +782,11 @@ export default function SettingsPage() {
 					<span className='icon-[lucide--shield-check] size-5 text-blue-600 dark:text-blue-400 mt-0.5' />
 					<div>
 						<h3 className='font-medium text-blue-900 dark:text-blue-100 mb-1'>Informações de Segurança</h3>
-						<ul className='text-sm text-blue-800 dark:text-blue-200 space-y-1'>
-							<li>• Ao alterar seu e-mail, um código de confirmação será enviado</li>
-							<li>• Use senhas fortes com pelo menos 8 caracteres</li>
-							<li>• Inclua letras maiúsculas, minúsculas, números e símbolos</li>
-							<li>• Evite usar informações pessoais na senha</li>
+						<ul className='text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside'>
+							<li>Ao alterar seu e-mail, um e-mail de confirmação será enviado</li>
+							<li>Use senhas fortes com pelo menos 8 caracteres</li>
+							<li>Inclua letras maiúsculas, minúsculas, números e símbolos</li>
+							<li>Evite usar informações pessoais na senha</li>
 						</ul>
 					</div>
 				</div>
