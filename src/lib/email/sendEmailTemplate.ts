@@ -24,9 +24,8 @@ export async function sendEmailTemplate<T extends EmailTemplate>(
 	// Verifica se a conexão com o SMTP está funcionando
 	try {
 		await transporter.verify()
-		console.log('✅ Servidor SMTP pronto para enviar e-mails com templates!')
 	} catch (error) {
-		console.error('❌ Erro de conexão SMTP:', error)
+		console.error('❌ [LIB_SEND_EMAIL_TEMPLATE] Erro de conexão SMTP:', { error })
 		return { error: { code: 'SEND_EMAIL_SMTP_ERROR', message: 'Erro de conexão SMTP' } }
 	}
 
@@ -38,7 +37,7 @@ export async function sendEmailTemplate<T extends EmailTemplate>(
 		html = generateEmailTemplate(template, data, subject)
 		textFallback = generateTextFallback(template, data)
 	} catch (error) {
-		console.error('❌ Erro ao gerar template:', error)
+		console.error('❌ [LIB_SEND_EMAIL_TEMPLATE] Erro ao gerar template:', { error })
 		return { error: { code: 'TEMPLATE_ERROR', message: 'Erro ao gerar template de email' } }
 	}
 
@@ -53,10 +52,9 @@ export async function sendEmailTemplate<T extends EmailTemplate>(
 
 	try {
 		await transporter.sendMail(mailOptions)
-		console.log(`✅ E-mail com template enviado com sucesso para: ${to}!`)
 		return { success: true }
 	} catch (err) {
-		console.error(`❌ Erro ao enviar o e-mail com template para: ${to}!\n`, err)
+		console.error('❌ [LIB_SEND_EMAIL_TEMPLATE] Erro ao enviar o e-mail com template:', { to, error: err })
 		return { error: err instanceof Error ? { code: err.name, message: err.message } : { code: 'SEND_EMAIL_UNKNOWN_ERROR', message: 'Erro desconhecido' } }
 	}
 }

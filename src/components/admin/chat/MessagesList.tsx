@@ -60,7 +60,7 @@ export function MessagesList({
 				top: container.scrollHeight,
 				behavior: 'smooth'
 			})
-			console.log(`Scroll to bottom: ${container.scrollHeight}`)
+			console.log('ℹ️ [COMPONENT_MESSAGES_LIST] Scroll to bottom:', { scrollHeight: container.scrollHeight })
 
 		}
 	}

@@ -60,13 +60,7 @@ export async function POST(request: NextRequest) {
 				.where(eq(chatMessage.id, msg.id))
 		}
 
-		console.log('✅ Mensagens marcadas como lidas:', {
-			targetId,
-			type,
-			userId: userId,
-			updatedCount: unreadMessages.length,
-			readAt: now
-		})
+
 
 		return NextResponse.json({ 
 			success: true, 
@@ -76,7 +70,7 @@ export async function POST(request: NextRequest) {
 		})
 
 	} catch (error) {
-		console.error('❌ Erro ao marcar mensagens como lidas:', error)
+		console.error('❌ [API_CHAT_MESSAGES_READ] Erro ao marcar mensagens como lidas:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

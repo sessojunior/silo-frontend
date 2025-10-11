@@ -152,16 +152,14 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 				if (filters.endDate) queryParams.append('endDate', formatDate(filters.endDate))
 
 				const response = await fetch(`${apiUrl}?${queryParams.toString()}`)
-				console.log('🔵 Status da resposta:', response.status)
 
 				if (!response.ok) {
 					const errorData = await response.json()
-					console.log('❌ Erro da API:', errorData)
+					console.error('❌ [COMPONENT_REPORTS] Erro da API:', { status: response.status, error: errorData })
 					throw new Error(errorData.error || 'Erro ao buscar dados do relatório')
 				}
 
 				const data = await response.json()
-				console.log('✅ Dados recebidos:', data)
 
 				// Mapear dados para o formato do relatório
 				const reportData: ReportData = {
@@ -175,7 +173,7 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 
 				setReport(reportData)
 			} catch (err) {
-				console.error('❌ Erro ao buscar relatório:', err)
+				console.error('❌ [COMPONENT_REPORTS] Erro ao buscar relatório:', { reportId, error: err })
 				setError(err instanceof Error ? err.message : 'Erro desconhecido')
 			} finally {
 				setLoading(false)

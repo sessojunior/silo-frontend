@@ -28,9 +28,8 @@ export async function recordTaskHistory(entry: TaskHistoryEntry): Promise<void> 
 			details: entry.details || null,
 		})
 
-		console.log(`✅ Histórico registrado: ${entry.action} para tarefa ${entry.taskId}`)
 	} catch (error) {
-		console.error('❌ Erro ao registrar histórico da tarefa:', error)
+		console.error('❌ [LIB_TASK_HISTORY] Erro ao registrar histórico da tarefa:', { error })
 		// Não falhar a operação principal se o histórico falhar
 	}
 }
@@ -54,9 +53,8 @@ export async function recordBulkTaskHistory(entries: TaskHistoryEntry[]): Promis
 		}))
 
 		await db.insert(schema.projectTaskHistory).values(historyEntries)
-		console.log(`✅ ${entries.length} entradas de histórico registradas em lote`)
 	} catch (error) {
-		console.error('❌ Erro ao registrar histórico em lote:', error)
+		console.error('❌ [LIB_TASK_HISTORY] Erro ao registrar histórico em lote:', { error })
 		// Não falhar a operação principal se o histórico falhar
 	}
 }

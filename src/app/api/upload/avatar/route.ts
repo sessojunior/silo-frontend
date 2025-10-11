@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 		const result = await response.json()
 		return NextResponse.json(result)
 	} catch (error) {
-		console.error('❌ Erro no proxy de upload de avatar:', error)
+		console.error('❌ [API_UPLOAD_AVATAR] Erro no proxy de upload de avatar:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

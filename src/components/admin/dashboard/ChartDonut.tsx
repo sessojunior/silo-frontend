@@ -30,7 +30,7 @@ export default function ChartDonut({ refresh = 0 }: { refresh?: number }) {
 					setData(json)
 				}
 			} catch (error) {
-				console.error('⚠️ Erro ao carregar causas de problemas', error)
+				console.error('❌ [COMPONENT_CHART_DONUT] Erro ao carregar causas de problemas:', { error })
 			}
 		}
 		load()

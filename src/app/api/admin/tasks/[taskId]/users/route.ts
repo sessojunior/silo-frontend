@@ -29,14 +29,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			.innerJoin(schema.authUser, eq(schema.projectTaskUser.userId, schema.authUser.id))
 			.where(eq(schema.projectTaskUser.taskId, taskId))
 
-		console.log(`🔵 Usuários encontrados para tarefa ${taskId}: ${taskUsers.length}`)
 
 		return NextResponse.json({
 			success: true,
 			data: taskUsers,
 		})
 	} catch (error) {
-		console.error('❌ Erro ao buscar usuários da tarefa:', error)
+		console.error('❌ [API_TASKS_USERS] Erro ao buscar usuários da tarefa:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -72,14 +71,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 			await db.insert(schema.projectTaskUser).values(taskUsersToCreate)
 		}
 
-		console.log(`✅ ${taskUsersToCreate.length} usuários associados à tarefa ${taskId}`)
 
 		return NextResponse.json({
 			success: true,
 			message: 'Usuários associados com sucesso',
 		})
 	} catch (error) {
-		console.error('❌ Erro ao associar usuários à tarefa:', error)
+		console.error('❌ [API_TASKS_USERS] Erro ao associar usuários à tarefa:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

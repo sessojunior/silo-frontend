@@ -75,7 +75,7 @@ export default function ProductActivityOffcanvas({ open, onClose, productId, pro
 				updateIncidentsForStatus(defaultOptions, status)
 			}
 		} catch (error) {
-			console.error('❌ Erro ao carregar incidentes:', error)
+			console.error('❌ [COMPONENT_PRODUCT_ACTIVITY] Erro ao carregar incidentes:', { error })
 			// Manter opção padrão
 			const defaultOptions = [{ label: 'Não houve incidentes', value: NO_INCIDENTS_CATEGORY_ID }]
 			setAllIncidents(defaultOptions)

@@ -97,7 +97,7 @@ test.describe('📊 Dashboard - Funcionalidades Básicas', () => {
 		// Verificar se carregou em tempo razoável (menos de 30 segundos)
 		expect(loadTime).toBeLessThan(30000)
 
-		console.log(`✅ Dashboard carregou em ${loadTime}ms`)
+		console.log('ℹ️ [TEST_DASHBOARD_BASIC] Dashboard carregou:', { loadTime })
 
 		// Verificar se todos os elementos principais estão visíveis
 		await expect(authenticatedPage.getByText('Causas de problemas (28 dias)')).toBeVisible()

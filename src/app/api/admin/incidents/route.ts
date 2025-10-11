@@ -22,7 +22,7 @@ export async function GET() {
 
 		return NextResponse.json({ success: true, data: incidents })
 	} catch (error) {
-		console.error('❌ Erro ao listar incidentes:', error)
+		console.error('❌ [API_INCIDENTS] Erro ao listar incidentes:', { error })
 		return NextResponse.json({ success: false, message: 'Erro interno ao listar incidentes' }, { status: 500 })
 	}
 }
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
 		await db.insert(productProblemCategory).values(newIncident)
 		return NextResponse.json({ success: true, data: newIncident })
 	} catch (error) {
-		console.error('❌ Erro ao criar incidente:', error)
+		console.error('❌ [API_INCIDENTS] Erro ao criar incidente:', { error })
 		return NextResponse.json({ success: false, message: 'Erro interno ao criar incidente' }, { status: 500 })
 	}
 }
@@ -137,7 +137,7 @@ export async function PUT(request: NextRequest) {
 
 		return NextResponse.json({ success: true })
 	} catch (error) {
-		console.error('❌ Erro ao atualizar incidente:', error)
+		console.error('❌ [API_INCIDENTS] Erro ao atualizar incidente:', { error })
 		return NextResponse.json({ success: false, message: 'Erro interno ao atualizar incidente' }, { status: 500 })
 	}
 }
@@ -210,7 +210,7 @@ export async function DELETE(request: NextRequest) {
 
 		return NextResponse.json({ success: true })
 	} catch (error) {
-		console.error('❌ Erro ao excluir incidente:', error)
+		console.error('❌ [API_INCIDENTS] Erro ao excluir incidente:', { error })
 
 		// Verificar se é erro de constraint (chave estrangeira)
 		if (error instanceof Error && error.message.includes('foreign key')) {

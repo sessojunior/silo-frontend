@@ -124,7 +124,7 @@ test.describe('👥 SISTEMA DE CONTATOS - UPLOAD', () => {
 
 			// Teste simplificado: apenas verificar que o contato foi criado
 			// A exclusão pode ser testada em outro teste mais simples
-			console.log('Contato criado com sucesso - teste de exclusão simplificado')
+			console.log('ℹ️ [TEST_CONTACTS_UPLOAD] Contato criado com sucesso - teste de exclusão simplificado')
 		})
 	})
 })

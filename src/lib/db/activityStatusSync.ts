@@ -9,13 +9,13 @@ import { eq } from 'drizzle-orm'
  */
 export async function syncActivityStatus(activityId: string): Promise<'todo' | 'progress' | 'done' | 'blocked'> {
 	try {
-		console.log('🔄 [syncActivityStatus] Sincronizando status da atividade:', activityId)
+		console.log('ℹ️ [LIB_ACTIVITY_STATUS_SYNC] Sincronizando status da atividade:', { activityId })
 
 		// Buscar todas as tarefas da atividade
 		const tasks = await db.select().from(schema.projectTask).where(eq(schema.projectTask.projectActivityId, activityId))
 
 		if (tasks.length === 0) {
-			console.log('📝 [syncActivityStatus] Nenhuma tarefa encontrada, mantendo status atual')
+			console.log('ℹ️ [LIB_ACTIVITY_STATUS_SYNC] Nenhuma tarefa encontrada, mantendo status atual')
 			return 'todo'
 		}
 
@@ -25,12 +25,7 @@ export async function syncActivityStatus(activityId: string): Promise<'todo' | '
 		const blockedTasks = tasks.filter((task) => task.status === 'blocked').length
 		const inProgressTasks = tasks.filter((task) => task.status === 'in_progress').length
 
-		console.log('📊 [syncActivityStatus] Estatísticas:', {
-			totalTasks,
-			completedTasks,
-			blockedTasks,
-			inProgressTasks,
-		})
+		console.log('ℹ️ [LIB_ACTIVITY_STATUS_SYNC] Estatísticas:', { totalTasks, completedTasks, blockedTasks, inProgressTasks })
 
 		// Lógica de determinação do status
 		let newStatus: 'todo' | 'progress' | 'done' | 'blocked'
@@ -49,7 +44,7 @@ export async function syncActivityStatus(activityId: string): Promise<'todo' | '
 			newStatus = 'todo'
 		}
 
-		console.log('🎯 [syncActivityStatus] Novo status calculado:', newStatus)
+		console.log('ℹ️ [LIB_ACTIVITY_STATUS_SYNC] Novo status calculado:', { newStatus })
 
 		// Atualizar status da atividade no banco
 		await db
@@ -60,11 +55,10 @@ export async function syncActivityStatus(activityId: string): Promise<'todo' | '
 			})
 			.where(eq(schema.projectActivity.id, activityId))
 
-		console.log('✅ [syncActivityStatus] Status da atividade atualizado para:', newStatus)
 
 		return newStatus
 	} catch (error) {
-		console.error('❌ [syncActivityStatus] Erro ao sincronizar status:', error)
+		console.error('❌ [LIB_ACTIVITY_STATUS_SYNC] Erro ao sincronizar status:', { error })
 		throw error
 	}
 }
@@ -75,21 +69,20 @@ export async function syncActivityStatus(activityId: string): Promise<'todo' | '
  */
 export async function syncAllActivitiesStatus(projectId: string): Promise<void> {
 	try {
-		console.log('🔄 [syncAllActivitiesStatus] Sincronizando todas as atividades do projeto:', projectId)
+		console.log('ℹ️ [LIB_ACTIVITY_STATUS_SYNC] Sincronizando todas as atividades do projeto:', { projectId })
 
 		// Buscar todas as atividades do projeto
 		const activities = await db.select().from(schema.projectActivity).where(eq(schema.projectActivity.projectId, projectId))
 
-		console.log(`📋 [syncAllActivitiesStatus] Encontradas ${activities.length} atividades`)
+		console.log('ℹ️ [LIB_ACTIVITY_STATUS_SYNC] Encontradas atividades:', { count: activities.length })
 
 		// Sincronizar cada atividade
 		for (const activity of activities) {
 			await syncActivityStatus(activity.id)
 		}
 
-		console.log('✅ [syncAllActivitiesStatus] Todas as atividades sincronizadas')
 	} catch (error) {
-		console.error('❌ [syncAllActivitiesStatus] Erro ao sincronizar atividades:', error)
+		console.error('❌ [LIB_ACTIVITY_STATUS_SYNC] Erro ao sincronizar atividades:', { error })
 		throw error
 	}
 }

@@ -53,17 +53,15 @@ export default function ContactSelectorOffcanvas({ isOpen, onClose, productId, o
 
 			if (allContactsData.success) {
 				setAllContacts(allContactsData.data.items)
-				console.log('✅ Contatos ativos carregados:', allContactsData.data.items.length)
 			}
 
 			if (associatedContactsData.success) {
 				const contacts = associatedContactsData.data?.contacts || []
 				setCurrentAssociatedContacts(contacts)
 				setSelectedContactIds(contacts.map((c: ContactWithAssociation) => c.id))
-				console.log('✅ Contatos associados carregados:', contacts.length)
 			}
 		} catch (error) {
-			console.error('❌ Erro ao carregar dados:', error)
+			console.error('❌ [COMPONENT_CONTACT_SELECTOR] Erro ao carregar dados:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro',
@@ -142,7 +140,7 @@ export default function ContactSelectorOffcanvas({ isOpen, onClose, productId, o
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao salvar associações:', error)
+			console.error('❌ [COMPONENT_CONTACT_SELECTOR] Erro ao salvar associações:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro',

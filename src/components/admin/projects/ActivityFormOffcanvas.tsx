@@ -150,11 +150,6 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 			const diffInTime = endDate.getTime() - startDate.getTime()
 			const diffInDays = Math.ceil(diffInTime / (1000 * 3600 * 24)) + 1 // +1 para incluir o dia inicial
 
-			console.log('🔵 Validação de datas:')
-			console.log('🔵 Data início:', formData.startDate, '→', startDate)
-			console.log('🔵 Data fim:', formData.endDate, '→', endDate)
-			console.log('🔵 Dias estimados:', estimatedDays)
-			console.log('🔵 Período disponível:', diffInDays, 'dias')
 
 			if (diffInDays < estimatedDays) {
 				toast({
@@ -168,7 +163,6 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 
 		try {
 			setSaving(true)
-			console.log('🔵 Salvando atividade:', formData.name)
 
 			// Converter days de string para number para o backend
 			const submissionData = {
@@ -181,7 +175,7 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 			// Toast é exibido na página principal - removendo daqui para evitar duplicação
 			onClose()
 		} catch (error) {
-			console.error('❌ Erro ao salvar atividade:', error)
+			console.error('❌ [COMPONENT_ACTIVITY_FORM] Erro ao salvar atividade:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro ao salvar',

@@ -56,11 +56,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 			})
 			.where(eq(chatMessage.id, messageId))
 
-		console.log('✅ Mensagem marcada como lida:', {
-			messageId,
-			userId: userId,
-			readAt: now
-		})
+
 
 		return NextResponse.json({ 
 			success: true, 
@@ -69,7 +65,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 		})
 
 	} catch (error) {
-		console.error('❌ Erro ao marcar mensagem como lida:', error)
+		console.error('❌ [API_CHAT_MESSAGES_MESSAGEID_READ] Erro ao marcar mensagem como lida:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -139,13 +135,7 @@ export async function PUT(request: NextRequest) {
 				.where(eq(chatMessage.id, messageId))
 		}
 
-		console.log('✅ Mensagens marcadas como lidas:', {
-			targetId,
-			type,
-			userId: userId,
-			updatedCount: messageIds.length,
-			readAt: now
-		})
+
 
 		return NextResponse.json({ 
 			success: true, 
@@ -155,7 +145,7 @@ export async function PUT(request: NextRequest) {
 		})
 
 	} catch (error) {
-		console.error('❌ Erro ao marcar mensagens como lidas:', error)
+		console.error('❌ [API_CHAT_MESSAGES_MESSAGEID_READ] Erro ao marcar mensagens como lidas:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

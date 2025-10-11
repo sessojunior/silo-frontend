@@ -110,7 +110,7 @@ export default function TaskKanbanPage() {
 			setProject(projectData)
 			return projectData
 		} catch (error) {
-			console.error('❌ Erro ao carregar projeto:', error)
+			console.error('❌ [PAGE_PROJECT_ACTIVITY] Erro ao carregar projeto:', { error })
 			throw error
 		}
 	}, [projectId])
@@ -136,7 +136,7 @@ export default function TaskKanbanPage() {
 			setActivity(foundActivity)
 			return foundActivity
 		} catch (error) {
-			console.error('❌ Erro ao carregar atividade:', error)
+			console.error('❌ [PAGE_PROJECT_ACTIVITY] Erro ao carregar atividade:', { error })
 			throw error
 		}
 	}, [projectId, activityId])
@@ -170,7 +170,7 @@ export default function TaskKanbanPage() {
 
 			return allTasks
 		} catch (error) {
-			console.error('❌ Erro ao carregar tarefas:', error)
+			console.error('❌ [PAGE_PROJECT_ACTIVITY] Erro ao carregar tarefas:', { error })
 			throw error
 		}
 	}, [projectId, activityId])
@@ -237,12 +237,7 @@ export default function TaskKanbanPage() {
 
 				const payload = taskToEdit ? { ...taskData, id: taskToEdit.id } : taskData
 
-				console.log('🔵 [FRONTEND] Enviando dados para API:', {
-					method,
-					url,
-					payload,
-					taskToEdit: !!taskToEdit,
-				})
+
 
 				const response = await fetch(url, {
 					method,
@@ -261,7 +256,6 @@ export default function TaskKanbanPage() {
 
 				// 🆕 SALVAR ASSOCIAÇÕES DE USUÁRIOS
 				if (formData.assignedUsers && formData.assignedUsers.length > 0) {
-					console.log('🔵 [FRONTEND] Salvando associações de usuários:', formData.assignedUsers)
 
 					const taskId = taskToEdit ? taskToEdit.id : result.task?.id
 
@@ -276,19 +270,17 @@ export default function TaskKanbanPage() {
 						})
 
 						if (!usersResponse.ok) {
-							console.error('❌ Erro ao salvar usuários associados:', usersResponse.status)
-						} else {
-							console.log('✅ Usuários associados salvos com sucesso')
+							console.error('❌ [PAGE_PROJECT_ACTIVITY] Erro ao salvar usuários associados:', { status: usersResponse.status })
 						}
 					} else {
-						console.error('❌ ID da tarefa não encontrado para salvar usuários')
+						console.error('❌ [PAGE_PROJECT_ACTIVITY] ID da tarefa não encontrado para salvar usuários')
 					}
 				}
 
 				// Recarregar as tarefas
 				await fetchTasks()
 			} catch (error) {
-				console.error('❌ Erro ao salvar tarefa:', error)
+				console.error('❌ [PAGE_PROJECT_ACTIVITY] Erro ao salvar tarefa:', { error })
 				throw error
 			}
 		},
@@ -324,7 +316,7 @@ export default function TaskKanbanPage() {
 				// Recarregar as tarefas
 				await fetchTasks()
 			} catch (error) {
-				console.error('❌ Erro ao excluir tarefa:', error)
+				console.error('❌ [PAGE_PROJECT_ACTIVITY] Erro ao excluir tarefa:', { error })
 				toast({
 					type: 'error',
 					title: '❌ Erro ao excluir',
@@ -374,7 +366,6 @@ export default function TaskKanbanPage() {
 					// SEMPRE sincronizar com backend (fonte de verdade)
 					const backendTasks = result.tasks.map(convertToKanbanTask)
 					setKanbanTasks(backendTasks)
-					console.log('✅ [KANBAN] Estado sincronizado com backend:', backendTasks.length, 'tasks')
 				}
 
 				// Sucesso
@@ -384,7 +375,7 @@ export default function TaskKanbanPage() {
 					description: 'Movimentação salva com sucesso!',
 				})
 			} catch (error) {
-				console.error('❌ Erro ao persistir Kanban:', error)
+				console.error('❌ [PAGE_PROJECT_ACTIVITY] Erro ao persistir Kanban:', { error })
 				toast({
 					type: 'error',
 					title: '❌ Erro ao salvar Kanban',

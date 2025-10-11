@@ -102,7 +102,7 @@ export default function RegisterPage() {
 				}
 			}
 		} catch (err) {
-			console.error('❌ Erro inesperado:', err)
+			console.error('❌ [PAGE_REGISTER] Erro inesperado:', { error: err })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -154,7 +154,7 @@ export default function RegisterPage() {
 				}
 			}
 		} catch (err) {
-			console.error('❌ Erro ao verificar o código:', err)
+			console.error('❌ [PAGE_REGISTER] Erro ao verificar o código:', { error: err })
 			toast({
 				type: 'error',
 				title: 'Erro ao verificar o código.',

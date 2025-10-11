@@ -59,7 +59,7 @@ export async function GET() {
 
 		return NextResponse.json({ categories, problems: problemsCounts, solutions: solutionsCounts })
 	} catch (error) {
-		console.error('❌ Erro ao obter problemas & soluções:', error)
+		console.error('❌ [API_DASHBOARD_PROBLEMS_SOLUTIONS] Erro ao obter problemas & soluções:', { error })
 		return NextResponse.json({ success: false, error: 'Erro ao obter dados de problemas & soluções' }, { status: 500 })
 	}
 }

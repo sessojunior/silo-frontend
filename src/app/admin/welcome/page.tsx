@@ -44,16 +44,7 @@ export default function WelcomePage() {
 				// Perfil completo se tiver: nome, gênero, função, telefone, empresa, localização e equipe
 				profileCompleted = hasName && hasGenre && hasRole && hasPhone && hasCompany && hasLocation && hasTeam
 				
-				console.log('🔵 [WelcomePage] Perfil do usuário (contexto):', {
-					hasName,
-					hasGenre,
-					hasRole,
-					hasPhone,
-					hasCompany,
-					hasLocation,
-					hasTeam,
-					profileCompleted
-				})
+
 			} else if (currentUser) {
 				// Se temos currentUser mas não userProfile, fazer fetch apenas do perfil
 				try {
@@ -73,30 +64,10 @@ export default function WelcomePage() {
 						// Perfil completo se tiver: nome, gênero, função, telefone, empresa, localização e equipe
 						profileCompleted = hasName && hasGenre && hasRole && hasPhone && hasCompany && hasLocation && hasTeam
 						
-						console.log('🔵 [WelcomePage] Perfil do usuário (fetch):', {
-							hasName,
-							hasGenre,
-							hasRole,
-							hasPhone,
-							hasCompany,
-							hasLocation,
-							hasTeam,
-							profileCompleted
-						})
-						
-						console.log('🔵 [WelcomePage] Perfil do usuário:', {
-							hasName,
-							hasGenre,
-							hasRole,
-							hasPhone,
-							hasCompany,
-							hasLocation,
-							hasTeam,
-							profileCompleted,
-						})
+
 					}
 				} catch (error) {
-					console.error('❌ [WelcomePage] Erro ao carregar perfil:', error)
+					console.error('❌ [PAGE_WELCOME] Erro ao carregar perfil:', { error })
 					profileCompleted = false
 				}
 			} else if (!userLoading) {
@@ -120,19 +91,9 @@ export default function WelcomePage() {
 						// Perfil completo se tiver: nome, gênero, função, telefone, empresa, localização e equipe
 						profileCompleted = hasName && hasGenre && hasRole && hasPhone && hasCompany && hasLocation && hasTeam
 
-						console.log('🔵 [WelcomePage] Perfil do usuário:', {
-							hasName,
-							hasGenre,
-							hasRole,
-							hasPhone,
-							hasCompany,
-							hasLocation,
-							hasTeam,
-							profileCompleted,
-						})
 					}
 				} catch (error) {
-					console.error('❌ [WelcomePage] Erro ao carregar perfil:', error)
+					console.error('❌ [PAGE_WELCOME] Erro ao carregar perfil:', { error })
 					profileCompleted = false
 				}
 			}
@@ -145,10 +106,9 @@ export default function WelcomePage() {
 					const data = await res.json()
 					// Verificar se há produtos cadastrados (qualquer usuário)
 					productsConfigured = Array.isArray(data?.items) && data.items.length > 0
-					console.log('🔵 [WelcomePage] Produtos encontrados:', data.items?.length || 0)
 				}
 			} catch (error) {
-				console.error('❌ [WelcomePage] Erro ao carregar produtos:', error)
+				console.error('❌ [PAGE_WELCOME] Erro ao carregar produtos:', { error })
 				productsConfigured = false
 			}
 
@@ -160,10 +120,9 @@ export default function WelcomePage() {
 					const data = await res.json()
 					// Verificar se há projetos cadastrados (qualquer usuário)
 					projectsConfigured = Array.isArray(data) && data.length > 0
-					console.log('🔵 [WelcomePage] Projetos encontrados:', data?.length || 0)
 				}
 			} catch (error) {
-				console.error('❌ [WelcomePage] Erro ao carregar projetos:', error)
+				console.error('❌ [PAGE_WELCOME] Erro ao carregar projetos:', { error })
 				projectsConfigured = false
 			}
 
@@ -176,10 +135,9 @@ export default function WelcomePage() {
 					// Verificar se há contatos cadastrados (qualquer usuário)
 					// A API retorna: { success: true, data: { items: filteredContacts, total: filteredContacts.length } }
 					contactsConfigured = data?.success && Array.isArray(data?.data?.items) && data.data.items.length > 0
-					console.log('🔵 [WelcomePage] Contatos encontrados:', data?.data?.items?.length || 0)
 				}
 			} catch (error) {
-				console.error('❌ [WelcomePage] Erro ao carregar contatos:', error)
+				console.error('❌ [PAGE_WELCOME] Erro ao carregar contatos:', { error })
 				contactsConfigured = false
 			}
 
@@ -214,14 +172,6 @@ export default function WelcomePage() {
 				},
 			])
 
-			console.log('✅ [WelcomePage] Passos carregados', {
-				profileCompleted,
-				productsConfigured,
-				projectsConfigured,
-				contactsConfigured,
-				totalSteps: 4,
-				completedSteps: [profileCompleted, productsConfigured, projectsConfigured, contactsConfigured].filter(Boolean).length,
-			})
 			setLoading(false)
 		}
 

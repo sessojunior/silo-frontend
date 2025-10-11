@@ -27,7 +27,6 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
 	// Listener para atualizar mensagens quando marcadas como lidas
 	useEffect(() => {
 		const handleMessagesRead = () => {
-			console.log('🔵 [NotificationDropdown] Evento messagesRead recebido, recarregando mensagens...')
 			loadUnreadMessages()
 		}
 
@@ -41,7 +40,6 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
 	// Atualizar mensagens quando totalUnread aumenta (novas mensagens chegaram)
 	useEffect(() => {
 		if (totalUnread > 0) {
-			console.log('🔵 [NotificationDropdown] totalUnread aumentou para', totalUnread, '- recarregando mensagens...')
 			loadUnreadMessages()
 		}
 	}, [totalUnread, loadUnreadMessages])
@@ -67,7 +65,6 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
 	// Obter conversas com mensagens não lidas
 	const conversations = useMemo(() => {
 		const rawConversations = getConversationsWithUnread()
-		console.log('🔵 [NotificationDropdown] Conversas brutas:', rawConversations)
 		
 		const mappedConversations = rawConversations
 			.filter((conv): conv is NonNullable<typeof conv> => conv !== null)
@@ -77,7 +74,6 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
 				lastMessage: conv.lastMessage || undefined
 			}))
 		
-		console.log('✅ [NotificationDropdown] Conversas mapeadas:', mappedConversations)
 		return mappedConversations
 	}, [getConversationsWithUnread])
 

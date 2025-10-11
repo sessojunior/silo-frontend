@@ -59,7 +59,6 @@ export default function SettingsProductsPage() {
 
 			if (data.items) {
 				setProducts(data.items)
-				console.log('✅ Produtos carregados:', data.items.length)
 			} else {
 				toast({
 					type: 'error',
@@ -68,7 +67,7 @@ export default function SettingsProductsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao carregar produtos:', error)
+			console.error('❌ [PAGE_SETTINGS_PRODUCTS] Erro ao carregar produtos:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro',
@@ -80,7 +79,6 @@ export default function SettingsProductsPage() {
 	}
 
 	function openCreateForm() {
-		console.log('🔵 Abrindo formulário para novo produto')
 
 		if (offcanvasOpen) {
 			setOffcanvasOpen(false)
@@ -95,11 +93,7 @@ export default function SettingsProductsPage() {
 	}
 
 	function openEditForm(product: Product) {
-		console.log('🔵 Abrindo formulário de edição para:', {
-			id: product.id,
-			name: product.name,
-			available: product.available,
-		})
+
 
 		if (offcanvasOpen) {
 			setOffcanvasOpen(false)
@@ -141,7 +135,7 @@ export default function SettingsProductsPage() {
 				throw new Error(result.message || 'Erro desconhecido')
 			}
 		} catch (error: unknown) {
-			console.error('❌ Erro ao salvar produto:', error)
+			console.error('❌ [PAGE_SETTINGS_PRODUCTS] Erro ao salvar produto:', { error })
 			toast({
 				type: 'error',
 				title: data.id ? 'Erro ao atualizar' : 'Erro ao criar',
@@ -175,7 +169,7 @@ export default function SettingsProductsPage() {
 				throw new Error(data.message || 'Erro desconhecido')
 			}
 		} catch (error: unknown) {
-			console.error('❌ Erro ao excluir produto:', error)
+			console.error('❌ [PAGE_SETTINGS_PRODUCTS] Erro ao excluir produto:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro ao excluir',
@@ -211,7 +205,7 @@ export default function SettingsProductsPage() {
 				throw new Error('Erro ao atualizar status')
 			}
 		} catch (error) {
-			console.error('❌ Erro ao alterar disponibilidade:', error)
+			console.error('❌ [PAGE_SETTINGS_PRODUCTS] Erro ao alterar disponibilidade:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro',

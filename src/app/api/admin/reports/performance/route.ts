@@ -37,8 +37,7 @@ export async function GET(request: NextRequest) {
 					}
 				})()
 
-		console.log('📅 Período de análise:', { start, end, dateRange })
-		console.log('🔵 Buscando relatório de performance:', { productId, userId, groupId })
+
 
 		// Buscar problemas no período
 		const problemsQuery = db
@@ -251,10 +250,9 @@ export async function GET(request: NextRequest) {
 			},
 		}
 
-		console.log('✅ Relatório de performance gerado com sucesso')
 		return NextResponse.json(reportData)
 	} catch (error) {
-		console.error('❌ Erro ao gerar relatório de performance:', error)
+		console.error('❌ [API_REPORTS_PERFORMANCE] Erro ao gerar relatório de performance:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

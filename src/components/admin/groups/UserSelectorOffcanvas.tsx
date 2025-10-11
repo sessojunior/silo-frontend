@@ -35,7 +35,6 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 
 		try {
 			setLoading(true)
-			console.log('🔵 Carregando todos os usuários para o grupo:', group.name)
 
 			// Buscar todos os usuários
 			const response = await fetch('/api/admin/users')
@@ -49,7 +48,6 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 				const usersInCurrentGroup = groupUsersData.success ? groupUsersData.data.items.map((u: { id: string }) => u.id) : []
 				const usersInGroupSet = new Set(usersInCurrentGroup)
 
-				console.log('🔵 Usuários no grupo atual:', usersInCurrentGroup.length)
 
 				// Mostrar todos os usuários, marcando os que estão no grupo atual
 				const allUsers = data.data.items.map((user: UserWithGroup) => ({
@@ -57,9 +55,8 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 					isInGroup: usersInGroupSet.has(user.id),
 				}))
 				setAvailableUsers(allUsers)
-				console.log('✅ Todos os usuários carregados:', allUsers.length)
 			} else {
-				console.error('❌ Erro ao carregar usuários:', data.error)
+				console.error('❌ [COMPONENT_USER_SELECTOR] Erro ao carregar usuários:', { error: data.error })
 				toast({
 					type: 'error',
 					title: 'Erro ao carregar usuários',
@@ -67,7 +64,7 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro inesperado ao carregar usuários:', error)
+			console.error('❌ [COMPONENT_USER_SELECTOR] Erro inesperado ao carregar usuários:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado',
@@ -130,7 +127,6 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 
 		try {
 			setSaving(true)
-			console.log('🔵 Gerenciando usuários do grupo:', group.name)
 
 			// Usuários que estavam no grupo originalmente
 			const originalUsersInGroup = availableUsers.filter((user) => user.isInGroup).map((user) => user.id)
@@ -145,8 +141,6 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 			// Usuários para remover (estavam no grupo mas não estão selecionados)
 			const usersToRemove = Array.from(originalSet).filter((userId) => !selectedSet.has(userId))
 
-			console.log('🔵 Usuários para adicionar:', usersToAdd.length)
-			console.log('🔵 Usuários para remover:', usersToRemove.length)
 
 			// Adicionar usuários ao grupo
 			const addPromises = usersToAdd.map(async (userId) => {
@@ -183,7 +177,7 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 			// Verificar resultados individuais
 			const failedResults = results.filter((res) => !res.ok)
 			if (failedResults.length > 0) {
-				console.error('❌ Algumas operações falharam:', failedResults)
+				console.error('❌ [COMPONENT_USER_SELECTOR] Algumas operações falharam:', { failedResults })
 				const errorMessages = await Promise.all(
 					failedResults.map(async (res) => {
 						try {
@@ -206,7 +200,7 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 			onSuccess()
 			onClose()
 		} catch (error) {
-			console.error('❌ Erro ao gerenciar usuários do grupo:', error)
+			console.error('❌ [COMPONENT_USER_SELECTOR] Erro ao gerenciar usuários do grupo:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro ao atualizar grupo',

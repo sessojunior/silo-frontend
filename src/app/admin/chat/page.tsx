@@ -13,13 +13,10 @@ export default function ChatPage() {
 		const userId = searchParams.get('userId')
 
 		if (groupId) {
-			console.log('🔵 [ChatPage] Redirecionando grupo via URL:', groupId)
 			router.replace(`/admin/chat/groups/${groupId}`)
 		} else if (userId) {
-			console.log('🔵 [ChatPage] Redirecionando usuário via URL:', userId)
 			router.replace(`/admin/chat/users/${userId}`)
 		} else {
-			console.log('🔵 [ChatPage] Redirecionando para grupos')
 			router.replace('/admin/chat/groups')
 		}
 	}, [router, searchParams])

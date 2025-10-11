@@ -62,19 +62,10 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 
 	// Atualizar form quando grupo mudar
 	useEffect(() => {
-		console.log('🔵 useEffect GroupForm disparado:', {
-			group: group ? `${group.name} (${group.id})` : 'null',
-			isOpen,
-			timestamp: new Date().toISOString(),
-		})
+
 
 		if (group && isOpen) {
-			console.log('🔵 Carregando dados do grupo para edição:', {
-				id: group.id,
-				name: group.name,
-				active: group.active,
-				isDefault: group.isDefault,
-			})
+
 			setFormData({
 				name: group.name,
 				description: group.description || '',
@@ -85,7 +76,6 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 				maxUsers: group.maxUsers?.toString() || '',
 			})
 		} else if (!group && isOpen) {
-			console.log('🔵 Resetando formulário para novo grupo')
 			setFormData({
 				name: '',
 				description: '',
@@ -169,11 +159,7 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 					description: group ? 'O grupo foi atualizado com sucesso.' : 'O novo grupo foi criado com sucesso.',
 				})
 
-				console.log('✅ Operação realizada com sucesso:', {
-					operation: group ? 'update' : 'create',
-					groupId: data.data?.id || group?.id,
-					name: submitData.name,
-				})
+
 
 				// Resetar formulário se for criação
 				if (!group) {
@@ -192,7 +178,7 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 				onSuccess?.()
 				handleClose()
 			} else {
-				console.error('❌ Erro na operação:', data)
+				console.error('❌ [COMPONENT_GROUP_FORM] Erro na operação:', { error: data })
 				toast({
 					type: 'error',
 					title: 'Erro na operação',
@@ -200,7 +186,7 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro inesperado:', error)
+			console.error('❌ [COMPONENT_GROUP_FORM] Erro inesperado:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado',
@@ -213,7 +199,6 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 
 	const handleClose = () => {
 		if (!loading) {
-			console.log('🔵 Fechando GroupFormOffcanvas')
 			onClose()
 		}
 	}

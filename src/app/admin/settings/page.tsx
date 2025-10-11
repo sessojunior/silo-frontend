@@ -131,7 +131,7 @@ export default function SettingsPage() {
 				setChatEnabled(userPreferences?.chatEnabled ?? true)
 			}
 		} catch (error) {
-			console.error('❌ Erro ao carregar dados do usuário:', error)
+			console.error('❌ [PAGE_SETTINGS] Erro ao carregar dados do usuário:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado ao carregar dados do usuário.',
@@ -234,7 +234,7 @@ export default function SettingsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao atualizar perfil:', error)
+			console.error('❌ [PAGE_SETTINGS] Erro ao atualizar perfil:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -290,7 +290,7 @@ export default function SettingsPage() {
 				}
 			}
 		} catch (error) {
-			console.error('❌ Erro ao atualizar preferências:', error)
+			console.error('❌ [PAGE_SETTINGS] Erro ao atualizar preferências:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -342,7 +342,7 @@ export default function SettingsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao solicitar alteração de email:', error)
+			console.error('❌ [PAGE_SETTINGS] Erro ao solicitar alteração de email:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -401,7 +401,7 @@ export default function SettingsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao confirmar alteração de email:', error)
+			console.error('❌ [PAGE_SETTINGS] Erro ao confirmar alteração de email:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -445,7 +445,7 @@ export default function SettingsPage() {
 				setPassword('')
 			}
 		} catch (error) {
-			console.error('❌ Erro ao atualizar senha:', error)
+			console.error('❌ [PAGE_SETTINGS] Erro ao atualizar senha:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',

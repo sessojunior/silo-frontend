@@ -13,7 +13,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 		}
 
 		const { taskId } = await params
-		console.log('🔍 [API] Buscando histórico da tarefa:', taskId)
+
+		console.log('ℹ️ [API_TASKS_HISTORY] Buscando histórico da tarefa:', { taskId })
 
 		// Verificar se a tarefa existe
 		const task = await db.select().from(schema.projectTask).where(eq(schema.projectTask.id, taskId)).limit(1)
@@ -45,7 +46,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			.where(eq(schema.projectTaskHistory.taskId, taskId))
 			.orderBy(desc(schema.projectTaskHistory.createdAt))
 
-		console.log(`✅ [API] ${history.length} entradas de histórico encontradas`)
 
 		return NextResponse.json({
 			success: true,
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			history: history,
 		})
 	} catch (error) {
-		console.error('❌ [API] Erro ao buscar histórico da tarefa:', error)
+		console.error('❌ [API_TASKS_HISTORY] Erro ao buscar histórico da tarefa:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

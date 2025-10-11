@@ -54,7 +54,7 @@ export default function TaskHistoryModal({ isOpen, onClose, taskId, taskName }: 
 
 			setHistory(data.history || [])
 		} catch (error) {
-			console.error('❌ Erro ao carregar histórico:', error)
+			console.error('❌ [COMPONENT_TASK_HISTORY_MODAL] Erro ao carregar histórico:', { error })
 			setError(error instanceof Error ? error.message : 'Erro desconhecido')
 			toast({
 				type: 'error',

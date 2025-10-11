@@ -16,7 +16,7 @@ export async function addUserToDefaultGroup(userId: string): Promise<boolean> {
 		})
 
 		if (!defaultGroup) {
-			console.error('❌ Grupo padrão não encontrado no sistema')
+			console.error('❌ [LIB_AUTH_USER_GROUPS] Grupo padrão não encontrado no sistema')
 			return false
 		}
 
@@ -26,7 +26,7 @@ export async function addUserToDefaultGroup(userId: string): Promise<boolean> {
 		})
 
 		if (existingUserGroup) {
-			console.log('ℹ️ Usuário já está associado a um grupo')
+			console.log('ℹ️ [LIB_AUTH_USER_GROUPS] Usuário já está associado a um grupo')
 			return true
 		}
 
@@ -39,10 +39,9 @@ export async function addUserToDefaultGroup(userId: string): Promise<boolean> {
 			joinedAt: new Date(),
 		})
 
-		console.log(`✅ Usuário ${userId} adicionado automaticamente ao grupo padrão: ${defaultGroup.name}`)
 		return true
 	} catch (error) {
-		console.error('❌ Erro ao adicionar usuário ao grupo padrão:', error)
+		console.error('❌ [LIB_AUTH_USER_GROUPS] Erro ao adicionar usuário ao grupo padrão:', { error })
 		return false
 	}
 }
@@ -56,10 +55,9 @@ export async function updateUserLastLogin(userId: string): Promise<boolean> {
 	try {
 		await db.update(authUser).set({ lastLogin: new Date() }).where(eq(authUser.id, userId))
 
-		console.log(`✅ Último acesso atualizado para usuário: ${userId}`)
 		return true
 	} catch (error) {
-		console.error('❌ Erro ao atualizar último acesso:', error)
+		console.error('❌ [LIB_AUTH_USER_GROUPS] Erro ao atualizar último acesso:', { error })
 		return false
 	}
 }

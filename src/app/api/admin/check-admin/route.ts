@@ -18,7 +18,7 @@ export async function GET() {
 			isAdmin,
 		})
 	} catch (error) {
-		console.error('❌ Erro ao verificar status de administrador:', error)
+		console.error('❌ [API_CHECK_ADMIN] Erro ao verificar status de administrador:', { error })
 		return NextResponse.json(
 			{
 				success: false,

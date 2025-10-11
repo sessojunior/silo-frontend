@@ -46,7 +46,7 @@ export default function ContactDeleteDialog({ isOpen, onClose, contact, onSucces
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao excluir contato:', error)
+			console.error('❌ [COMPONENT_CONTACT_DELETE] Erro ao excluir contato:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro',

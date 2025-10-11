@@ -51,7 +51,7 @@ export async function GET() {
 
 		return NextResponse.json({ labels, values, colors })
 	} catch (error) {
-		console.error('❌ Erro ao obter causas de problemas:', error)
+		console.error('❌ [API_DASHBOARD_PROBLEMS_CAUSES] Erro ao obter causas de problemas:', { error })
 		return NextResponse.json({ success: false, error: 'Erro ao obter causas de problemas' }, { status: 500 })
 	}
 }

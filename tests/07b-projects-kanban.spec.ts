@@ -151,7 +151,7 @@ test.describe('📋 Projetos - Sistema Kanban', () => {
 			// Verificar se carregou em tempo aceitável (menos de 5 segundos)
 			expect(loadTime).toBeLessThan(5000)
 
-			console.log(`✅ Kanban carregou em ${loadTime}ms`)
+			console.log('ℹ️ [TEST_PROJECTS_KANBAN] Kanban carregou:', { loadTime })
 		}
 	})
 })

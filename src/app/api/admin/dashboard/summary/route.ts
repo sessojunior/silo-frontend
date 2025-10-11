@@ -57,7 +57,7 @@ export async function GET() {
 
 		return NextResponse.json({ recentCount, previousCount, percentChange, categories })
 	} catch (error) {
-		console.error('❌ Erro ao obter resumo de 7 dias', error)
+		console.error('❌ [API_DASHBOARD_SUMMARY] Erro ao obter resumo de 7 dias:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno' }, { status: 500 })
 	}
 }

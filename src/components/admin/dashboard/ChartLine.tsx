@@ -30,7 +30,7 @@ export default function ChartLine({ refresh = 0 }: { refresh?: number }) {
 					setChartData(json)
 				}
 			} catch (error) {
-				console.error('⚠️ Erro ao carregar dados do gráfico de problemas & soluções', error)
+				console.error('❌ [COMPONENT_CHART_LINE] Erro ao carregar dados do gráfico de problemas & soluções:', { error })
 			}
 		}
 		load()

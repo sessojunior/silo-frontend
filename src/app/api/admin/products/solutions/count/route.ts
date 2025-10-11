@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
-		console.log('🔵 [API Count] Buscando contagem para', problemIds.length, 'problemas')
 
 		// Query otimizada: conta soluções agrupadas por problemId em uma única consulta
 		const result = await db
@@ -43,14 +42,13 @@ export async function POST(req: NextRequest) {
 			counts[row.problemId] = Number(row.count)
 		})
 
-		console.log('✅ [API Count] Contagens obtidas:', counts)
 
 		return NextResponse.json({
 			success: true,
 			data: counts,
 		})
 	} catch (error) {
-		console.error('❌ [API Count] Erro ao buscar contagens:', error)
+		console.error('❌ [API_PRODUCTS_SOLUTIONS_COUNT] Erro ao buscar contagens:', { error })
 		return NextResponse.json(
 			{
 				success: false,

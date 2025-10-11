@@ -7,7 +7,6 @@ import { getAuthUser } from '@/lib/auth/token'
 // GET /api/admin/projects/[projectId]/activities - Buscar todas as atividades de um projeto
 export async function GET(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
 	try {
-		console.log('🔵 GET /api/admin/projects/[projectId]/activities')
 
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -21,21 +20,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 		const existingProject = await db.select().from(project).where(eq(project.id, projectId)).limit(1)
 
 		if (existingProject.length === 0) {
-			console.log('❌ Projeto não encontrado:', projectId)
+			console.log('ℹ️ [API_PROJECTS_ACTIVITIES] Projeto não encontrado:', { projectId })
 			return NextResponse.json({ success: false, error: 'Projeto não encontrado' }, { status: 404 })
 		}
 
 		// Buscar todas as atividades do projeto
 		const activities = await db.select().from(projectActivity).where(eq(projectActivity.projectId, projectId)).orderBy(projectActivity.createdAt)
 
-		console.log('✅ Atividades carregadas:', activities.length)
 
 		return NextResponse.json({
 			success: true,
 			activities,
 		})
 	} catch (error) {
-		console.error('❌ Erro ao buscar atividades:', error)
+		console.error('❌ [API_PROJECTS_ACTIVITIES] Erro ao buscar atividades:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -43,7 +41,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 // POST /api/admin/projects/[projectId]/activities - Criar nova atividade
 export async function POST(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
 	try {
-		console.log('🔵 POST /api/admin/projects/[projectId]/activities')
 
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -63,7 +60,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 		const existingProject = await db.select().from(project).where(eq(project.id, projectId)).limit(1)
 
 		if (existingProject.length === 0) {
-			console.log('❌ Projeto não encontrado:', projectId)
+			console.log('ℹ️ [API_PROJECTS_ACTIVITIES] Projeto não encontrado:', { projectId })
 			return NextResponse.json({ success: false, error: 'Projeto não encontrado' }, { status: 404 })
 		}
 
@@ -93,14 +90,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 			})
 			.returning()
 
-		console.log('✅ Atividade criada:', newActivity[0].id)
 
 		return NextResponse.json({
 			success: true,
 			activity: newActivity[0],
 		})
 	} catch (error) {
-		console.error('❌ Erro ao criar atividade:', error)
+		console.error('❌ [API_PROJECTS_ACTIVITIES] Erro ao criar atividade:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -108,7 +104,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 // PUT /api/admin/projects/[projectId]/activities - Atualizar atividade
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
 	try {
-		console.log('🔵 PUT /api/admin/projects/[projectId]/activities')
 
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -137,7 +132,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 			.limit(1)
 
 		if (existingActivity.length === 0) {
-			console.log('❌ Atividade não encontrada:', body.id)
+			console.log('ℹ️ [API_PROJECTS_ACTIVITIES] Atividade não encontrada:', { activityId: body.id })
 			return NextResponse.json({ success: false, error: 'Atividade não encontrada' }, { status: 404 })
 		}
 
@@ -168,14 +163,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 			.where(and(eq(projectActivity.id, body.id), eq(projectActivity.projectId, projectId)))
 			.returning()
 
-		console.log('✅ Atividade atualizada:', updatedActivity[0].id)
 
 		return NextResponse.json({
 			success: true,
 			activity: updatedActivity[0],
 		})
 	} catch (error) {
-		console.error('❌ Erro ao atualizar atividade:', error)
+		console.error('❌ [API_PROJECTS_ACTIVITIES] Erro ao atualizar atividade:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -183,7 +177,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 // DELETE /api/admin/projects/[projectId]/activities - Excluir atividade
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
 	try {
-		console.log('🔵 DELETE /api/admin/projects/[projectId]/activities')
 
 		// Verificar autenticação
 		const user = await getAuthUser()
@@ -208,21 +201,20 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 			.limit(1)
 
 		if (existingActivity.length === 0) {
-			console.log('❌ Atividade não encontrada:', activityId)
+			console.log('ℹ️ [API_PROJECTS_ACTIVITIES] Atividade não encontrada:', { activityId })
 			return NextResponse.json({ success: false, error: 'Atividade não encontrada' }, { status: 404 })
 		}
 
 		// Excluir a atividade
 		await db.delete(projectActivity).where(and(eq(projectActivity.id, activityId), eq(projectActivity.projectId, projectId)))
 
-		console.log('✅ Atividade excluída:', activityId)
 
 		return NextResponse.json({
 			success: true,
 			message: 'Atividade excluída com sucesso',
 		})
 	} catch (error) {
-		console.error('❌ Erro ao excluir atividade:', error)
+		console.error('❌ [API_PROJECTS_ACTIVITIES] Erro ao excluir atividade:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

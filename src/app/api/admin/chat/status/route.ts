@@ -27,19 +27,11 @@ export async function POST(req: NextRequest) {
 		const timestamp = getNowTimestamp()
 		const statusText = status === 'enabled' ? 'ATIVADO' : 'DESATIVADO'
 
-		console.log(`🔵 [SERVER] ${timestamp} - Sistema de chat ${statusText} para usuário: ${user.email} (${user.id})`)
-
 		// Aqui você pode adicionar lógica adicional para:
 		// - Registrar em log de sistema
 		// - Atualizar métricas
 		// - Notificar outros serviços
 		// - Parar/iniciar processos de background
-
-		if (status === 'disabled') {
-			console.log(`🔵 [SERVER] ${timestamp} - Chat desabilitado - Polling e sincronização PARADOS para usuário: ${user.email}`)
-		} else {
-			console.log(`🔵 [SERVER] ${timestamp} - Chat habilitado - Polling e sincronização ATIVOS para usuário: ${user.email}`)
-		}
 
 		return NextResponse.json({
 			success: true,
@@ -50,7 +42,7 @@ export async function POST(req: NextRequest) {
 			timestamp,
 		})
 	} catch (error) {
-		console.error('❌ [SERVER] Erro ao processar mudança de status do chat:', error)
+		console.error('❌ [API_CHAT_STATUS] Erro ao processar mudança de status do chat:', { error })
 
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}

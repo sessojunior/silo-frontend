@@ -34,7 +34,6 @@ export async function GET(request: NextRequest) {
 				start = getDaysAgo(30)
 		}
 
-		console.log('🔵 Buscando relatório de projetos:', { start, end, dateRange })
 
 		// Buscar projetos no período
 		const projectsInPeriod = await db
@@ -157,8 +156,9 @@ export async function GET(request: NextRequest) {
 			.innerJoin(authUser, eq(projectTaskUser.userId, authUser.id))
 			.where(eq(authUser.isActive, true))
 
-		// Log para debug - verificar dados brutos retornados
-		console.log('🔍 Dados brutos de projectUsers:', projectUsers.slice(0, 10)) // Primeiros 10 para debug
+		// Log para debug - verificar dados brutos retornados - primeiros 10
+		const projectUsersSlice = projectUsers.slice(0, 10)
+		console.log('ℹ️ [API_REPORTS_PROJECTS] Dados brutos de projectUsers:', projectUsersSlice)
 
 		// Agrupar usuários por projeto usando Map para garantir unicidade
 		const usersByProject = projectUsers.reduce(
@@ -168,7 +168,7 @@ export async function GET(request: NextRequest) {
 				}
 
 				// Log para debug - verificar cada usuário sendo processado
-				console.log(`🔍 Processando usuário: projectId=${user.projectId}, userId=${user.userId}, name=${user.userName}`)
+				console.log('ℹ️ [API_REPORTS_PROJECTS] Processando usuário:', { projectId: user.projectId, userId: user.userId, name: user.userName })
 
 				// Usar Map para garantir que cada userId apareça apenas uma vez
 				acc[user.projectId].set(user.userId, {
@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
 				})
 
 				// Log para debug - verificar tamanho do Map após inserção
-				console.log(`🔍 Map para projeto ${user.projectId} agora tem ${acc[user.projectId].size} usuários`)
+				console.log('ℹ️ [API_REPORTS_PROJECTS] Map para projeto:', { projectId: user.projectId, size: acc[user.projectId].size })
 
 				return acc
 			},
@@ -195,15 +195,12 @@ export async function GET(request: NextRequest) {
 		)
 
 		// Log para debug - verificar resultado final
-		console.log(
-			'🔍 usersByProjectArray final:',
-			Object.entries(usersByProjectArray).map(([projectId, users]) => ({
-				projectId,
-				userCount: users.length,
-				userIds: users.map((u) => u.id),
-				userNames: users.map((u) => u.name),
-			})),
-		)
+		const usersByProjectArrayMap = Object.entries(usersByProjectArray).map(([projectId, users]) => ({
+			projectId,
+			userCount: users.length,
+			users: users.map((u) => ({ id: u.id, name: u.name })),
+		}))
+		console.log('ℹ️ [API_REPORTS_PROJECTS] usersByProjectArray final:', { usersByProjectArrayMap })
 
 		// Calcular progresso médio dos projetos
 		const projectsWithProgress = projectsInPeriod.map((p) => {
@@ -246,26 +243,16 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Log para debug dos usuários por projeto
-		console.log(
-			'🔵 Usuários por projeto:',
-			Object.entries(usersByProjectArray).map(([projectId, users]) => ({
-				projectId,
-				userCount: users.length,
-				users: users.map((u) => ({ id: u.id, name: u.name })),
-			})),
-		)
-
-		console.log('✅ Relatório de projetos gerado:', {
-			totalProjects,
-			totalActivities,
-			totalTasks,
-			activeUsers: activeUsersCount,
-			avgProgress: Math.round(avgProgress),
-		})
+		const usersByProjectArrayFinalMap = Object.entries(usersByProjectArray).map(([projectId, users]) => ({
+			projectId,
+			userCount: users.length,
+			users: users.map((u) => ({ id: u.id, name: u.name })),
+		}))
+		console.log('ℹ️ [API_REPORTS_PROJECTS] usersByProjectArray final:', { usersByProjectArrayFinalMap })
 
 		return NextResponse.json(response)
 	} catch (error) {
-		console.error('❌ Erro ao gerar relatório de projetos:', error)
+		console.error('❌ [API_REPORTS_PROJECTS] Erro ao gerar relatório de projetos:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

@@ -43,7 +43,6 @@ export async function GET() {
 			return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		console.log('🔵 Carregando dados da sidebar para:', user.id)
 
 		// 1. BUSCAR CHATGROUPS onde usuário participa
 		const userGroups = await db
@@ -99,23 +98,12 @@ export async function GET() {
 
 		// Agrupar por grupo e pegar a mais recente
 		const groupLastMessageMap = new Map<string, { content: string; createdAt: Date }>()
-		console.log('🔵 [API Sidebar] Mensagens de grupos encontradas:', groupLastMessagesRaw.length)
-		console.log('🔵 [API Sidebar] Detalhes das mensagens de grupos:', groupLastMessagesRaw.map(msg => ({
-			groupId: msg.receiverGroupId,
-			content: msg.content,
-			createdAt: msg.createdAt
-		})))
 		
 		for (const msg of groupLastMessagesRaw) {
 			if (msg.receiverGroupId && !groupLastMessageMap.has(msg.receiverGroupId)) {
 				groupLastMessageMap.set(msg.receiverGroupId, {
 					content: msg.content,
 					createdAt: msg.createdAt,
-				})
-				console.log('🔵 [API Sidebar] Última mensagem do grupo:', {
-					groupId: msg.receiverGroupId,
-					content: msg.content,
-					createdAt: msg.createdAt
 				})
 			}
 		}
@@ -199,14 +187,6 @@ export async function GET() {
 
 		// Mapear última mensagem por usuário (considerando como "outro usuário" na conversa)
 		const lastMessageMap = new Map<string, { content: string; createdAt: Date }>()
-		console.log('🔵 [API Sidebar] Mensagens de usuários encontradas:', lastMessagesRaw.length)
-		console.log('🔵 [API Sidebar] Detalhes das mensagens de usuários:', lastMessagesRaw.map(msg => ({
-			senderUserId: msg.senderUserId,
-			receiverUserId: msg.receiverUserId,
-			content: msg.content,
-			createdAt: msg.createdAt,
-			isFromCurrentUser: msg.senderUserId === user.id
-		})))
 		
 		for (const msg of lastMessagesRaw) {
 			// Determinar o "outro usuário" da conversa
@@ -219,12 +199,6 @@ export async function GET() {
 				lastMessageMap.set(otherUserId, {
 					content: msg.content,
 					createdAt: msg.createdAt,
-				})
-				console.log('🔵 [API Sidebar] Última mensagem do usuário:', {
-					otherUserId,
-					content: msg.content,
-					createdAt: msg.createdAt,
-					isFromCurrentUser: msg.senderUserId === user.id
 				})
 			}
 		}
@@ -292,17 +266,11 @@ export async function GET() {
 			totalUnread,
 		}
 
-		console.log('✅ Dados da sidebar carregados:', {
-			groups: chatGroups.length,
-			users: chatUsers.length,
-			userUnreadTotal,
-			groupUnreadTotal,
-			totalUnread,
-		})
+
 
 		return NextResponse.json(sidebarData)
 	} catch (error) {
-		console.error('❌ Erro ao carregar dados da sidebar:', error)
+		console.error('❌ [API_CHAT_SIDEBAR] Erro ao carregar dados da sidebar:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

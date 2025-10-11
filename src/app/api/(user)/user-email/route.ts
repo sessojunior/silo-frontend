@@ -55,7 +55,7 @@ export async function PUT(req: NextRequest) {
 		// Retorna a resposta com sucesso
 		return NextResponse.json({ message: 'E-mail alterado com sucesso!' })
 	} catch (error) {
-		console.error('❌ Erro ao alterar o e-mail do usuário:', error)
+		console.error('❌ [API_USER_EMAIL] Erro ao alterar o e-mail do usuário:', { error })
 		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

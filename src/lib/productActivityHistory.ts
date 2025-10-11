@@ -11,9 +11,8 @@ type ProductActivityHistoryEntry = Omit<typeof schema.productActivityHistory.$in
 export async function recordProductActivityHistory(entry: ProductActivityHistoryEntry) {
 	try {
 		await db.insert(schema.productActivityHistory).values(entry)
-		console.log('✅ [ProductActivityHistory] Histórico registrado:', entry.productActivityId)
 	} catch (error) {
-		console.error('❌ [ProductActivityHistory] Erro ao registrar histórico:', error)
+		console.error('❌ [LIB_PRODUCT_ACTIVITY_HISTORY] Erro ao registrar histórico:', { error })
 	}
 }
 
@@ -21,9 +20,8 @@ export async function recordBulkProductActivityHistory(entries: ProductActivityH
 	try {
 		if (entries.length > 0) {
 			await db.insert(schema.productActivityHistory).values(entries)
-			console.log(`✅ [ProductActivityHistory] ${entries.length} entradas de histórico registradas`)
 		}
 	} catch (error) {
-		console.error('❌ [ProductActivityHistory] Erro ao registrar histórico em massa:', error)
+		console.error('❌ [LIB_PRODUCT_ACTIVITY_HISTORY] Erro ao registrar histórico em massa:', { error })
 	}
 }

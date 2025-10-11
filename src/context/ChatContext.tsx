@@ -108,25 +108,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	const loadSidebarData = useCallback(async () => {
 		try {
 			setIsLoading(true)
-			console.log('🔵 [ChatContext] Carregando dados da sidebar...')
 			const response = await fetch('/api/admin/chat/sidebar')
 
 			if (response.ok) {
 				const data = await response.json()
-				console.log('✅ [ChatContext] Dados da sidebar carregados:', {
-					groups: data.groups?.length || 0,
-					users: data.users?.length || 0,
-					totalUnread: data.totalUnread || 0,
-				})
 
 				setGroups(data.groups || [])
 				setUsers(data.users || [])
 				setTotalUnread(data.totalUnread || 0)
 			} else {
-				console.error('❌ [ChatContext] Erro ao carregar sidebar:', response.status)
+				console.error('❌ [CONTEXT_CHAT] Erro ao carregar sidebar:', { status: response.status })
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição sidebar:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro na requisição sidebar:', { error })
 		} finally {
 			setIsLoading(false)
 		}
@@ -145,7 +139,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				params.set('userId', targetId)
 			}
 
-			console.log(`🔵 [ChatContext] Carregando últimas ${MESSAGES_PER_PAGE} mensagens:`, { targetId, type })
 			const response = await fetch(`/api/admin/chat/messages?${params}`)
 
 			if (response.ok) {
@@ -153,12 +146,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				const newMessages = data.messages || []
 				const hasMore = data.hasMore || false // Usar hasMore da API
 				
-				console.log(`✅ [ChatContext] Últimas ${MESSAGES_PER_PAGE} mensagens carregadas:`, {
-					count: newMessages.length,
-					hasMore,
-					apiHasMore: data.hasMore,
-					type,
-				})
+
 
 				// Verificar duplicatas e ordenar por data (mais antigas primeiro para exibição)
 				const uniqueMessages = newMessages.filter((msg: ChatMessage, index: number, self: ChatMessage[]) => index === self.findIndex((m: ChatMessage) => m.id === msg.id))
@@ -173,11 +161,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 				return { messages: sortedMessages, hasMore }
 			} else {
-				console.error('❌ [ChatContext] Erro ao carregar mensagens:', response.status)
+				console.error('❌ [CONTEXT_CHAT] Erro ao carregar mensagens:', { status: response.status })
 				return { messages: [], hasMore: false }
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição mensagens:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro na requisição mensagens:', { error })
 			return { messages: [], hasMore: false }
 		}
 	}, [])
@@ -200,12 +188,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				params.set('userId', targetId)
 			}
 
-			console.log('🔵 [ChatContext] Carregando mensagens anteriores:', { 
-				targetId, 
-				type, 
-				page, 
-				before: oldestMessage ? new Date(oldestMessage.createdAt).toISOString() : null
-			})
+
 			const response = await fetch(`/api/admin/chat/messages?${params}`)
 
 			if (response.ok) {
@@ -213,13 +196,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				const newMessages = data.messages || []
 				const hasMore = data.hasMore || false // Usar hasMore da API
 
-				console.log('✅ [ChatContext] Mensagens anteriores carregadas:', {
-					count: newMessages.length,
-					hasMore,
-					apiHasMore: data.hasMore,
-					type,
-					page,
-				})
 
 				// Ordenar cronologicamente (mais antigas primeiro)
 				const sortedNewMessages = newMessages.sort((a: ChatMessage, b: ChatMessage) => 
@@ -241,11 +217,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 				return { messages: sortedNewMessages, hasMore }
 			} else {
-				console.error('❌ [ChatContext] Erro ao carregar mensagens anteriores:', response.status)
+				console.error('❌ [CONTEXT_CHAT] Erro ao carregar mensagens anteriores:', { status: response.status })
 				return { messages: [], hasMore: false }
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição mensagens anteriores:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro na requisição mensagens anteriores:', { error })
 			return { messages: [], hasMore: false }
 		}
 	}, [messages])
@@ -268,12 +244,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				params.set('userId', targetId)
 			}
 
-			console.log('🔵 [ChatContext] Carregando mensagens posteriores:', { 
-				targetId, 
-				type, 
-				page, 
-				after: newestMessage ? new Date(newestMessage.createdAt).toISOString() : null
-			})
+
 			const response = await fetch(`/api/admin/chat/messages?${params}`)
 
 			if (response.ok) {
@@ -281,13 +252,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				const newMessages = data.messages || []
 				const hasMore = data.hasMore || false // Usar hasMore da API
 
-				console.log('✅ [ChatContext] Mensagens posteriores carregadas:', {
-					count: newMessages.length,
-					hasMore,
-					apiHasMore: data.hasMore,
-					type,
-					page,
-				})
 
 				// Ordenar cronologicamente (mais antigas primeiro)
 				const sortedNewMessages = newMessages.sort((a: ChatMessage, b: ChatMessage) => 
@@ -309,11 +273,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 				return { messages: sortedNewMessages, hasMore }
 			} else {
-				console.error('❌ [ChatContext] Erro ao carregar mensagens posteriores:', response.status)
+				console.error('❌ [CONTEXT_CHAT] Erro ao carregar mensagens posteriores:', { status: response.status })
 				return { messages: [], hasMore: false }
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição mensagens posteriores:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro na requisição mensagens posteriores:', { error })
 			return { messages: [], hasMore: false }
 		}
 	}, [messages])
@@ -327,22 +291,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				params.set('userId', targetId)
 			}
 
-			console.log('🔵 [ChatContext] Contando mensagens:', { targetId, type })
 			const response = await fetch(`/api/admin/chat/messages/count?${params}`)
 
 			if (response.ok) {
 				const data = await response.json()
-				console.log('✅ [ChatContext] Total de mensagens:', {
-					count: data.totalCount,
-					type,
-				})
 				return data.totalCount || 0
 			} else {
-				console.error('❌ [ChatContext] Erro ao contar mensagens:', response.status)
+				console.error('❌ [CONTEXT_CHAT] Erro ao contar mensagens:', { status: response.status })
 				return 0
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição contagem:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro na requisição contagem:', { error })
 			return 0
 		}
 	}, [])
@@ -359,22 +318,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				params.set('userId', targetId)
 			}
 
-			console.log('🔵 [ChatContext] Buscando mensagens não lidas:', { targetId, type, limit })
 			const response = await fetch(`/api/admin/chat/unread-messages?${params}`)
 
 			if (response.ok) {
 				const data = await response.json()
-				console.log('✅ [ChatContext] Mensagens não lidas encontradas:', {
-					count: data.count,
-					type,
-				})
 				return data.messages || []
 			} else {
-				console.error('❌ [ChatContext] Erro ao buscar mensagens não lidas:', response.status)
+				console.error('❌ [CONTEXT_CHAT] Erro ao buscar mensagens não lidas:', { status: response.status })
 				return []
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição mensagens não lidas:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro na requisição mensagens não lidas:', { error })
 			return []
 		}
 	}, [])
@@ -393,7 +347,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				params.set('userId', targetId)
 			}
 
-			console.log('🔵 [ChatContext] Buscando mensagens anteriores às não lidas:', { targetId, type, beforeDate, limit })
 			const response = await fetch(`/api/admin/chat/messages?${params}`)
 
 			if (response.ok) {
@@ -401,11 +354,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				const newMessages = data.messages || []
 				const hasMore = data.hasMore || false
 
-				console.log('✅ [ChatContext] Mensagens anteriores às não lidas encontradas:', {
-					count: newMessages.length,
-					hasMore,
-					type,
-				})
 
 				// Ordenar cronologicamente (mais antigas primeiro)
 				const sortedNewMessages = newMessages.sort((a: ChatMessage, b: ChatMessage) => 
@@ -427,11 +375,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 				return { messages: sortedNewMessages, hasMore }
 			} else {
-				console.error('❌ [ChatContext] Erro ao buscar mensagens anteriores às não lidas:', response.status)
+				console.error('❌ [CONTEXT_CHAT] Erro ao buscar mensagens anteriores às não lidas:', { status: response.status })
 				return { messages: [], hasMore: false }
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição mensagens anteriores às não lidas:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro na requisição mensagens anteriores às não lidas:', { error })
 			return { messages: [], hasMore: false }
 		}
 	}, [])
@@ -450,7 +398,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				params.set('userId', targetId)
 			}
 
-			console.log('🔵 [ChatContext] Buscando mensagens posteriores às não lidas:', { targetId, type, afterDate, limit })
 			const response = await fetch(`/api/admin/chat/messages?${params}`)
 
 			if (response.ok) {
@@ -458,11 +405,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				const newMessages = data.messages || []
 				const hasMore = data.hasMore || false
 
-				console.log('✅ [ChatContext] Mensagens posteriores às não lidas encontradas:', {
-					count: newMessages.length,
-					hasMore,
-					type,
-				})
 
 				// Ordenar cronologicamente (mais antigas primeiro)
 				const sortedNewMessages = newMessages.sort((a: ChatMessage, b: ChatMessage) => 
@@ -484,23 +426,18 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 				return { messages: sortedNewMessages, hasMore }
 			} else {
-				console.error('❌ [ChatContext] Erro ao buscar mensagens posteriores às não lidas:', response.status)
+				console.error('❌ [CONTEXT_CHAT] Erro ao buscar mensagens posteriores às não lidas:', { status: response.status })
 				return { messages: [], hasMore: false }
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição mensagens posteriores às não lidas:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro na requisição mensagens posteriores às não lidas:', { error })
 			return { messages: [], hasMore: false }
 		}
 	}, [])
 
 	const sendMessage = useCallback(
 		async (content: string, receiverGroupId?: string, receiverUserId?: string) => {
-			try {
-				console.log('🔵 [ChatContext] Enviando mensagem:', {
-					content: content.substring(0, 50) + '...',
-					receiverGroupId,
-					receiverUserId,
-				})
+		try {
 
 				const response = await fetch('/api/admin/chat/messages', {
 					method: 'POST',
@@ -514,7 +451,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 				if (response.ok) {
 					const newMessage = await response.json()
-					console.log('✅ [ChatContext] Mensagem enviada:', newMessage.id)
 
 					// Atualizar estado local imediatamente (optimistic update)
 					const targetId = receiverGroupId || receiverUserId
@@ -536,13 +472,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 					// Atualizar contadores localmente ao invés de recarregar toda sidebar
 					// (evita perda de focus no input do chat)
-					console.log('🔵 [ChatContext] Atualizando contadores localmente após envio')
 				} else {
 					const errorData = await response.json()
-					console.error('❌ [ChatContext] Erro ao enviar mensagem:', errorData.error)
+					console.error('❌ [CONTEXT_CHAT] Erro ao enviar mensagem:', { error: errorData.error })
 				}
 			} catch (error) {
-				console.error('❌ [ChatContext] Erro na requisição enviar mensagem:', error)
+				console.error('❌ [CONTEXT_CHAT] Erro na requisição enviar mensagem:', { error })
 			}
 		},
 		[], // Removida dependência loadSidebarData para evitar re-renderizações
@@ -551,14 +486,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	const markMessageAsRead = useCallback(
 		async (messageId: string) => {
 			try {
-				console.log('🔵 [ChatContext] Marcando mensagem como lida:', messageId)
 
 				const response = await fetch(`/api/admin/chat/messages/${messageId}/read`, {
 					method: 'POST',
 				})
 
 				if (response.ok) {
-					console.log('✅ [ChatContext] Mensagem marcada como lida')
 
 					// Atualizar estado local
 					setMessages((prev) => {
@@ -577,10 +510,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				} else {
 					const errorData = await response.json()
 					// Log apenas como info para evitar poluição de console
-					console.log('🔵 [ChatContext] Não foi possível marcar mensagem como lida:', errorData.error)
 				}
 			} catch (error) {
-				console.error('❌ [ChatContext] Erro na requisição marcar como lida:', error)
+				console.error('❌ [CONTEXT_CHAT] Erro na requisição marcar como lida:', { error })
 			}
 		},
 		[loadSidebarData],
@@ -588,14 +520,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 	const deleteMessage = useCallback(async (messageId: string) => {
 		try {
-			console.log('🔵 [ChatContext] Excluindo mensagem:', messageId)
 
 			const response = await fetch(`/api/admin/chat/messages/${messageId}`, {
 				method: 'DELETE',
 			})
 
 			if (response.ok) {
-				console.log('✅ [ChatContext] Mensagem excluída')
 
 				// Remover do estado local
 				setMessages((prev) => {
@@ -607,10 +537,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				})
 			} else {
 				const errorData = await response.json()
-				console.error('❌ [ChatContext] Erro ao excluir mensagem:', errorData.error)
+				console.error('❌ [CONTEXT_CHAT] Erro ao excluir mensagem:', { error: errorData.error })
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição excluir mensagem:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro na requisição excluir mensagem:', { error })
 		}
 	}, [])
 
@@ -625,7 +555,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 			if (response.ok) {
 				const data = await response.json()
-				console.log('✅ [ChatContext] Mensagens marcadas como lidas:', data.updatedCount)
 
 				// Atualizar estado local - marcar mensagens como lidas
 				setMessages((prev) => {
@@ -659,11 +588,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 					// Atualizar totalUnread
 					setTotalUnread((prev) => prev - unreadToSubtract)
 					
-					console.log('🔵 [ChatContext] Contador de usuário atualizado:', {
-						userId: targetId,
-						subtracted: unreadToSubtract,
-						newTotal: totalUnread - unreadToSubtract
-					})
+
 				} else if (type === 'group') {
 					// Para grupos, reduzir contagem do grupo
 					const targetGroup = groups.find(g => g.id === targetId)
@@ -679,11 +604,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 					// Atualizar totalUnread
 					setTotalUnread((prev) => prev - unreadToSubtract)
 					
-					console.log('🔵 [ChatContext] Contador de grupo atualizado:', {
-						groupId: targetId,
-						subtracted: unreadToSubtract,
-						newTotal: totalUnread - unreadToSubtract
-					})
+
 				}
 
 				// Recarregar dados da sidebar para sincronizar
@@ -693,10 +614,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				window.dispatchEvent(new CustomEvent('messagesRead'))
 			} else {
 				const errorData = await response.json()
-				console.error('❌ [ChatContext] Erro ao marcar mensagens como lidas:', errorData.error)
+				console.error('❌ [CONTEXT_CHAT] Erro ao marcar mensagens como lidas:', { error: errorData.error })
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição marcar como lidas:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro na requisição marcar como lidas:', { error })
 		}
 	}, [currentUser?.id, loadSidebarData, users, groups, totalUnread])
 
@@ -711,15 +632,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			})
 
 			if (response.ok) {
-				console.log('✅ [ChatContext] Presença atualizada:', status)
 				setCurrentPresence(status)
-				console.log('🔵 [ChatContext] currentPresence definido para:', status)
 			} else {
 				const errorData = await response.json()
-				console.error('❌ [ChatContext] Erro ao atualizar presença:', errorData.error)
+				console.error('❌ [CONTEXT_CHAT] Erro ao atualizar presença:', { error: errorData.error })
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro na requisição presença:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro na requisição presença:', { error })
 		}
 	}, [])
 
@@ -729,7 +648,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				method: 'PATCH',
 			})
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro no heartbeat:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro no heartbeat:', { error })
 		}
 	}, [])
 
@@ -753,10 +672,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				const data = await response.json()
 
 				if (data.hasUpdates) {
-					console.log('✅ [ChatContext] Mensagens novas encontradas:', {
-						newMessages: data.messages?.length || 0,
-						presenceUpdates: data.presence?.length || 0,
-					})
+
 
 					// Atualizar mensagens (evitar duplicatas) e contar REAL mensagens novas
 					let reallyNewMessagesCount = 0
@@ -781,7 +697,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 											updated[targetId] = existingMessages.map((m, index) => 
 												index === existingMsgIndex ? { ...m, readAt: msg.readAt } : m
 											)
-											console.log('🔵 [ChatContext] Atualizando readAt da mensagem:', msg.id, 'para:', msg.readAt)
 										}
 									}
 								}
@@ -801,26 +716,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 						const newTotalUnread = userTotal + groupTotal
 						
 						setTotalUnread(newTotalUnread)
-						console.log('🔵 [ChatContext] Contadores atualizados:', {
-							users: userTotal,
-							groups: groupTotal,
-							total: newTotalUnread
-						})
+
 					}
 
 					// Atualizar presença dos usuários em tempo real
 					if (data.presence && data.presence.length > 0) {
-						console.log('🔵 [ChatContext] Atualizando presença de usuários:', data.presence.length)
 						setUsers(prevUsers => {
 							return prevUsers.map(user => {
 								const presenceUpdate = data.presence.find((p: { userId: string; status: string; lastActivity: Date }) => p.userId === user.id)
 								if (presenceUpdate) {
-									console.log('🔵 [ChatContext] Atualizando presença do usuário:', {
-										userId: user.id,
-										name: user.name,
-										oldStatus: user.presenceStatus,
-										newStatus: presenceUpdate.status
-									})
+
 									return {
 										...user,
 										presenceStatus: presenceUpdate.status as 'visible' | 'invisible',
@@ -834,11 +739,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 					// Recarregar sidebar APENAS se há mensagens REALMENTE novas
 					if (reallyNewMessagesCount > 0) {
-						console.log('🔵 [ChatContext] Recarregando sidebar devido a mensagens REALMENTE novas:', reallyNewMessagesCount)
 						loadSidebarData()
 						// Note: Dropdown agora detecta mudanças via totalUnread - sem necessidade de evento
 					} else if (data.messages && data.messages.length > 0) {
-						console.log('🟡 [ChatContext] Mensagens já existentes - sem recarregamento:', data.messages.length)
+						console.log('ℹ️ [CONTEXT_CHAT] Mensagens já existentes - sem recarregamento:', { messagesCount: data.messages.length })
 					}
 				}
 
@@ -848,9 +752,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		} catch (error) {
 			// Silenciar erros de rede para evitar spam no console
 			if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-				console.log('🔵 [ChatContext] Servidor offline - tentando novamente em 10s')
 			} else {
-				console.error('❌ [ChatContext] Erro na sincronização:', error)
+				console.error('❌ [CONTEXT_CHAT] Erro na sincronização:', { error })
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -858,11 +761,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 	const startPolling = useCallback(() => {
 		if (isPollingActive.current) {
-			console.log('🟡 [ChatContext] Polling já ativo - ignorando solicitação')
+			console.log('ℹ️ [CONTEXT_CHAT] Polling já ativo - ignorando solicitação')
 			return
 		}
 
-		console.log(`🔵 [ChatContext] Iniciando polling (${POLLING_INTERVAL / 1000} segundos)`)
 		isPollingActive.current = true
 
 		pollingInterval.current = setInterval(() => {
@@ -874,11 +776,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 	const stopPolling = useCallback(() => {
 		if (!isPollingActive.current) {
-			console.log('🟡 [ChatContext] Polling já parado - ignorando solicitação')
+			console.log('ℹ️ [CONTEXT_CHAT] Polling já parado - ignorando solicitação')
 			return
 		}
 
-		console.log('🔵 [ChatContext] Parando polling')
 		isPollingActive.current = false
 
 		if (pollingInterval.current) {
@@ -894,14 +795,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			const response = await fetch('/api/admin/chat/presence')
 			if (response.ok) {
 				const data = await response.json()
-				console.log('🔵 [ChatContext] Dados da API de presença:', {
-					currentUserPresence: data.currentUserPresence,
-					currentPresence: currentPresence
-				})
 				
 				// Usar novo campo currentUserPresence da API
 				if (!data.currentUserPresence && currentUser) {
-					console.log('🔵 [ChatContext] Primeira vez - definindo como visível')
 					setCurrentPresence('visible')
 					// Fazer a chamada da API para salvar o status
 					await fetch('/api/admin/chat/presence', {
@@ -910,15 +806,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 						body: JSON.stringify({ status: 'visible' }),
 					})
 				} else if (data.currentUserPresence) {
-					console.log('🔵 [ChatContext] Preservando status existente:', data.currentUserPresence.status)
 					setCurrentPresence(data.currentUserPresence.status)
 				}
 			} else {
 				// Se não conseguir buscar, apenas fazer heartbeat sem mudar status
-				console.log('🔵 [ChatContext] Apenas heartbeat - mantendo status atual')
 			}
 		} catch (error) {
-			console.error('❌ [ChatContext] Erro ao verificar presença existente:', error)
+			console.error('❌ [CONTEXT_CHAT] Erro ao verificar presença existente:', { error })
 		}
 	}, [currentUser, currentPresence]) // Adicionado currentPresence para sincronização
 
@@ -928,22 +822,18 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		const checkChatPreference = async () => {
 			try {
-				console.log('🔵 [ChatContext] Verificando preferências do chat...')
 				const response = await fetch('/api/user-preferences')
 				if (response.ok) {
 					const data = await response.json()
 					const enabled = data.userPreferences?.chatEnabled !== false
 					setChatEnabled(enabled)
-					console.log('🔵 [ChatContext] Preferência de chat:', enabled ? 'HABILITADO' : 'DESABILITADO', {
-						rawData: data.userPreferences,
-						chatEnabled: data.userPreferences?.chatEnabled
-					})
+
 				} else {
-					console.error('❌ [ChatContext] Erro na resposta da API de preferências:', response.status)
+					console.error('❌ [CONTEXT_CHAT] Erro na resposta da API de preferências:', { status: response.status })
 					setChatEnabled(true) // Default para habilitado em caso de erro
 				}
 			} catch (error) {
-				console.error('❌ [ChatContext] Erro ao verificar preferências do chat:', error)
+				console.error('❌ [CONTEXT_CHAT] Erro ao verificar preferências do chat:', { error })
 				setChatEnabled(true) // Default para habilitado em caso de erro
 			}
 		}
@@ -954,7 +844,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		const handleChatPreferenceChange = (event: CustomEvent) => {
 			const { chatEnabled: newChatEnabled } = event.detail
 			setChatEnabled(newChatEnabled)
-			console.log('🔵 [ChatContext] Preferência de chat alterada:', newChatEnabled ? 'HABILITADO' : 'DESABILITADO')
 		}
 
 		window.addEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
@@ -965,14 +854,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	}, [])
 
 	useEffect(() => {
-		console.log('🔵 [ChatContext] useEffect executado:', {
-			currentUser: currentUser ? `${currentUser.name} (${currentUser.id})` : 'null',
-			chatEnabled,
-			loading: currentUser === null ? 'loading' : 'loaded'
-		})
+
 		
 		if (currentUser && chatEnabled) {
-			console.log('🔵 [ChatContext] Usuário logado e chat habilitado, inicializando chat...')
 			initializePresence()
 			loadSidebarData()
 			// Definir timestamp antes de iniciar polling para primeira execução limpa
@@ -982,10 +866,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 				startPolling()
 			}, 500)
 		} else {
-			console.log('🔵 [ChatContext] Chat desabilitado ou usuário deslogado, parando polling...', {
-				currentUser: currentUser ? 'present' : 'null',
-				chatEnabled
-			})
+
 			stopPolling()
 			setCurrentPresence('invisible')
 		}
@@ -1007,7 +888,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	// Removido para evitar recarregamentos desnecessários - o polling já atualiza os dados
 	// useEffect(() => {
 	// 	if (totalUnread > 0) {
-	// 		console.log('🔵 [ChatContext] totalUnread mudou para:', totalUnread, '- recarregando sidebar')
 	// 		loadSidebarData()
 	// 	}
 	// }, [totalUnread])

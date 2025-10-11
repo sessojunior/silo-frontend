@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 		// Retorna para a página o próximo passo
 		return NextResponse.json({ step: 2, email })
 	} catch (error) {
-		console.error('❌ Erro ao fazer login com e-mail:', error)
+		console.error('❌ [API_AUTH_LOGIN_EMAIL] Erro ao fazer login com e-mail:', { error })
 		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

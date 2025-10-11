@@ -75,7 +75,7 @@ export default function ForgetPasswordPage() {
 				setStep(2)
 			}
 		} catch (err) {
-			console.error('❌ Erro inesperado:', err)
+			console.error('❌ [PAGE_FORGET_PASSWORD] Erro inesperado:', { error: err })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -118,7 +118,7 @@ export default function ForgetPasswordPage() {
 				setStep(3)
 			}
 		} catch (err) {
-			console.error('❌ Erro ao verificar o código:', err)
+			console.error('❌ [PAGE_FORGET_PASSWORD] Erro ao verificar o código:', { error: err })
 			toast({
 				type: 'error',
 				title: 'Erro ao verificar o código.',
@@ -159,7 +159,7 @@ export default function ForgetPasswordPage() {
 				setStep(4)
 			}
 		} catch (err) {
-			console.error('❌ Erro ao alterar a senha:', err)
+			console.error('❌ [PAGE_FORGET_PASSWORD] Erro ao alterar a senha:', { error: err })
 			toast({
 				type: 'error',
 				title: 'Erro ao alterar a senha.',

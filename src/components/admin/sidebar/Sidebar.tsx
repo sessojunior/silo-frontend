@@ -37,23 +37,20 @@ export default function Sidebar() {
 					const data = await response.json()
 					const enabled = data.userPreferences?.chatEnabled !== false
 					
-					console.log('🔍 [Sidebar] Verificando chat:', {
-						currentPresence,
-						preferenceEnabled: enabled,
-						userPreferences: data.userPreferences
-					})
-					
+					// Log para debug
+					console.log('ℹ️ [COMPONENT_SIDEBAR] Verificando chat:', { currentPresence, preferenceEnabled: enabled, userPreferences: data.userPreferences })
+				
 					// Só desabilitar se estiver invisível E não estiver habilitado nas preferências
 					if (currentPresence === 'invisible' && !enabled) {
-						console.log('🔍 [Sidebar] Chat desabilitado: invisível + preferência desabilitada')
+						console.log('ℹ️ [COMPONENT_SIDEBAR] Chat desabilitado: invisível + preferência desabilitada')
 						setChatEnabled(false)
 					} else {
-						console.log('🔍 [Sidebar] Chat habilitado:', enabled)
+						console.log('ℹ️ [COMPONENT_SIDEBAR] Chat habilitado:', { enabled })
 						setChatEnabled(enabled)
 					}
 				}
 			} catch (error) {
-				console.error('❌ [Sidebar] Erro ao verificar preferências do chat:', error)
+				console.error('❌ [COMPONENT_SIDEBAR] Erro ao verificar preferências do chat:', { error })
 			}
 		}
 
@@ -62,10 +59,7 @@ export default function Sidebar() {
 		// Listener para atualização automática quando preferência de chat mudar
 		const handleChatPreferenceChange = (event: CustomEvent) => {
 			const newChatEnabled = event.detail.chatEnabled
-			console.log('🔍 [Sidebar] Evento chatPreferenceChanged:', {
-				newChatEnabled,
-				currentPresence
-			})
+			console.log('ℹ️ [COMPONENT_SIDEBAR] Evento chatPreferenceChanged:', { newChatEnabled, currentPresence })
 			
 		// Só desabilitar se estiver invisível E não estiver habilitado nas preferências
 		if (currentPresence === 'invisible' && !newChatEnabled) {
@@ -102,7 +96,7 @@ export default function Sidebar() {
 			try {
 				const response = await fetch('/api/admin/projects')
 				if (!response.ok) {
-					console.error('❌ Erro ao buscar projetos para sidebar')
+					console.error('❌ [COMPONENT_SIDEBAR] Erro ao buscar projetos para sidebar')
 					return
 				}
 				const projectsData = await response.json()
@@ -145,7 +139,7 @@ export default function Sidebar() {
 
 				setProjects(formattedProjects)
 			} catch (error) {
-				console.error('❌ Erro ao carregar projetos para sidebar:', error)
+				console.error('❌ [COMPONENT_SIDEBAR] Erro ao carregar projetos para sidebar:', { error })
 				setProjects([])
 			}
 		}
@@ -154,7 +148,7 @@ export default function Sidebar() {
 	}, [])
 
 	// Log para debug do estado do chat
-	console.log('🔍 [Sidebar] Renderizando menu com chatEnabled:', chatEnabled)
+	console.log('ℹ️ [COMPONENT_SIDEBAR] Renderizando menu com chatEnabled:', { chatEnabled })
 
 	// Dados para o menu lateral
 	const sidebar: SidebarProps = {

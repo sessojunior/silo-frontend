@@ -112,7 +112,7 @@ export default function UploadButtonLocal({ endpoint = 'general', onClientUpload
 				}
 			}
 		} catch (error) {
-			console.error('❌ Erro no upload:', error)
+			console.error('❌ [COMPONENT_UPLOAD_BUTTON] Erro no upload:', { error })
 			const errorMessage = error instanceof Error ? error.message : 'Erro no upload'
 
 			if (onUploadError) {

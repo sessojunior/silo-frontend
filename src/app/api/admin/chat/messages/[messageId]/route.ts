@@ -14,7 +14,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 		const { messageId } = await params
 
-		console.log('🔵 Marcando mensagem como lida:', { messageId, userId: user.id })
 
 		// Buscar userMessage recebida pelo usuário atual e ainda não lida
 		const message = await db
@@ -37,11 +36,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 		// Marcar como lida
 		await db.update(schema.chatMessage).set({ readAt: new Date(), updatedAt: new Date() }).where(eq(schema.chatMessage.id, messageId))
 
-		console.log('✅ Mensagem marcada como lida:', messageId)
 
 		return NextResponse.json({ success: true, readAt: new Date() })
 	} catch (error) {
-		console.error('❌ Erro ao marcar mensagem como lida:', error)
+		console.error('❌ [API_CHAT_MESSAGES_MESSAGEID] Erro ao marcar mensagem como lida:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -56,7 +54,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
 		const { messageId } = await params
 
-		console.log('🔵 Tentando excluir mensagem:', { messageId, userId: user.id })
 
 		// Buscar mensagem enviada pelo usuário atual
 		const message = await db
@@ -97,11 +94,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
 		const messageType = msg.receiverGroupId ? 'groupMessage' : 'userMessage'
 
-		console.log('✅ Mensagem excluída:', {
-			messageId,
-			type: messageType,
-			hoursAfterCreation: hoursSinceCreated.toFixed(1),
-		})
+
 
 		return NextResponse.json({
 			success: true,
@@ -109,7 +102,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 			messageType,
 		})
 	} catch (error) {
-		console.error('❌ Erro ao excluir mensagem:', error)
+		console.error('❌ [API_CHAT_MESSAGES_MESSAGEID] Erro ao excluir mensagem:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

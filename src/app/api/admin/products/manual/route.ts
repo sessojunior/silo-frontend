@@ -14,7 +14,6 @@ export async function GET(req: NextRequest) {
 
 		if (productSlug) {
 			// Busca por slug (mais comum)
-			console.log('🔵 Buscando manual por slug:', productSlug)
 			const result = await db
 				.select({
 					manual: productManual,
@@ -27,7 +26,6 @@ export async function GET(req: NextRequest) {
 			manual = result[0]?.manual || null
 		} else if (productId) {
 			// Busca por ID direto
-			console.log('🔵 Buscando manual por productId:', productId)
 			const result = await db.select().from(productManual).where(eq(productManual.productId, productId)).limit(1)
 
 			manual = result[0] || null
@@ -35,10 +33,9 @@ export async function GET(req: NextRequest) {
 			return NextResponse.json({ error: 'productSlug ou productId é obrigatório' }, { status: 400 })
 		}
 
-		console.log('✅ Manual encontrado:', manual ? 'Sim' : 'Não')
 		return NextResponse.json({ success: true, data: manual })
 	} catch (error) {
-		console.error('❌ Erro ao buscar manual:', error)
+		console.error('❌ [API_PRODUCTS_MANUAL] Erro ao buscar manual:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -46,7 +43,6 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
 	try {
 		const { productId, description } = await req.json()
-		console.log('🔵 API PUT recebido:', { productId, descriptionLength: description?.length })
 
 		if (!productId || !description) {
 			return NextResponse.json({ success: false, error: 'ProductId e description são obrigatórios' }, { status: 400 })
@@ -64,7 +60,7 @@ export async function PUT(req: NextRequest) {
 		let result
 		if (existingManual.length > 0) {
 			// Atualiza manual existente
-			console.log('🔄 Atualizando manual existente')
+			console.log('ℹ️ [API_PRODUCTS_MANUAL] Atualizando manual existente')
 			result = await db
 				.update(productManual)
 				.set({
@@ -75,7 +71,7 @@ export async function PUT(req: NextRequest) {
 				.returning()
 		} else {
 			// Cria novo manual
-			console.log('🆕 Criando novo manual')
+			console.log('ℹ️ [API_PRODUCTS_MANUAL] Criando novo manual')
 			result = await db
 				.insert(productManual)
 				.values({
@@ -88,10 +84,9 @@ export async function PUT(req: NextRequest) {
 				.returning()
 		}
 
-		console.log('✅ Manual salvo com sucesso')
 		return NextResponse.json({ success: true, data: result[0] })
 	} catch (error) {
-		console.error('❌ Erro ao salvar manual:', error)
+		console.error('❌ [API_PRODUCTS_MANUAL] Erro ao salvar manual:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

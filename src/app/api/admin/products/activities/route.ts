@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
 
 		return jsonResponse({ success: true, data: record, action })
 	} catch (error) {
-		console.error('❌ Erro ao criar product_activity', error)
+		console.error('❌ [API_PRODUCTS_ACTIVITIES] Erro ao criar product_activity:', { error })
 		return jsonResponse({ success: false, error: 'Erro interno' }, 500)
 	}
 }
@@ -119,7 +119,7 @@ export async function PUT(req: NextRequest) {
 
 		return jsonResponse({ success: true, data: updated })
 	} catch (error) {
-		console.error('❌ Erro ao atualizar product_activity', error)
+		console.error('❌ [API_PRODUCTS_ACTIVITIES] Erro ao atualizar product_activity:', { error })
 		return jsonResponse({ success: false, error: 'Erro interno' }, 500)
 	}
 }

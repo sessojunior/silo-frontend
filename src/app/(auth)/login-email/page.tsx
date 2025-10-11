@@ -78,7 +78,7 @@ export default function LoginEmailPage() {
 				router.push('/admin/welcome')
 			}
 		} catch (err) {
-			console.error('❌ Erro inesperado:', err)
+			console.error('❌ [PAGE_LOGIN_EMAIL] Erro inesperado:', { error: err })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -119,7 +119,7 @@ export default function LoginEmailPage() {
 				router.push('/admin/welcome')
 			}
 		} catch (err) {
-			console.error('❌ Erro ao verificar o código:', err)
+			console.error('❌ [PAGE_LOGIN_EMAIL] Erro ao verificar o código:', { error: err })
 			toast({
 				type: 'error',
 				title: 'Erro ao verificar o código.',

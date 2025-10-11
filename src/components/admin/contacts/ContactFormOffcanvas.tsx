@@ -37,19 +37,10 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 
 	// Atualizar form quando contato mudar
 	useEffect(() => {
-		console.log('🔵 useEffect ContactForm disparado:', {
-			contact: contact ? `${contact.name} (${contact.id})` : 'null',
-			isOpen,
-			timestamp: new Date().toISOString(),
-		})
+
 
 		if (contact && isOpen) {
-			console.log('🔵 Carregando dados do contato para edição:', {
-				id: contact.id,
-				name: contact.name,
-				email: contact.email,
-				active: contact.active,
-			})
+
 			setFormData({
 				name: contact.name,
 				role: contact.role,
@@ -61,7 +52,6 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 			setImagePreview(contact.image || null)
 			setRemoveImage(false)
 		} else if (!contact && isOpen) {
-			console.log('🔵 Resetando formulário para novo contato')
 			setFormData({
 				name: '',
 				role: '',
@@ -114,17 +104,16 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 				})
 
 				if (response.ok) {
-					console.log('✅ Imagem do contato removida automaticamente do banco')
 					// Atualizar a lista de contatos para refletir a mudança
 					if (onSuccess) {
 						onSuccess()
 					}
 				} else {
 					const errorData = await response.json()
-					console.log('⚠️ Erro ao remover imagem do banco automaticamente:', errorData)
+					console.warn('⚠️ [COMPONENT_CONTACT_FORM] Erro ao remover imagem do banco automaticamente:', { errorData })
 				}
 			} catch (error) {
-				console.log('⚠️ Erro ao remover imagem do banco:', error)
+				console.warn('⚠️ [COMPONENT_CONTACT_FORM] Erro ao remover imagem do banco:', { error })
 			}
 		}
 	}
@@ -233,7 +222,7 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao salvar contato:', error)
+			console.error('❌ [COMPONENT_CONTACT_FORM] Erro ao salvar contato:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro',
@@ -246,11 +235,9 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 
 	const handleClose = () => {
 		if (!loading) {
-			console.log('🔵 Fechando offcanvas de contato')
 			onClose()
 			// Reset form apenas se não estiver carregando
 			setTimeout(() => {
-				console.log('🔵 Resetando formulário após fechamento')
 				setFormData({
 					name: '',
 					role: '',
@@ -284,10 +271,9 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 											fill
 											className='object-cover transition-transform duration-200 group-hover:scale-105'
 											onError={() => {
-												console.log('❌ Erro ao carregar imagem:', imagePreview)
+												console.error('❌ [COMPONENT_CONTACT_FORM] Erro ao carregar imagem:', { imagePreview })
 												setImagePreview(null)
 											}}
-											onLoad={() => console.log('✅ Imagem carregada:', imagePreview)}
 										/>
 									) : (
 										<span className='icon-[lucide--user] size-8 text-zinc-400 transition-colors duration-200 group-hover:text-zinc-500' />
@@ -332,17 +318,16 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 														})
 
 														if (response.ok) {
-															console.log('✅ Imagem do contato salva automaticamente no banco')
 															// Atualizar a lista de contatos para refletir a mudança
 															if (onSuccess) {
 																onSuccess()
 															}
 														} else {
 															const errorData = await response.json()
-															console.log('⚠️ Erro ao salvar imagem no banco automaticamente:', errorData)
+															console.warn('⚠️ [COMPONENT_CONTACT_FORM] Erro ao salvar imagem no banco automaticamente:', { errorData })
 														}
 													} catch (error) {
-														console.log('⚠️ Erro ao salvar imagem no banco:', error)
+														console.warn('⚠️ [COMPONENT_CONTACT_FORM] Erro ao salvar imagem no banco:', { error })
 													}
 												}
 											}

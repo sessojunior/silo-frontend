@@ -61,7 +61,7 @@ async function getTotalMessagesCount(groupId: string | null, userId: string | nu
 		}
 		return 0
 	} catch (error) {
-		console.error('❌ Erro ao contar mensagens totais:', error)
+		console.error('❌ [API_CHAT_MESSAGES] Erro ao contar mensagens totais:', { error })
 		return 0
 	}
 }
@@ -105,19 +105,6 @@ export async function GET(request: NextRequest) {
 		// Para paginação tradicional, usar page
 		const offset = before || after ? 0 : (page - 1) * limit
 
-		console.log('🔵 [API] Buscando mensagens:', { 
-			groupId, 
-			userId, 
-			limit, 
-			page, 
-			order, 
-			before, 
-			after, 
-			offset, 
-			currentUser: user.id,
-			hasBefore: !!before,
-			hasAfter: !!after
-		})
 
 		let messages: MessageWithSender[] = []
 
@@ -154,13 +141,7 @@ export async function GET(request: NextRequest) {
 		// O offset e limit serão ajustados conforme necessário
 		const orderDirection = desc(schema.chatMessage.createdAt)
 			
-			console.log('🔵 [API] Ordenação para grupo:', {
-				hasBefore: !!before,
-				hasAfter: !!after,
-				orderType: 'DESC (consistente)',
-				beforeDate: before,
-				afterDate: after
-			})
+
 			
 			messages = await db
 				.select({
@@ -206,13 +187,7 @@ export async function GET(request: NextRequest) {
 		// O offset e limit serão ajustados conforme necessário
 		const orderDirection = desc(schema.chatMessage.createdAt)
 			
-			console.log('🔵 [API] Ordenação para usuário:', {
-				hasBefore: !!before,
-				hasAfter: !!after,
-				orderType: 'DESC (consistente)',
-				beforeDate: before,
-				afterDate: after
-			})
+
 			
 			messages = await db
 				.select({
@@ -253,45 +228,9 @@ export async function GET(request: NextRequest) {
 			const totalLoaded = offset + messagesWithType.length
 			hasMore = totalLoaded < totalCount
 			
-			console.log('🔵 [API] Cálculo de hasMore (tradicional):', {
-				offset,
-				returnedCount: messagesWithType.length,
-				hasMore,
-				totalCount,
-				totalLoaded,
-				calculation: `${totalLoaded} < ${totalCount} = ${hasMore}`
-			})
 		}
 		
-		if (before || after) {
-			console.log('🔵 [API] Cálculo de hasMore (before/after):', {
-				returnedCount: messagesWithType.length,
-				hasMore,
-				limit,
-				calculation: `${messagesWithType.length} === ${limit} = ${hasMore}`
-			})
-		}
 
-		console.log('✅ [API] Mensagens encontradas:', { 
-			count: messagesWithType.length, 
-			hasMore,
-			limit,
-			order,
-			before: before || 'null',
-			after: after || 'null',
-			type: groupId ? 'groupMessage' : 'userMessage',
-			offset,
-			totalRequested: limit + offset,
-			debug: {
-				returnedCount: messagesWithType.length,
-				requestedLimit: limit,
-				hasMoreCalculation: before || after 
-					? `${messagesWithType.length} === ${limit} = ${hasMore}`
-					: 'traditional pagination',
-				before: before || 'null',
-				after: after || 'null'
-			}
-		})
 
 		return NextResponse.json({
 			messages: messagesWithType,
@@ -299,7 +238,7 @@ export async function GET(request: NextRequest) {
 			hasMore,
 		})
 	} catch (error) {
-		console.error('❌ Erro ao buscar mensagens:', error)
+		console.error('❌ [API_CHAT_MESSAGES] Erro ao buscar mensagens:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -329,12 +268,6 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: 'Especifique apenas um receptor (groupId ou userId)' }, { status: 400 })
 		}
 
-		console.log('🔵 Enviando mensagem:', {
-			content: content.substring(0, 50) + '...',
-			receiverGroupId,
-			receiverUserId,
-			sender: user.id,
-		})
 
 		// Validação específica para groupMessage
 		if (receiverGroupId) {
@@ -397,15 +330,10 @@ export async function POST(request: NextRequest) {
 			messageType: message.receiverGroupId ? 'groupMessage' : 'userMessage',
 		}
 
-		console.log('✅ Mensagem enviada:', {
-			id: messageId,
-			type: messageResponse.messageType,
-			to: receiverGroupId || receiverUserId,
-		})
 
 		return NextResponse.json(messageResponse, { status: 201 })
 	} catch (error) {
-		console.error('❌ Erro ao enviar mensagem:', error)
+		console.error('❌ [API_CHAT_MESSAGES] Erro ao enviar mensagem:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

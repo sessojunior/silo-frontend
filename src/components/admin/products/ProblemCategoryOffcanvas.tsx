@@ -44,7 +44,7 @@ export default function ProblemCategoryOffcanvas({ open, onClose }: Props) {
 								}
 							}
 						} catch (error) {
-							console.error('Erro ao buscar uso da categoria:', error)
+							console.error('❌ [COMPONENT_PROBLEM_CATEGORY] Erro ao buscar uso da categoria:', { error })
 						}
 						return { ...cat, usageCount: 0 }
 					}),

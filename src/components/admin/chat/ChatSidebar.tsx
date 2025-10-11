@@ -45,22 +45,19 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 		try {
 			await updatePresence(newStatus)
 			setShowStatusMenu(false)
-			console.log('✅ [ChatSidebar] Status alterado para:', newStatus)
 		} catch (error) {
-			console.error('❌ [ChatSidebar] Erro ao alterar status:', error)
+			console.error('❌ [COMPONENT_CHAT_SIDEBAR] Erro ao alterar status:', { newStatus, error })
 		}
 	}
 
 	// Navegar para aba específica
 	const handleTabChange = (tab: 'groups' | 'users') => {
-		console.log('🔵 [ChatSidebar] Mudando para aba:', tab)
 		setActiveTab(tab)
 		router.push(`/admin/chat/${tab}`)
 	}
 
 	// Navegar para conversa específica
 	const handleConversationSelect = (targetId: string, type: 'group' | 'user') => {
-		console.log('🔵 [ChatSidebar] Selecionando conversa:', { targetId, type })
 		onTargetSelect(targetId, type)
 		router.push(`/admin/chat/${type === 'group' ? 'groups' : 'users'}/${targetId}`)
 	}

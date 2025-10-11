@@ -20,7 +20,6 @@ export async function GET(req: NextRequest) {
 			return NextResponse.json({ error: 'ProductId é obrigatório' }, { status: 400 })
 		}
 
-		console.log('🔵 Buscando contatos do produto:', productId)
 
 		// Query com JOIN para pegar dados completos dos contatos ATIVOS
 		const contactsWithDetails = await db
@@ -41,7 +40,6 @@ export async function GET(req: NextRequest) {
 			.where(and(eq(productContact.productId, productId), eq(contact.active, true)))
 			.orderBy(productContact.createdAt)
 
-		console.log('✅ Contatos do produto encontrados:', contactsWithDetails.length)
 
 		return NextResponse.json({
 			success: true,
@@ -51,7 +49,7 @@ export async function GET(req: NextRequest) {
 			},
 		})
 	} catch (error) {
-		console.error('❌ Erro ao buscar contatos do produto:', error)
+		console.error('❌ [API_PRODUCTS_CONTACTS] Erro ao buscar contatos do produto:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -70,7 +68,6 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ success: false, error: 'ProductId e contactIds são obrigatórios' }, { status: 400 })
 		}
 
-		console.log('🔵 Associando contatos ao produto:', { productId, contactIds })
 
 		// Remover associações existentes
 		await db.delete(productContact).where(eq(productContact.productId, productId))
@@ -86,14 +83,13 @@ export async function POST(req: NextRequest) {
 			await db.insert(productContact).values(associations)
 		}
 
-		console.log('✅ Contatos associados com sucesso ao produto')
 
 		return NextResponse.json({
 			success: true,
 			message: `${contactIds.length} contatos associados com sucesso`,
 		})
 	} catch (error) {
-		console.error('❌ Erro ao associar contatos ao produto:', error)
+		console.error('❌ [API_PRODUCTS_CONTACTS] Erro ao associar contatos ao produto:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -112,18 +108,16 @@ export async function DELETE(req: NextRequest) {
 			return NextResponse.json({ success: false, error: 'AssociationId é obrigatório' }, { status: 400 })
 		}
 
-		console.log('🔵 Removendo associação contato-produto:', associationId)
 
 		await db.delete(productContact).where(eq(productContact.id, associationId))
 
-		console.log('✅ Associação removida com sucesso')
 
 		return NextResponse.json({
 			success: true,
 			message: 'Associação removida com sucesso',
 		})
 	} catch (error) {
-		console.error('❌ Erro ao remover associação contato-produto:', error)
+		console.error('❌ [API_PRODUCTS_CONTACTS] Erro ao remover associação contato-produto:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

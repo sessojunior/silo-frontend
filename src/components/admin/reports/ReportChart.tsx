@@ -32,7 +32,6 @@ export function ReportChart({ type, data, reportType, height = 300, className = 
 	}
 
 	// Logs de debug
-	console.log('🔵 ReportChart renderizando:', { type, reportType, dataKeys: Object.keys(data || {}) })
 
 	const getChartTitle = () => {
 		if (!reportType) return 'Gráfico'

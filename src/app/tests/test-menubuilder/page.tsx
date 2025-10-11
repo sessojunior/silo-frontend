@@ -204,7 +204,7 @@ export default function TesteMenuPage() {
 
 	const handleSetDependencies = (newDependencies: ProductDependencyItem[]) => {
 		setDependencies(newDependencies)
-		console.log('✅ Dependências atualizadas:', newDependencies)
+		console.log('ℹ️ [PAGE_TEST_MENUBUILDER] Dependências atualizadas:', { newDependencies })
 	}
 
 	// Evita problemas de hidratação SSR

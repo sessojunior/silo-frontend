@@ -63,7 +63,7 @@ export async function GET() {
 
 		return NextResponse.json(result)
 	} catch (error) {
-		console.error('❌ Erro ao obter progresso dos projetos:', error)
+		console.error('❌ [API_DASHBOARD_PROJECTS] Erro ao obter progresso dos projetos:', { error })
 		return NextResponse.json({ success: false, error: 'Erro ao obter progresso dos projetos' }, { status: 500 })
 	}
 }

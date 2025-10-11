@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 		})
 
 	} catch (error) {
-		console.error('❌ Erro ao solicitar alteração de e-mail:', error)
+		console.error('❌ [API_USER_EMAIL_CHANGE] Erro ao solicitar alteração de e-mail:', { error })
 		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }
@@ -149,7 +149,7 @@ export async function PUT(req: NextRequest) {
 		})
 
 	} catch (error) {
-		console.error('❌ Erro ao confirmar alteração de e-mail:', error)
+		console.error('❌ [API_USER_EMAIL_CHANGE] Erro ao confirmar alteração de e-mail:', { error })
 		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

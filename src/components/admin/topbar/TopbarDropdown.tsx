@@ -33,12 +33,6 @@ export default function TopbarDropdown({ account }: { account: AccountProps }) {
 		}
 	}
 
-	// Log quando o status muda (apenas em desenvolvimento)
-	useEffect(() => {
-		if (currentPresence) {
-			console.log('🔵 [TopbarDropdown] Avatar atualizado com status:', currentPresence)
-		}
-	}, [currentPresence])
 
 	function toggleDropdown() {
 		setIsOpen((prev) => !prev)

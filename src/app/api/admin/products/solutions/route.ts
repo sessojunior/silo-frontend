@@ -139,23 +139,11 @@ export async function PUT(req: NextRequest) {
 	}
 
 	// Log antes da atualização
-	console.log('🔵 ANTES da edição - Solução:', {
-		id: id.substring(0, 8),
-		createdAt: solution[0].createdAt,
-		updatedAt: solution[0].updatedAt,
-		description: solution[0].description.substring(0, 30) + '...',
-	})
 
 	await db.update(productSolution).set({ description, updatedAt: new Date() }).where(eq(productSolution.id, id))
 
 	// Log após a atualização - buscar a solução novamente
 	const updatedSolution = await db.select().from(productSolution).where(eq(productSolution.id, id))
-	console.log('🔵 DEPOIS da edição - Solução:', {
-		id: id.substring(0, 8),
-		createdAt: updatedSolution[0].createdAt,
-		updatedAt: updatedSolution[0].updatedAt,
-		description: updatedSolution[0].description.substring(0, 30) + '...',
-	})
 
 	// Imagem: se enviada, substitui a anterior
 	if (imageUrl) {
@@ -220,11 +208,7 @@ export async function DELETE(req: NextRequest) {
 		const childReplyIds = await getAllChildReplies(id)
 		const allSolutionIds = [id, ...childReplyIds]
 
-		console.log('🔵 Excluindo solução e respostas filhas:', {
-			mainSolutionId: id.substring(0, 8),
-			childReplies: childReplyIds.length,
-			totalToDelete: allSolutionIds.length,
-		})
+
 
 		// 3. Excluir verificações de todas as soluções
 		if (allSolutionIds.length > 0) {
@@ -239,7 +223,6 @@ export async function DELETE(req: NextRequest) {
 		// 5. Excluir todas as soluções (principal + respostas filhas)
 		await tx.delete(productSolution).where(inArray(productSolution.id, allSolutionIds))
 
-		console.log('✅ Solução e respostas filhas excluídas com sucesso:', allSolutionIds.length)
 	})
 
 	return NextResponse.json({ success: true }, { status: 200 })

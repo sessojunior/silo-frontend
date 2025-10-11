@@ -83,14 +83,13 @@ export default function ProblemsPage() {
 			const data = await response.json()
 
 			if (data.success) {
-				console.log('✅ Contagens obtidas via API otimizada:', data.data)
 				return data.data
 			} else {
-				console.error('❌ Erro na API de contagem:', data.error)
+				console.error('❌ [PAGE_PRODUCT_PROBLEMS] Erro na API de contagem:', { error: data.error })
 				return {}
 			}
 		} catch (error) {
-			console.error('❌ Erro ao buscar contagens:', error)
+			console.error('❌ [PAGE_PRODUCT_PROBLEMS] Erro ao buscar contagens:', { error })
 			return {}
 		}
 	}
@@ -127,7 +126,7 @@ export default function ProblemsPage() {
 				const data = await response.json()
 
 				if (!response.ok) {
-					console.error('Erro ao buscar problemas:', data)
+					console.error('❌ [PAGE_PRODUCT_PROBLEMS] Erro ao buscar problemas:', { error: data })
 					toast({ type: 'error', title: 'Erro ao carregar problemas' })
 					return
 				}
@@ -145,7 +144,7 @@ export default function ProblemsPage() {
 					handleSelectProblem(data.items[0])
 				}
 			} catch (error) {
-				console.error('❌ Erro ao buscar problemas:', error)
+				console.error('❌ [PAGE_PRODUCT_PROBLEMS] Erro ao buscar problemas:', { error })
 				toast({ type: 'error', title: 'Erro ao carregar problemas' })
 			} finally {
 				setInitialLoading(false)
@@ -300,7 +299,7 @@ export default function ProblemsPage() {
 				}
 			}
 		} catch (error) {
-			console.error('❌ Erro ao salvar problema:', error)
+			console.error('❌ [PAGE_PRODUCT_PROBLEMS] Erro ao salvar problema:', { error })
 			
 			let errorMessage = 'Erro ao salvar problema.'
 			let errorTitle = 'Erro'
@@ -375,7 +374,7 @@ export default function ProblemsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao excluir problema:', error)
+			console.error('❌ [PAGE_PRODUCT_PROBLEMS] Erro ao excluir problema:', { error })
 			
 			let errorMessage = 'Erro ao excluir problema.'
 			let errorTitle = 'Erro'
@@ -466,7 +465,6 @@ export default function ProblemsPage() {
 
 			// Enviar a URL da imagem do UploadThing
 			if (solutionImagePreview) {
-				console.log('✅ Enviando URL da imagem para API:', solutionImagePreview)
 				formData.append('imageUrl', solutionImagePreview)
 			}
 
@@ -500,7 +498,7 @@ export default function ProblemsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao salvar solução:', error)
+			console.error('❌ [PAGE_PRODUCT_PROBLEMS] Erro ao salvar solução:', { error })
 			
 			let errorMessage = 'Erro ao salvar solução.'
 			let errorTitle = 'Erro'
@@ -555,7 +553,7 @@ export default function ProblemsPage() {
 				toast({ type: 'error', title: 'Erro ao excluir solução' })
 			}
 		} catch (error) {
-			console.error('❌ Erro ao excluir solução:', error)
+			console.error('❌ [PAGE_PRODUCT_PROBLEMS] Erro ao excluir solução:', { error })
 			
 			let errorMessage = 'Erro ao excluir solução.'
 			let errorTitle = 'Erro'
@@ -590,8 +588,7 @@ export default function ProblemsPage() {
 			isMine: sol.user?.id === currentUser?.id,
 		}))
 
-		console.log(
-			'🔵 Soluções carregadas da API:',
+		console.log('ℹ️ [PAGE_PRODUCT_PROBLEMS] Soluções carregadas da API:', solutionsData.data)
 			solutionsWithIsMine.map((s: SolutionWithDetails) => ({
 				id: s.id.substring(0, 8),
 				date: s.date,
@@ -617,7 +614,7 @@ export default function ProblemsPage() {
 			const imagesData = await imagesRes.json()
 			setImages(imagesData.items || [])
 		} catch (error) {
-			console.error('❌ Erro ao atualizar imagens:', error)
+			console.error('❌ [PAGE_PRODUCT_PROBLEMS] Erro ao atualizar imagens:', { error })
 		}
 	}
 
@@ -631,7 +628,7 @@ export default function ProblemsPage() {
 				setSolutionImages(data.items || [])
 			}
 		} catch (error) {
-			console.error('❌ Erro ao atualizar imagens da solução:', error)
+			console.error('❌ [PAGE_PRODUCT_PROBLEMS] Erro ao atualizar imagens da solução:', { error })
 		}
 	}
 

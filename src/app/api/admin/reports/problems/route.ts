@@ -7,7 +7,6 @@ import { NO_INCIDENTS_CATEGORY_ID, NO_INCIDENTS_CATEGORY_NAME } from '@/lib/cons
 
 export async function GET(request: Request) {
 	try {
-		console.log('🔵 Iniciando busca de relatório de problemas')
 
 		const { searchParams } = new URL(request.url)
 		const dateRange = searchParams.get('dateRange') || '30d'
@@ -31,7 +30,7 @@ export async function GET(request: Request) {
 					}
 				})()
 
-		console.log('📅 Período de análise:', { start, end })
+		console.log('ℹ️ [API_REPORTS_PROBLEMS] Período de análise:', { start, end })
 
 		// Buscar problemas no período (excluindo "Não houve incidentes")
 		const problemsQuery = db
@@ -57,11 +56,9 @@ export async function GET(request: Request) {
 			)
 
 		const problems = await problemsQuery
-		console.log('✅ Problemas encontrados:', problems.length)
 
 		// Buscar categorias de problemas
 		const categories = await db.select().from(productProblemCategory)
-		console.log('✅ Categorias encontradas:', categories.length)
 
 		// Calcular problemas por categoria (excluindo "Não houve incidentes")
 		const problemsByCategory = await Promise.all(
@@ -198,12 +195,7 @@ export async function GET(request: Request) {
 			}
 		}))
 
-		console.log('✅ Relatório finalizado:', {
-			totalProblems,
-			avgResolutionHours,
-			categoriesCount: problemsByCategory.length,
-			productsCount: problemsByProduct.length,
-		})
+
 
 		return NextResponse.json({
 			success: true,
@@ -214,7 +206,7 @@ export async function GET(request: Request) {
 			problemsByProduct,
 		})
 	} catch (error) {
-		console.error('❌ Erro ao obter relatório de problemas:', error)
+		console.error('❌ [API_REPORTS_PROBLEMS] Erro ao obter relatório de problemas:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

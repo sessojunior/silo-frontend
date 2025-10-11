@@ -20,7 +20,7 @@ export async function GET() {
 		// Retorna as preferências do usuário
 		return NextResponse.json({ userPreferences: findUserPreferences ?? {} }, { status: 200 })
 	} catch (error) {
-		console.error('❌ Erro ao obter as preferências do usuário:', error)
+		console.error('❌ [API_USER_PREFERENCES] Erro ao obter as preferências do usuário:', { error })
 		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }
@@ -80,7 +80,7 @@ export async function PUT(req: NextRequest) {
 		// Retorna a resposta com sucesso
 		return NextResponse.json({ message: 'Preferências atualizadas com sucesso!' }, { status: 200 })
 	} catch (error) {
-		console.error('❌ Erro ao alterar as preferências do usuário:', error)
+		console.error('❌ [API_USER_PREFERENCES] Erro ao alterar as preferências do usuário:', { error })
 		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

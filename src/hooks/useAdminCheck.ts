@@ -26,7 +26,7 @@ export function useAdminCheck(): AdminCheckResult {
 			setLoading(true)
 			setError(null)
 			
-			console.log('🔍 Verificando se usuário atual é administrador...')
+			console.log('ℹ️ [HOOK_ADMIN_CHECK] Verificando se usuário atual é administrador...')
 			
 			// Fazer uma chamada para a API específica de verificação de administrador
 			const response = await fetch('/api/admin/check-admin')
@@ -35,24 +35,23 @@ export function useAdminCheck(): AdminCheckResult {
 				const data = await response.json()
 				if (data.success) {
 					setIsAdmin(data.isAdmin)
-					console.log('✅ Status de administrador verificado:', data.isAdmin)
 				} else {
 					setIsAdmin(false)
 					setError(data.error || 'Erro ao verificar permissões')
-					console.log('❌ Erro na resposta da API:', data.error)
+					console.error('❌ [HOOK_ADMIN_CHECK] Erro na resposta da API:', { error: data.error })
 				}
 			} else if (response.status === 401) {
 				// Usuário não autenticado
 				setIsAdmin(false)
-				console.log('❌ Usuário não autenticado')
+				console.warn('⚠️ [HOOK_ADMIN_CHECK] Usuário não autenticado')
 			} else {
 				// Outros erros
 				setIsAdmin(false)
 				setError('Erro ao verificar permissões')
-				console.log('⚠️ Erro ao verificar permissões:', response.status)
+				console.warn('⚠️ [HOOK_ADMIN_CHECK] Erro ao verificar permissões:', { status: response.status })
 			}
 		} catch (err) {
-			console.error('❌ Erro ao verificar status de administrador:', err)
+			console.error('❌ [HOOK_ADMIN_CHECK] Erro ao verificar status de administrador:', { error: err })
 			setIsAdmin(false)
 			setError('Erro ao verificar permissões')
 		} finally {

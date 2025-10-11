@@ -55,7 +55,7 @@ export function invalidateUsersCache(): void {
 	globalUsersCache = []
 	globalUsersCacheTimestamp = 0
 	globalUsersCacheHash = ''
-	console.log('🔄 Cache de usuários invalidado (dados mudaram)')
+	console.log('ℹ️ [COMPONENT_TASK_FORM] Cache de usuários invalidado (dados mudaram)')
 }
 
 // Função para forçar refresh do cache (útil para admin)
@@ -63,7 +63,7 @@ export function refreshUsersCache(): void {
 	globalUsersCache = []
 	globalUsersCacheTimestamp = 0
 	globalUsersCacheHash = ''
-	console.log('🔄 Cache de usuários forçado a refresh')
+	console.log('ℹ️ [COMPONENT_TASK_FORM] Cache de usuários forçado a refresh')
 }
 
 // Função para carregar usuários com cache inteligente e validação de dados
@@ -84,22 +84,21 @@ async function loadUsersWithCache(): Promise<{ value: string; label: string; ima
 
 					// Se os dados são os mesmos, usar cache
 					if (isCacheDataCurrent(currentUsers)) {
-						console.log('🚀 Usando cache de usuários (dados inalterados)')
+						console.log('ℹ️ [COMPONENT_TASK_FORM] Usando cache de usuários (dados inalterados)')
 						return globalUsersCache
 					} else {
-						console.log('🔄 Dados mudaram, invalidando cache')
+						console.log('ℹ️ [COMPONENT_TASK_FORM] Dados mudaram, invalidando cache')
 						invalidateUsersCache()
 					}
 				}
 			}
 		} catch {
-			console.log('⚠️ Erro na verificação rápida, usando cache existente')
+			console.warn('⚠️ [COMPONENT_TASK_FORM] Erro na verificação rápida, usando cache existente')
 			return globalUsersCache
 		}
 	}
 
 	// Cache expirado, vazio ou dados mudaram, carregar da API
-	console.log('🔵 Carregando usuários da API...')
 
 	try {
 		const response = await fetch('/api/admin/users')
@@ -119,14 +118,13 @@ async function loadUsersWithCache(): Promise<{ value: string; label: string; ima
 				globalUsersCacheTimestamp = Date.now()
 				globalUsersCacheHash = generateUsersHash(users)
 
-				console.log(`✅ ${users.length} usuários carregados e cache atualizado`)
 				return users
 			}
 		}
 
 		throw new Error('Falha ao carregar usuários da API')
 	} catch (error) {
-		console.error('❌ Erro ao carregar usuários:', error)
+		console.error('❌ [COMPONENT_TASK_FORM] Erro ao carregar usuários:', { error })
 
 		// Fallback: usuários de exemplo
 		const fallbackUsers = [
@@ -148,13 +146,13 @@ async function loadUsersWithCache(): Promise<{ value: string; label: string; ima
 export function setupUsersCacheInvalidation(): void {
 	// Invalidar cache quando usuário é criado/editado/deletado
 	// Esta função deve ser chamada pelas APIs de usuários
-	console.log('🔧 Sistema de invalidação automática do cache configurado')
+	console.log('ℹ️ [COMPONENT_TASK_FORM] Sistema de invalidação automática do cache configurado')
 }
 
 // Função para invalidar cache quando usuário específico muda
 export function invalidateUserCache(userId: string): void {
 	if (globalUsersCache.some((u) => u.value === userId)) {
-		console.log(`🔄 Cache invalidado para usuário ${userId}`)
+		console.log('ℹ️ [COMPONENT_TASK_FORM] Cache invalidado para usuário:', { userId })
 		invalidateUsersCache()
 	}
 }
@@ -163,7 +161,7 @@ export function invalidateUserCache(userId: string): void {
 export function invalidateMultipleUsersCache(userIds: string[]): void {
 	const hasChanges = userIds.some((id) => globalUsersCache.some((u) => u.value === id))
 	if (hasChanges) {
-		console.log(`🔄 Cache invalidado para ${userIds.length} usuários`)
+		console.log('ℹ️ [COMPONENT_TASK_FORM] Cache invalidado para usuários:', { userIdsCount: userIds.length })
 		invalidateUsersCache()
 	}
 }
@@ -250,21 +248,19 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 		const loadUsers = async () => {
 			// Se já temos usuários carregados, não mostrar loading
 			if (availableUsers.length > 0) {
-				console.log('🚀 Usuários já disponíveis, pulando carregamento')
+				console.log('ℹ️ [COMPONENT_TASK_FORM] Usuários já disponíveis, pulando carregamento')
 				return
 			}
 
 			try {
 				setLoadingUsers(true)
-				console.log('🔵 Iniciando carregamento de usuários...')
 
 				// Usar função de cache inteligente
 				const users = await loadUsersWithCache()
 				setAvailableUsers(users)
 
-				console.log(`✅ Usuários carregados: ${users.length} (cache: ${isCacheValid() ? 'hit' : 'miss'})`)
 			} catch (error) {
-				console.error('❌ Erro crítico ao carregar usuários:', error)
+				console.error('❌ [COMPONENT_TASK_FORM] Erro crítico ao carregar usuários:', { error })
 				// Fallback já está no cache, não precisa fazer nada
 			} finally {
 				setLoadingUsers(false)
@@ -280,11 +276,7 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 	useEffect(() => {
 		// Só carregar dados da tarefa se os usuários estiverem disponíveis
 		if (task && availableUsers.length > 0) {
-			console.log('🔵 Carregando dados da tarefa com usuários disponíveis:', {
-				taskId: task.id,
-				assignedUsers: task.assignedUsers,
-				availableUsersCount: availableUsers.length,
-			})
+
 
 			setFormData({
 				name: task.name,
@@ -356,7 +348,6 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 
 		try {
 			setSaving(true)
-			console.log('🔵 Salvando tarefa:', formData.name)
 
 			await onSubmit(formData)
 
@@ -368,7 +359,7 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 
 			onClose()
 		} catch (error) {
-			console.error('❌ Erro ao salvar tarefa:', error)
+			console.error('❌ [COMPONENT_TASK_FORM] Erro ao salvar tarefa:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro ao salvar',

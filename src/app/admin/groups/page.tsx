@@ -49,16 +49,14 @@ export default function GroupsPage() {
 
 	async function fetchTotalUsers() {
 		try {
-			console.log('🔵 Carregando total de usuários...')
 			const response = await fetch('/api/admin/users')
 			const data = await response.json()
 
 			if (data.success) {
 				setTotalUsers(data.data.total)
-				console.log('✅ Total de usuários carregado:', data.data.total)
 			}
 		} catch (error) {
-			console.error('❌ Erro ao carregar total de usuários:', error)
+			console.error('❌ [PAGE_GROUPS] Erro ao carregar total de usuários:', { error })
 		}
 	}
 
@@ -67,7 +65,6 @@ export default function GroupsPage() {
 		const groupRef = groupRefs.current.get(groupId)
 		if (groupRef) {
 			groupRef.refreshUsers()
-			console.log('🔵 Atualizando usuários do grupo:', groupId)
 		}
 	}
 
@@ -93,16 +90,14 @@ export default function GroupsPage() {
 	async function fetchGroups() {
 		try {
 			setLoading(true)
-			console.log('🔵 Carregando grupos...')
 
 			const response = await fetch('/api/admin/groups')
 			const data = await response.json()
 
 			if (data.success) {
 				setGroups(data.data.items)
-				console.log('✅ Grupos carregados:', data.data.items.length)
 			} else {
-				console.error('❌ Erro ao carregar grupos:', data.error)
+				console.error('❌ [PAGE_GROUPS] Erro ao carregar grupos:', { error: data.error })
 				toast({
 					type: 'error',
 					title: 'Erro ao carregar grupos',
@@ -110,7 +105,7 @@ export default function GroupsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro inesperado ao carregar grupos:', error)
+			console.error('❌ [PAGE_GROUPS] Erro inesperado ao carregar grupos:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado',
@@ -122,25 +117,21 @@ export default function GroupsPage() {
 	}
 
 	function openCreateForm() {
-		console.log('🔵 Abrindo formulário para novo grupo')
 		setEditingGroup(null)
 		setFormOpen(true)
 	}
 
 	function openEditForm(group: Group) {
-		console.log('🔵 Abrindo formulário de edição para:', group.name)
 		setEditingGroup(group)
 		setFormOpen(true)
 	}
 
 	function openDeleteDialog(group: Group) {
-		console.log('🔵 Abrindo dialog de exclusão para:', group.name)
 		setGroupToDelete(group)
 		setDeleteDialogOpen(true)
 	}
 
 	function openUserSelector(groupId: string) {
-		console.log('🔵 Abrindo seletor de usuários para grupo:', groupId)
 		setSelectedGroupId(groupId)
 		setUserSelectorOpen(true)
 	}
@@ -150,10 +141,8 @@ export default function GroupsPage() {
 			const newSet = new Set(prev)
 			if (newSet.has(groupId)) {
 				newSet.delete(groupId)
-				console.log('🔵 Colapsando grupo:', groupId)
 			} else {
 				newSet.add(groupId)
-				console.log('🔵 Expandindo grupo:', groupId)
 			}
 			return newSet
 		})

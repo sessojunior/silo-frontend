@@ -15,7 +15,6 @@ export async function GET(request: NextRequest) {
 		const groupId = searchParams.get('groupId')
 		const userId = searchParams.get('userId')
 
-		console.log('🔵 [API] Contando mensagens:', { groupId, userId, currentUser: user.id })
 
 		let totalCount = 0
 
@@ -61,16 +60,12 @@ export async function GET(request: NextRequest) {
 			return NextResponse.json({ error: 'Especifique groupId ou userId' }, { status: 400 })
 		}
 
-		console.log('✅ [API] Total de mensagens encontrado:', { 
-			count: totalCount, 
-			type: groupId ? 'groupMessage' : 'userMessage' 
-		})
 
 		return NextResponse.json({
 			totalCount,
 		})
 	} catch (error) {
-		console.error('❌ Erro ao contar mensagens:', error)
+		console.error('❌ [API_CHAT_MESSAGES_COUNT] Erro ao contar mensagens:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

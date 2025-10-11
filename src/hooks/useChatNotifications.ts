@@ -34,7 +34,7 @@ export function useChatNotifications() {
 				setUnreadMessages(data.unreadMessages || {})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao carregar mensagens não lidas:', error)
+			console.error('❌ [HOOK_CHAT_NOTIFICATIONS] Erro ao carregar mensagens não lidas:', { error })
 		} finally {
 			isLoadingRef.current = false
 			setIsLoading(false)
@@ -48,14 +48,6 @@ export function useChatNotifications() {
 
 	// Obter conversas com mensagens não lidas
 	const getConversationsWithUnread = useCallback(() => {
-		console.log('🔵 [useChatNotifications] getConversationsWithUnread executado:', {
-			groups: groups?.length || 0,
-			users: users?.length || 0,
-			totalUnread,
-			groupsWithUnread: groups?.filter(g => g.unreadCount > 0).length || 0,
-			usersWithUnread: users?.filter(u => u.unreadCount > 0).length || 0,
-			unreadMessagesKeys: Object.keys(unreadMessages).length
-		})
 
 		// Usar dados das mensagens não lidas carregadas da API
 		const conversations = Object.entries(unreadMessages).map(([conversationId, conversationData]) => {
@@ -106,7 +98,6 @@ export function useChatNotifications() {
 			})
 			.slice(0, 5) // Limitar a 5 conversas
 
-		console.log('✅ [useChatNotifications] Conversas encontradas:', sortedConversations.length, sortedConversations)
 		return sortedConversations
 	}, [groups, users, unreadMessages, totalUnread])
 

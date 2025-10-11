@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 			},
 		})
 	} catch (error) {
-		console.error('❌ Erro ao verificar uso do incidente:', error)
+		console.error('❌ [API_INCIDENTS_USAGE] Erro ao verificar uso do incidente:', { error })
 		return NextResponse.json({ success: false, message: 'Erro interno ao verificar uso do incidente' }, { status: 500 })
 	}
 }

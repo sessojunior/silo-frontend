@@ -86,7 +86,7 @@ export default function LoginPage() {
 				}
 			}
 		} catch (err) {
-			console.error('❌ Erro inesperado:', err)
+			console.error('❌ [PAGE_LOGIN] Erro inesperado:', { error: err })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -130,7 +130,7 @@ export default function LoginPage() {
 				}
 			}
 		} catch (err) {
-			console.error('❌ Erro ao verificar o código:', err)
+			console.error('❌ [PAGE_LOGIN] Erro ao verificar o código:', { error: err })
 			toast({
 				type: 'error',
 				title: 'Erro ao verificar o código.',

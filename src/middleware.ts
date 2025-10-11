@@ -20,16 +20,14 @@ export async function middleware(req: NextRequest) {
 	if (pathname.startsWith('/api/admin/')) {
 		// Temporariamente permitir APIs de relatórios para teste
 		if (pathname.startsWith('/api/admin/reports/')) {
-			console.log('🔵 [Middleware] Permitindo acesso temporário para relatórios:', pathname)
 			return NextResponse.next()
 		}
 
 		if (!token) {
-			console.log('🚨 [Middleware] Token ausente para API admin:', pathname)
+			console.log('ℹ️ [MIDDLEWARE] Token ausente para API admin:', { pathname })
 			return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
 		}
 
-		console.log('✅ [Middleware] Token presente para API admin:', pathname)
 		// Verificação completa de autenticação será feita nas próprias APIs usando getAuthUser()
 		// Middleware Edge Runtime não pode acessar database diretamente
 		return NextResponse.next()

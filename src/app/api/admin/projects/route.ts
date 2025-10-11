@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 		// Verificar autenticação
 		const user = await getAuthUser()
 		if (!user) {
-			console.log('❌ Usuário não autenticado tentou acessar projetos')
+			console.warn('⚠️ [API_PROJECTS] Usuário não autenticado tentou acessar projetos')
 			return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 		}
 
@@ -35,7 +35,6 @@ export async function GET(request: NextRequest) {
 		const orderBy = searchParams.get('orderBy') || 'name'
 		const order = searchParams.get('order') || 'asc'
 
-		console.log('🔵 Buscando projetos com filtros:', { search, status, priority, orderBy, order })
 
 		// Construir query com filtros de forma simplificada
 		const whereConditions = []
@@ -66,10 +65,9 @@ export async function GET(request: NextRequest) {
 				.orderBy(asc(project.name))
 		}
 
-		console.log(`✅ ${projects.length} projetos encontrados`)
 		return NextResponse.json(projects)
 	} catch (error) {
-		console.error('❌ Erro ao buscar projetos:', error)
+		console.error('❌ [API_PROJECTS] Erro ao buscar projetos:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -80,12 +78,11 @@ export async function POST(request: NextRequest) {
 		// Verificar autenticação
 		const user = await getAuthUser()
 		if (!user) {
-			console.log('❌ Usuário não autenticado tentou criar projeto')
+			console.warn('⚠️ [API_PROJECTS] Usuário não autenticado tentou criar projeto')
 			return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 		}
 
 		const body = await request.json()
-		console.log('🔵 Criando novo projeto:', body)
 
 		// Validar dados
 		const validatedData = ProjectSchema.parse(body)
@@ -105,15 +102,14 @@ export async function POST(request: NextRequest) {
 			})
 			.returning()
 
-		console.log('✅ Projeto criado com sucesso:', newProject[0].id)
 		return NextResponse.json(newProject[0], { status: 201 })
 	} catch (error) {
 		if (error instanceof z.ZodError) {
-			console.log('⚠️ Dados inválidos para criação de projeto:', error.errors)
+			console.warn('⚠️ [API_PROJECTS] Dados inválidos para criação de projeto:', { errors: error.errors })
 			return NextResponse.json({ error: 'Dados inválidos', details: error.errors }, { status: 400 })
 		}
 
-		console.error('❌ Erro ao criar projeto:', error)
+		console.error('❌ [API_PROJECTS] Erro ao criar projeto:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -124,7 +120,7 @@ export async function PUT(request: NextRequest) {
 		// Verificar autenticação
 		const user = await getAuthUser()
 		if (!user) {
-			console.log('❌ Usuário não autenticado tentou atualizar projeto')
+			console.warn('⚠️ [API_PROJECTS] Usuário não autenticado tentou atualizar projeto')
 			return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 		}
 
@@ -135,7 +131,6 @@ export async function PUT(request: NextRequest) {
 			return NextResponse.json({ error: 'ID do projeto é obrigatório' }, { status: 400 })
 		}
 
-		console.log('🔵 Atualizando projeto:', id)
 
 		// Validar dados
 		const validatedData = ProjectSchema.parse(updateData)
@@ -157,19 +152,18 @@ export async function PUT(request: NextRequest) {
 			.returning()
 
 		if (updatedProject.length === 0) {
-			console.log('⚠️ Projeto não encontrado:', id)
+			console.warn('⚠️ [API_PROJECTS] Projeto não encontrado:', { id })
 			return NextResponse.json({ error: 'Projeto não encontrado' }, { status: 404 })
 		}
 
-		console.log('✅ Projeto atualizado com sucesso:', id)
 		return NextResponse.json(updatedProject[0])
 	} catch (error) {
 		if (error instanceof z.ZodError) {
-			console.log('⚠️ Dados inválidos para atualização de projeto:', error.errors)
+			console.warn('⚠️ [API_PROJECTS] Dados inválidos para atualização de projeto:', { errors: error.errors })
 			return NextResponse.json({ error: 'Dados inválidos', details: error.errors }, { status: 400 })
 		}
 
-		console.error('❌ Erro ao atualizar projeto:', error)
+		console.error('❌ [API_PROJECTS] Erro ao atualizar projeto:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -180,7 +174,7 @@ export async function DELETE(request: NextRequest) {
 		// Verificar autenticação
 		const user = await getAuthUser()
 		if (!user) {
-			console.log('❌ Usuário não autenticado tentou excluir projeto')
+			console.warn('⚠️ [API_PROJECTS] Usuário não autenticado tentou excluir projeto')
 			return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 		}
 
@@ -188,71 +182,58 @@ export async function DELETE(request: NextRequest) {
 		const id = searchParams.get('id')
 
 		if (!id) {
-			console.log('⚠️ ID do projeto não fornecido')
+			console.warn('⚠️ [API_PROJECTS] ID do projeto não fornecido')
 			return NextResponse.json({ error: 'ID do projeto é obrigatório' }, { status: 400 })
 		}
 
-		console.log('🔵 Iniciando exclusão do projeto:', id)
-		console.log('🔵 Usuário autenticado:', user.email)
 
 		// Verificar se projeto existe
-		console.log('🔵 Verificando se projeto existe...')
 		const existingProject = await db.select().from(project).where(eq(project.id, id)).limit(1)
 
 		if (existingProject.length === 0) {
-			console.log('⚠️ Projeto não encontrado para exclusão:', id)
+			console.warn('⚠️ [API_PROJECTS] Projeto não encontrado para exclusão:', { id })
 			return NextResponse.json({ error: 'Projeto não encontrado' }, { status: 404 })
 		}
 
-		console.log('✅ Projeto encontrado:', existingProject[0].name)
 
 		// Executar exclusão em cascata usando transação
 		await db.transaction(async (tx) => {
-			console.log('🔵 Iniciando transação de exclusão em cascata...')
 
 			// 1. Buscar todas as atividades do projeto
 			const activities = await tx.select({ id: projectActivity.id }).from(projectActivity).where(eq(projectActivity.projectId, id))
 			const activityIds = activities.map((a) => a.id)
-			console.log(`🔵 Encontradas ${activityIds.length} atividades do projeto`)
 
 			// 2. Buscar todas as tarefas do projeto
 			const tasks = await tx.select({ id: projectTask.id }).from(projectTask).where(eq(projectTask.projectId, id))
 			const taskIds = tasks.map((t) => t.id)
-			console.log(`🔵 Encontradas ${taskIds.length} tarefas do projeto`)
 
 			// 3. Excluir histórico das tarefas
 			if (taskIds.length > 0) {
 				await tx.delete(projectTaskHistory).where(inArray(projectTaskHistory.taskId, taskIds))
-				console.log('✅ Histórico das tarefas excluído')
 			}
 
 			// 4. Excluir associações usuário-tarefa
 			if (taskIds.length > 0) {
 				await tx.delete(projectTaskUser).where(inArray(projectTaskUser.taskId, taskIds))
-				console.log('✅ Associações usuário-tarefa excluídas')
 			}
 
 			// 5. Excluir todas as tarefas
 			await tx.delete(projectTask).where(eq(projectTask.projectId, id))
-			console.log('✅ Tarefas do projeto excluídas')
 
 			// 6. Excluir todas as atividades
 			await tx.delete(projectActivity).where(eq(projectActivity.projectId, id))
-			console.log('✅ Atividades do projeto excluídas')
 
 			// 7. Finalmente, excluir o projeto
 			await tx.delete(project).where(eq(project.id, id))
-			console.log('✅ Projeto excluído com sucesso')
 		})
 
-		console.log('✅ Exclusão em cascata do projeto concluída:', id)
 
 		return NextResponse.json({ success: true, message: 'Projeto excluído com sucesso' })
 	} catch (error) {
-		console.error('❌ Erro detalhado ao excluir projeto:', error)
-		console.error('❌ Stack trace:', error instanceof Error ? error.stack : 'N/A')
-		console.error('❌ Tipo do erro:', typeof error)
-		console.error('❌ Mensagem do erro:', error instanceof Error ? error.message : String(error))
+		console.error('❌ [API_PROJECTS] Erro detalhado ao excluir projeto:', { error })
+		console.error('❌ [API_PROJECTS] Stack trace:', { stack: error instanceof Error ? error.stack : 'N/A' })
+		console.error('❌ [API_PROJECTS] Tipo do erro:', { type: typeof error })
+		console.error('❌ [API_PROJECTS] Mensagem do erro:', { message: error instanceof Error ? error.message : String(error) })
 
 		return NextResponse.json(
 			{

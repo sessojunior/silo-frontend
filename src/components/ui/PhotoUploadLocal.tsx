@@ -27,7 +27,6 @@ export default function PhotoUploadLocal({ image, className }: PhotoUploadLocalP
 	// Carrega imagem inicial (caso exista)
 	useEffect(() => {
 		if (image) {
-			console.log('🔵 Carregando imagem inicial:', image)
 			setPreviewUrl(image)
 		}
 	}, [image])
@@ -94,7 +93,7 @@ export default function PhotoUploadLocal({ image, className }: PhotoUploadLocalP
 				}
 			}
 		} catch (error) {
-			console.error('❌ Erro no upload:', error)
+			console.error('❌ [COMPONENT_PHOTO_UPLOAD] Erro no upload:', { error })
 			setIsInvalid(true)
 			setInvalidMessage('Erro ao fazer upload da imagem. Tente novamente.')
 			toast({ type: 'error', title: 'Erro no upload' })

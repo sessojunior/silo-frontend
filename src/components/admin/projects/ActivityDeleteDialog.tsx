@@ -24,7 +24,6 @@ export default function ActivityDeleteDialog({ open, onClose, activity, onConfir
 
 		try {
 			setDeleting(true)
-			console.log('🔵 Confirmando exclusão da atividade:', activity.id)
 
 			await onConfirm(activity.id)
 
@@ -36,7 +35,7 @@ export default function ActivityDeleteDialog({ open, onClose, activity, onConfir
 
 			onClose()
 		} catch (error) {
-			console.error('❌ Erro ao excluir atividade:', error)
+			console.error('❌ [COMPONENT_ACTIVITY_DELETE] Erro ao excluir atividade:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro ao excluir',

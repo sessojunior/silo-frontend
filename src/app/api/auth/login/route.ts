@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
 
 		return NextResponse.json({ success: true }, { status: 200 })
 	} catch (error) {
-		console.error('❌ Erro ao fazer login:', error)
+		console.error('❌ [API_AUTH_LOGIN] Erro ao fazer login:', { error })
 		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

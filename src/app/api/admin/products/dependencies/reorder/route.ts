@@ -27,8 +27,6 @@ export async function PUT(req: NextRequest) {
 			return NextResponse.json({ error: 'ProductId e items são obrigatórios' }, { status: 400 })
 		}
 
-		console.log('🔵Reordenando dependências para produto:', productId)
-		console.log('🔵Itens a serem atualizados:', items.length)
 
 		// Validar se todos os itens pertencem ao produto
 		const existingDependencies = await db.select({ id: productDependency.id }).from(productDependency).where(eq(productDependency.productId, productId))
@@ -37,7 +35,7 @@ export async function PUT(req: NextRequest) {
 		const invalidItems = items.filter((item: ReorderItem) => !existingIds.includes(item.id))
 
 		if (invalidItems.length > 0) {
-			console.log('❌ Itens inválidos encontrados:', invalidItems)
+			console.log('ℹ️ [API_PRODUCTS_DEPENDENCIES_REORDER] Itens inválidos encontrados:', { invalidItems })
 			return NextResponse.json({ error: 'Alguns itens não pertencem a este produto' }, { status: 400 })
 		}
 
@@ -57,14 +55,13 @@ export async function PUT(req: NextRequest) {
 			}
 		})
 
-		console.log('✅ Dependências reordenadas com sucesso!')
 
 		return NextResponse.json({
 			success: true,
 			message: 'Dependências reordenadas com sucesso!',
 		})
 	} catch (error) {
-		console.error('❌ Erro ao reordenar dependências:', error)
+		console.error('❌ [API_PRODUCTS_DEPENDENCIES_REORDER] Erro ao reordenar dependências:', { error })
 		return NextResponse.json(
 			{
 				error: 'Erro interno do servidor',

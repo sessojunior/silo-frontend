@@ -9,7 +9,7 @@ import { eq, and } from 'drizzle-orm'
  */
 export async function isUserAdmin(userId: string): Promise<boolean> {
 	try {
-		console.log('🔍 Verificando se usuário é administrador:', userId)
+		console.log('ℹ️ [LIB_AUTH_ADMIN] Verificando se usuário é administrador:', { userId })
 		
 		// Buscar grupos do usuário onde ele tem role 'admin' ou 'owner'
 		const userGroups = await db
@@ -33,10 +33,9 @@ export async function isUserAdmin(userId: string): Promise<boolean> {
 			(ug.role === 'admin' || ug.role === 'owner')
 		)
 
-		console.log(`✅ Usuário ${userId} é administrador:`, isAdmin)
 		return isAdmin
 	} catch (error) {
-		console.error('❌ Erro ao verificar se usuário é administrador:', error)
+		console.error('❌ [LIB_AUTH_ADMIN] Erro ao verificar se usuário é administrador:', { error })
 		return false
 	}
 }
@@ -51,7 +50,7 @@ export async function requireAdmin(userId: string): Promise<{ success: boolean, 
 		const isAdmin = await isUserAdmin(userId)
 		
 		if (!isAdmin) {
-			console.log('🚨 Usuário não é administrador:', userId)
+			console.log('ℹ️ [LIB_AUTH_ADMIN] Usuário não é administrador:', { userId })
 			return {
 				success: false,
 				error: 'Apenas administradores podem realizar esta ação'
@@ -60,7 +59,7 @@ export async function requireAdmin(userId: string): Promise<{ success: boolean, 
 
 		return { success: true }
 	} catch (error) {
-		console.error('❌ Erro ao verificar permissões de administrador:', error)
+		console.error('❌ [LIB_AUTH_ADMIN] Erro ao verificar permissões de administrador:', { error })
 		return {
 			success: false,
 			error: 'Erro interno do servidor'

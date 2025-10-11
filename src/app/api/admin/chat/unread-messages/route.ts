@@ -33,7 +33,6 @@ export async function GET(request: NextRequest) {
 
 		// Se não especificou groupId nem userId, retornar todas as mensagens não lidas
 		if (!groupId && !userId) {
-			console.log('🔵 [API] Buscando todas as mensagens não lidas para dropdown...')
 			
 			// Buscar mensagens não lidas de grupos
 			const groupMessages = await db
@@ -133,11 +132,6 @@ export async function GET(request: NextRequest) {
 				}
 			})
 
-			console.log('✅ [API] Mensagens não lidas encontradas para dropdown:', { 
-				conversationsCount: Object.keys(unreadMessages).length,
-				totalMessages: allMessages.length,
-				currentUser: user.id 
-			})
 
 			return NextResponse.json({ 
 				unreadMessages,
@@ -250,19 +244,13 @@ export async function GET(request: NextRequest) {
 		// Ordenar cronologicamente (mais antigas primeiro)
 		unreadMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 
-		console.log('✅ [API] Mensagens não lidas encontradas:', { 
-			count: unreadMessages.length, 
-			groupId, 
-			userId, 
-			currentUser: user.id 
-		})
 
 		return NextResponse.json({ 
 			messages: unreadMessages,
 			count: unreadMessages.length
 		})
 	} catch (error) {
-		console.error('❌ Erro ao buscar mensagens não lidas:', error)
+		console.error('❌ [API_CHAT_UNREAD] Erro ao buscar mensagens não lidas:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

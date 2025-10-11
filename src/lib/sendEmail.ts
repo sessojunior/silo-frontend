@@ -18,9 +18,8 @@ async function sendEmailOriginal({ to, subject, text }: { to: string; subject: s
 	// Verifica se a conexão com o SMTP está funcionando
 	try {
 		await transporter.verify()
-		console.log('✅ Servidor SMTP pronto para enviar e-mails!')
 	} catch (error) {
-		console.error('❌ Erro de conexão SMTP:', error)
+		console.error('❌ [LIB_SEND_EMAIL] Erro de conexão SMTP:', { error })
 		return { error: { code: 'SEND_EMAIL_SMTP_ERROR', message: 'Erro de conexão SMTP' } }
 	}
 
@@ -34,10 +33,9 @@ async function sendEmailOriginal({ to, subject, text }: { to: string; subject: s
 
 	try {
 		await transporter.sendMail(mailOptions)
-		console.log(`✅ E-mail enviado com sucesso para: ${to}!`)
 		return { success: true }
 	} catch (err) {
-		console.error(`❌ Erro ao enviar o e-mail para: ${to}!\n`, err)
+		console.error('❌ [LIB_SEND_EMAIL] Erro ao enviar o e-mail:', { to, error: err })
 		return { error: err instanceof Error ? { code: err.name, message: err.message } : { code: 'SEND_EMAIL_UNKNOWN_ERROR', message: 'Erro desconhecido' } }
 	}
 }
@@ -55,10 +53,9 @@ export async function sendEmail(params: {
 	// Se template e data fornecidos, usar nova implementação com templates
 	if (template && data) {
 		try {
-			console.log('🔵 Usando template de email:', { template, to })
 			return await sendEmailTemplate({ to, subject, template, data })
 		} catch (error) {
-			console.warn('⚠️ Erro no template, usando fallback para texto simples:', error)
+			console.warn('⚠️ [LIB_SEND_EMAIL] Erro no template, usando fallback para texto simples:', { error })
 			// FALLBACK: Se template falhar, usar implementação original
 			if (text) {
 				return await sendEmailOriginal({ to, subject, text })
@@ -70,7 +67,6 @@ export async function sendEmail(params: {
 
 	// Se apenas texto fornecido, usar implementação original
 	if (text) {
-		console.log('🔵 Usando envio de email original (texto simples):', { to })
 		return await sendEmailOriginal({ to, subject, text })
 	}
 

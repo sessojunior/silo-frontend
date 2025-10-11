@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
 		return NextResponse.json({ success: true, data: items })
 	} catch (error) {
-		console.error('❌ GET problem categories:', error)
+		console.error('❌ [API_PRODUCTS_PROBLEMS_CATEGORIES] GET problem categories:', { error })
 		return NextResponse.json({ success: false, message: 'Erro interno ao listar categorias' }, { status: 500 })
 	}
 }
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 		await db.insert(productProblemCategory).values(newCat)
 		return NextResponse.json({ success: true, data: newCat })
 	} catch (error) {
-		console.error('❌ POST problem category:', error)
+		console.error('❌ [API_PRODUCTS_PROBLEMS_CATEGORIES] POST problem category:', { error })
 		return NextResponse.json({ success: false, message: 'Erro interno ao criar categoria' }, { status: 500 })
 	}
 }
@@ -79,7 +79,7 @@ export async function PUT(request: NextRequest) {
 			.where(eq(productProblemCategory.id, id))
 		return NextResponse.json({ success: true })
 	} catch (error) {
-		console.error('❌ PUT problem category:', error)
+		console.error('❌ [API_PRODUCTS_PROBLEMS_CATEGORIES] PUT problem category:', { error })
 		return NextResponse.json({ success: false, message: 'Erro interno ao atualizar categoria' }, { status: 500 })
 	}
 }
@@ -96,7 +96,7 @@ export async function DELETE(request: NextRequest) {
 		await db.delete(productProblemCategory).where(eq(productProblemCategory.id, id))
 		return NextResponse.json({ success: true })
 	} catch (error) {
-		console.error('❌ DELETE problem category:', error)
+		console.error('❌ [API_PRODUCTS_PROBLEMS_CATEGORIES] DELETE problem category:', { error })
 		return NextResponse.json({ success: false, message: 'Erro interno ao excluir categoria' }, { status: 500 })
 	}
 }

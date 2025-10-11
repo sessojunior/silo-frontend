@@ -60,8 +60,8 @@ export default function ContactsPage() {
 
 			if (data.success) {
 				setContacts(data.data.items)
-				console.log('✅ Contatos carregados:', data.data.items.length)
 			} else {
+				console.error('❌ [PAGE_CONTACTS] Erro ao carregar contatos:', { error: data.error })
 				toast({
 					type: 'error',
 					title: 'Erro ao carregar contatos',
@@ -69,7 +69,7 @@ export default function ContactsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao carregar contatos:', error)
+			console.error('❌ [PAGE_CONTACTS] Erro ao carregar contatos:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro',
@@ -81,8 +81,6 @@ export default function ContactsPage() {
 	}
 
 	function openCreateForm() {
-		console.log('🔵 Abrindo formulário para novo contato')
-
 		// Fechar formulário primeiro se estiver aberto
 		if (formOpen) {
 			setFormOpen(false)
@@ -97,14 +95,6 @@ export default function ContactsPage() {
 	}
 
 	function openEditForm(contact: Contact) {
-		console.log('🔵 Abrindo formulário de edição para:', {
-			id: contact.id,
-			name: contact.name,
-			email: contact.email,
-			active: contact.active,
-			timestamp: new Date().toISOString(),
-		})
-
 		// Fechar formulário primeiro se estiver aberto
 		if (formOpen) {
 			setFormOpen(false)

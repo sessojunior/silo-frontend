@@ -32,11 +32,7 @@ export default function GroupDeleteDialog({ isOpen, onClose, group, onSuccess }:
 
 		try {
 			setLoading(true)
-			console.log('🔵 Iniciando exclusão do grupo:', {
-				id: group.id,
-				name: group.name,
-				isDefault: group.isDefault,
-			})
+
 
 			const response = await fetch(`/api/admin/groups?id=${group.id}`, {
 				method: 'DELETE',
@@ -45,7 +41,6 @@ export default function GroupDeleteDialog({ isOpen, onClose, group, onSuccess }:
 			const data = await response.json()
 
 			if (data.success) {
-				console.log('✅ Grupo excluído com sucesso:', group.name)
 				toast({
 					type: 'success',
 					title: 'Grupo excluído',
@@ -54,7 +49,7 @@ export default function GroupDeleteDialog({ isOpen, onClose, group, onSuccess }:
 				onSuccess?.()
 				onClose()
 			} else {
-				console.error('❌ Erro ao excluir grupo:', data)
+				console.error('❌ [COMPONENT_GROUP_DELETE] Erro ao excluir grupo:', { error: data })
 				const msg = data.error || data.message || 'Erro desconhecido'
 				toast({
 					type: 'error',
@@ -63,7 +58,7 @@ export default function GroupDeleteDialog({ isOpen, onClose, group, onSuccess }:
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro inesperado ao excluir grupo:', error)
+			console.error('❌ [COMPONENT_GROUP_DELETE] Erro inesperado ao excluir grupo:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado',

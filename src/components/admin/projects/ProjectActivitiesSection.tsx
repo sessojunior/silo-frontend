@@ -28,13 +28,12 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 
 			if (data.success) {
 				setActivities(data.activities || [])
-				console.log('✅ Atividades do projeto carregadas:', data.activities?.length || 0)
 			} else {
-				console.error('❌ Erro ao carregar atividades:', data.error)
+				console.error('❌ [COMPONENT_PROJECT_ACTIVITIES_SECTION] Erro ao carregar atividades:', { error: data.error })
 				toast({ type: 'error', title: 'Erro ao carregar atividades' })
 			}
 		} catch (error) {
-			console.error('❌ Erro ao carregar atividades:', error)
+			console.error('❌ [COMPONENT_PROJECT_ACTIVITIES_SECTION] Erro ao carregar atividades:', { error })
 			toast({ type: 'error', title: 'Erro ao carregar atividades' })
 		} finally {
 			setLoading(false)
@@ -98,13 +97,11 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 	}
 
 	const handleViewDetails = () => {
-		console.log('🔵 Redirecionando para detalhes do projeto:', project.id)
 		// Navegar para a página de detalhes do projeto usando Next.js router
 		router.push(`/admin/projects/${project.id}`)
 	}
 
 	const handleCreateActivity = () => {
-		console.log('🔵 Abrindo formulário de nova atividade para projeto:', project.id)
 		setActivityFormOpen(true)
 	}
 
@@ -139,14 +136,13 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 				setActivityFormOpen(false)
 				// Recarregar atividades
 				await loadActivities()
-				console.log('✅ Atividade criada com sucesso:', data.activity.id)
 			} else {
 				toast({
 					type: 'error',
 					title: 'Erro ao criar atividade',
 					description: data.error || 'Erro desconhecido.',
 				})
-				console.error('❌ Erro ao criar atividade:', data.error)
+				console.error('❌ [COMPONENT_PROJECT_ACTIVITIES_SECTION] Erro ao criar atividade:', { error: data.error })
 			}
 		} catch (error) {
 			toast({
@@ -154,7 +150,7 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 				title: 'Erro ao criar atividade',
 				description: 'Erro de comunicação com o servidor.',
 			})
-			console.error('❌ Erro ao criar atividade:', error)
+			console.error('❌ [COMPONENT_PROJECT_ACTIVITIES_SECTION] Erro ao criar atividade:', { error })
 		}
 	}
 

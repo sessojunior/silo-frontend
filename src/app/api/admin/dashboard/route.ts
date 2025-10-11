@@ -107,7 +107,7 @@ export async function GET() {
 
 		return NextResponse.json(Array.from(grouped.values()))
 	} catch (error) {
-		console.error('❌ Erro ao obter dados dos produtos:', error)
+		console.error('❌ [API_DASHBOARD] Erro ao obter dados dos produtos:', { error })
 		return NextResponse.json({ success: false, error: 'Erro ao obter dados dos produtos' }, { status: 500 })
 	}
 }

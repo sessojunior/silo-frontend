@@ -82,7 +82,6 @@ export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project,
 	async function fetchAvailableUsers() {
 		try {
 			setLoading(true)
-			console.log('🔵 Carregando usuários disponíveis para atribuição...')
 
 			// Simular API - buscar usuários que não estão no projeto
 			const allUsers: User[] = [
@@ -99,10 +98,9 @@ export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project,
 			const available = allUsers.filter((user) => !projectMemberIds.includes(user.id) && user.isActive)
 
 			setAvailableUsers(available)
-			console.log('✅ Usuários disponíveis carregados:', available.length)
 			setLoading(false)
 		} catch (error) {
-			console.error('❌ Erro ao carregar usuários:', error)
+			console.error('❌ [COMPONENT_PROJECT_MEMBER_ASSIGN] Erro ao carregar usuários:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado',
@@ -146,7 +144,6 @@ export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project,
 
 		try {
 			setSaving(true)
-			console.log('🔵 Atribuindo membros ao projeto:', project.name)
 
 			// Criar atribuições para cada usuário selecionado
 			for (const userId of selectedUsers) {
@@ -157,7 +154,6 @@ export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project,
 				}
 
 				await onSubmit(assignmentData)
-				console.log('✅ Usuário atribuído:', userId, 'com papel:', selectedRole)
 			}
 
 			toast({
@@ -168,7 +164,7 @@ export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project,
 
 			onClose()
 		} catch (error) {
-			console.error('❌ Erro ao atribuir membros:', error)
+			console.error('❌ [COMPONENT_PROJECT_MEMBER_ASSIGN] Erro ao atribuir membros:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro na atribuição',

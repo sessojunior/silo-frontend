@@ -88,15 +88,11 @@ export async function DELETE(req: NextRequest) {
 						method: 'DELETE',
 					})
 
-					if (deleteResponse.ok) {
-						console.log('✅ Arquivo de imagem removido do disco:', filePath)
-					} else {
-						console.log('⚠️ Erro ao remover arquivo do disco:', filePath)
-					}
+
 				}
 			}
 		} catch (error) {
-			console.log('⚠️ Erro ao remover arquivo do disco:', error)
+			console.warn('⚠️ [API_PRODUCTS_SOLUTIONS_IMAGES] Erro ao remover arquivo do disco:', { error })
 		}
 
 		// Remove do banco
@@ -104,7 +100,7 @@ export async function DELETE(req: NextRequest) {
 
 		return NextResponse.json({ success: true }, { status: 200 })
 	} catch (error) {
-		console.error('❌ Erro ao excluir imagem:', error)
+		console.error('❌ [API_PRODUCTS_SOLUTIONS_IMAGES] Erro ao excluir imagem:', { error })
 		return NextResponse.json({ error: 'Erro ao excluir imagem.' }, { status: 500 })
 	}
 }

@@ -7,7 +7,6 @@ import { INCIDENT_STATUS, ProductStatus } from '@/lib/productStatus'
 
 export async function GET(request: Request) {
 	try {
-		console.log('🔵 Iniciando busca de relatório de disponibilidade')
 
 		// Extrair parâmetros da query - timezone São Paulo
 		const { searchParams } = new URL(request.url)
@@ -30,14 +29,13 @@ export async function GET(request: Request) {
 					}
 				})()
 
-		console.log('📅 Período de análise:', { start, end })
+		console.log('ℹ️ [API_REPORTS_AVAILABILITY] Período de análise:', { start, end })
 
 		// Buscar todos os produtos
 		const products = await db.select().from(product).orderBy(product.name)
-		console.log('✅ Produtos encontrados:', products.length)
 
 		if (products.length === 0) {
-			console.log('⚠️ Nenhum produto encontrado no banco')
+			console.log('ℹ️ [API_REPORTS_AVAILABILITY] Nenhum produto encontrado no banco')
 			return NextResponse.json({
 				success: true,
 				totalProducts: 0,
@@ -49,7 +47,6 @@ export async function GET(request: Request) {
 		// Calcular disponibilidade para cada produto
 		const productsWithAvailability = await Promise.all(
 			products.map(async (prod) => {
-				console.log(`🔵 Processando produto: ${prod.name} (período: ${start} a ${end})`)
 
 				// Buscar todas as atividades do produto no período selecionado
 				const activities = await db
@@ -57,7 +54,7 @@ export async function GET(request: Request) {
 					.from(productActivity)
 					.where(and(eq(productActivity.productId, prod.id), gte(productActivity.date, start), lte(productActivity.date, end)))
 
-				console.log(`📊 Atividades encontradas para ${prod.name}:`, activities.length)
+				console.log('ℹ️ [API_REPORTS_AVAILABILITY] Atividades encontradas para produto:', { productName: prod.name, activitiesCount: activities.length })
 
 				// Log detalhado das atividades
 				if (activities.length > 0) {
@@ -65,9 +62,9 @@ export async function GET(request: Request) {
 					activities.forEach((activity) => {
 						statusCounts[activity.status] = (statusCounts[activity.status] || 0) + 1
 					})
-					console.log(`📋 Status das atividades para ${prod.name}:`, statusCounts)
+					console.log('ℹ️ [API_REPORTS_AVAILABILITY] Status das atividades para produto:', { productName: prod.name, statusCounts })
 				} else {
-					console.log(`⚠️ Nenhuma atividade encontrada para ${prod.name} no período ${start} a ${end}`)
+					console.log('ℹ️ [API_REPORTS_AVAILABILITY] Nenhuma atividade encontrada para produto:', { productName: prod.name, period: `${start} a ${end}` })
 				}
 
 				// Calcular métricas
@@ -90,11 +87,11 @@ export async function GET(request: Request) {
 					totalActivities = 0
 					completedActivities = 0
 					failedActivities = 0
-					console.log(`📊 ${prod.name}: Sem atividades registradas - Status estável assumido`)
+					console.log('ℹ️ [API_REPORTS_AVAILABILITY] Produto sem atividades registradas:', { productName: prod.name })
 				} else {
 					// Calcular disponibilidade real baseada nas atividades
 					availabilityPercentage = totalActivities > 0 ? (completedActivities / totalActivities) * 100 : 0
-					console.log(`📊 ${prod.name}: ${totalActivities} atividades, ${completedActivities} concluídas, ${failedActivities} falharam - Disponibilidade: ${availabilityPercentage.toFixed(1)}%`)
+					console.log('ℹ️ [API_REPORTS_AVAILABILITY] Produto com atividades:', { productName: prod.name, totalActivities, completedActivities, failedActivities, availabilityPercentage: availabilityPercentage.toFixed(1) })
 				}
 				}
 
@@ -111,7 +108,7 @@ export async function GET(request: Request) {
 					lastActivityDate = sortedActivities[0].date
 				}
 
-				console.log(`📈 ${prod.name}: ${availabilityPercentage}% disponibilidade, status: ${productStatus}`)
+				console.log('ℹ️ [API_REPORTS_AVAILABILITY] Produto com disponibilidade:', { productName: prod.name, availabilityPercentage, productStatus })
 
 				return {
 					id: prod.id,
@@ -133,11 +130,9 @@ export async function GET(request: Request) {
 		const totalProducts = productsWithAvailability.length
 		const avgAvailability = productsWithAvailability.length > 0 ? Math.round((productsWithAvailability.reduce((sum, p) => sum + p.availabilityPercentage, 0) / totalProducts) * 10) / 10 : 0
 
-		console.log('✅ Relatório finalizado:', { totalProducts, avgAvailability })
-		console.log(
-			'📊 Produtos com disponibilidade:',
-			productsWithAvailability.map((p) => ({ name: p.name, availability: p.availabilityPercentage })),
-		)
+		const productsWithAvailabilityMap = productsWithAvailability.map((p) => ({ name: p.name, availability: p.availabilityPercentage }))
+		console.log('ℹ️ [API_REPORTS_AVAILABILITY] Produtos com disponibilidade:', { productsWithAvailabilityMap })
+
 
 		return NextResponse.json({
 			success: true,
@@ -146,7 +141,7 @@ export async function GET(request: Request) {
 			products: productsWithAvailability,
 		})
 	} catch (error) {
-		console.error('❌ Erro ao obter relatório de disponibilidade:', error)
+		console.error('❌ [API_REPORTS_AVAILABILITY] Erro ao obter relatório de disponibilidade:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

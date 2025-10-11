@@ -42,7 +42,7 @@ export async function PUT(req: NextRequest) {
 		// Retorna a resposta com sucesso
 		return NextResponse.json({ message: 'Senha alterada com sucesso!' })
 	} catch (error) {
-		console.error('❌ Erro ao alterar a senha do usuário:', error)
+		console.error('❌ [API_USER_PASSWORD] Erro ao alterar a senha do usuário:', { error })
 		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

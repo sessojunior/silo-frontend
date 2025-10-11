@@ -21,7 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			return NextResponse.json({ success: false, error: 'Data e turno são obrigatórios' }, { status: 400 })
 		}
 
-		console.log('🔍 [API] Buscando histórico do produto:', { productId, date, turn })
+		console.log('ℹ️ [API_PRODUCTS_HISTORY] Buscando histórico do produto:', { productId, date, turn })
 
 		// Buscar atividade atual do produto para a data e turno específicos
 		const currentActivity = await db
@@ -58,14 +58,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			.where(eq(schema.productActivityHistory.productActivityId, currentActivity[0].id))
 			.orderBy(desc(schema.productActivityHistory.createdAt))
 
-		console.log(`✅ [API] ${history.length} entradas de histórico encontradas`)
 
 		return NextResponse.json({
 			success: true,
 			history: history,
 		})
 	} catch (error) {
-		console.error('❌ [API] Erro ao buscar histórico do produto:', error)
+		console.error('❌ [API_PRODUCTS_HISTORY] Erro ao buscar histórico do produto:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

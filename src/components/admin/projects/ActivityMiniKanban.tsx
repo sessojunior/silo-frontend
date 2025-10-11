@@ -40,7 +40,6 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 				const tasksData = await response.json()
 
 				if (tasksData.success && tasksData.tasks) {
-					console.log('🔵 [ActivityMiniKanban] Dados recebidos da API:', tasksData.tasks)
 
 					// A API retorna tasks agrupadas por status, precisamos converter para array
 					const allTasks: ProjectTask[] = []
@@ -50,7 +49,6 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 						}
 					})
 
-					console.log('🔵 [ActivityMiniKanban] Tasks convertidas para array:', allTasks.length)
 					setTasks(allTasks)
 				} else {
 					setError('Erro ao carregar dados do servidor')
@@ -59,7 +57,7 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 				setError(`Erro HTTP ${response.status}: ${response.statusText}`)
 			}
 		} catch (error) {
-			console.error('❌ Erro ao carregar tarefas do mini-kanban:', error)
+			console.error('❌ [COMPONENT_ACTIVITY_MINI_KANBAN] Erro ao carregar tarefas do mini-kanban:', { error })
 			if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
 				setError('Erro de conexão. Verifique sua internet e tente novamente.')
 			} else {

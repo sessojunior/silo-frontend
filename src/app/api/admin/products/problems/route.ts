@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 
 		return NextResponse.json({ items: problems })
 	} catch (e) {
-		console.error('❌ Erro ao buscar problemas:', e)
+		console.error('❌ [API_PRODUCTS_PROBLEMS] Erro ao buscar problemas:', { error: e })
 		return NextResponse.json({ field: null, message: 'Erro ao buscar problemas.' }, { status: 500 })
 	}
 }
@@ -183,7 +183,7 @@ export async function DELETE(req: NextRequest) {
 
 		return NextResponse.json({ success: true }, { status: 200 })
 	} catch (error) {
-		console.error('❌ Erro ao excluir problema:', error)
+		console.error('❌ [API_PRODUCTS_PROBLEMS] Erro ao excluir problema:', { error })
 		return NextResponse.json({ field: null, message: 'Erro ao excluir problema.' }, { status: 500 })
 	}
 }

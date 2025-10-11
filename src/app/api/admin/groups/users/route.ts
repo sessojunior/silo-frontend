@@ -21,7 +21,7 @@ export async function DELETE(request: NextRequest) {
 
 		return NextResponse.json({ success: true })
 	} catch (error) {
-		console.error('❌ Erro ao remover usuário do grupo:', error)
+		console.error('❌ [API_GROUPS_USERS] Erro ao remover usuário do grupo:', { error })
 		return NextResponse.json({ success: false, message: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

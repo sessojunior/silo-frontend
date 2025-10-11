@@ -19,7 +19,6 @@ export async function GET(req: NextRequest) {
 	}
 
 	try {
-		console.log('🔵 [API Summary] Buscando summary para produto:', productSlug)
 
 		// Query otimizada com JOINs - uma única consulta ao banco
 		// Retorna: total de soluções + última data de atualização
@@ -36,7 +35,7 @@ export async function GET(req: NextRequest) {
 
 		// Se produto não existe, retorna valores zerados
 		if (!result.length) {
-			console.log('⚠️ [API Summary] Produto não encontrado:', productSlug)
+			console.log('ℹ️ [API_PRODUCTS_SOLUTIONS_SUMMARY] Produto não encontrado:', { productSlug })
 			return NextResponse.json({
 				success: true,
 				data: {
@@ -48,11 +47,7 @@ export async function GET(req: NextRequest) {
 
 		const data = result[0]
 
-		console.log('✅ [API Summary] Resultado obtido:', {
-			totalSolutions: data.totalSolutions,
-			lastUpdated: data.lastUpdated,
-			productSlug,
-		})
+
 
 		return NextResponse.json({
 			success: true,
@@ -62,7 +57,7 @@ export async function GET(req: NextRequest) {
 			},
 		})
 	} catch (error) {
-		console.error('❌ [API Summary] Erro ao buscar summary:', error)
+		console.error('❌ [API_PRODUCTS_SOLUTIONS_SUMMARY] Erro ao buscar summary:', { error })
 		return NextResponse.json(
 			{
 				success: false,

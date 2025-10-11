@@ -155,18 +155,7 @@ export async function GET(request: NextRequest) {
 			users: usersCount,
 		}
 
-		console.log('🔵 [API Sync] Novas mensagens encontradas:', newMessages.length)
-		console.log('🔵 [API Sync] Detalhes das novas mensagens:', newMessages.map(msg => ({
-			id: msg.id,
-			content: msg.content,
-			senderUserId: msg.senderUserId,
-			senderName: msg.senderName,
-			receiverGroupId: msg.receiverGroupId,
-			receiverUserId: msg.receiverUserId,
-			createdAt: msg.createdAt,
-			readAt: msg.readAt,
-			isFromCurrentUser: msg.senderUserId === user.id
-		})))
+
 
 		// 4. Mapear tipo de mensagem
 		const messagesWithType = newMessages.map((msg) => ({
@@ -184,7 +173,7 @@ export async function GET(request: NextRequest) {
 
 		return NextResponse.json(response)
 	} catch (error) {
-		console.error('❌ Erro no chat sync:', error)
+		console.error('❌ [API_CHAT_SYNC] Erro no chat sync:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

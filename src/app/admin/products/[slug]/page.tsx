@@ -362,7 +362,7 @@ export default function ProductsPage() {
 					setProductId(data.products[0].id)
 				}
 			} catch (error) {
-				console.error('❌ Erro ao buscar produto:', error)
+				console.error('❌ [PAGE_PRODUCT_SLUG] Erro ao buscar produto:', { error })
 			} finally {
 				setLoading(false)
 			}
@@ -390,7 +390,6 @@ export default function ProductsPage() {
 				}>(cacheKey)
 				
 				if (cachedData) {
-					console.log('✅ [Cache] Dados carregados do cache:', cacheKey)
 					setDependencies(cachedData.dependencies || [])
 					setContacts((cachedData.contacts as ProductContact[]) || [])
 					setManual((cachedData.manual as ProductManual) || null)
@@ -400,8 +399,6 @@ export default function ProductsPage() {
 					setLoading(false)
 					return
 				}
-
-				console.log('🔵 [Cache] Cache miss - buscando dados da API:', cacheKey)
 				
 				const [depsRes, contactsRes, manualRes, problemsRes] = await Promise.all([
 					fetch(`/api/admin/products/dependencies?productId=${productId}`), 
@@ -438,9 +435,8 @@ export default function ProductsPage() {
 				if (solutionsSummaryData.success) {
 					solutionsCount = solutionsSummaryData.data.totalSolutions
 					lastUpdated = solutionsSummaryData.data.lastUpdated ? new Date(solutionsSummaryData.data.lastUpdated) : null
-					console.log('✅ Summary de soluções obtido:', solutionsSummaryData.data)
 				} else {
-					console.error('❌ Erro ao buscar summary de soluções:', solutionsSummaryData.error)
+					console.error('❌ [PAGE_PRODUCT_SLUG] Erro ao buscar summary de soluções:', { error: solutionsSummaryData.error })
 				}
 
 				setSolutionsCount(solutionsCount)
@@ -456,10 +452,9 @@ export default function ProductsPage() {
 					lastUpdated: lastUpdated?.toISOString() || null
 				}
 				productCache.set(cacheKey, dataToCache, 300000) // 5 minutos
-				console.log('✅ [Cache] Dados salvos no cache:', cacheKey)
 
 			} catch (error) {
-				console.error('❌ Erro ao buscar dados:', error)
+				console.error('❌ [PAGE_PRODUCT_SLUG] Erro ao buscar dados:', { error })
 			} finally {
 				setLoading(false)
 			}
@@ -474,13 +469,13 @@ export default function ProductsPage() {
 		try {
 			// Invalidar cache antes de recarregar
 			productCache.invalidate(`product-${productId}`)
-			console.log('🔄 [Cache] Cache invalidado para recarregamento de dependências')
+			console.log('ℹ️ [PAGE_PRODUCT_SLUG] Cache invalidado para recarregamento de dependências')
 			
 			const res = await fetch(`/api/admin/products/dependencies?productId=${productId}`)
 			const data = await res.json()
 			setDependencies(data.dependencies || [])
 		} catch (error) {
-			console.error('❌ Erro ao recarregar dependências:', error)
+			console.error('❌ [PAGE_PRODUCT_SLUG] Erro ao recarregar dependências:', { error })
 		}
 	}
 
@@ -490,14 +485,13 @@ export default function ProductsPage() {
 		try {
 			// Invalidar cache antes de recarregar
 			productCache.invalidate(`product-${productId}`)
-			console.log('🔄 [Cache] Cache invalidado para recarregamento de contatos')
+			console.log('ℹ️ [PAGE_PRODUCT_SLUG] Cache invalidado para recarregamento de contatos')
 			
 			const res = await fetch(`/api/admin/products/contacts?productId=${productId}`)
 			const data = await res.json()
 			setContacts(data.data?.contacts || [])
-			console.log('✅ Contatos recarregados:', data.data?.contacts?.length || 0)
 		} catch (error) {
-			console.error('❌ Erro ao recarregar contatos:', error)
+			console.error('❌ [PAGE_PRODUCT_SLUG] Erro ao recarregar contatos:', { error })
 		}
 	}
 
@@ -517,11 +511,9 @@ export default function ProductsPage() {
 		// ✅ Debounce de 300ms para evitar chamadas excessivas
 		const newTimeout = setTimeout(async () => {
 			try {
-				console.log('🔵 Salvando reordenação no banco - Total:', reorderedDependencies.length, 'itens')
 
 				// Converte hierarquia para lista flat com parentId e sortKey corretos
 				const flatList = flattenWithNewSortKeys(reorderedDependencies)
-				console.log('🔵 Lista flat gerada:', flatList.length, 'itens para salvar')
 
 				// Envia para API em lote
 				const res = await fetch('/api/admin/products/dependencies/reorder', {
@@ -534,7 +526,6 @@ export default function ProductsPage() {
 				})
 
 				if (res.ok) {
-					console.log('✅ Reordenação salva com sucesso no banco')
 					toast({
 						type: 'success',
 						title: 'Ordem atualizada com sucesso!',
@@ -542,7 +533,7 @@ export default function ProductsPage() {
 					// ✅ NÃO faz refresh - mantém estado atual
 				} else {
 					const error = await res.json()
-					console.error('❌ Erro da API:', error)
+					console.error('❌ [PAGE_PRODUCT_SLUG] Erro da API:', { error })
 					toast({
 						type: 'error',
 						title: error.message || 'Erro ao reordenar dependências',
@@ -552,7 +543,7 @@ export default function ProductsPage() {
 					await refreshDependencies()
 				}
 			} catch (error) {
-				console.error('❌ Erro inesperado ao reordenar:', error)
+				console.error('❌ [PAGE_PRODUCT_SLUG] Erro inesperado ao reordenar:', { error })
 				toast({
 					type: 'error',
 					title: 'Erro inesperado. Revertendo mudanças...',
@@ -664,7 +655,7 @@ export default function ProductsPage() {
 				// Invalidar cache após exclusão
 				if (productId) {
 					productCache.invalidate(`product-${productId}`)
-					console.log('🔄 [Cache] Cache invalidado após exclusão de dependência')
+					console.log('ℹ️ [PAGE_PRODUCT_SLUG] Cache invalidado após exclusão de dependência')
 				}
 				
 				toast({
@@ -682,7 +673,7 @@ export default function ProductsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao excluir dependência:', error)
+			console.error('❌ [PAGE_PRODUCT_SLUG] Erro ao excluir dependência:', { error })
 			toast({ type: 'error', title: 'Erro inesperado. Tente novamente.' })
 		} finally {
 			setFormLoading(false)
@@ -759,7 +750,7 @@ export default function ProductsPage() {
 				}
 			}
 		} catch (error) {
-			console.error('❌ Erro ao submeter formulário:', error)
+			console.error('❌ [PAGE_PRODUCT_SLUG] Erro ao submeter formulário:', { error })
 			toast({ type: 'error', title: 'Erro inesperado. Tente novamente.' })
 		} finally {
 			setFormLoading(false)
@@ -768,7 +759,6 @@ export default function ProductsPage() {
 
 	// Converte as dependências para o formato do TreeView component
 	const treeNodes = useMemo(() => {
-		console.log('🔵 Recalculando treeNodes - Total dependencies:', dependencies.length)
 		return convertDependenciesToTreeNodes(dependencies)
 	}, [dependencies])
 
@@ -789,7 +779,6 @@ export default function ProductsPage() {
 
 		setFormLoading(true)
 		try {
-			console.log('🔵 Salvando manual:', { productId, contentLength: formContent.length })
 			const res = await fetch('/api/admin/products/manual', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
@@ -822,7 +811,7 @@ export default function ProductsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao salvar manual:', error)
+			console.error('❌ [PAGE_PRODUCT_SLUG] Erro ao salvar manual:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado. Tente novamente.',
@@ -914,7 +903,6 @@ export default function ProductsPage() {
 					onClose={() => setContactSelectorOpen(false)}
 					productId={productId}
 					onSuccess={async () => {
-						console.log('✅ Contatos atualizados com sucesso!')
 						await refreshContacts()
 						setContactSelectorOpen(false)
 					}}

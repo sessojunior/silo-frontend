@@ -22,7 +22,7 @@ export function MessageInput({ onSendMessage, isSending }: MessageInputProps) {
 			setMessageText('')
 			setShowEmojiPicker(false)
 		} catch (error) {
-			console.error('❌ [MessageInput] Erro ao enviar mensagem:', error)
+			console.error('❌ [COMPONENT_MESSAGE_INPUT] Erro ao enviar mensagem:', { error })
 		}
 	}
 
@@ -41,14 +41,6 @@ export function MessageInput({ onSendMessage, isSending }: MessageInputProps) {
 		inputRef.current?.focus()
 	}
 
-	// Debug para verificar estado do emoji picker
-	if (process.env.NODE_ENV === 'development') {
-		console.log('🔵 [MessageInput] Estado do emoji picker:', { 
-			showEmojiPicker,
-			messageText: messageText.length,
-			isSending 
-		})
-	}
 
 	return (
 		<div className="relative p-4 bg-white dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700">

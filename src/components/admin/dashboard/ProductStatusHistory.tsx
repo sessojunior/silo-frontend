@@ -53,10 +53,10 @@ export default function ProductStatusHistory({ productId, date, turn }: ProductS
 				throw new Error(data.error || 'Erro ao carregar histórico')
 			}
 
-			console.log('🔍 [ProductStatusHistory] Dados recebidos:', data)
+			console.log('ℹ️ [COMPONENT_PRODUCT_STATUS_HISTORY] Dados recebidos:', { data })
 			setHistory(data.history || [])
 		} catch (error) {
-			console.error('❌ Erro ao carregar histórico:', error)
+			console.error('❌ [COMPONENT_PRODUCT_STATUS_HISTORY] Erro ao carregar histórico:', { error })
 			setError(error instanceof Error ? error.message : 'Erro desconhecido')
 			toast({
 				type: 'error',
@@ -95,7 +95,7 @@ export default function ProductStatusHistory({ productId, date, turn }: ProductS
 		)
 	}
 
-	console.log('🔍 [ProductStatusHistory] Renderizando com history:', history)
+	console.log('ℹ️ [COMPONENT_PRODUCT_STATUS_HISTORY] Renderizando com history:', { history })
 
 	return (
 		<div className='space-y-3'>

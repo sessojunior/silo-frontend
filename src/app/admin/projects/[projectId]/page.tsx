@@ -105,12 +105,11 @@ export default function ProjectDetailsPage() {
 
 		try {
 			setLoading(true)
-			console.log('🔵 Carregando detalhes do projeto:', projectId)
 
 			const response = await fetch(`/api/admin/projects?id=${projectId}`)
 
 			if (!response.ok) {
-				console.log('❌ Erro HTTP ao buscar projeto:', response.status)
+				console.error('❌ [PAGE_PROJECT_DETAILS] Erro HTTP ao buscar projeto:', { status: response.status })
 				toast({
 					type: 'error',
 					title: 'Projeto não encontrado',
@@ -126,7 +125,7 @@ export default function ProjectDetailsPage() {
 			const foundProject = projects.find((p: Project) => p.id === projectId)
 
 			if (!foundProject) {
-				console.log('❌ Projeto não encontrado no array:', projectId)
+				console.error('❌ [PAGE_PROJECT_DETAILS] Projeto não encontrado no array:', { projectId })
 				toast({
 					type: 'error',
 					title: 'Projeto não encontrado',
@@ -137,9 +136,8 @@ export default function ProjectDetailsPage() {
 			}
 
 			setProject(foundProject)
-			console.log('✅ Projeto carregado:', foundProject.name)
 		} catch (error) {
-			console.error('❌ Erro ao carregar projeto:', error)
+			console.error('❌ [PAGE_PROJECT_DETAILS] Erro ao carregar projeto:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado',
@@ -156,13 +154,12 @@ export default function ProjectDetailsPage() {
 
 		try {
 			setActivitiesLoading(true)
-			console.log('🔵 Carregando atividades do projeto:', projectId)
 
 			const response = await fetch(`/api/admin/projects/${projectId}/activities`)
 			const data = await response.json()
 
 			if (!response.ok || !data.success) {
-				console.error('❌ Erro ao carregar atividades:', data.error)
+				console.error('❌ [PAGE_PROJECT_DETAILS] Erro ao carregar atividades:', { error: data.error })
 				toast({
 					type: 'error',
 					title: 'Erro ao carregar atividades',
@@ -172,9 +169,8 @@ export default function ProjectDetailsPage() {
 			}
 
 			setActivities(data.activities)
-			console.log('✅ Atividades carregadas:', data.activities.length)
 		} catch (error) {
-			console.error('❌ Erro ao carregar atividades:', error)
+			console.error('❌ [PAGE_PROJECT_DETAILS] Erro ao carregar atividades:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado',
@@ -221,7 +217,6 @@ export default function ProjectDetailsPage() {
 	}, [activities, search, statusFilter])
 
 	function handleEditActivity(activity: ProjectActivity) {
-		console.log('🔵 Abrindo formulário de edição da atividade:', activity.name)
 
 		// A atividade já está no formato correto ProjectActivity
 		setEditingActivity(activity)
@@ -235,7 +230,6 @@ export default function ProjectDetailsPage() {
 	}
 
 	function handleCreateActivity() {
-		console.log('🔵 Abrindo formulário de nova atividade para projeto:', project?.name)
 		setEditingActivity(null)
 		setActivityFormOpen(true)
 	}
@@ -245,7 +239,6 @@ export default function ProjectDetailsPage() {
 		if (!project) return
 
 		try {
-			console.log('🔵 Atualizando projeto:', projectData.name)
 
 			const response = await fetch(`/api/admin/projects`, {
 				method: 'PUT',
@@ -265,7 +258,6 @@ export default function ProjectDetailsPage() {
 
 			const updatedProject = await response.json()
 			setProject(updatedProject)
-			console.log('✅ Projeto atualizado com sucesso')
 
 			toast({
 				type: 'success',
@@ -273,7 +265,7 @@ export default function ProjectDetailsPage() {
 				description: 'As informações do projeto foram atualizadas com sucesso.',
 			})
 		} catch (error) {
-			console.error('❌ Erro ao atualizar projeto:', error)
+			console.error('❌ [PAGE_PROJECT_DETAILS] Erro ao atualizar projeto:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro ao atualizar projeto',
@@ -311,7 +303,6 @@ export default function ProjectDetailsPage() {
 		if (!project) return
 
 		try {
-			console.log('🔵 Dados recebidos do formulário:', activityData)
 
 			const dbStatus = convertStatusToDatabase(activityData.status)
 
@@ -330,11 +321,9 @@ export default function ProjectDetailsPage() {
 				status: dbStatus,
 			}
 
-			console.log('🔵 Dados que serão enviados para API:', requestData)
 
 			if (editingActivity) {
 				// Editar atividade existente
-				console.log('🔵 Atualizando atividade:', editingActivity.id)
 
 				const response = await fetch(`/api/admin/projects/${projectId}/activities`, {
 					method: 'PUT',
@@ -344,29 +333,25 @@ export default function ProjectDetailsPage() {
 					body: JSON.stringify(requestData),
 				})
 
-				console.log('🔵 Status da resposta:', response.status)
-				console.log('🔵 Headers da resposta:', Object.fromEntries(response.headers.entries()))
 
 				let data
 				try {
 					const responseText = await response.text()
-					console.log('🔵 Texto bruto da resposta:', responseText)
 					data = JSON.parse(responseText)
 				} catch (parseError) {
-					console.error('❌ Erro ao fazer parse da resposta:', parseError)
-					console.error('❌ Resposta não é JSON válido')
+					console.error('❌ [PAGE_PROJECT_DETAILS] Erro ao fazer parse da resposta:', { parseError })
+					console.error('❌ [PAGE_PROJECT_DETAILS] Resposta não é JSON válido')
 					throw new Error('Resposta da API não é JSON válido - possível erro 500 interno')
 				}
 
 				if (!response.ok || !data.success) {
-					console.error('❌ Erro na resposta da API ao atualizar:', data)
+					console.error('❌ [PAGE_PROJECT_DETAILS] Erro na resposta da API ao atualizar:', { data })
 					throw new Error(data.error || 'Erro ao atualizar atividade')
 				}
 
 				// Atualizar lista de atividades
 				setActivities((prev) => prev.map((a) => (a.id === editingActivity.id ? data.activity : a)))
 
-				console.log('✅ Atividade atualizada com sucesso')
 				toast({
 					type: 'success',
 					title: 'Atividade atualizada',
@@ -374,7 +359,6 @@ export default function ProjectDetailsPage() {
 				})
 			} else {
 				// Criar nova atividade
-				console.log('🔵 Criando nova atividade')
 
 				const response = await fetch(`/api/admin/projects/${projectId}/activities`, {
 					method: 'POST',
@@ -384,29 +368,25 @@ export default function ProjectDetailsPage() {
 					body: JSON.stringify(requestData),
 				})
 
-				console.log('🔵 Status da resposta:', response.status)
-				console.log('🔵 Headers da resposta:', Object.fromEntries(response.headers.entries()))
 
 				let data
 				try {
 					const responseText = await response.text()
-					console.log('🔵 Texto bruto da resposta:', responseText)
 					data = JSON.parse(responseText)
 				} catch (parseError) {
-					console.error('❌ Erro ao fazer parse da resposta:', parseError)
-					console.error('❌ Resposta não é JSON válido')
+					console.error('❌ [PAGE_PROJECT_DETAILS] Erro ao fazer parse da resposta:', { parseError })
+					console.error('❌ [PAGE_PROJECT_DETAILS] Resposta não é JSON válido')
 					throw new Error('Resposta da API não é JSON válido - possível erro 500 interno')
 				}
 
 				if (!response.ok || !data.success) {
-					console.error('❌ Erro na resposta da API ao criar:', data)
+					console.error('❌ [PAGE_PROJECT_DETAILS] Erro na resposta da API ao criar:', { data })
 					throw new Error(data.error || 'Erro ao criar atividade')
 				}
 
 				// Adicionar à lista de atividades
 				setActivities((prev) => [data.activity, ...prev])
 
-				console.log('✅ Atividade criada com sucesso')
 				toast({
 					type: 'success',
 					title: 'Atividade criada',
@@ -417,7 +397,7 @@ export default function ProjectDetailsPage() {
 			// Fechar o formulário
 			closeActivityForm()
 		} catch (error) {
-			console.error('❌ Erro ao salvar atividade:', error)
+			console.error('❌ [PAGE_PROJECT_DETAILS] Erro ao salvar atividade:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro ao salvar atividade',
@@ -433,7 +413,6 @@ export default function ProjectDetailsPage() {
 		if (!project) return
 
 		try {
-			console.log('🔵 Excluindo atividade:', activityId)
 
 			const response = await fetch(`/api/admin/projects/${projectId}/activities?activityId=${activityId}`, {
 				method: 'DELETE',
@@ -448,14 +427,13 @@ export default function ProjectDetailsPage() {
 			// Remover da lista de atividades
 			setActivities((prev) => prev.filter((a) => a.id !== activityId))
 
-			console.log('✅ Atividade excluída com sucesso')
 			toast({
 				type: 'success',
 				title: 'Atividade excluída',
 				description: 'A atividade foi excluída com sucesso.',
 			})
 		} catch (error) {
-			console.error('❌ Erro ao excluir atividade:', error)
+			console.error('❌ [PAGE_PROJECT_DETAILS] Erro ao excluir atividade:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro ao excluir atividade',
@@ -492,15 +470,15 @@ export default function ProjectDetailsPage() {
 		if (kanbanTaskCounts[activityId] !== undefined) return // Já carregado
 
 		try {
-			console.log('🔍 [loadKanbanTaskCount] Carregando contagem para atividade:', activityId)
-			console.log('🔍 [loadKanbanTaskCount] URL:', `/api/admin/projects/${projectId}/activities/${activityId}/tasks`)
+			console.log('ℹ️ [PAGE_PROJECT_DETAILS] Carregando contagem para atividade:', { activityId })
+			console.log('ℹ️ [PAGE_PROJECT_DETAILS] URL:', { url: `/api/admin/projects/${projectId}/activities/${activityId}/tasks` })
 
 			const response = await fetch(`/api/admin/projects/${projectId}/activities/${activityId}/tasks`)
-			console.log('🔍 [loadKanbanTaskCount] Response status:', response.status)
+			console.log('ℹ️ [PAGE_PROJECT_DETAILS] Response status:', { status: response.status })
 
 			if (response.ok) {
 				const data = await response.json()
-				console.log('🔍 [loadKanbanTaskCount] Response data para atividade', activityId, ':', data)
+				console.log('ℹ️ [PAGE_PROJECT_DETAILS] Response data para atividade:', { activityId, data })
 
 				if (data.success && data.tasks) {
 					// A API retorna tasks como objeto agrupado por status: { "todo": [...], "in_progress": [...], "done": [...] }
@@ -527,12 +505,11 @@ export default function ProjectDetailsPage() {
 					// Calcular porcentagem de progresso
 					const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
-					console.log('🔍 [loadKanbanTaskCount] ===== RESULTADO FINAL =====')
-					console.log('🔍 [loadKanbanTaskCount] Tasks agrupadas por status:', Object.keys(data.tasks || {}))
-					console.log('🔍 [loadKanbanTaskCount] Total de tarefas para atividade', activityId, ':', totalTasks)
-					console.log('🔍 [loadKanbanTaskCount] Tarefas concluídas:', completedTasks)
-					console.log('🔍 [loadKanbanTaskCount] Progresso calculado:', progressPercentage + '%')
-					console.log('🔍 [loadKanbanTaskCount] ============================')
+
+					console.log('ℹ️ [PAGE_PROJECT_DETAILS] Tasks agrupadas por status:', { statusKeys: Object.keys(data.tasks || {}) })
+					console.log('ℹ️ [PAGE_PROJECT_DETAILS] Total de tarefas para atividade:', { activityId, totalTasks })
+					console.log('ℹ️ [PAGE_PROJECT_DETAILS] Tarefas concluídas:', { completedTasks })
+					console.log('ℹ️ [PAGE_PROJECT_DETAILS] Progresso calculado:', { progressPercentage: progressPercentage + '%' })
 
 					// Atualizar estados
 					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: totalTasks }))
@@ -545,7 +522,7 @@ export default function ProjectDetailsPage() {
 						},
 					}))
 				} else {
-					console.log('🔍 [loadKanbanTaskCount] API retornou falha ou sem tarefas para atividade:', activityId)
+					console.log('ℹ️ [PAGE_PROJECT_DETAILS] API retornou falha ou sem tarefas para atividade:', { activityId })
 					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
 					setKanbanTaskProgress((prev) => ({
 						...prev,
@@ -553,7 +530,7 @@ export default function ProjectDetailsPage() {
 					}))
 				}
 			} else {
-				console.error('🔍 [loadKanbanTaskCount] Response não OK para atividade:', activityId, 'Status:', response.status)
+				console.error('❌ [PAGE_PROJECT_DETAILS] Response não OK para atividade:', { activityId, status: response.status })
 				setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
 				setKanbanTaskProgress((prev) => ({
 					...prev,
@@ -561,7 +538,7 @@ export default function ProjectDetailsPage() {
 				}))
 			}
 		} catch (error) {
-			console.error('❌ [loadKanbanTaskCount] Erro ao carregar contagem de tarefas para atividade:', activityId, error)
+			console.error('❌ [PAGE_PROJECT_DETAILS] Erro ao carregar contagem de tarefas:', { activityId, error })
 			setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
 			setKanbanTaskProgress((prev) => ({
 				...prev,
@@ -600,11 +577,8 @@ export default function ProjectDetailsPage() {
 	// Função para navegar ao Kanban
 	const handleGoToKanban = (activityId: string) => {
 		const kanbanUrl = `/admin/projects/${projectId}/activities/${activityId}`
-		console.log('🔍 [handleGoToKanban] Navegando para:', {
-			activityId,
-			projectId,
-			kanbanUrl,
-		})
+		console.log('ℹ️ [PAGE_PROJECT_DETAILS] Navegando para:', { activityId, kanbanUrl })
+
 		router.push(kanbanUrl)
 	}
 

@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 		const status = searchParams.get('status') || 'all'
 		const groupId = searchParams.get('groupId') || ''
 
-		console.log('ℹ️ Buscando usuários:', { search, status, groupId })
+		console.log('ℹ️ [API_USERS] Buscando usuários:', { search, status, groupId })
 
 		// Construir condições de filtro
 		const conditions = []
@@ -106,7 +106,6 @@ export async function GET(request: NextRequest) {
 			})
 		}
 
-		console.log('✅ Usuários carregados com sucesso:', usersWithGroups.length)
 
 		return NextResponse.json({
 			success: true,
@@ -116,7 +115,7 @@ export async function GET(request: NextRequest) {
 			},
 		})
 	} catch (error) {
-		console.error('❌ Erro ao buscar usuários:', error)
+		console.error('❌ [API_USERS] Erro ao buscar usuários:', { error })
 		return NextResponse.json(
 			{
 				success: false,
@@ -147,7 +146,7 @@ export async function POST(request: NextRequest) {
 		// Determinar grupos usando novo formato ou legado
 		const userGroups: UserGroupInput[] = groups || (groupId ? [{ groupId, role: 'member' }] : [])
 
-		console.log('ℹ️ Criando novo usuário:', { name, email, emailVerified, groups: userGroups, isActive })
+		console.log('ℹ️ [API_USERS] Criando novo usuário:', { name, email, emailVerified, groups: userGroups, isActive })
 
 		// Validações
 		if (!name || name.trim().length < 2) {
@@ -264,11 +263,6 @@ export async function POST(request: NextRequest) {
 
 		await db.insert(userGroup).values(newUserGroupEntries)
 
-		console.log('✅ Usuário criado com sucesso:', {
-			userId,
-			groups: userGroups.map((ug) => ug.groupId),
-			newEntries: newUserGroupEntries.length,
-		})
 
 		// Buscar grupos criados para retorno
 		const finalUserGroups = await db
@@ -296,7 +290,7 @@ export async function POST(request: NextRequest) {
 			},
 		})
 	} catch (error) {
-		console.error('❌ Erro ao criar usuário:', error)
+		console.error('❌ [API_USERS] Erro ao criar usuário:', { error })
 		return NextResponse.json(
 			{
 				success: false,
@@ -327,7 +321,7 @@ export async function PUT(request: NextRequest) {
 		// Suporte a ambos os formatos: novo (groups array) e legado (groupId único)
 		const userGroups: UserGroupInput[] = groups || (groupId ? [{ groupId, role: 'member' }] : [])
 
-		console.log('ℹ️ Atualizando usuário:', { id, name, email, emailVerified, userGroups, isActive })
+		console.log('ℹ️ [API_USERS] Atualizando usuário:', { id, name, email, emailVerified, userGroups, isActive })
 
 		// Validações
 		if (!id) {
@@ -438,7 +432,7 @@ export async function PUT(request: NextRequest) {
 
 		// Proteções para auto-alteração
 		if (user.id === id) {
-			console.log('⚠️ Usuário tentando alterar a si mesmo:', user.email)
+			console.warn('⚠️ [API_USERS] Usuário tentando alterar a si mesmo:', { email: user.email })
 
 			// Não permitir alterar nome próprio
 			if (name !== existingUser[0].name) {
@@ -512,7 +506,6 @@ export async function PUT(request: NextRequest) {
 				)
 			}
 
-			console.log('✅ Auto-alteração permitida para campos seguros')
 		}
 
 		// Preparar dados para atualização
@@ -543,20 +536,9 @@ export async function PUT(request: NextRequest) {
 		const currentGroupIds = currentUserGroups.map((ug) => ug.groupId).sort()
 		const newGroupIds = userGroups.map((ug: UserGroupInput) => ug.groupId).sort()
 
-		console.log('🔵 Verificando mudança de grupos:', {
-			userId: id,
-			currentGroups: currentGroupIds,
-			newGroups: newGroupIds,
-			shouldUpdate: JSON.stringify(currentGroupIds) !== JSON.stringify(newGroupIds),
-		})
 
 		// Se os grupos são diferentes, fazer a mudança
 		if (JSON.stringify(currentGroupIds) !== JSON.stringify(newGroupIds)) {
-			console.log('🔵 Fazendo mudança de grupos...', {
-				userId: id,
-				from: currentGroupIds,
-				to: newGroupIds,
-			})
 
 			// Remover de todos os grupos atuais
 			await db.delete(userGroup).where(eq(userGroup.userId, id))
@@ -570,17 +552,10 @@ export async function PUT(request: NextRequest) {
 
 			await db.insert(userGroup).values(newUserGroupEntries)
 
-			console.log('✅ Usuário atualizado nos grupos:', {
-				userId: id,
-				from: currentGroupIds,
-				to: newGroupIds,
-				newEntries: newUserGroupEntries.length,
-			})
 		} else {
-			console.log('🟡 Usuário já está nos grupos desejados, nenhuma mudança necessária')
+			console.log('ℹ️ [API_USERS] Usuário já está nos grupos desejados, nenhuma mudança necessária')
 		}
 
-		console.log('✅ Usuário atualizado com sucesso:', id)
 
 		// Retornar dados sem senha
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -609,7 +584,7 @@ export async function PUT(request: NextRequest) {
 			},
 		})
 	} catch (error) {
-		console.error('❌ Erro ao atualizar usuário:', error)
+		console.error('❌ [API_USERS] Erro ao atualizar usuário:', { error })
 		return NextResponse.json(
 			{
 				success: false,
@@ -637,7 +612,7 @@ export async function DELETE(request: NextRequest) {
 		const { searchParams } = new URL(request.url)
 		const id = searchParams.get('id')
 
-		console.log('ℹ️ Excluindo usuário:', { id })
+		console.log('ℹ️ [API_USERS] Excluindo usuário:', { id })
 
 		if (!id) {
 			return NextResponse.json(
@@ -682,52 +657,42 @@ export async function DELETE(request: NextRequest) {
 			}
 		}
 
-		console.log('🔵 Iniciando exclusão em cascata do usuário:', id)
 
 		// Executar exclusão em cascata usando transação
 		await db.transaction(async (tx) => {
-			console.log('🔵 Iniciando transação de exclusão em cascata...')
 
 			// 1. Buscar todas as atividades do produto criadas pelo usuário
 			const productActivities = await tx.select({ id: productActivity.id }).from(productActivity).where(eq(productActivity.userId, id))
 			const productActivityIds = productActivities.map((a) => a.id)
-			console.log(`🔵 Encontradas ${productActivityIds.length} atividades de produto do usuário`)
 
 			// 2. Excluir histórico das atividades de produto
 			if (productActivityIds.length > 0) {
 				await tx.delete(productActivityHistory).where(inArray(productActivityHistory.productActivityId, productActivityIds))
-				console.log('✅ Histórico das atividades de produto excluído')
 			}
 
 			// 3. Excluir atividades de produto
 			await tx.delete(productActivity).where(eq(productActivity.userId, id))
-			console.log('✅ Atividades de produto do usuário excluídas')
 
 			// 4. Buscar todos os problemas criados pelo usuário
 			const problems = await tx.select({ id: productProblem.id }).from(productProblem).where(eq(productProblem.userId, id))
 			const problemIds = problems.map((p) => p.id)
-			console.log(`🔵 Encontrados ${problemIds.length} problemas do usuário`)
 
 			// 5. Para cada problema, excluir soluções e suas dependências
 			if (problemIds.length > 0) {
 				// Buscar todas as soluções dos problemas
 				const solutions = await tx.select({ id: productSolution.id }).from(productSolution).where(inArray(productSolution.productProblemId, problemIds))
 				const solutionIds = solutions.map((s) => s.id)
-				console.log(`🔵 Encontradas ${solutionIds.length} soluções dos problemas`)
 
 				// Excluir verificações das soluções
 				if (solutionIds.length > 0) {
 					await tx.delete(productSolutionChecked).where(inArray(productSolutionChecked.productSolutionId, solutionIds))
-					console.log('✅ Verificações das soluções excluídas')
 				}
 
 				// Excluir todas as soluções
 				await tx.delete(productSolution).where(inArray(productSolution.productProblemId, problemIds))
-				console.log('✅ Soluções dos problemas excluídas')
 
 				// Excluir todos os problemas
 				await tx.delete(productProblem).where(eq(productProblem.userId, id))
-				console.log('✅ Problemas do usuário excluídos')
 			}
 
 			// 6. (projectActivity não tem userId - não precisa excluir)
@@ -735,65 +700,51 @@ export async function DELETE(request: NextRequest) {
 			// 7. Buscar todas as tarefas associadas ao usuário
 			const taskUsers = await tx.select({ taskId: projectTaskUser.taskId }).from(projectTaskUser).where(eq(projectTaskUser.userId, id))
 			const taskIds = taskUsers.map((tu) => tu.taskId)
-			console.log(`🔵 Encontradas ${taskIds.length} tarefas associadas ao usuário`)
 
 			// 8. Excluir histórico das tarefas criado pelo usuário (não todas as tarefas associadas)
 			await tx.delete(projectTaskHistory).where(eq(projectTaskHistory.userId, id))
-			console.log('✅ Histórico das tarefas criado pelo usuário excluído')
 
 			// 9. Excluir associações usuário-tarefa
 			await tx.delete(projectTaskUser).where(eq(projectTaskUser.userId, id))
-			console.log('✅ Associações usuário-tarefa excluídas')
 
 			// 10. Excluir mensagens de chat do usuário
 			await tx.delete(chatMessage).where(eq(chatMessage.senderUserId, id))
-			console.log('✅ Mensagens de chat do usuário excluídas')
 
 			// 11. Excluir presença do chat
 			await tx.delete(chatUserPresence).where(eq(chatUserPresence.userId, id))
-			console.log('✅ Presença do chat excluída')
 
 			// 12. Excluir registros de rate limit
 			await tx.delete(rateLimit).where(eq(rateLimit.email, existingUser[0].email))
-			console.log('✅ Registros de rate limit excluídos')
 
 			// 13. Excluir sessões de autenticação
 			await tx.delete(authSession).where(eq(authSession.userId, id))
-			console.log('✅ Sessões de autenticação excluídas')
 
 			// 14. Excluir códigos de autenticação
 			await tx.delete(authCode).where(eq(authCode.userId, id))
-			console.log('✅ Códigos de autenticação excluídos')
 
 			// 15. Excluir provedores de autenticação
 			await tx.delete(authProvider).where(eq(authProvider.userId, id))
-			console.log('✅ Provedores de autenticação excluídos')
 
 			// 16. Excluir perfil do usuário
 			await tx.delete(userProfile).where(eq(userProfile.userId, id))
-			console.log('✅ Perfil do usuário excluído')
 
 			// 17. Excluir preferências do usuário
 			await tx.delete(userPreferences).where(eq(userPreferences.userId, id))
-			console.log('✅ Preferências do usuário excluídas')
 
 			// 18. Remover dos grupos
 			await tx.delete(userGroup).where(eq(userGroup.userId, id))
-			console.log('✅ Associações de grupos excluídas')
 
 			// 19. Finalmente, excluir o usuário
 			await tx.delete(authUser).where(eq(authUser.id, id))
-			console.log('✅ Usuário excluído com sucesso')
 		})
 
-		console.log('✅ Exclusão em cascata do usuário concluída:', id)
 
 		return NextResponse.json({
 			success: true,
 			message: 'Usuário e todos os dados relacionados excluídos com sucesso.',
 		})
 	} catch (error) {
-		console.error('❌ Erro ao excluir usuário:', error)
+		console.error('❌ [API_USERS] Erro ao excluir usuário:', { error })
 		return NextResponse.json(
 			{
 				success: false,

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 		const search = searchParams.get('search') || ''
 		const status = searchParams.get('status') || 'all'
 
-		console.log('ℹ️ Buscando grupos:', { search, status })
+		console.log('ℹ️ [API_GROUPS] Buscando grupos:', { search, status })
 
 		// Construir condições de filtro
 		const conditions = []
@@ -40,7 +40,6 @@ export async function GET(request: NextRequest) {
 			.where(conditions.length > 0 ? and(...conditions) : undefined)
 			.orderBy(desc(group.isDefault), desc(group.createdAt))
 
-		console.log('✅ Grupos carregados com sucesso:', groups.length)
 
 		return NextResponse.json({
 			success: true,
@@ -50,7 +49,7 @@ export async function GET(request: NextRequest) {
 			},
 		})
 	} catch (error) {
-		console.error('❌ Erro ao buscar grupos:', error)
+		console.error('❌ [API_GROUPS] Erro ao buscar grupos:', { error })
 		return NextResponse.json(
 			{
 				success: false,
@@ -78,7 +77,7 @@ export async function POST(request: NextRequest) {
 		const body = await request.json()
 		const { name, description, icon, color, active, isDefault, maxUsers } = body
 
-		console.log('ℹ️ Criando novo grupo:', { name, description, active, isDefault })
+		console.log('ℹ️ [API_GROUPS] Criando novo grupo:', { name, description, active, isDefault })
 
 		// Validações
 		if (!name || name.trim().length < 2) {
@@ -128,14 +127,13 @@ export async function POST(request: NextRequest) {
 
 		await db.insert(group).values(newGroup)
 
-		console.log('✅ Grupo criado com sucesso:', newGroup.id)
 
 		return NextResponse.json({
 			success: true,
 			data: newGroup,
 		})
 	} catch (error) {
-		console.error('❌ Erro ao criar grupo:', error)
+		console.error('❌ [API_GROUPS] Erro ao criar grupo:', { error })
 		return NextResponse.json(
 			{
 				success: false,
@@ -163,7 +161,7 @@ export async function PUT(request: NextRequest) {
 		const body = await request.json()
 		const { id, name, description, icon, color, active, isDefault, maxUsers } = body
 
-		console.log('ℹ️ Atualizando grupo:', { id, name, active, isDefault })
+		console.log('ℹ️ [API_GROUPS] Atualizando grupo:', { id, name, active, isDefault })
 
 		// Validações
 		if (!id) {
@@ -239,7 +237,7 @@ export async function PUT(request: NextRequest) {
 				)
 			}
 
-			console.log('⚠️ Tentativa de alteração crítica no grupo Administradores bloqueada')
+			console.warn('⚠️ [API_GROUPS] Tentativa de alteração crítica no grupo Administradores bloqueada')
 		}
 
 		// Verificar se nome já existe em outro grupo
@@ -302,14 +300,13 @@ export async function PUT(request: NextRequest) {
 
 		await db.update(group).set(updatedData).where(eq(group.id, id))
 
-		console.log('✅ Grupo atualizado com sucesso:', id)
 
 		return NextResponse.json({
 			success: true,
 			data: { id, ...updatedData },
 		})
 	} catch (error) {
-		console.error('❌ Erro ao atualizar grupo:', error)
+		console.error('❌ [API_GROUPS] Erro ao atualizar grupo:', { error })
 		return NextResponse.json(
 			{
 				success: false,
@@ -337,7 +334,7 @@ export async function DELETE(request: NextRequest) {
 		const { searchParams } = new URL(request.url)
 		const id = searchParams.get('id')
 
-		console.log('ℹ️ Excluindo grupo:', { id })
+		console.log('ℹ️ [API_GROUPS] Excluindo grupo:', { id })
 
 		if (!id) {
 			return NextResponse.json(
@@ -384,11 +381,9 @@ export async function DELETE(request: NextRequest) {
 			)
 		}
 
-		console.log('🔵 Iniciando exclusão em cascata do grupo:', id)
 
 		// Executar exclusão em cascata usando transação
 		await db.transaction(async (tx) => {
-			console.log('🔵 Iniciando transação de exclusão em cascata...')
 
 			// 1. Buscar o grupo padrão
 			const defaultGroup = await tx.select().from(group).where(eq(group.isDefault, true)).limit(1)
@@ -398,11 +393,9 @@ export async function DELETE(request: NextRequest) {
 			}
 
 			const defaultGroupId = defaultGroup[0].id
-			console.log(`🔵 Grupo padrão encontrado: ${defaultGroup[0].name} (${defaultGroupId})`)
 
 			// 2. Verificar quantos usuários estão no grupo
 			const usersInGroup = await tx.select().from(userGroup).where(eq(userGroup.groupId, id))
-			console.log(`🔵 Encontrados ${usersInGroup.length} usuários no grupo`)
 
 			// 3. Mover usuários para o grupo padrão (apenas se não estiverem em nenhum outro grupo)
 			if (usersInGroup.length > 0) {
@@ -430,35 +423,28 @@ export async function DELETE(request: NextRequest) {
 							assignedAt: new Date(),
 						})),
 					)
-					console.log(`✅ ${usersToMove.length} usuários movidos para o grupo padrão (não estavam em outros grupos)`)
 				} else {
-					console.log('✅ Todos os usuários já estão em outros grupos')
 				}
 			}
 
 			// 4. Excluir associações usuário-grupo do grupo sendo excluído
 			await tx.delete(userGroup).where(eq(userGroup.groupId, id))
-			console.log(`✅ ${usersInGroup.length} associações usuário-grupo excluídas`)
 
 			// 5. Excluir mensagens de chat do grupo
 			await tx.delete(chatMessage).where(eq(chatMessage.receiverGroupId, id))
-			console.log('✅ Mensagens de chat do grupo excluídas')
 
 			// 6. Finalmente, excluir o grupo
 			await tx.delete(group).where(eq(group.id, id))
-			console.log('✅ Grupo excluído com sucesso')
 		})
 
-		console.log('✅ Exclusão em cascata do grupo concluída:', id)
 
-		console.log('✅ Grupo excluído com sucesso:', id)
 
 		return NextResponse.json({
 			success: true,
 			message: 'Grupo excluído com sucesso.',
 		})
 	} catch (error) {
-		console.error('❌ Erro ao excluir grupo:', error)
+		console.error('❌ [API_GROUPS] Erro ao excluir grupo:', { error })
 		return NextResponse.json(
 			{
 				success: false,

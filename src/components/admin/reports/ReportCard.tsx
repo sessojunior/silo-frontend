@@ -38,14 +38,12 @@ export function ReportCard({ report }: ReportCardProps) {
 		setIsGenerating(true)
 		try {
 			// Simular geração do relatório
-			console.log('🔵 Gerando relatório:', report.id)
 			await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulação reduzida
-			console.log('✅ Relatório gerado com sucesso')
 
 			// Navegar para a página de visualização do relatório
 			router.push(`/admin/reports/${report.id}`)
 		} catch (error) {
-			console.log('❌ Erro ao gerar relatório:', error)
+			console.error('❌ [COMPONENT_REPORT_CARD] Erro ao gerar relatório:', { error })
 		} finally {
 			setIsGenerating(false)
 		}

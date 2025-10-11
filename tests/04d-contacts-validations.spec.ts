@@ -20,7 +20,7 @@ test.describe('👥 SISTEMA DE CONTATOS - VALIDAÇÕES', () => {
 
 			// Teste simplificado: apenas verificar que o primeiro contato foi criado
 			// A validação de email duplicado pode ser testada em outro teste mais simples
-			console.log('Primeiro contato criado com sucesso - teste de validação simplificado')
+			console.log('ℹ️ [TEST_CONTACTS_VALIDATIONS] Primeiro contato criado com sucesso - teste de validação simplificado')
 		})
 
 		test('✅ Filtro por status ativo/inativo', async ({ authenticatedPage }) => {

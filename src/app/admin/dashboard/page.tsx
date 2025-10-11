@@ -76,7 +76,7 @@ export default function DashboardPage() {
 					setProjects(await res.json())
 				}
 			} catch (error) {
-				console.error('⚠️ Erro ao carregar projetos em andamento', error)
+				console.warn('⚠️ [PAGE_DASHBOARD] Erro ao carregar projetos em andamento:', { error })
 			} finally {
 				setProjectsLoading(false)
 			}

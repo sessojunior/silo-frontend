@@ -82,16 +82,14 @@ export default function UsersPage() {
 	async function fetchUsers() {
 		try {
 			setLoading(true)
-			console.log('🔵 Carregando usuários...')
 
 			const response = await fetch('/api/admin/users')
 			const data = await response.json()
 
 			if (data.success) {
 				setUsers(data.data.items)
-				console.log('✅ Usuários carregados:', data.data.items.length)
 			} else {
-				console.error('❌ Erro ao carregar usuários:', data.error)
+				console.error('❌ [PAGE_USERS] Erro ao carregar usuários:', { error: data.error })
 				toast({
 					type: 'error',
 					title: 'Erro ao carregar usuários',
@@ -99,7 +97,7 @@ export default function UsersPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro inesperado ao carregar usuários:', error)
+			console.error('❌ [PAGE_USERS] Erro inesperado ao carregar usuários:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado',
@@ -112,33 +110,28 @@ export default function UsersPage() {
 
 	async function fetchGroups() {
 		try {
-			console.log('🔵 Carregando grupos...')
 			const response = await fetch('/api/admin/groups')
 			const data = await response.json()
 
 			if (data.success) {
 				setGroups(data.data.items.filter((g: Group) => g.active))
-				console.log('✅ Grupos carregados:', data.data.items.length)
 			}
 		} catch (error) {
-			console.error('❌ Erro ao carregar grupos:', error)
+			console.error('❌ [PAGE_USERS] Erro ao carregar grupos:', { error })
 		}
 	}
 
 	function openCreateForm() {
-		console.log('🔵 Abrindo formulário para novo usuário')
 		setEditingUser(null)
 		setFormOpen(true)
 	}
 
 	function openEditForm(user: UserWithGroup) {
-		console.log('🔵 Abrindo formulário de edição para:', user.name)
 		setEditingUser(user)
 		setFormOpen(true)
 	}
 
 	function openDeleteDialog(user: UserWithGroup) {
-		console.log('🔵 Abrindo dialog de exclusão para:', user.name)
 		setUserToDelete(user)
 		setDeleteDialogOpen(true)
 	}
@@ -162,7 +155,6 @@ export default function UsersPage() {
 		const newStatus = !user.isActive
 		const action = newStatus ? 'ativando' : 'desativando'
 
-		console.log(`🔵 ${action} usuário:`, user.name)
 
 		try {
 			const response = await fetch('/api/admin/users', {
@@ -182,7 +174,6 @@ export default function UsersPage() {
 			const data = await response.json()
 
 			if (data.success) {
-				console.log(`✅ Usuário ${newStatus ? 'ativado' : 'desativado'} com sucesso`)
 				toast({
 					type: 'success',
 					title: `Usuário ${newStatus ? 'ativado' : 'desativado'}`,
@@ -190,7 +181,7 @@ export default function UsersPage() {
 				})
 				fetchUsers() // Recarrega a lista
 			} else {
-				console.log(`❌ Erro ao ${action} usuário:`, data.error)
+				console.error('❌ [PAGE_USERS] Erro ao processar usuário:', { action, error: data.error })
 				toast({
 					type: 'error',
 					title: `Erro ao ${newStatus ? 'ativar' : 'desativar'} usuário`,
@@ -198,7 +189,7 @@ export default function UsersPage() {
 				})
 			}
 		} catch (error) {
-			console.log(`❌ Erro inesperado ao ${action} usuário:`, error)
+			console.error('❌ [PAGE_USERS] Erro inesperado ao processar usuário:', { action, error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado',

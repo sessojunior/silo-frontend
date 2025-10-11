@@ -25,7 +25,6 @@ export async function GET() {
 			return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		console.log('🔵 Buscando status de presença dos chatUsers')
 
 		// Buscar presença de todos usuários (incluindo atual para verificações)
 		const presenceData = await db
@@ -70,10 +69,7 @@ export async function GET() {
 		const currentUserPresence = updatedPresence.find((p) => p.userId === user.id)
 		const otherUsersPresence = updatedPresence.filter((p) => p.userId !== user.id)
 
-		console.log('✅ Status de presença obtido:', {
-			currentUser: currentUserPresence ? 'found' : 'not found',
-			otherUsers: otherUsersPresence.length,
-		})
+
 
 		return NextResponse.json({
 			presence: otherUsersPresence, // Para compatibilidade (sidebar usa apenas outros usuários)
@@ -81,7 +77,7 @@ export async function GET() {
 			timestamp: now.toISOString(),
 		})
 	} catch (error) {
-		console.error('❌ Erro ao buscar status de presença:', error)
+		console.error('❌ [API_CHAT_PRESENCE] Erro ao buscar status de presença:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -103,7 +99,6 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: 'Status inválido. Use: visible ou invisible' }, { status: 400 })
 		}
 
-		console.log('🔵 Atualizando status de presença:', { userId: user.id, status })
 
 		const now = new Date()
 
@@ -120,7 +115,6 @@ export async function POST(request: NextRequest) {
 			})
 		}
 
-		console.log('✅ Status de presença atualizado:', { userId: user.id, status })
 
 		return NextResponse.json({
 			success: true,
@@ -130,7 +124,7 @@ export async function POST(request: NextRequest) {
 			updatedAt: now,
 		})
 	} catch (error) {
-		console.error('❌ Erro ao atualizar status de presença:', error)
+		console.error('❌ [API_CHAT_PRESENCE] Erro ao atualizar status de presença:', { error })
 		return NextResponse.json({ error: (error as Error).message || 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -143,7 +137,6 @@ export async function PATCH() {
 			return NextResponse.json({ error: 'Usuário não autenticado' }, { status: 401 })
 		}
 
-		console.log('🔵 Heartbeat de atividade:', { userId: user.id })
 
 		const now = new Date()
 
@@ -169,14 +162,13 @@ export async function PATCH() {
 			})
 		}
 
-		console.log('✅ Atividade atualizada:', { userId: user.id })
 
 		return NextResponse.json({
 			success: true,
 			lastActivity: now,
 		})
 	} catch (error) {
-		console.error('❌ Erro no heartbeat de atividade:', error)
+		console.error('❌ [API_CHAT_PRESENCE] Erro no heartbeat de atividade:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

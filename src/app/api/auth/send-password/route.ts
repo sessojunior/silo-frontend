@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 		// Retorna para a página o próximo passo
 		return NextResponse.json({ step: 4 })
 	} catch (err) {
-		console.error('❌ Erro ao enviar a senha:', err)
+		console.error('❌ [API_AUTH_SEND_PASSWORD] Erro ao enviar a senha:', { error: err })
 		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

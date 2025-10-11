@@ -16,7 +16,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 		}
 
 		const { projectId, activityId } = await params
-		console.log('🔵 [API] GET Tasks - Buscando tarefas:', { projectId, activityId })
 
 		// Buscar tarefas da atividade ordenadas por status e sort
 		const tasks = await db
@@ -25,12 +24,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			.where(and(eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId)))
 			.orderBy(asc(schema.projectTask.status), asc(schema.projectTask.sort))
 
-		console.log('🔵 [API] Tasks encontradas:', tasks.length)
 
 		// Buscar usuários associados a cada tarefa
 		const tasksWithUsers = await Promise.all(
 			tasks.map(async (task) => {
-				console.log(`🔵 [API] Buscando usuários para tarefa ${task.id}: ${task.name}`)
 
 				const taskUsers = await db
 					.select({
@@ -44,10 +41,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 					.innerJoin(schema.authUser, eq(schema.projectTaskUser.userId, schema.authUser.id))
 					.where(eq(schema.projectTaskUser.taskId, task.id))
 
-				console.log(
-					`🔵 [API] Tarefa ${task.id} - ${taskUsers.length} usuários encontrados:`,
-					taskUsers.map((u) => ({ id: u.id, name: u.name, role: u.role })),
-				)
+				const taskUsersMap = taskUsers.map((u) => ({ id: u.id, name: u.name, role: u.role }))
+				console.log('ℹ️ [API_PROJECTS_TASKS] Tarefa com usuários encontrados:', { taskId: task.id, users: taskUsersMap })
 
 				return {
 					...task,
@@ -57,16 +52,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			}),
 		)
 
-		console.log(
-			'🔵 [API] Tasks por status:',
-			tasksWithUsers.reduce(
-				(acc, task) => {
-					acc[task.status] = (acc[task.status] || 0) + 1
-					return acc
-				},
-				{} as Record<string, number>,
-			),
+		const tasksWithUsersReduce = tasksWithUsers.reduce(
+			(acc, task) => {
+				acc[task.status] = (acc[task.status] || 0) + 1
+				return acc
+			},
+			{} as Record<string, number>,
 		)
+		console.log('ℹ️ [API_PROJECTS_TASKS] Tasks por status:', { tasksWithUsersReduce })
 
 		// Agrupar tarefas por status
 		const groupedTasks = tasksWithUsers.reduce(
@@ -80,27 +73,25 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			{} as Record<string, typeof tasksWithUsers>,
 		)
 
-		console.log(
-			'🔵 [API] Tasks agrupadas:',
-			Object.keys(groupedTasks).map((status) => ({
-				status,
-				count: groupedTasks[status].length,
-				tasks: groupedTasks[status].map((t) => ({
-					id: t.id,
-					name: t.name,
-					sort: t.sort,
-					assignedUsers: t.assignedUsers,
-					assignedUsersCount: t.assignedUsers?.length || 0,
-				})),
+		const groupedTasksMap = Object.keys(groupedTasks).map((status) => ({
+			status,
+			count: groupedTasks[status].length,
+			tasks: groupedTasks[status].map((t) => ({
+				id: t.id,
+				name: t.name,
+				sort: t.sort,
+				assignedUsers: t.assignedUsers,
+				assignedUsersCount: t.assignedUsers?.length || 0,
 			})),
-		)
+		}))
+		console.log('ℹ️ [API_PROJECTS_TASKS] Tasks agrupadas:', { groupedTasksMap })
 
 		return NextResponse.json({
 			success: true,
 			tasks: groupedTasks,
 		})
 	} catch (error) {
-		console.error('❌ [API] Erro ao buscar tarefas:', error)
+		console.error('❌ [API_PROJECTS_TASKS] Erro ao buscar tarefas:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -198,16 +189,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 		}))
 
 		// Debug logs para comparação
-		console.log('🔵 [API] PATCH - Comparando dados:')
-		console.log('Frontend tasksBeforeMove:', JSON.stringify(tasksBeforeMove, null, 2))
-		console.log('Backend dbTasksForCompare:', JSON.stringify(dbTasksForCompare, null, 2))
+		console.log('ℹ️ [API_PROJECTS_TASKS] Frontend tasksBeforeMove:', { tasksBeforeMove })
+		console.log('ℹ️ [API_PROJECTS_TASKS] Backend dbTasksForCompare:', { dbTasksForCompare })
 
 		// Verificar se o frontend está desatualizado
 		const isEqual = tasksArrayEquals(tasksBeforeMove, dbTasksForCompare)
-		console.log('🔍 [API] Arrays iguais?', isEqual)
+		console.log('ℹ️ [API_PROJECTS_TASKS] Arrays iguais?', { isEqual })
 
 		if (!isEqual) {
-			console.log('❌ [API] KANBAN_OUTDATED - Frontend desatualizado!')
+			console.log('ℹ️ [API_PROJECTS_TASKS] KANBAN_OUTDATED - Frontend desatualizado!')
 			// Retornar erro especial e o estado real do banco (array plano, todos os campos)
 			return NextResponse.json(
 				{
@@ -291,7 +281,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 		return NextResponse.json({ success: true, tasks: tasksWithUsers })
 	} catch (error) {
-		console.error('❌ [API] Erro ao atualizar tarefas do kanban:', error)
+		console.error('❌ [API_PROJECTS_TASKS] Erro ao atualizar tarefas do kanban:', { error })
 		return NextResponse.json({ success: false, error: 'Erro ao atualizar tarefas do kanban' }, { status: 500 })
 	}
 }
@@ -308,7 +298,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 		const body = await request.json()
 		const { name, description, category, estimatedDays, startDate, endDate, priority, status } = body
 
-		console.log('🔵 [API] POST Task - Criando tarefa:', { projectId, activityId, name, status, body })
 
 		// Validações básicas
 		if (!name?.trim()) {
@@ -342,11 +331,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 			sort: nextSort,
 		}
 
-		console.log('🔵 [API] Valores para inserção:', taskValues)
 
 		const newTask = await db.insert(schema.projectTask).values(taskValues).returning()
 
-		console.log('✅ [API] Tarefa criada:', newTask[0])
 
 		// Registrar histórico de criação
 		await recordTaskHistory({
@@ -371,7 +358,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 			task: newTask[0],
 		})
 	} catch (error) {
-		console.error('❌ [API] Erro ao criar tarefa:', error)
+		console.error('❌ [API_PROJECTS_TASKS] Erro ao criar tarefa:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -388,7 +375,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 		const body = await request.json()
 		const { id, name, description, category, estimatedDays, startDate, endDate, priority, status } = body
 
-		console.log('🔵 [API] PUT Task - Editando tarefa:', { projectId, activityId, id, name, status, body })
 
 		// Validações básicas
 		if (!id) {
@@ -433,7 +419,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 			.where(eq(schema.projectTask.id, id))
 			.returning()
 
-		console.log('✅ [API] Tarefa atualizada:', updatedTask[0].id)
 
 		// Registrar histórico de edição
 		const changedFields = []
@@ -475,7 +460,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 			task: updatedTask[0],
 		})
 	} catch (error) {
-		console.error('❌ [API] Erro ao editar tarefa:', error)
+		console.error('❌ [API_PROJECTS_TASKS] Erro ao editar tarefa:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -492,7 +477,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 		const body = await request.json()
 		const { id } = body
 
-		console.log('🔵 [API] DELETE Task - Excluindo tarefa:', { id })
 
 		// Validações básicas
 		if (!id) {
@@ -533,14 +517,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 		// Excluir tarefa
 		await db.delete(schema.projectTask).where(eq(schema.projectTask.id, id))
 
-		console.log('✅ [API] Tarefa excluída:', id)
 
 		return NextResponse.json({
 			success: true,
 			message: 'Tarefa excluída com sucesso',
 		})
 	} catch (error) {
-		console.error('❌ [API] Erro ao excluir tarefa:', error)
+		console.error('❌ [API_PROJECTS_TASKS] Erro ao excluir tarefa:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

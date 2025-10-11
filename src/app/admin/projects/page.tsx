@@ -52,18 +52,18 @@ export default function ProjectsPage() {
 	// Função para calcular progresso real de um projeto baseado nas tarefas do Kanban
 	const calculateProjectProgress = useCallback(async (projectId: string): Promise<number> => {
 		try {
-			console.log('🔍 Calculando progresso real para projeto:', projectId)
+			console.log('ℹ️ [PAGE_PROJECTS] Calculando progresso real para projeto:', { projectId })
 			
 			// Buscar atividades do projeto
 			const activitiesResponse = await fetch(`/api/admin/projects/${projectId}/activities`)
 			if (!activitiesResponse.ok) {
-				console.log('⚠️ Erro ao buscar atividades do projeto:', projectId)
+				console.warn('⚠️ [PAGE_PROJECTS] Erro ao buscar atividades do projeto:', { projectId })
 				return 0
 			}
 			
 			const activitiesData = await activitiesResponse.json()
 			if (!activitiesData.success || !activitiesData.activities) {
-				console.log('⚠️ Nenhuma atividade encontrada para projeto:', projectId)
+				console.warn('⚠️ [PAGE_PROJECTS] Nenhuma atividade encontrada para projeto:', { projectId })
 				return 0
 			}
 			
@@ -91,16 +91,15 @@ export default function ProjectsPage() {
 						}
 					}
 				} catch (error) {
-					console.log('⚠️ Erro ao buscar tarefas da atividade:', activity.id, error)
+					console.warn('⚠️ [PAGE_PROJECTS] Erro ao buscar tarefas da atividade:', { activityId: activity.id, error })
 				}
 			}
 			
 			const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
-			console.log(`✅ Progresso calculado para projeto ${projectId}: ${progressPercentage}% (${completedTasks}/${totalTasks} tarefas)`)
 			
 			return progressPercentage
 		} catch (error) {
-			console.error('❌ Erro ao calcular progresso do projeto:', projectId, error)
+			console.error('❌ [PAGE_PROJECTS] Erro ao calcular progresso do projeto:', { projectId, error })
 			return 0
 		}
 	}, [])
@@ -109,7 +108,6 @@ export default function ProjectsPage() {
 	const fetchProjects = useCallback(async () => {
 		try {
 			setLoading(true)
-			console.log('🔵 Carregando projetos...')
 
 			const response = await fetch('/api/admin/projects')
 
@@ -147,9 +145,8 @@ export default function ProjectsPage() {
 			)
 
 			setProjects(formattedProjects)
-			console.log('✅ Projetos carregados com progresso real:', formattedProjects.length)
 		} catch (error) {
-			console.error('❌ Erro ao carregar projetos:', error)
+			console.error('❌ [PAGE_PROJECTS] Erro ao carregar projetos:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro ao carregar projetos',
@@ -184,27 +181,23 @@ export default function ProjectsPage() {
 
 
 	function openCreateForm() {
-		console.log('🔵 Abrindo formulário para novo projeto')
 		setEditingProject(null)
 		setFormOpen(true)
 	}
 
 	function openEditForm(project: Project, event: React.MouseEvent) {
 		event.stopPropagation() // Evitar abrir página de detalhes
-		console.log('🔵 Abrindo formulário de edição para:', project.name)
 		setEditingProject(project)
 		setFormOpen(true)
 	}
 
 	function openDeleteDialog(project: Project) {
-		console.log('🔵 Abrindo dialog de exclusão para:', project.name)
 		setProjectToDelete(project)
 		setDeleteDialogOpen(true)
 	}
 
 	function openViewDescription(project: Project, event: React.MouseEvent) {
 		event.stopPropagation()
-		console.log('🔵 Visualizando descrição completa de:', project.name)
 		setViewDescriptionProject(project)
 	}
 
@@ -219,7 +212,6 @@ export default function ProjectsPage() {
 	}
 
 	function handleProjectClick(projectId: string) {
-		console.log('🔵 Redirecionando para detalhes do projeto:', projectId)
 		router.push(`/admin/projects/${projectId}`)
 	}
 
@@ -228,7 +220,6 @@ export default function ProjectsPage() {
 		try {
 			if (editingProject) {
 				// Editar projeto existente
-				console.log('🔵 Atualizando projeto:', editingProject.id, projectData)
 
 				const response = await fetch('/api/admin/projects', {
 					method: 'PUT',
@@ -260,7 +251,6 @@ export default function ProjectsPage() {
 				}
 
 				setProjects((prev) => prev.map((p) => (p.id === editingProject.id ? updatedProject : p)))
-				console.log('✅ Projeto atualizado com sucesso')
 
 				toast({
 					type: 'success',
@@ -269,7 +259,6 @@ export default function ProjectsPage() {
 				})
 			} else {
 				// Criar novo projeto
-				console.log('🔵 Criando novo projeto:', projectData)
 
 				const response = await fetch('/api/admin/projects', {
 					method: 'POST',
@@ -304,7 +293,6 @@ export default function ProjectsPage() {
 				}
 
 				setProjects((prev) => [newProject, ...prev])
-				console.log('✅ Projeto criado com sucesso')
 
 				toast({
 					type: 'success',
@@ -313,7 +301,7 @@ export default function ProjectsPage() {
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro ao salvar projeto:', error)
+			console.error('❌ [PAGE_PROJECTS] Erro ao salvar projeto:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro ao salvar projeto',
@@ -325,7 +313,6 @@ export default function ProjectsPage() {
 
 	async function handleProjectDelete(projectId: string) {
 		try {
-			console.log('🔵 Excluindo projeto:', projectId)
 
 			const response = await fetch(`/api/admin/projects?id=${projectId}`, {
 				method: 'DELETE',
@@ -336,7 +323,6 @@ export default function ProjectsPage() {
 			}
 
 			setProjects((prev) => prev.filter((p) => p.id !== projectId))
-			console.log('✅ Projeto excluído com sucesso')
 
 			toast({
 				type: 'success',
@@ -344,7 +330,7 @@ export default function ProjectsPage() {
 				description: 'O projeto foi excluído com sucesso.',
 			})
 		} catch (error) {
-			console.error('❌ Erro ao excluir projeto:', error)
+			console.error('❌ [PAGE_PROJECTS] Erro ao excluir projeto:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro ao excluir projeto',

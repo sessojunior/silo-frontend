@@ -48,7 +48,7 @@ export default function IncidentManagementOffcanvas({ open, onClose, onIncidentU
 				toast({ type: 'error', title: 'Erro ao carregar incidentes' })
 			}
 		} catch (error) {
-			console.error('Erro ao carregar incidentes:', error)
+			console.error('❌ [COMPONENT_INCIDENT_MANAGEMENT] Erro ao carregar incidentes:', { error })
 			toast({ type: 'error', title: 'Erro ao carregar incidentes' })
 		} finally {
 			setLoading(false)
@@ -90,7 +90,7 @@ export default function IncidentManagementOffcanvas({ open, onClose, onIncidentU
 				toast({ type: 'error', title: data.message || 'Erro ao salvar incidente' })
 			}
 		} catch (error) {
-			console.error('Erro ao salvar incidente:', error)
+			console.error('❌ [COMPONENT_INCIDENT_MANAGEMENT] Erro ao salvar incidente:', { error })
 			toast({ type: 'error', title: 'Erro ao salvar incidente' })
 		}
 	}
@@ -119,7 +119,7 @@ export default function IncidentManagementOffcanvas({ open, onClose, onIncidentU
 				toast({ type: 'error', title: data.message || 'Erro ao excluir incidente' })
 			}
 		} catch (error) {
-			console.error('Erro ao excluir incidente:', error)
+			console.error('❌ [COMPONENT_INCIDENT_MANAGEMENT] Erro ao excluir incidente:', { error })
 			toast({ type: 'error', title: 'Erro ao excluir incidente' })
 		} finally {
 			setDeleteLoading(false)

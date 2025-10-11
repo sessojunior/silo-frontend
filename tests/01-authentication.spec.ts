@@ -38,7 +38,7 @@ test.describe('🔐 AUTENTICAÇÃO', () => {
 
 			// Verificar se há algum erro ou mensagem
 			const pageContent = await page.content()
-			console.log('🔵 [TESTE] Conteúdo da página após registro:', pageContent)
+			console.log('ℹ️ [TEST_AUTHENTICATION] Conteúdo da página após registro:', { pageContent })
 
 			// Verificar redirecionamento para etapa 2 (verificação de email)
 			await expect(page.getByText(/verifique seu e-mail|código de verificação/i)).toBeVisible({ timeout: 30000 })

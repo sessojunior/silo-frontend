@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
 			{ status: 200 },
 		)
 	} catch (error) {
-		console.error('❌ Erro ao criar conta de usuário:', error)
+		console.error('❌ [API_AUTH_REGISTER] Erro ao criar conta de usuário:', { error })
 		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

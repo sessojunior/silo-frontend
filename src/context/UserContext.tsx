@@ -63,7 +63,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
 	const fetchUser = useCallback(async (): Promise<User | null> => {
 		try {
-			console.log('🔍 [UserContext] Buscando dados do usuário...')
+			console.log('ℹ️ [CONTEXT_USER] Buscando dados do usuário...')
 			const response = await fetch('/api/user-profile')
 			
 			if (response.ok) {
@@ -77,22 +77,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 						emailVerified: data.user.emailVerified,
 						image: data.user.image || '/images/profile.png'
 					}
-					console.log('✅ [UserContext] Usuário carregado:', userData.email)
 					return userData
 				}
 			} else if (response.status === 401) {
-				console.log('❌ [UserContext] Usuário não autenticado')
+				console.warn('⚠️ [CONTEXT_USER] Usuário não autenticado')
 				return null
 			}
 		} catch (err) {
-			console.error('❌ [UserContext] Erro ao buscar usuário:', err)
+			console.error('❌ [CONTEXT_USER] Erro ao buscar usuário:', { error: err })
 		}
 		return null
 	}, [])
 
 	const fetchUserProfile = useCallback(async (): Promise<UserProfile | null> => {
 		try {
-			console.log('🔍 [UserContext] Buscando perfil do usuário...')
+			console.log('ℹ️ [CONTEXT_USER] Buscando perfil do usuário...')
 			const response = await fetch('/api/user-profile')
 			
 			if (response.ok) {
@@ -106,19 +105,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 						location: data.userProfile.location,
 						team: data.userProfile.team,
 					}
-					console.log('✅ [UserContext] Perfil carregado')
 					return profileData
 				}
 			}
 		} catch (err) {
-			console.error('❌ [UserContext] Erro ao buscar perfil:', err)
+			console.error('❌ [CONTEXT_USER] Erro ao buscar perfil:', { error: err })
 		}
 		return null
 	}, [])
 
 	const fetchUserPreferences = useCallback(async (): Promise<UserPreferences | null> => {
 		try {
-			console.log('🔍 [UserContext] Buscando preferências do usuário...')
+			console.log('ℹ️ [CONTEXT_USER] Buscando preferências do usuário...')
 			const response = await fetch('/api/user-preferences')
 			
 			if (response.ok) {
@@ -128,12 +126,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 						chatEnabled: data.userPreferences.chatEnabled,
 						showWelcome: data.userPreferences.showWelcome,
 					}
-					console.log('✅ [UserContext] Preferências carregadas')
 					return preferencesData
 				}
 			}
 		} catch (err) {
-			console.error('❌ [UserContext] Erro ao buscar preferências:', err)
+			console.error('❌ [CONTEXT_USER] Erro ao buscar preferências:', { error: err })
 		}
 		return null
 	}, [])
@@ -142,17 +139,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
 	const updateUser = useCallback((updates: Partial<User>) => {
 		setUser(prev => prev ? { ...prev, ...updates } : null)
-		console.log('🔄 [UserContext] Usuário atualizado:', updates)
+		console.log('ℹ️ [CONTEXT_USER] Usuário atualizado:', { updates })
 	}, [])
 
 	const updateUserProfile = useCallback((updates: Partial<UserProfile>) => {
 		setUserProfile(prev => prev ? { ...prev, ...updates } : updates)
-		console.log('🔄 [UserContext] Perfil atualizado:', updates)
+		console.log('ℹ️ [CONTEXT_USER] Perfil atualizado:', { updates })
 	}, [])
 
 	const updateUserPreferences = useCallback((updates: Partial<UserPreferences>) => {
 		setUserPreferences(prev => prev ? { ...prev, ...updates } : updates)
-		console.log('🔄 [UserContext] Preferências atualizadas:', updates)
+		console.log('ℹ️ [CONTEXT_USER] Preferências atualizadas:', { updates })
 		
 		// Disparar evento customizado para notificar outros componentes
 		window.dispatchEvent(new CustomEvent('userPreferencesChanged', { detail: updates }))
@@ -186,7 +183,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 		setError(null)
 		
 		try {
-			console.log('🔄 [UserContext] Sincronizando todos os dados do usuário...')
+			console.log('ℹ️ [CONTEXT_USER] Sincronizando todos os dados do usuário...')
 			
 			const [userData, profileData, preferencesData] = await Promise.all([
 				fetchUser(),
@@ -204,9 +201,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 				setUserPreferences(preferencesData)
 			}
 			
-			console.log('✅ [UserContext] Sincronização completa')
 		} catch (err) {
-			console.error('❌ [UserContext] Erro na sincronização:', err)
+			console.error('❌ [CONTEXT_USER] Erro na sincronização:', { error: err })
 			setError('Erro ao sincronizar dados do usuário')
 		} finally {
 			setLoading(false)

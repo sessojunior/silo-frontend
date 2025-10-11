@@ -31,7 +31,7 @@ export default function Topbar() {
 					setChatEnabled(enabled)
 				}
 			} catch (error) {
-				console.error('❌ [Topbar] Erro ao verificar preferências do chat:', error)
+				console.error('❌ [COMPONENT_TOPBAR] Erro ao verificar preferências do chat:', { error })
 			}
 		}
 

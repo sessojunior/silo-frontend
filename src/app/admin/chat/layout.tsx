@@ -19,7 +19,6 @@ export default function ChatLayout() {
 
 	// Extrair informações da rota atual
 	useEffect(() => {
-		console.log('🔵 [ChatLayout] Rota atual:', pathname)
 		
 		// Extrair tipo e ID da rota
 		const pathParts = pathname.split('/').filter(Boolean)
@@ -29,27 +28,21 @@ export default function ChatLayout() {
 			const type = pathParts[chatIndex + 1] // 'groups' ou 'users'
 			const id = pathParts[chatIndex + 2] // ID específico
 			
-			console.log('🔵 [ChatLayout] Extraído da rota:', { type, id })
 			
 			if (type === 'groups' && id) {
-				console.log('🔵 [ChatLayout] Abrindo grupo via rota:', id)
 				setActiveTargetId(id)
 				setActiveTargetType('group')
 			} else if (type === 'users' && id) {
-				console.log('🔵 [ChatLayout] Abrindo usuário via rota:', id)
 				setActiveTargetId(id)
 				setActiveTargetType('user')
 			} else if (type === 'groups') {
-				console.log('🔵 [ChatLayout] Página de grupos sem ID específico')
 				setActiveTargetId(null)
 				setActiveTargetType('group')
 			} else if (type === 'users') {
-				console.log('🔵 [ChatLayout] Página de usuários sem ID específico')
 				setActiveTargetId(null)
 				setActiveTargetType('user')
 			}
 		} else {
-			console.log('🔵 [ChatLayout] Rota base /chat')
 			setActiveTargetId(null)
 			setActiveTargetType(null)
 		}
@@ -57,37 +50,28 @@ export default function ChatLayout() {
 
 	// Debug: carregar dados e verificar se há grupos/usuários
 	useEffect(() => {
-		console.log('🔵 [ChatLayout] Dados carregados:', {
-			groups: groups?.length || 0,
-			users: users?.length || 0,
-		})
+
 
 		if (groups?.length > 0) {
-			console.log(
-				'🔵 [ChatLayout] Grupos disponíveis:',
-				groups.map((g) => ({ id: g.id, name: g.name })),
-			)
+			const groupsData = groups.map((g) => ({ id: g.id, name: g.name }))
+			console.log('ℹ️ [LAYOUT_CHAT] Grupos disponíveis:', { groups: groupsData })
+
 		}
 
 		if (users?.length > 0) {
-			console.log(
-				'🔵 [ChatLayout] Usuários com conversas:',
-				users.map((u) => ({ id: u.id, name: u.name, unread: u.unreadCount })),
-			)
+			const usersData = users.map((u) => ({ id: u.id, name: u.name }))
+			console.log('ℹ️ [LAYOUT_CHAT] Usuários com conversas:', { users: usersData })
+
 		}
 	}, [groups, users])
 
 	// Debug: monitorar mudanças de target ativo
 	useEffect(() => {
-		console.log('🔵 [ChatLayout] Target ativo mudou:', {
-			id: activeTargetId,
-			type: activeTargetType,
-		})
+
 	}, [activeTargetId, activeTargetType])
 
 	// Handler para seleção de target (grupo ou usuário)
 	const handleTargetSelect = (targetId: string, type: 'group' | 'user') => {
-		console.log('🔵 [ChatLayout] Selecionando target:', { targetId, type })
 		setActiveTargetId(targetId)
 		setActiveTargetType(type)
 	}

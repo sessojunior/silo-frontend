@@ -18,7 +18,6 @@ export async function GET(req: NextRequest) {
 		const search = searchParams.get('search') || ''
 		const status = searchParams.get('status') || 'all' // all, active, inactive
 
-		console.log('🔵 Listando contatos...', { search, status })
 
 		// Query ordenada alfabeticamente por nome
 		const contacts = await db.select().from(contact).orderBy(contact.name)
@@ -36,7 +35,6 @@ export async function GET(req: NextRequest) {
 			filteredContacts = filteredContacts.filter((c) => !c.active)
 		}
 
-		console.log('✅ Contatos listados com sucesso:', filteredContacts.length)
 
 		return NextResponse.json({
 			success: true,
@@ -46,7 +44,7 @@ export async function GET(req: NextRequest) {
 			},
 		})
 	} catch (error) {
-		console.error('❌ Erro ao listar contatos:', error)
+		console.error('❌ [API_CONTACTS] Erro ao listar contatos:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -68,7 +66,6 @@ export async function POST(req: NextRequest) {
 		const imageUrl = formData.get('imageUrl') as string | null
 		const active = formData.get('active') === 'true'
 
-		console.log('🔵 Criando novo contato:', { name, role, team, email, active })
 
 		// Validações
 		if (!name || name.trim().length < 2) {
@@ -110,11 +107,10 @@ export async function POST(req: NextRequest) {
 			active,
 		})
 
-		console.log('✅ Contato criado com sucesso:', contactId)
 
 		return NextResponse.json({ success: true, data: { id: contactId } }, { status: 201 })
 	} catch (error) {
-		console.error('❌ Erro ao criar contato:', error)
+		console.error('❌ [API_CONTACTS] Erro ao criar contato:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -138,7 +134,6 @@ export async function PUT(req: NextRequest) {
 		const active = formData.get('active') === 'true'
 		const removeImage = formData.get('removeImage') === 'true'
 
-		console.log('🔵 Editando contato:', { id, name, role, team, email, active })
 
 		if (!id) {
 			return NextResponse.json({ success: false, error: 'ID do contato é obrigatório' }, { status: 400 })
@@ -201,14 +196,13 @@ export async function PUT(req: NextRequest) {
 						})
 
 						if (deleteResponse.ok) {
-							console.log('✅ Arquivo de imagem removido do disco:', filePath)
 						} else {
-							console.log('⚠️ Erro ao remover arquivo do disco:', filePath)
+							console.warn('⚠️ [API_CONTACTS] Erro ao remover arquivo do disco:', { filePath })
 						}
 					}
 				}
 			} catch (error) {
-				console.log('⚠️ Erro ao remover arquivo do disco:', error)
+				console.warn('⚠️ [API_CONTACTS] Erro ao remover arquivo do disco:', { error })
 			}
 		}
 
@@ -227,11 +221,10 @@ export async function PUT(req: NextRequest) {
 			})
 			.where(eq(contact.id, id))
 
-		console.log('✅ Contato atualizado com sucesso:', id)
 
 		return NextResponse.json({ success: true })
 	} catch (error) {
-		console.error('❌ Erro ao editar contato:', error)
+		console.error('❌ [API_CONTACTS] Erro ao editar contato:', { error })
 		return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }
@@ -239,18 +232,15 @@ export async function PUT(req: NextRequest) {
 // DELETE - Excluir contato
 export async function DELETE(req: NextRequest) {
 	try {
-		console.log('🔵 Iniciando exclusão de contato...')
 
 		const user = await getAuthUser()
 		if (!user) {
-			console.log('❌ Usuário não autenticado tentou excluir contato')
+			console.warn('⚠️ [API_CONTACTS] Usuário não autenticado tentou excluir contato')
 			return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })
 		}
 
-		console.log('✅ Usuário autenticado:', user.email)
 
 		const { id } = await req.json()
-		console.log('🔵 ID do contato recebido:', id)
 
 		if (!id) {
 			return NextResponse.json({ success: false, error: 'ID do contato é obrigatório' }, { status: 400 })
@@ -262,29 +252,24 @@ export async function DELETE(req: NextRequest) {
 			return NextResponse.json({ success: false, error: 'Contato não encontrado' }, { status: 404 })
 		}
 
-		console.log('🔵 Iniciando exclusão em cascata do contato:', id)
 
 		// Executar exclusão em cascata usando transação
 		await db.transaction(async (tx) => {
-			console.log('🔵 Iniciando transação de exclusão em cascata...')
 
 			// 1. Excluir associações produto-contato
 			await tx.delete(productContact).where(eq(productContact.contactId, id))
-			console.log('✅ Associações produto-contato excluídas')
 
 			// 2. Finalmente, excluir o contato
 			await tx.delete(contact).where(eq(contact.id, id))
-			console.log('✅ Contato excluído com sucesso')
 		})
 
-		console.log('✅ Exclusão em cascata do contato concluída:', id)
 
 		return NextResponse.json({ success: true })
 	} catch (error) {
-		console.error('❌ Erro detalhado ao excluir contato:', error)
-		console.error('❌ Stack trace:', error instanceof Error ? error.stack : 'N/A')
-		console.error('❌ Tipo do erro:', typeof error)
-		console.error('❌ Mensagem do erro:', error instanceof Error ? error.message : String(error))
+		console.error('❌ [API_CONTACTS] Erro detalhado ao excluir contato:', { error })
+		console.error('❌ [API_CONTACTS] Stack trace:', { stack: error instanceof Error ? error.stack : 'N/A' })
+		console.error('❌ [API_CONTACTS] Tipo do erro:', { type: typeof error })
+		console.error('❌ [API_CONTACTS] Mensagem do erro:', error instanceof Error ? error.message : String(error))
 
 		return NextResponse.json(
 			{

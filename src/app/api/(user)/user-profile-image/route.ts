@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 		// Retorna a resposta com sucesso
 		return NextResponse.json({ message: 'Imagem alterada com sucesso!' })
 	} catch (error) {
-		console.error('❌ Erro ao alterar a imagem de perfil do usuário:', error)
+		console.error('❌ [API_USER_PROFILE_IMAGE] Erro ao alterar a imagem de perfil do usuário:', { error })
 		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }
@@ -55,17 +55,15 @@ export async function DELETE() {
 				const filename = imageUrl.split('/').pop()
 				if (filename) {
 					try {
-						console.log('🔵 Excluindo imagem de perfil do servidor local:', filename)
 						const deleteResponse = await fetch(`${fileServerUrl}/files/avatars/${filename}`, {
 							method: 'DELETE',
 						})
 						if (deleteResponse.ok) {
-							console.log('✅ Imagem de perfil excluída do servidor local com sucesso')
 						} else {
-							console.warn('⚠️ Erro ao deletar arquivo do servidor local')
+							console.warn('⚠️ [API_USER_PROFILE_IMAGE] Erro ao deletar arquivo do servidor local')
 						}
 					} catch (error) {
-						console.error('❌ Erro ao excluir imagem de perfil do servidor local:', error)
+						console.error('❌ [API_USER_PROFILE_IMAGE] Erro ao excluir imagem de perfil do servidor local:', { error })
 						// Continua mesmo se falhar a exclusão do arquivo remoto
 					}
 				}
@@ -73,7 +71,7 @@ export async function DELETE() {
 				// Se é imagem local (antiga), usa método antigo
 				const deleteImage = deleteUserProfileImage(user.id)
 				if ('error' in deleteImage) {
-					console.error('❌ Erro ao apagar a imagem de perfil local:', deleteImage.error)
+					console.error('❌ [API_USER_PROFILE_IMAGE] Erro ao apagar a imagem de perfil local:', { error: deleteImage.error })
 					return NextResponse.json({ message: deleteImage.error.message }, { status: 400 })
 				}
 			}
@@ -85,7 +83,7 @@ export async function DELETE() {
 		// Retorna a resposta com sucesso
 		return NextResponse.json({ message: 'Imagem apagada com sucesso!' })
 	} catch (error) {
-		console.error('❌ Erro ao apagar a imagem de perfil do usuário:', error)
+		console.error('❌ [API_USER_PROFILE_IMAGE] Erro ao apagar a imagem de perfil do usuário:', { error })
 		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

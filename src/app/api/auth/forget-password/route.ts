@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 		// Retorna para a página o próximo passo
 		return NextResponse.json({ step: 2, email })
 	} catch (err) {
-		console.error('❌ Erro ao recuperar senha:', err)
+		console.error('❌ [API_AUTH_FORGET_PASSWORD] Erro ao recuperar senha:', { error: err })
 		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

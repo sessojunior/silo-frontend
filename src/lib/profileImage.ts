@@ -21,7 +21,6 @@ export async function uploadProfileImageFromUrl(url: string, userId: string): Pr
 	try {
 		// Verifica se o arquivo já existe
 		if (existsSync(OUTPUT_PATH)) {
-			console.log(`🔵 Imagem de perfil já existe para o usuário ${userId}. Nenhuma ação foi realizada.`)
 			return false
 		}
 
@@ -50,11 +49,10 @@ export async function uploadProfileImageFromUrl(url: string, userId: string): Pr
 
 		// Salva a imagem processada no caminho final
 		writeFileSync(OUTPUT_PATH, processedImage)
-		console.log(`✅ Imagem de perfil salva com sucesso para o usuário ${userId}.`)
 
 		return true
 	} catch (err) {
-		console.error(`❌ Erro ao processar/salvar imagem de perfil para o usuário ${userId}:`, err)
+		console.error('❌ [LIB_PROFILE_IMAGE] Erro ao processar/salvar imagem de perfil:', { userId, error: err })
 		return false
 	}
 }
@@ -73,20 +71,20 @@ export async function uploadProfileImageFromInput(file: File, userId: string): P
 
 	// Verifica se o ID do usuário foi fornecido
 	if (!userId) {
-		console.warn('⚠️ ID do usuário ausente.')
+		console.warn('⚠️ [LIB_PROFILE_IMAGE] ID do usuário ausente')
 		return { error: { code: 'INVALID_USER_ID', message: 'ID do usuário é obrigatório.' } }
 	}
 
 	// Verifica se o arquivo foi fornecido
 	if (!file) {
-		console.warn('⚠️ Arquivo de imagem do usuário ausente.')
+		console.warn('⚠️ [LIB_PROFILE_IMAGE] Arquivo de imagem do usuário ausente')
 		return { error: { code: 'INVALID_FILE', message: 'Arquivo de imagem é obrigatório.' } }
 	}
 
 	try {
 		// Valida o tamanho do arquivo
 		if (file.size > IMAGE_SIZE_UPLOAD) {
-			console.warn(`⚠️ Arquivo excede o limite de ${IMAGE_SIZE_UPLOAD / (1024 * 1024)} MB.`)
+			console.warn('⚠️ [LIB_PROFILE_IMAGE] Arquivo excede o limite de tamanho:', { limit: IMAGE_SIZE_UPLOAD / (1024 * 1024) })
 			return { error: { code: 'FILE_TOO_LARGE', message: `O arquivo deve ter no máximo ${IMAGE_SIZE_UPLOAD / (1024 * 1024)} MB.` } }
 		}
 
@@ -97,7 +95,7 @@ export async function uploadProfileImageFromInput(file: File, userId: string): P
 
 		// Verifica se o formato da imagem é permitido
 		if (!metadata.format || !IMAGE_ALLOWED_FORMATS.includes(metadata.format)) {
-			console.warn(`⚠️ Formato de imagem inválido detectado: ${metadata.format}`)
+			console.warn('⚠️ [LIB_PROFILE_IMAGE] Formato de imagem inválido detectado:', { format: metadata.format })
 			return {
 				error: {
 					code: 'INVALID_FORMAT',
@@ -108,7 +106,7 @@ export async function uploadProfileImageFromInput(file: File, userId: string): P
 
 		// Verifica se a largura e altura da imagem foram obtidas
 		if (!metadata.width || !metadata.height) {
-			console.warn('⚠️ Não foi possível obter os dados da imagem.')
+			console.warn('⚠️ [LIB_PROFILE_IMAGE] Não foi possível obter os dados da imagem')
 			return { error: { code: 'INVALID_IMAGE_DATA', message: 'Não foi possível processar a imagem.' } }
 		}
 
@@ -117,11 +115,10 @@ export async function uploadProfileImageFromInput(file: File, userId: string): P
 
 		// Caminho final e salvamento
 		writeFileSync(OUTPUT_PATH, processedImage)
-		console.log(`✅ Imagem de perfil salva em ${OUTPUT_PATH}.`)
 
 		return { success: true }
 	} catch (err) {
-		console.error(`❌ Erro ao processar ou salvar imagem de perfil do usuário ${userId}:`, err)
+		console.error('❌ [LIB_PROFILE_IMAGE] Erro ao processar ou salvar imagem de perfil:', { userId, error: err })
 		return { error: { code: 'PROCESSING_ERROR', message: 'Erro ao processar a imagem.' } }
 	}
 }
@@ -151,7 +148,7 @@ export function deleteUserProfileImage(userId: string): { success: boolean } | {
 	try {
 		unlinkSync(imagePath)
 	} catch (error) {
-		console.error('❌ Erro ao deletar imagem de perfil:', error)
+		console.error('❌ [LIB_PROFILE_IMAGE] Erro ao deletar imagem de perfil:', { error })
 		return { error: { code: 'DELETE_ERROR', message: 'Erro ao deletar a imagem de perfil.' } }
 	}
 

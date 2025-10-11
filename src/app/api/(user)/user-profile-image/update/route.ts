@@ -20,12 +20,12 @@ export async function POST(req: NextRequest) {
 		// Atualiza a URL da imagem no banco de dados
 		await db.update(authUser).set({ image: imageUrl }).where(eq(authUser.id, user.id))
 
-		console.log('✅ URL da imagem de perfil atualizada com sucesso:', imageUrl)
+		console.log('ℹ️ [API_USER_PROFILE_IMAGE_UPDATE] URL da imagem de perfil atualizada com sucesso:', { imageUrl })
 
 		// Retorna a resposta com sucesso
 		return NextResponse.json({ message: 'URL da imagem atualizada com sucesso!', imageUrl })
 	} catch (error) {
-		console.error('❌ Erro ao atualizar URL da imagem de perfil:', error)
+		console.error('❌ [API_USER_PROFILE_IMAGE_UPDATE] Erro ao atualizar URL da imagem de perfil:', { error })
 		return NextResponse.json({ message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

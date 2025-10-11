@@ -20,16 +20,14 @@ const GroupUsersSection = forwardRef<GroupUsersSectionRef, GroupUsersSectionProp
 	const fetchUsers = useCallback(async () => {
 		try {
 			setLoading(true)
-			console.log('🔵 Carregando usuários do grupo:', group.name)
 
 			const response = await fetch(`/api/admin/users?groupId=${group.id}`)
 			const data = await response.json()
 
 			if (data.success) {
 				setUsers(data.data.items)
-				console.log('✅ Usuários do grupo carregados:', data.data.items.length)
 			} else {
-				console.error('❌ Erro ao carregar usuários do grupo:', data.error)
+				console.error('❌ [COMPONENT_GROUP_USERS_SECTION] Erro ao carregar usuários do grupo:', { error: data.error })
 				toast({
 					type: 'error',
 					title: 'Erro ao carregar usuários',
@@ -37,7 +35,7 @@ const GroupUsersSection = forwardRef<GroupUsersSectionRef, GroupUsersSectionProp
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erro inesperado ao carregar usuários:', error)
+			console.error('❌ [COMPONENT_GROUP_USERS_SECTION] Erro inesperado ao carregar usuários:', { error })
 			toast({
 				type: 'error',
 				title: 'Erro inesperado',

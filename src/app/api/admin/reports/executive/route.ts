@@ -36,8 +36,7 @@ export async function GET(request: NextRequest) {
 					}
 				})()
 
-		console.log('📅 Período de análise:', { start, end, dateRange })
-		console.log('🔵 Buscando relatório executivo:', { productId, groupId })
+		console.log('ℹ️ [API_REPORTS_EXECUTIVE] Período de análise:', { start, end, dateRange })
 
 		// Buscar produtos
 		const productsQuery = db
@@ -275,10 +274,9 @@ export async function GET(request: NextRequest) {
 			},
 		}
 
-		console.log('✅ Relatório executivo gerado com sucesso')
 		return NextResponse.json(reportData)
 	} catch (error) {
-		console.error('❌ Erro ao gerar relatório executivo:', error)
+		console.error('❌ [API_REPORTS_EXECUTIVE] Erro ao gerar relatório executivo:', { error })
 		return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
 	}
 }

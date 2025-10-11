@@ -25,7 +25,7 @@ export function useChatPresence() {
 				}
 			}
 		} catch (error) {
-			console.error('❌ Erro ao buscar status atual:', error)
+			console.error('❌ [HOOK_CHAT_PRESENCE] Erro ao buscar status atual:', { error })
 		}
 	}, [])
 
