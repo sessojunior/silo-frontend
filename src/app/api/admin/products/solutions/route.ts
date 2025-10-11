@@ -143,7 +143,7 @@ export async function PUT(req: NextRequest) {
 	await db.update(productSolution).set({ description, updatedAt: new Date() }).where(eq(productSolution.id, id))
 
 	// Log após a atualização - buscar a solução novamente
-	const updatedSolution = await db.select().from(productSolution).where(eq(productSolution.id, id))
+	// const updatedSolution = await db.select().from(productSolution).where(eq(productSolution.id, id))
 
 	// Imagem: se enviada, substitui a anterior
 	if (imageUrl) {

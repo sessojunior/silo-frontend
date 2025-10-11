@@ -507,9 +507,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 					
 					// Disparar evento para atualizar dropdown de notificações
 					window.dispatchEvent(new CustomEvent('messagesRead'))
-				} else {
-					const errorData = await response.json()
-					// Log apenas como info para evitar poluição de console
 				}
 			} catch (error) {
 				console.error('❌ [CONTEXT_CHAT] Erro na requisição marcar como lida:', { error })
@@ -554,7 +551,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			})
 
 			if (response.ok) {
-				const data = await response.json()
+				// const data = await response.json()
 
 				// Atualizar estado local - marcar mensagens como lidas
 				setMessages((prev) => {
@@ -619,7 +616,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		} catch (error) {
 			console.error('❌ [CONTEXT_CHAT] Erro na requisição marcar como lidas:', { error })
 		}
-	}, [currentUser?.id, loadSidebarData, users, groups, totalUnread])
+	}, [currentUser?.id, loadSidebarData, users, groups])
 
 	// === SISTEMA DE PRESENÇA ===
 
@@ -814,7 +811,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		} catch (error) {
 			console.error('❌ [CONTEXT_CHAT] Erro ao verificar presença existente:', { error })
 		}
-	}, [currentUser, currentPresence]) // Adicionado currentPresence para sincronização
+	}, [currentUser]) // Removido currentPresence para evitar dependência desnecessária
 
 	// === INICIALIZAÇÃO ===
 

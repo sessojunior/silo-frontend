@@ -698,8 +698,8 @@ export async function DELETE(request: NextRequest) {
 			// 6. (projectActivity não tem userId - não precisa excluir)
 
 			// 7. Buscar todas as tarefas associadas ao usuário
-			const taskUsers = await tx.select({ taskId: projectTaskUser.taskId }).from(projectTaskUser).where(eq(projectTaskUser.userId, id))
-			const taskIds = taskUsers.map((tu) => tu.taskId)
+			// const taskUsers = await tx.select({ taskId: projectTaskUser.taskId }).from(projectTaskUser).where(eq(projectTaskUser.userId, id))
+			// const taskIds = taskUsers.map((tu) => tu.taskId)
 
 			// 8. Excluir histórico das tarefas criado pelo usuário (não todas as tarefas associadas)
 			await tx.delete(projectTaskHistory).where(eq(projectTaskHistory.userId, id))

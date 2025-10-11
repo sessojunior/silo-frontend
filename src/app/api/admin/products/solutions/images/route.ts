@@ -84,7 +84,7 @@ export async function DELETE(req: NextRequest) {
 					const deleteUrl = `${fileServerUrl}/files/${filePath}`
 
 					// Fazer requisição DELETE para o servidor de arquivos
-					const deleteResponse = await fetch(deleteUrl, {
+					await fetch(deleteUrl, {
 						method: 'DELETE',
 					})
 

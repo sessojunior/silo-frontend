@@ -99,7 +99,7 @@ export function useChatNotifications() {
 			.slice(0, 5) // Limitar a 5 conversas
 
 		return sortedConversations
-	}, [groups, users, unreadMessages, totalUnread])
+	}, [groups, users, unreadMessages])
 
 	return {
 		unreadMessages,

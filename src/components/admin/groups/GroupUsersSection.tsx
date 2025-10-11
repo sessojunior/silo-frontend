@@ -44,7 +44,7 @@ const GroupUsersSection = forwardRef<GroupUsersSectionRef, GroupUsersSectionProp
 		} finally {
 			setLoading(false)
 		}
-	}, [group.id, group.name])
+	}, [group.id])
 
 	// Expor função de refresh para o componente pai
 	useImperativeHandle(

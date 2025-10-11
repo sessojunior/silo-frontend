@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
 		// Log no servidor sobre mudança de status - timezone São Paulo
 		const timestamp = getNowTimestamp()
-		const statusText = status === 'enabled' ? 'ATIVADO' : 'DESATIVADO'
+		// const statusText = status === 'enabled' ? 'ATIVADO' : 'DESATIVADO'
 
 		// Aqui você pode adicionar lógica adicional para:
 		// - Registrar em log de sistema

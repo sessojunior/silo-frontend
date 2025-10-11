@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
 		const search = searchParams.get('search')
 		const status = searchParams.get('status')
 		const priority = searchParams.get('priority')
-		const orderBy = searchParams.get('orderBy') || 'name'
-		const order = searchParams.get('order') || 'asc'
+		// const orderBy = searchParams.get('orderBy') || 'name'
+		// const order = searchParams.get('order') || 'asc'
 
 
 		// Construir query com filtros de forma simplificada
@@ -200,8 +200,8 @@ export async function DELETE(request: NextRequest) {
 		await db.transaction(async (tx) => {
 
 			// 1. Buscar todas as atividades do projeto
-			const activities = await tx.select({ id: projectActivity.id }).from(projectActivity).where(eq(projectActivity.projectId, id))
-			const activityIds = activities.map((a) => a.id)
+			// const activities = await tx.select({ id: projectActivity.id }).from(projectActivity).where(eq(projectActivity.projectId, id))
+			// const activityIds = activities.map((a) => a.id)
 
 			// 2. Buscar todas as tarefas do projeto
 			const tasks = await tx.select({ id: projectTask.id }).from(projectTask).where(eq(projectTask.projectId, id))

@@ -588,13 +588,12 @@ export default function ProblemsPage() {
 			isMine: sol.user?.id === currentUser?.id,
 		}))
 
-		console.log('ℹ️ [PAGE_PRODUCT_PROBLEMS] Soluções carregadas da API:', solutionsData.data)
-			solutionsWithIsMine.map((s: SolutionWithDetails) => ({
-				id: s.id.substring(0, 8),
-				date: s.date,
-				description: s.description.substring(0, 30) + '...',
-			})),
-		)
+		const solutionsWithIsMineMap = solutionsWithIsMine.map((s: SolutionWithDetails) => ({
+			id: s.id.substring(0, 8),
+			date: s.date,
+			description: s.description.substring(0, 30) + '...',
+		}))
+		console.log('ℹ️ [PAGE_PRODUCT_PROBLEMS] Soluções carregadas da API:', { solutions: solutionsWithIsMineMap })
 
 		// A API já retorna as soluções ordenadas por data de criação (mais recentes primeiro)
 		// Não precisamos ordenar novamente no frontend

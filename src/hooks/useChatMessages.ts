@@ -20,7 +20,7 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 	// Estados de paginação
 	const [hasMoreOlderMessages, setHasMoreOlderMessages] = useState(false)
 	const [hasMoreNewerMessages, setHasMoreNewerMessages] = useState(false)
-	const [currentPage, setCurrentPage] = useState(1)
+	// const [currentPage, setCurrentPage] = useState(1) // Não usado atualmente
 	const [totalMessagesCount, setTotalMessagesCount] = useState(0)
 	
 	// Referências
@@ -37,7 +37,7 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 		return msgs.sort((a: ChatMessage, b: ChatMessage) => 
 			new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
 		)
-	}, [messages, activeTargetId, activeTargetType])
+	}, [messages, activeTargetId])
 
 	// Calcular mensagens restantes
 	const olderMessagesRemaining = Math.max(0, totalMessagesCount - targetMessages.length)
@@ -47,7 +47,7 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 	useEffect(() => {
 		if (activeTargetId && activeTargetType && activeTargetId !== lastTargetRef.current) {
 			// Resetar estados de paginação
-			setCurrentPage(1)
+			// setCurrentPage(1) // Não usado atualmente
 			setHasMoreOlderMessages(true)
 			setHasMoreNewerMessages(true)
 			setIsLoadingOlder(false)
@@ -124,7 +124,7 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 			)
 
 			if (result.messages.length > 0) {
-				setCurrentPage((prev) => prev + 1)
+				// // setCurrentPage((prev) => prev + 1) // N�o usado atualmente
 				
 				// Atualizar hasMore baseado no resultado da API
 				setHasMoreOlderMessages(result.hasMore)
@@ -136,7 +136,7 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 		} finally {
 			setIsLoadingOlder(false)
 		}
-	}, [activeTargetId, activeTargetType, currentPage, loadMessagesBeforeUnread, targetMessages, isLoadingOlder, hasMoreOlderMessages])
+	}, [activeTargetId, activeTargetType, loadMessagesBeforeUnread, targetMessages, isLoadingOlder, hasMoreOlderMessages])
 
 	// Função para carregar mensagens mais recentes
 	const handleLoadNewerMessages = useCallback(async () => {

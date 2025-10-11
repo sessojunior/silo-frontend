@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
 		const userId = searchParams.get('userId') // userMessage
 		const limit = parseInt(searchParams.get('limit') || '30')
 		const page = parseInt(searchParams.get('page') || '1')
-		const order = searchParams.get('order') || 'asc' // 'asc' para mais recentes, 'desc' para mais antigas
+		// const order = searchParams.get('order') === 'desc' ? 'desc' : 'asc' // 'asc' para mais antigas, 'desc' para mais recentes
 		const before = searchParams.get('before') // Buscar mensagens anteriores a esta data
 		const after = searchParams.get('after') // Buscar mensagens posteriores a esta data
 		// Para paginação com before/after, offset deve ser baseado nas mensagens já carregadas
