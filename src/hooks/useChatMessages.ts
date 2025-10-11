@@ -124,7 +124,7 @@ export function useChatMessages({ activeTargetId, activeTargetType }: UseChatMes
 			)
 
 			if (result.messages.length > 0) {
-				// // setCurrentPage((prev) => prev + 1) // Não usado atualmente
+				// setCurrentPage((prev) => prev + 1) // NÃ£o usado atualmente
 				
 				// Atualizar hasMore baseado no resultado da API
 				setHasMoreOlderMessages(result.hasMore)
