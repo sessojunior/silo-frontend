@@ -1,8 +1,5 @@
-# Ignorar apenas arquivos desnecessários do fileserver no deploy Vercel
-fileserver/uploads/
-fileserver/node_modules/
-fileserver/logs/
-fileserver/dist/
+# Ignorar arquivos do servidor de fileserver
+fileserver/
 
 # Ignorar arquivos de desenvolvimento
 .env.local
