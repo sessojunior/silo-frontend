@@ -11,6 +11,8 @@ Este servidor Node.js oferece **controle total** sobre uploads e armazenamento d
 ### 🎯 **CARACTERÍSTICAS PRINCIPAIS**
 
 - ✅ **Servidor Independente**: Executa separadamente do frontend Next.js
+- ✅ **TypeScript**: Desenvolvido em TypeScript com tipagem completa
+- ✅ **Configuração Centralizada**: Todas as configurações em `src/config.ts`
 - ✅ **Otimização Automática**: Conversão para WebP, redimensionamento, rotação EXIF
 - ✅ **Thumbnails Automáticos**: Geração de miniaturas 128x128 para avatars
 - ✅ **Estrutura Organizada**: Diretórios separados por tipo de arquivo
@@ -53,44 +55,31 @@ cd fileserver
 npm install
 ```
 
-### ⚙️ **Configuração de Ambiente**
+### ⚙️ **Configuração**
 
-Crie o arquivo `.env` na raiz do diretório `fileserver/`:
+**Todas as configurações estão centralizadas em `src/config.ts`** - não é necessário arquivo `.env`:
 
-```bash
-# Configurações do servidor
-PORT=4000
-FILE_SERVER_URL=http://localhost:4000
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Configurações de upload
-MAX_FILE_SIZE=4194304
-MAX_FILES_COUNT=3
-ALLOWED_EXTENSIONS=jpg,jpeg,png,webp,gif
-
-# Configurações de otimização de imagens
-# Avatars (baseado no código existente)
-AVATAR_THUMBNAIL_SIZE=128
-AVATAR_THUMBNAIL_QUALITY=85
-
-# Profile Images (baseado no código existente)
-PROFILE_IMAGE_SIZE=64
-PROFILE_IMAGE_QUALITY=85
-
-# Otimização geral
-GENERAL_MAX_WIDTH=1920
-GENERAL_MAX_HEIGHT=1080
-GENERAL_QUALITY=90
-
-# Configurações de thumbnail (legacy)
-THUMBNAIL_SIZE=128
-THUMBNAIL_QUALITY=85
-
-# Para produção CPTEC/INPE
-# PORT=4000
-# FILE_SERVER_URL=https://files.cptec.inpe.br
-# NEXT_PUBLIC_APP_URL=https://silo.cptec.inpe.br
+```typescript
+// src/config.ts - Configuração centralizada
+export const config = {
+  port: 4000,
+  fileServerUrl: 'http://localhost:4000',
+  nextPublicAppUrl: 'http://localhost:3000',
+  upload: {
+    maxFileSize: 4194304, // 4MB
+    maxFilesCount: 3,
+    allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+    allowedMimes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+  },
+  optimization: {
+    avatar: { thumbnailSize: 128, thumbnailQuality: 85 },
+    profile: { size: 80, quality: 85 },
+    general: { maxWidth: 1920, maxHeight: 1080, quality: 90 }
+  }
+}
 ```
+
+**📝 Para alterar configurações**: Edite diretamente o arquivo `src/config.ts` e reinicie o servidor.
 
 ### 📁 **Estrutura de Diretórios**
 
@@ -99,7 +88,13 @@ O servidor criará automaticamente a seguinte estrutura:
 ```
 fileserver/
 ├── src/
-│   └── server.js              # Servidor principal
+│   ├── server.ts              # Servidor principal (TypeScript)
+│   ├── config.ts              # Configurações centralizadas
+│   ├── types.ts               # Tipos e interfaces
+│   ├── utils.ts               # Funções auxiliares (validação, otimização)
+│   ├── handlers.ts            # Handlers de upload (avatar, contato, etc.)
+│   ├── fileHandlers.ts        # Handlers de arquivos (serve, delete, health)
+│   └── multerConfig.ts        # Configuração do Multer
 ├── uploads/                    # Arquivos organizados por tipo
 │   ├── avatars/               # Avatars com thumbnails automáticos
 │   │   ├── thumb-*.webp      # Thumbnails 128x128
@@ -114,8 +109,8 @@ fileserver/
 │   │   └── *.webp            # Imagens otimizadas
 │   └── temp/                  # Arquivos temporários
 │       └── *.tmp             # Limpeza automática
-├── package.json               # Dependências
-├── .env                       # Configurações
+├── package.json               # Dependências e scripts
+├── tsconfig.json              # Configuração TypeScript
 └── README.md                  # Esta documentação
 ```
 
@@ -140,8 +135,9 @@ npm run dev
 
 **Scripts Disponíveis:**
 
-- `npm run dev` - Modo desenvolvimento com auto-reload
-- `npm start` - Execução direta (produção)
+- `npm run dev` - Modo desenvolvimento com auto-reload (tsx watch)
+- `npm start` - Execução direta (tsx)
+- `npm run build` - Compilar TypeScript para JavaScript
 - `npm run pm2` - Executar com PM2 (produção)
 
 ### 🚀 **Produção**
@@ -432,23 +428,25 @@ netstat -ano | findstr :4000
 taskkill /PID <PID> /F
 
 # Ou usar porta diferente
-# Editar fileserver/.env: PORT=4001
+# Editar src/config.ts: port: 4001
 ```
 
 #### **2. Erro de CORS**
 
 ```bash
-# Verificar se NEXT_PUBLIC_APP_URL está correto
-# fileserver/.env deve ter:
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+# Verificar se nextPublicAppUrl está correto em src/config.ts
+# Deve ter:
+nextPublicAppUrl: 'http://localhost:3000'
 ```
 
 #### **3. Upload falha (Arquivo muito grande)**
 
 ```bash
-# Verificar limites no fileserver/.env
-MAX_FILE_SIZE=4194304  # 4MB
-MAX_FILES_COUNT=3
+# Verificar limites em src/config.ts
+upload: {
+  maxFileSize: 4194304, // 4MB
+  maxFilesCount: 3
+}
 ```
 
 #### **4. Thumbnail não é gerado**
@@ -469,8 +467,8 @@ npm install sharp
 # Verificar se arquivo existe
 ls src/app/api/upload/route.ts
 
-# Verificar variáveis de ambiente
-echo $FILE_SERVER_URL
+# Verificar configuração em src/config.ts
+fileServerUrl: 'http://localhost:4000'
 ```
 
 ### 🧪 **Testes de Validação**
@@ -559,9 +557,28 @@ Todas as APIs do SILO foram atualizadas para aceitar URLs do servidor local:
 	"cors": "^2.8.5", // CORS
 	"helmet": "^7.1.0", // Segurança
 	"uuid": "^9.0.1", // IDs únicos
-	"dotenv": "^16.3.1" // Variáveis de ambiente
+	"dotenv": "^16.3.1", // Variáveis de ambiente
+	"typescript": "^5.9.3", // Compilador TypeScript
+	"tsx": "^4.20.6", // Executor TypeScript
+	"@types/node": "^24.7.2", // Tipos Node.js
+	"@types/express": "^5.0.3", // Tipos Express
+	"@types/multer": "^2.0.0", // Tipos Multer
+	"@types/cors": "^2.8.19", // Tipos CORS
+	"@types/uuid": "^10.0.0" // Tipos UUID
 }
 ```
+
+### 🏗️ **Arquitetura Modular**
+
+O servidor foi organizado em módulos especializados para melhor manutenibilidade:
+
+- **`server.ts`**: Servidor principal e configuração de rotas
+- **`config.ts`**: Configurações centralizadas e validação
+- **`types.ts`**: Interfaces e tipos TypeScript
+- **`utils.ts`**: Funções auxiliares (validação, otimização, limpeza)
+- **`handlers.ts`**: Handlers de upload (avatar, contato, problemas, soluções)
+- **`fileHandlers.ts`**: Handlers de arquivos (serve, delete, health check)
+- **`multerConfig.ts`**: Configuração do Multer e middlewares
 
 ### 🔄 **Fluxo de Processamento**
 
@@ -585,16 +602,14 @@ Todas as APIs do SILO foram atualizadas para aceitar URLs do servidor local:
 
 ### 🏢 **Configuração CPTEC/INPE**
 
-```bash
-# fileserver/.env para produção
-PORT=4000
-FILE_SERVER_URL=https://files.cptec.inpe.br
-NEXT_PUBLIC_APP_URL=https://silo.cptec.inpe.br
-
-# Configurações de segurança
-MAX_FILE_SIZE=4194304
-MAX_FILES_COUNT=3
-ALLOWED_EXTENSIONS=jpg,jpeg,png,webp,gif
+```typescript
+// src/config.ts para produção
+export const config = {
+  port: 4000,
+  fileServerUrl: 'https://files.cptec.inpe.br',
+  nextPublicAppUrl: 'https://silo.cptec.inpe.br',
+  // ... outras configurações
+}
 ```
 
 ### 🔧 **Comandos de Produção**
@@ -634,11 +649,41 @@ pm2 save
 
 - **Frontend SILO**: `/README.md` (documentação principal)
 - **Servidor**: `/fileserver/README.md` (esta documentação)
-- **Configuração**: `/fileserver/.env` (variáveis de ambiente)
+- **Configuração**: `/fileserver/src/config.ts` (configurações centralizadas)
 
 ---
 
 ## 📝 CHANGELOG
+
+### ✅ **Versão 2.2.0** - Configuração Totalmente Centralizada
+
+- ✅ Remoção completa da dependência dotenv
+- ✅ Configurações 100% centralizadas em `src/config.ts`
+- ✅ Não há mais necessidade de arquivo `.env`
+- ✅ Valores padrão fixos e tipados
+- ✅ Documentação atualizada para refletir nova estrutura
+- ✅ Simplificação máxima da configuração
+
+### ✅ **Versão 2.1.0** - Refatoração Modular
+
+- ✅ Refatoração completa em módulos especializados
+- ✅ `handlers.ts` - Handlers de upload organizados
+- ✅ `fileHandlers.ts` - Handlers de arquivos e health check
+- ✅ `multerConfig.ts` - Configuração do Multer isolada
+- ✅ `server.ts` - Servidor principal simplificado (apenas 80 linhas)
+- ✅ Melhor organização e manutenibilidade do código
+- ✅ Separação clara de responsabilidades
+
+### ✅ **Versão 2.0.0** - Migração TypeScript
+
+- ✅ Migração completa de JavaScript para TypeScript
+- ✅ Configuração centralizada em `src/config.ts`
+- ✅ Tipagem completa com interfaces e tipos
+- ✅ Funções auxiliares organizadas em `src/utils.ts`
+- ✅ Compilação TypeScript com tsx
+- ✅ Validação de configuração na inicialização
+- ✅ Logs padronizados com configuração detalhada
+- ✅ Remoção do arquivo `env.exmaple` (configuração centralizada)
 
 ### ✅ **Versão 1.0.0** - Migração Completa
 
