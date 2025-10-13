@@ -991,17 +991,23 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 
 ### 🚀 **SISTEMA DE UPLOAD COM SERVIDOR LOCAL - IMPLEMENTADO**
 
-**STATUS**: ✅ **COMPLETAMENTE IMPLEMENTADO E FUNCIONAL**
+**STATUS**: ✅ **COMPLETAMENTE IMPLEMENTADO E FUNCIONAL EM TYPESCRIPT**
 
 **Funcionalidades Implementadas**:
 
 1. **Servidor de Arquivos Local Node.js** com Express + Multer + Sharp
-2. **Endpoints configurados** com otimização automática:
+2. **Desenvolvido em TypeScript** com tipagem completa e configuração centralizada
+3. **Endpoints configurados** com otimização automática:
    - `/api/upload`: Upload genérico com otimização WebP
    - `/upload/avatar`: Avatar com thumbnail automático (128x128 WebP)
    - `/upload/contact`: Imagens de contatos (até 4MB)
-   - `/upload/problem`: Imagens de problemas (até 3 imagens, 4MB cada)
-   - `/upload/solution`: Imagens de soluções (até 3 imagens, 4MB cada)
+   - `/upload/problem`: Upload múltiplo de problemas (até 3 arquivos)
+   - `/upload/solution`: Upload múltiplo de soluções (até 3 arquivos)
+4. **Otimização Automática**: Conversão para WebP, redimensionamento, rotação EXIF
+5. **Configuração Centralizada**: Todas as configurações em `fileserver/src/config.ts`
+6. **Arquitetura Modular**: Código organizado em módulos especializados
+7. **Deploy Otimizado**: Configurado para deploy separado (Vercel + Servidor próprio)
+
 3. **Componentes 100% migrados**:
    - `PhotoUploadLocal.tsx`: Avatar com UploadButtonLocal
    - `ContactFormOffcanvas.tsx`: Upload de fotos de contatos
@@ -1396,28 +1402,29 @@ curl -X POST -F "file=@avatar.jpg" http://localhost:4000/upload/avatar
 
 ### ⚙️ **CONFIGURAÇÃO**
 
-**Variáveis de Ambiente (`fileserver/.env`)**:
+**Configuração Centralizada (`fileserver/src/config.ts`)**:
 
-```bash
-# Configurações do servidor
-PORT=4000
-FILE_SERVER_URL=http://localhost:4000
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Configurações de upload
-MAX_FILE_SIZE=4194304
-MAX_FILES_COUNT=3
-ALLOWED_EXTENSIONS=jpg,jpeg,png,webp,gif
-
-# Configurações de otimização
-AVATAR_THUMBNAIL_SIZE=128
-AVATAR_THUMBNAIL_QUALITY=85
-PROFILE_IMAGE_SIZE=64
-PROFILE_IMAGE_QUALITY=85
-GENERAL_MAX_WIDTH=1920
-GENERAL_MAX_HEIGHT=1080
-GENERAL_QUALITY=90
+```typescript
+// Configuração centralizada - não precisa de arquivo .env
+export const config = {
+  port: 4000,
+  fileServerUrl: 'http://localhost:4000',
+  nextPublicAppUrl: 'http://localhost:3000',
+  upload: {
+    maxFileSize: 4194304, // 4MB
+    maxFilesCount: 3,
+    allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+    allowedMimes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+  },
+  optimization: {
+    avatar: { thumbnailSize: 128, thumbnailQuality: 85 },
+    profile: { size: 80, quality: 85 },
+    general: { maxWidth: 1920, maxHeight: 1080, quality: 90 }
+  }
+}
 ```
+
+**📝 Para alterar configurações**: Edite diretamente o arquivo `fileserver/src/config.ts` e reinicie o servidor.
 
 ### 🎯 **BENEFÍCIOS DA MIGRAÇÃO**
 
@@ -1661,7 +1668,26 @@ console.log('ℹ️ [CONTEXTO] Descrição', { detalhes })
 
 ### 🚀 **COMANDOS ESSENCIAIS**
 
-#### **⚡ Início Rápido**
+#### **⚡ Início Rápido (Desenvolvimento)**
+
+```bash
+# 1. Instalar dependências do frontend
+npm install
+
+# 2. Instalar dependências do fileserver
+cd fileserver
+npm install
+cd ..
+
+# 3. Executar fileserver (Terminal 1)
+cd fileserver
+npm run dev
+
+# 4. Executar frontend (Terminal 2)
+npm run dev
+```
+
+#### **🐳 Início Rápido (Docker)**
 
 ```bash
 # 1. Copiar variáveis de ambiente
@@ -1734,21 +1760,78 @@ Configurar no arquivo `.env`:
   └── temp/         # Arquivos temporários
   ```
 
-### 🚀 **PRODUÇÃO**
+### 🚀 **DEPLOY E PRODUÇÃO**
+
+#### **📋 Visão Geral do Deploy**
+
+O projeto SILO está configurado para deploy separado:
+- **Frontend Next.js**: Deploy no Vercel (automatizado)
+- **FileServer**: Deploy em servidor próprio (CPTEC/INPE)
+
+#### **🔧 Configuração de Deploy**
+
+**Arquivos de Configuração Criados:**
+- `.gitignore` - Ignora apenas arquivos desnecessários do fileserver
+- `.vercelignore` - Otimiza deploy no Vercel
+- `.dockerignore` - Otimiza containers Docker
+- `vercel.json` - Configuração específica do Vercel
+- `next.config.ts` - Configuração Next.js otimizada
+
+#### **⚡ Deploy do Frontend (Vercel)**
+
+```bash
+# Deploy automático via Git
+git add .
+git commit -m "Deploy: configuração otimizada"
+git push origin main
+```
+
+**O Vercel fará deploy automaticamente apenas do frontend Next.js.**
+
+#### **🖥️ Deploy do FileServer (Servidor Próprio)**
+
+```bash
+# 1. Deploy do código fonte
+cd fileserver
+npm install
+
+# 2. Configurar produção
+# Editar src/config.ts com URLs de produção:
+# fileServerUrl: 'https://files.cptec.inpe.br'
+# nextPublicAppUrl: 'https://silo.cptec.inpe.br'
+
+# 3. Executar com PM2
+npm run pm2
+```
 
 #### **⚙️ Configurações de Produção**
 
-1. **Variáveis de ambiente**: Configurar `.env` com dados reais
-2. **Banco de dados**: Configurar PostgreSQL externo
-3. **Domínio**: Atualizar `NEXTAUTH_URL`
-4. **SSL**: Configurar proxy reverso (Nginx/Traefik)
+1. **Frontend**: URLs configuradas automaticamente no Vercel
+2. **FileServer**: Configurar URLs em `fileserver/src/config.ts`
+3. **Banco de dados**: Configurar PostgreSQL externo
+4. **CORS**: FileServer deve permitir requests do domínio do frontend
 
 ### 🐛 **TROUBLESHOOTING**
 
 #### **❌ Problemas Comuns**
 
-**Container não inicia:**
+#### **❌ Problemas de Deploy**
 
+**Erro de Deploy no Vercel:**
+```bash
+# Verificar se arquivos desnecessários estão no .vercelignore
+# Confirme que vercel.json está na raiz do projeto
+# Verifique se next.config.ts não tem erros de sintaxe
+```
+
+**FileServer não funciona em produção:**
+```bash
+# Configure URLs corretas em fileserver/src/config.ts
+# Verifique se o servidor está rodando na porta correta
+# Confirme configuração de CORS
+```
+
+**Container não inicia:**
 ```bash
 # Ver logs detalhados
 docker-compose logs nextapp

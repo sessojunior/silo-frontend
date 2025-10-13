@@ -59,9 +59,4 @@ tests/fixtures/*.webp
 # File Server - Arquivos de upload
 fileserver/uploads/
 fileserver/node_modules/
-fileserver/.env
-fileserver/.env.local
-fileserver/.env.production
-fileserver/.env.development
 fileserver/logs/
-fileserver/temp/

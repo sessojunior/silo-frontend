@@ -16,6 +16,16 @@ const nextConfig: NextConfig = {
 			},
 		],
 	},
+	// Ignorar fileserver durante o build
+	webpack: (config, { isServer }) => {
+		if (isServer) {
+			config.externals = config.externals || []
+			config.externals.push({
+				'fileserver': 'commonjs fileserver'
+			})
+		}
+		return config
+	}
 }
 
 export default nextConfig

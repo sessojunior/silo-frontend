@@ -1,4 +1,4 @@
-# Ignorar apenas arquivos desnecessários do fileserver no Docker
+# Ignorar apenas arquivos desnecessários do fileserver no deploy Vercel
 fileserver/uploads/
 fileserver/node_modules/
 fileserver/logs/
@@ -17,6 +17,3 @@ logs/
 # Ignorar arquivos de teste
 test-results/
 playwright-report/
-
-# Ignorar node_modules (será instalado no container)
-node_modules/
