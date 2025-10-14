@@ -3,67 +3,69 @@
 import React from 'react'
 
 interface LoadingSpinnerProps {
-	isLoading: boolean
-	children: React.ReactNode
-	size?: 'sm' | 'md' | 'lg'
-	variant?: 'overlay' | 'inline' | 'centered'
 	text?: string
+	size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+	variant?: 'horizontal' | 'vertical' | 'centered'
 	className?: string
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
-	isLoading,
-	children,
+	text = 'Carregando...',
 	size = 'md',
-	variant = 'overlay',
-	text,
+	variant = 'horizontal',
 	className = ''
 }) => {
 	const sizeClasses = {
-		sm: 'h-4 w-4',
-		md: 'h-8 w-8',
-		lg: 'h-12 w-12'
+		xs: 'size-3',
+		sm: 'size-4', 
+		md: 'size-6',
+		lg: 'size-8',
+		xl: 'size-10'
+	}
+
+	const textSizeClasses = {
+		xs: 'text-xs',
+		sm: 'text-sm',
+		md: 'text-sm',
+		lg: 'text-base',
+		xl: 'text-lg'
 	}
 
 	const spinnerElement = (
-		<div className={`animate-spin rounded-full border-2 border-zinc-300 border-t-blue-600 ${sizeClasses[size]}`} />
+		<span className={`icon-[lucide--loader-circle] animate-spin text-zinc-400 ${sizeClasses[size]}`} />
 	)
 
-	if (!isLoading) {
-		return <>{children}</>
-	}
+	const textElement = (
+		<span className={`text-zinc-600 dark:text-zinc-400 ${textSizeClasses[size]}`}>
+			{text}
+		</span>
+	)
 
-	if (variant === 'inline') {
+	if (variant === 'vertical') {
 		return (
-			<div className={`flex items-center gap-2 ${className}`}>
+			<div className={`flex flex-col items-center gap-2 ${className}`}>
 				{spinnerElement}
-				{text && <span className="text-sm text-zinc-600 dark:text-zinc-400">{text}</span>}
+				{textElement}
 			</div>
 		)
 	}
 
 	if (variant === 'centered') {
 		return (
-			<div className={`flex flex-col items-center justify-center gap-3 ${className}`}>
+			<div className={`flex items-center justify-center gap-3 ${className}`}>
 				{spinnerElement}
-				{text && <span className="text-sm text-zinc-600 dark:text-zinc-400">{text}</span>}
+				{textElement}
 			</div>
 		)
 	}
 
-	// variant === 'overlay' (default)
+	// variant === 'horizontal' (default)
 	return (
-		<div className={`relative ${className}`}>
-			{children}
-			<div className="absolute inset-0 bg-white/50 dark:bg-zinc-900/50 flex items-center justify-center z-10">
-				<div className="flex flex-col items-center gap-2">
-					{spinnerElement}
-					{text && <span className="text-sm text-zinc-600 dark:text-zinc-400">{text}</span>}
-				</div>
-			</div>
+		<div className={`flex items-center gap-3 ${className}`}>
+			{spinnerElement}
+			{textElement}
 		</div>
 	)
 }
 
 export default LoadingSpinner
-

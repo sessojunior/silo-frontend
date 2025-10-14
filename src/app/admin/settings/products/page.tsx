@@ -10,6 +10,7 @@ import Offcanvas from '@/components/ui/Offcanvas'
 import Dialog from '@/components/ui/Dialog'
 import ProductForm from './components/ProductForm'
 import type { Product } from '@/lib/db/schema'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 export default function SettingsProductsPage() {
 	const [products, setProducts] = useState<Product[]>([])
@@ -302,11 +303,12 @@ export default function SettingsProductsPage() {
 						</div>
 
 						{loading ? (
-							<div className='p-12 text-center'>
-								<div className='inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400'>
-									<span className='icon-[lucide--loader-2] size-4 animate-spin' />
-									Carregando produtos...
-								</div>
+							<div className='p-12 flex items-center justify-center text-center'>
+								<LoadingSpinner 
+									text="Carregando produtos..." 
+									size="md" 
+									variant="centered" 
+								/>
 							</div>
 						) : filteredProducts.length === 0 ? (
 							<div className='p-12 text-center'>
@@ -419,10 +421,11 @@ export default function SettingsProductsPage() {
 					</Button>
 					<Button type='button' onClick={handleDelete} disabled={formLoading} className='bg-red-600 hover:bg-red-700 focus:bg-red-700'>
 						{formLoading ? (
-							<>
-								<span className='icon-[lucide--loader-2] size-4 animate-spin mr-2' />
-								Excluindo...
-							</>
+							<LoadingSpinner 
+								text="Excluindo..." 
+								size="xs" 
+								variant="horizontal" 
+							/>
 						) : (
 							<>
 								<span className='icon-[lucide--trash] size-4 mr-2' />

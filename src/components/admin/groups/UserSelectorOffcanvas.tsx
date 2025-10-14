@@ -5,6 +5,7 @@ import { toast } from '@/lib/toast'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { AuthUser, Group } from '@/lib/db/schema'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface UserSelectorOffcanvasProps {
 	isOpen: boolean
@@ -243,8 +244,11 @@ export default function UserSelectorOffcanvas({ isOpen, onClose, group, onSucces
 				<div className='flex-1 overflow-y-auto p-6'>
 					{loading ? (
 						<div className='flex items-center justify-center py-8'>
-							<span className='icon-[lucide--loader-circle] size-6 animate-spin text-zinc-400' />
-							<span className='ml-2 text-sm text-zinc-600 dark:text-zinc-400'>Carregando usuários...</span>
+							<LoadingSpinner 
+								text="Carregando usuários..." 
+								size="sm" 
+								variant="horizontal" 
+							/>
 						</div>
 					) : filteredUsers.length === 0 ? (
 						<div className='text-center py-8'>

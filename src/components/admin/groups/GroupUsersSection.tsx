@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react'
 import { toast } from '@/lib/toast'
 import { AuthUser, Group } from '@/lib/db/schema'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface GroupUsersSectionProps {
 	group: Group
@@ -83,8 +84,11 @@ const GroupUsersSection = forwardRef<GroupUsersSectionRef, GroupUsersSectionProp
 					<div className='p-4'>
 						{loading ? (
 							<div className='flex items-center justify-center py-8'>
-								<span className='icon-[lucide--loader-circle] size-5 animate-spin text-zinc-400' />
-								<span className='ml-2 text-sm text-zinc-600 dark:text-zinc-400'>Carregando usuários...</span>
+								<LoadingSpinner 
+									text="Carregando usuários..." 
+									size="sm" 
+									variant="horizontal" 
+								/>
 							</div>
 						) : users.length === 0 ? (
 							<div className='text-center py-6'>

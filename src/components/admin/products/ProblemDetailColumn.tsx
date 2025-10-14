@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button'
 import { getMarkdownClasses } from '@/lib/markdown'
 import Image from 'next/image'
 import { ProductProblem, ProductProblemImage } from '@/lib/db/schema'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface SolutionWithDetails {
 	id: string
@@ -44,10 +45,11 @@ export function ProblemDetailColumn({ loadingDetail, problem, solutions, images,
 	if (loadingDetail) {
 		return (
 			<div className='flex items-center justify-center h-full'>
-				<div className='text-center'>
-					<div className='animate-spin text-4xl'>⏳</div>
-					<p className='mt-2 text-zinc-600 dark:text-zinc-400'>Carregando detalhes...</p>
-				</div>
+				<LoadingSpinner 
+					text="Carregando detalhes..." 
+					size="lg" 
+					variant="centered" 
+				/>
 			</div>
 		)
 	}

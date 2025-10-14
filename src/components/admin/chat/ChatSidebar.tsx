@@ -6,6 +6,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useChat, ChatGroup, ChatUser } from '@/context/ChatContext'
 import { formatDateBR } from '@/lib/dateUtils'
 import Avatar from '@/components/ui/Avatar'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 type ChatSidebarProps = {
 	activeTargetId: string | null
@@ -157,10 +158,11 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 					// Lista de Grupos
 					isLoading ? (
 						<div className='p-6 text-center text-zinc-500 dark:text-zinc-400'>
-							<div className='flex items-center justify-center gap-3 mb-2'>
-								<div className='h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600'></div>
-								<span className='text-sm'>Carregando grupos...</span>
-							</div>
+							<LoadingSpinner 
+								text="Carregando grupos..." 
+								size="xs" 
+								variant="horizontal" 
+							/>
 						</div>
 					) : filteredGroups.length === 0 ? (
 						<div className='p-6 text-center text-zinc-500 dark:text-zinc-400'>
@@ -178,10 +180,11 @@ export default function ChatSidebar({ activeTargetId, activeTargetType, onTarget
 					// Lista de Usuários
 					isLoading ? (
 						<div className='p-6 text-center text-zinc-500 dark:text-zinc-400'>
-							<div className='flex items-center justify-center gap-3 mb-2'>
-								<div className='h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600'></div>
-								<span className='text-sm'>Carregando usuários...</span>
-							</div>
+							<LoadingSpinner 
+								text="Carregando usuários..." 
+								size="xs" 
+								variant="horizontal" 
+							/>
 						</div>
 					) : (
 						<div className='py-2'>

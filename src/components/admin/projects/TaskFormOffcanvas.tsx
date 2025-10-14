@@ -9,6 +9,7 @@ import Select from '@/components/ui/Select'
 import Offcanvas from '@/components/ui/Offcanvas'
 import Dialog from '@/components/ui/Dialog'
 import MultiSelect from '@/components/ui/MultiSelect'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 // Interface local para evitar dependência externa
 interface KanbanTask {
@@ -445,8 +446,11 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 						<Label htmlFor='assignedUsers'>Usuários Associados *</Label>
 						{loadingUsers ? (
 							<div className='w-full px-3 py-3 border border-zinc-200 dark:border-zinc-600 rounded-lg bg-zinc-50 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'>
-								<span className='icon-[lucide--loader-2] size-4 animate-spin mr-2' />
-								Carregando usuários...
+								<LoadingSpinner 
+									text="Carregando usuários..." 
+									size="xs" 
+									variant="horizontal" 
+								/>
 							</div>
 						) : (
 							<MultiSelect name='assignedUsers' selected={formData.assignedUsers} onChange={(value) => handleFieldChange('assignedUsers', value as string[])} options={availableUsers} placeholder='Selecionar usuários (obrigatório)' required isInvalid={formData.assignedUsers.length === 0} invalidMessage='Pelo menos um usuário deve ser selecionado' />

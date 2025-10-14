@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import InputCheckbox from '@/components/ui/InputCheckbox'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useUser } from '@/context/UserContext'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface Step {
 	icon: string
@@ -198,11 +199,12 @@ export default function WelcomePage() {
 
 	if (loading) {
 		return (
-			<div className='flex min-h-screen w-full items-center justify-center text-zinc-500 dark:text-zinc-400'>
-				<div className='flex items-center gap-3'>
-					<span className='icon-[lucide--loader-circle] animate-spin size-5' />
-					Carregando página...
-				</div>
+			<div className='h-[calc(100vh-64px)] flex items-center justify-center'>
+				<LoadingSpinner 
+					text="Carregando e verificando dados..." 
+					size="lg" 
+					variant="horizontal" 
+				/>
 			</div>
 		)
 	}

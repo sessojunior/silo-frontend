@@ -6,5 +6,5 @@ interface ProjectDetailsLayoutProps {
 }
 
 export default async function ProjectDetailsLayout({ children }: ProjectDetailsLayoutProps) {
-	return <div className='w-full flex-1 bg-white dark:bg-zinc-900'>{children}</div>
+	return <div className='w-full h-full flex flex-col bg-white dark:bg-zinc-900'>{children}</div>
 }

@@ -13,6 +13,7 @@ import SolutionFormModal from '@/components/admin/products/SolutionFormModal'
 import DeleteSolutionDialog from '@/components/admin/products/DeleteSolutionDialog'
 import { ProblemsListColumn } from '@/components/admin/products/ProblemsListColumn'
 import { ProblemDetailColumn } from '@/components/admin/products/ProblemDetailColumn'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { ProblemSolutionsSection } from '@/components/admin/products/ProblemSolutionsSection'
 import ProblemCategoryOffcanvas from '@/components/admin/products/ProblemCategoryOffcanvas'
 
@@ -634,10 +635,11 @@ export default function ProblemsPage() {
 	if (initialLoading) {
 		return (
 			<div className='flex h-[calc(100vh-131px)] w-full items-center justify-center'>
-				<div className='text-center'>
-					<div className='animate-spin text-4xl'>⏳</div>
-					<p className='mt-2 text-zinc-600 dark:text-zinc-400'>Carregando problemas e soluções...</p>
-				</div>
+				<LoadingSpinner 
+					text="Carregando problemas e soluções..." 
+					size="lg" 
+					variant="centered" 
+				/>
 			</div>
 		)
 	}

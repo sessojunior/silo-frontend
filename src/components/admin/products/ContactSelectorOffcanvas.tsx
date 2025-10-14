@@ -7,6 +7,7 @@ import Image from 'next/image'
 import Offcanvas from '@/components/ui/Offcanvas'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface Contact {
 	id: string
@@ -199,10 +200,11 @@ export default function ContactSelectorOffcanvas({ isOpen, onClose, productId, o
 					<div className='flex-1 overflow-y-auto p-6 scrollbar max-h-[calc(100vh-400px)]'>
 						{loading ? (
 							<div className='text-center py-8'>
-								<div className='inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400'>
-									<span className='icon-[lucide--loader-2] size-4 animate-spin' />
-									Carregando contatos...
-								</div>
+								<LoadingSpinner 
+									text="Carregando contatos..." 
+									size="sm" 
+									variant="horizontal" 
+								/>
 							</div>
 						) : filteredContacts.length === 0 ? (
 							<div className='text-center py-8'>

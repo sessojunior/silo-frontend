@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { formatDateTimeBR } from '@/lib/dateUtils'
 import Avatar from '@/components/ui/Avatar'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface Conversation {
 	id: string
@@ -53,10 +54,11 @@ export default function ConversationList({ conversations, isLoading, onConversat
 	if (isLoading) {
 		return (
 			<div className='px-4 py-8 text-center'>
-				<div className='animate-spin w-8 h-8 mx-auto mb-3 text-zinc-400'>
-					<span className='icon-[lucide--loader-2] w-8 h-8' />
-				</div>
-				<p className='text-sm text-zinc-500 dark:text-zinc-400 font-medium'>Carregando mensagens...</p>
+				<LoadingSpinner 
+					text="Carregando mensagens..." 
+					size="md" 
+					variant="vertical" 
+				/>
 			</div>
 		)
 	}

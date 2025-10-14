@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button'
 import ActivityFormOffcanvas from '@/components/admin/projects/ActivityFormOffcanvas'
 import { toast } from '@/lib/toast'
 import { formatDateBR } from '@/lib/dateUtils'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface ProjectActivitiesSectionProps {
 	project: Project
@@ -53,6 +54,7 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 			todo: 'bg-zinc-200 dark:bg-zinc-700',
 			todo_doing: 'bg-orange-400',
 			todo_done: 'bg-green-400',
+			progress: 'bg-blue-500',
 			in_progress: 'bg-blue-500',
 			in_progress_doing: 'bg-blue-400',
 			in_progress_done: 'bg-blue-600',
@@ -189,8 +191,11 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 					<div className='p-4 bg-zinc-25 dark:bg-zinc-850'>
 						{loading ? (
 							<div className='flex items-center justify-center py-8'>
-								<span className='icon-[lucide--loader-circle] size-5 animate-spin text-zinc-400' />
-								<span className='ml-2 text-sm text-zinc-600 dark:text-zinc-400'>Carregando atividades...</span>
+								<LoadingSpinner 
+									text="Carregando atividades..." 
+									size="sm" 
+									variant="horizontal" 
+								/>
 							</div>
 						) : activities.length === 0 ? (
 							<div className='text-center py-6'>

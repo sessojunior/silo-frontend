@@ -10,6 +10,7 @@ import Button from '@/components/ui/Button'
 import Label from '@/components/ui/Label'
 
 import { Project, ProjectMember } from '@/types/projects'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface User {
 	id: string
@@ -247,8 +248,11 @@ export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project,
 					<div className='mt-2 max-h-80 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg pb-2'>
 						{loading ? (
 							<div className='flex items-center justify-center py-8'>
-								<span className='icon-[lucide--loader-circle] size-5 animate-spin text-zinc-400' />
-								<span className='ml-2 text-zinc-600 dark:text-zinc-400'>Carregando usuários...</span>
+								<LoadingSpinner 
+									text="Carregando usuários..." 
+									size="sm" 
+									variant="horizontal" 
+								/>
 							</div>
 						) : filteredUsers.length === 0 ? (
 							<div className='text-center py-8'>

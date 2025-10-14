@@ -8,6 +8,7 @@ import KanbanBoard from '@/components/admin/projects/KanbanBoard'
 import TaskFormOffcanvas from '@/components/admin/projects/TaskFormOffcanvas'
 import TaskHistoryModal from '@/components/admin/projects/TaskHistoryModal'
 import { ProjectTask } from '@/lib/db/schema'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 // Interface estendida para ProjectTask com campos da API
 interface ProjectTaskWithUsers extends ProjectTask {
@@ -399,11 +400,12 @@ export default function TaskKanbanPage() {
 	// Estados de loading e erro
 	if (loading) {
 		return (
-			<div className='flex flex-1 h-full items-center justify-center'>
-				<div className='text-center'>
-					<div className='animate-spin rounded-full size-10 border-b-2 border-blue-600 mx-auto mb-4'></div>
-					<p className='text-zinc-600 dark:text-zinc-400'>Carregando tarefas no kanban...</p>
-				</div>
+			<div className='h-[calc(100vh-64px)] flex items-center justify-center'>
+				<LoadingSpinner 
+					text="Carregando tarefas no kanban..." 
+					size="lg" 
+					variant="centered" 
+				/>
 			</div>
 		)
 	}
@@ -427,7 +429,7 @@ export default function TaskKanbanPage() {
 
 	if (!activity || !project) {
 		return (
-			<div className='flex items-center justify-center min-h-screen'>
+			<div className='h-[calc(100vh-64px)] flex items-center justify-center'>
 				<div className='text-center'>
 					<p className='text-zinc-600 dark:text-zinc-400'>Dados não encontrados</p>
 				</div>

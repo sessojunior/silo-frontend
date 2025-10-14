@@ -13,6 +13,7 @@ import ProjectProgressCard from '@/components/admin/projects/ProjectProgressCard
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 // Interfaces para tipos de dados
 interface Project {
@@ -46,7 +47,7 @@ interface ProjectActivity {
 interface ActivitySubmissionData {
 	name: string
 	description: string
-	status: 'todo' | 'todo_doing' | 'todo_done' | 'in_progress' | 'in_progress_doing' | 'in_progress_done' | 'review' | 'review_doing' | 'review_done' | 'done' | 'blocked'
+	status: 'progress' | 'todo' | 'done' | 'blocked'
 	priority: ProjectActivity['priority']
 	category: string
 	startDate: string
@@ -79,6 +80,88 @@ export default function ProjectDetailsPage() {
 	// Estado para contar tarefas do kanban por atividade e calcular progresso
 	const [kanbanTaskCounts, setKanbanTaskCounts] = useState<Record<string, number>>({})
 	const [kanbanTaskProgress, setKanbanTaskProgress] = useState<Record<string, { total: number; completed: number; percentage: number }>>({})
+
+	// Função para carregar contagem de tarefas do kanban e calcular progresso real
+	const loadKanbanTaskCount = async (activityId: string) => {
+		if (kanbanTaskCounts[activityId] !== undefined) return // Já carregado
+
+		try {
+			console.log('ℹ️ [PAGE_PROJECT_DETAILS] Carregando contagem para atividade:', { activityId })
+			console.log('ℹ️ [PAGE_PROJECT_DETAILS] URL:', { url: `/api/admin/projects/${projectId}/activities/${activityId}/tasks` })
+
+			const response = await fetch(`/api/admin/projects/${projectId}/activities/${activityId}/tasks`)
+			console.log('ℹ️ [PAGE_PROJECT_DETAILS] Response status:', { status: response.status })
+
+			if (response.ok) {
+				const data = await response.json()
+				console.log('ℹ️ [PAGE_PROJECT_DETAILS] Response data para atividade:', { activityId, data })
+
+				if (data.success && data.tasks) {
+					// A API retorna tasks como objeto agrupado por status: { "todo": [...], "in_progress": [...], "done": [...] }
+					let totalTasks = 0
+					let completedTasks = 0
+
+					if (typeof data.tasks === 'object' && !Array.isArray(data.tasks)) {
+						// Somar tarefas de todos os status e contar as concluídas
+						for (const status in data.tasks) {
+							if (Array.isArray(data.tasks[status])) {
+								totalTasks += data.tasks[status].length
+								// Contar tarefas concluídas (status "done")
+								if (status === 'done') {
+									completedTasks += data.tasks[status].length
+								}
+							}
+						}
+					} else if (Array.isArray(data.tasks)) {
+						// Fallback se for array direto
+						totalTasks = data.tasks.length
+						completedTasks = data.tasks.filter((task: { status: string }) => task.status === 'done').length
+					}
+
+					// Calcular porcentagem de progresso
+					const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+
+
+					console.log('ℹ️ [PAGE_PROJECT_DETAILS] Tasks agrupadas por status:', { statusKeys: Object.keys(data.tasks || {}) })
+					console.log('ℹ️ [PAGE_PROJECT_DETAILS] Total de tarefas para atividade:', { activityId, totalTasks })
+					console.log('ℹ️ [PAGE_PROJECT_DETAILS] Tarefas concluídas:', { completedTasks })
+					console.log('ℹ️ [PAGE_PROJECT_DETAILS] Progresso calculado:', { progressPercentage: progressPercentage + '%' })
+
+					// Atualizar estados
+					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: totalTasks }))
+					setKanbanTaskProgress((prev) => ({
+						...prev,
+						[activityId]: {
+							total: totalTasks,
+							completed: completedTasks,
+							percentage: progressPercentage,
+						},
+					}))
+				} else {
+					console.log('ℹ️ [PAGE_PROJECT_DETAILS] API retornou falha ou sem tarefas para atividade:', { activityId })
+					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
+					setKanbanTaskProgress((prev) => ({
+						...prev,
+						[activityId]: { total: 0, completed: 0, percentage: 0 },
+					}))
+				}
+			} else {
+				console.error('❌ [PAGE_PROJECT_DETAILS] Response não OK para atividade:', { activityId, status: response.status })
+				setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
+				setKanbanTaskProgress((prev) => ({
+					...prev,
+					[activityId]: { total: 0, completed: 0, percentage: 0 },
+				}))
+			}
+		} catch (error) {
+			console.error('❌ [PAGE_PROJECT_DETAILS] Erro ao carregar contagem de tarefas:', { activityId, error })
+			setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
+			setKanbanTaskProgress((prev) => ({
+				...prev,
+				[activityId]: { total: 0, completed: 0, percentage: 0 },
+			}))
+		}
+	}
 
 	// Carregar projeto e atividades
 	useEffect(() => {
@@ -182,12 +265,12 @@ export default function ProjectDetailsPage() {
 	}
 
 	// Função para converter status do banco para o formato do componente
-	function convertActivityStatus(dbStatus: ProjectActivity['status']): 'todo' | 'todo_doing' | 'todo_done' | 'in_progress' | 'in_progress_doing' | 'in_progress_done' | 'review' | 'review_doing' | 'review_done' | 'done' | 'blocked' {
+	function convertActivityStatus(dbStatus: ProjectActivity['status']): 'progress' | 'todo' | 'done' | 'blocked' {
 		switch (dbStatus) {
 			case 'todo':
 				return 'todo'
 			case 'progress':
-				return 'in_progress'
+				return 'progress'
 			case 'done':
 				return 'done'
 			case 'blocked':
@@ -279,15 +362,8 @@ export default function ProjectDetailsPage() {
 	function convertStatusToDatabase(componentStatus: ActivitySubmissionData['status']): ProjectActivity['status'] {
 		switch (componentStatus) {
 			case 'todo':
-			case 'todo_doing':
-			case 'todo_done':
 				return 'todo'
-			case 'in_progress':
-			case 'in_progress_doing':
-			case 'in_progress_done':
-			case 'review':
-			case 'review_doing':
-			case 'review_done':
+			case 'progress':
 				return 'progress'
 			case 'done':
 				return 'done'
@@ -454,98 +530,17 @@ export default function ProjectDetailsPage() {
 
 	if (loading) {
 		return (
-			<div className='flex flex-1 h-full items-center justify-center w-full'>
-				<div className='flex items-center justify-center gap-3'>
-					<span className='icon-[lucide--loader-circle] size-6 animate-spin text-zinc-400' />
-					<span className='text-zinc-600 dark:text-zinc-400'>Carregando projeto...</span>
-				</div>
+			<div className='h-[calc(100vh-64px)] flex items-center justify-center'>
+				<LoadingSpinner 
+					text="Carregando atividades do projeto..." 
+					size="lg" 
+					variant="centered" 
+				/>
 			</div>
 		)
 	}
 
 	if (!project) return null
-
-	// Função para carregar contagem de tarefas do kanban e calcular progresso real
-	const loadKanbanTaskCount = async (activityId: string) => {
-		if (kanbanTaskCounts[activityId] !== undefined) return // Já carregado
-
-		try {
-			console.log('ℹ️ [PAGE_PROJECT_DETAILS] Carregando contagem para atividade:', { activityId })
-			console.log('ℹ️ [PAGE_PROJECT_DETAILS] URL:', { url: `/api/admin/projects/${projectId}/activities/${activityId}/tasks` })
-
-			const response = await fetch(`/api/admin/projects/${projectId}/activities/${activityId}/tasks`)
-			console.log('ℹ️ [PAGE_PROJECT_DETAILS] Response status:', { status: response.status })
-
-			if (response.ok) {
-				const data = await response.json()
-				console.log('ℹ️ [PAGE_PROJECT_DETAILS] Response data para atividade:', { activityId, data })
-
-				if (data.success && data.tasks) {
-					// A API retorna tasks como objeto agrupado por status: { "todo": [...], "in_progress": [...], "done": [...] }
-					let totalTasks = 0
-					let completedTasks = 0
-
-					if (typeof data.tasks === 'object' && !Array.isArray(data.tasks)) {
-						// Somar tarefas de todos os status e contar as concluídas
-						for (const status in data.tasks) {
-							if (Array.isArray(data.tasks[status])) {
-								totalTasks += data.tasks[status].length
-								// Contar tarefas concluídas (status "done")
-								if (status === 'done') {
-									completedTasks += data.tasks[status].length
-								}
-							}
-						}
-					} else if (Array.isArray(data.tasks)) {
-						// Fallback se for array direto
-						totalTasks = data.tasks.length
-						completedTasks = data.tasks.filter((task: { status: string }) => task.status === 'done').length
-					}
-
-					// Calcular porcentagem de progresso
-					const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
-
-
-					console.log('ℹ️ [PAGE_PROJECT_DETAILS] Tasks agrupadas por status:', { statusKeys: Object.keys(data.tasks || {}) })
-					console.log('ℹ️ [PAGE_PROJECT_DETAILS] Total de tarefas para atividade:', { activityId, totalTasks })
-					console.log('ℹ️ [PAGE_PROJECT_DETAILS] Tarefas concluídas:', { completedTasks })
-					console.log('ℹ️ [PAGE_PROJECT_DETAILS] Progresso calculado:', { progressPercentage: progressPercentage + '%' })
-
-					// Atualizar estados
-					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: totalTasks }))
-					setKanbanTaskProgress((prev) => ({
-						...prev,
-						[activityId]: {
-							total: totalTasks,
-							completed: completedTasks,
-							percentage: progressPercentage,
-						},
-					}))
-				} else {
-					console.log('ℹ️ [PAGE_PROJECT_DETAILS] API retornou falha ou sem tarefas para atividade:', { activityId })
-					setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
-					setKanbanTaskProgress((prev) => ({
-						...prev,
-						[activityId]: { total: 0, completed: 0, percentage: 0 },
-					}))
-				}
-			} else {
-				console.error('❌ [PAGE_PROJECT_DETAILS] Response não OK para atividade:', { activityId, status: response.status })
-				setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
-				setKanbanTaskProgress((prev) => ({
-					...prev,
-					[activityId]: { total: 0, completed: 0, percentage: 0 },
-				}))
-			}
-		} catch (error) {
-			console.error('❌ [PAGE_PROJECT_DETAILS] Erro ao carregar contagem de tarefas:', { activityId, error })
-			setKanbanTaskCounts((prev) => ({ ...prev, [activityId]: 0 }))
-			setKanbanTaskProgress((prev) => ({
-				...prev,
-				[activityId]: { total: 0, completed: 0, percentage: 0 },
-			}))
-		}
-	}
 
 	// Função para controlar dropdown
 	const toggleDropdown = (activityId: string) => {
@@ -660,8 +655,11 @@ export default function ProjectDetailsPage() {
 
 						{activitiesLoading ? (
 							<div className='flex items-center justify-center py-12'>
-								<span className='icon-[lucide--loader-circle] size-6 animate-spin text-zinc-400' />
-								<span className='ml-3 text-zinc-600 dark:text-zinc-400'>Carregando atividades...</span>
+								<LoadingSpinner 
+									text="Carregando atividades..." 
+									size="md" 
+									variant="horizontal" 
+								/>
 							</div>
 						) : filteredActivities.length === 0 ? (
 							<div className='text-center py-12'>
@@ -736,13 +734,14 @@ export default function ProjectDetailsPage() {
 																	</div>
 																</div>
 															)
-														) : (
-															/* Estado de carregamento */
-															<div className='flex items-center gap-2'>
-																<span className='icon-[lucide--loader-circle] size-3 animate-spin text-zinc-400' />
-																<span className='text-sm text-zinc-500 dark:text-zinc-400'>Calculando progresso...</span>
-															</div>
-														)}
+															) : (
+																/* Estado de carregamento */
+																<LoadingSpinner 
+																	text="Calculando progresso..." 
+																	size="xs" 
+																	variant="horizontal" 
+																/>
+															)}
 
 														{/* Prioridade */}
 														<div className='flex items-center gap-2'>
@@ -774,8 +773,11 @@ export default function ProjectDetailsPage() {
 																</div>
 															) : (
 																<div className='flex items-center gap-2 text-sm bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-md'>
-																	<span className='icon-[lucide--loader-circle] size-3 animate-spin text-zinc-400' />
-																	<span className='text-zinc-700 dark:text-zinc-300 font-medium'>Carregando...</span>
+																	<LoadingSpinner 
+																		text="Carregando..." 
+																		size="xs" 
+																		variant="horizontal" 
+																	/>
 																</div>
 															)}
 														</div>
@@ -835,8 +837,8 @@ export default function ProjectDetailsPage() {
 									category: editingActivity.category || '',
 									status: convertActivityStatus(editingActivity.status),
 									priority: editingActivity.priority,
-									estimatedHours: editingActivity.estimatedDays,
-									actualHours: null,
+									estimatedDays: editingActivity.estimatedDays,
+									actualDays: null,
 									progress: 0,
 									startDate: editingActivity.startDate || '',
 									endDate: editingActivity.endDate || '',

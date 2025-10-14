@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from '@/lib/toast'
 import TruncatedDescription from '@/components/ui/TruncatedDescription'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface StatusHistoryEntry {
 	id: string
@@ -75,10 +76,11 @@ export default function ProductStatusHistory({ productId, date, turn }: ProductS
 	if (loading) {
 		return (
 			<div className='flex items-center justify-center py-8'>
-				<div className='flex items-center gap-2 text-zinc-500 dark:text-zinc-400'>
-					<span className='icon-[lucide--loader-circle] size-5 animate-spin' />
-					Carregando histórico...
-				</div>
+				<LoadingSpinner 
+					text="Carregando histórico..." 
+					size="sm" 
+					variant="horizontal" 
+				/>
 			</div>
 		)
 	}

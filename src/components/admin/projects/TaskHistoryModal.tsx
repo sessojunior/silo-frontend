@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import { toast } from '@/lib/toast'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface TaskHistoryEntry {
 	id: string
@@ -87,10 +88,11 @@ export default function TaskHistoryModal({ isOpen, onClose, taskId, taskName }: 
 					{/* Loading */}
 					{loading && (
 						<div className='flex items-center justify-center py-8'>
-							<div className='flex items-center gap-2 text-zinc-500 dark:text-zinc-400'>
-								<span className='icon-[lucide--loader-circle] size-5 animate-spin' />
-								Carregando histórico...
-							</div>
+							<LoadingSpinner 
+								text="Carregando histórico..." 
+								size="sm" 
+								variant="horizontal" 
+							/>
 						</div>
 					)}
 

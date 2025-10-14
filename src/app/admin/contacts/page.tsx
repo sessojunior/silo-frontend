@@ -11,6 +11,7 @@ import Avatar from '@/components/ui/Avatar'
 import ContactFormOffcanvas from '@/components/admin/contacts/ContactFormOffcanvas'
 import ContactDeleteDialog from '@/components/admin/contacts/ContactDeleteDialog'
 import { Contact } from '@/lib/db/schema'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 export default function ContactsPage() {
 	const [contacts, setContacts] = useState<Contact[]>([])
@@ -202,11 +203,12 @@ export default function ContactsPage() {
 						</div>
 
 						{loading ? (
-							<div className='p-12 text-center'>
-								<div className='inline-flex items-center gap-2 text-zinc-600 dark:text-zinc-400'>
-									<span className='icon-[lucide--loader-2] size-4 animate-spin' />
-									Carregando contatos...
-								</div>
+							<div className='p-12 flex items-center justify-center text-center'>
+								<LoadingSpinner 
+									text="Carregando contatos..." 
+									size="md" 
+									variant="centered" 
+								/>
 							</div>
 						) : filteredContacts.length === 0 ? (
 							<div className='p-12 text-center'>

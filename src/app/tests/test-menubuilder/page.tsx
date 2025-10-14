@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import ProductDependencyMenuBuilder, { type ProductDependencyItem } from '@/components/admin/products/ProductDependencyMenuBuilder'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 export default function TesteMenuPage() {
 	const [isMounted, setIsMounted] = useState(false)
@@ -210,11 +211,12 @@ export default function TesteMenuPage() {
 	// Evita problemas de hidratação SSR
 	if (!isMounted) {
 		return (
-			<div className='p-8 space-y-6 min-h-screen bg-gray-50'>
-				<div className='text-center'>
-					<h1 className='text-3xl font-bold'>Teste ProductDependencyMenuBuilder</h1>
-					<p className='text-gray-600 mt-2'>Carregando...</p>
-				</div>
+			<div className='flex h-[calc(100vh-131px)] w-full items-center justify-center'>
+				<LoadingSpinner 
+					text="Carregando..." 
+					size="lg" 
+					variant="centered" 
+				/>
 			</div>
 		)
 	}

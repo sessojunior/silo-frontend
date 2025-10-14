@@ -5,6 +5,7 @@ import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, P
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { formatDateBR } from '@/lib/dateUtils'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 // Types
 interface Task {
@@ -447,8 +448,12 @@ export default function KanbanBoard() {
 	if (!isClient) {
 		// Fallback para SSR, pode ser um loader ou uma versão estática.
 		return (
-			<div className='p-6 bg-gray-50 min-h-screen'>
-				<h1 className='text-2xl font-bold text-gray-900 mb-6'>Carregando Kanban...</h1>
+			<div className='flex h-[calc(100vh-131px)] w-full items-center justify-center'>
+				<LoadingSpinner 
+					text="Carregando Kanban..." 
+					size="lg" 
+					variant="centered" 
+				/>
 			</div>
 		)
 	}

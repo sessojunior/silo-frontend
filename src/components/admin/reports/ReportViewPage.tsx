@@ -5,6 +5,7 @@ import { ReportChart } from './ReportChart'
 import { ReportFilters } from './ReportFilters'
 import Avatar from '@/components/ui/Avatar'
 import { formatDate, formatDateBR } from '@/lib/dateUtils'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface ReportViewPageProps {
 	reportId: string
@@ -231,12 +232,12 @@ export function ReportViewPage({ reportId }: ReportViewPageProps) {
 
 	if (loading) {
 		return (
-			<div className='w-full p-6'>
-				<div className='max-w-7xl mx-auto'>
-					<div className='flex items-center justify-center h-64'>
-						<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-zinc-600'></div>
-					</div>
-				</div>
+			<div className='h-[calc(100vh-64px)] flex items-center justify-center'>
+				<LoadingSpinner 
+					text="Carregando relatório..." 
+					size="lg" 
+					variant="centered" 
+				/>
 			</div>
 		)
 	}

@@ -8,6 +8,7 @@ import { getMarkdownClasses } from '@/lib/markdown'
 import Markdown from '@/components/ui/Markdown'
 import Offcanvas from '@/components/ui/Offcanvas'
 import Label from '@/components/ui/Label'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface HelpDoc {
 	id: string
@@ -155,8 +156,11 @@ export default function HelpPage() {
 	if (loading) {
 		return (
 			<div className='w-full h-full flex flex-1 items-center justify-center p-6'>
-				<div className='animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full'></div>
-				<span className='ml-3 text-zinc-600 dark:text-zinc-400'>Carregando ajuda do sistema...</span>
+				<LoadingSpinner 
+					text="Carregando ajuda do sistema..." 
+					size="lg" 
+					variant="horizontal" 
+				/>
 			</div>
 		)
 	}

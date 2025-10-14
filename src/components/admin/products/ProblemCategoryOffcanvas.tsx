@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button'
 import Dialog from '@/components/ui/Dialog'
 import { toast } from '@/lib/toast'
 import ProblemCategoryFormOffcanvas from '@/components/admin/products/ProblemCategoryFormOffcanvas'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface Category {
 	id: string
@@ -114,8 +115,11 @@ export default function ProblemCategoryOffcanvas({ open, onClose }: Props) {
 					<div className='flex flex-col gap-2 max-h-full overflow-y-auto pb-2'>
 						{loading && (
 							<div className='flex flex-col items-center justify-center gap-3 text-zinc-500 py-12'>
-								<div className='animate-spin text-2xl'>⏳</div>
-								<p className='text-center'>Carregando categorias...</p>
+								<LoadingSpinner 
+									text="Carregando categorias..." 
+									size="md" 
+									variant="centered" 
+								/>
 							</div>
 						)}
 						{!loading && categories.length === 0 && (

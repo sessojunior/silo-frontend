@@ -27,6 +27,7 @@ import ProductDependenciesColumn from '@/components/admin/products/ProductDepend
 
 // Componente coluna direita (detalhes do produto) - ETAPA 2 REFATORAÇÃO
 import ProductDetailsColumn from '@/components/admin/products/ProductDetailsColumn'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 // Função utilitária para converter ProductDependency para TreeNode (compatível com TreeView)
 function convertDependenciesToTreeNodes(dependencies: ProductDependency[]): TreeNode[] {
@@ -854,10 +855,11 @@ export default function ProductsPage() {
 	if (loading) {
 		return (
 			<div className='flex h-[calc(100vh-131px)] w-full items-center justify-center'>
-				<div className='text-center'>
-					<div className='animate-spin text-4xl'>⏳</div>
-					<p className='mt-2 text-zinc-600 dark:text-zinc-400'>Carregando base de conhecimento...</p>
-				</div>
+				<LoadingSpinner 
+					text="Carregando base de conhecimento..." 
+					size="lg" 
+					variant="centered" 
+				/>
 			</div>
 		)
 	}

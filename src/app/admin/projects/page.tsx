@@ -13,6 +13,7 @@ import Select from '@/components/ui/Select'
 import Offcanvas from '@/components/ui/Offcanvas'
 import ProjectStatsCards from '@/components/admin/projects/ProjectStatsCards'
 import ProjectFormOffcanvas from '@/components/admin/projects/ProjectFormOffcanvas'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ProjectDeleteDialog from '@/components/admin/projects/ProjectDeleteDialog'
 
 import { Project } from '@/types/projects'
@@ -451,8 +452,11 @@ export default function ProjectsPage() {
 
 						{loading ? (
 							<div className='flex items-center justify-center py-12'>
-								<span className='icon-[lucide--loader-circle] size-6 animate-spin text-zinc-400' />
-								<span className='ml-3 text-zinc-600 dark:text-zinc-400'>Carregando projetos...</span>
+								<LoadingSpinner 
+									text="Carregando projetos..." 
+									size="md" 
+									variant="horizontal" 
+								/>
 							</div>
 						) : filteredProjects.length === 0 ? (
 							<div className='text-center py-12'>

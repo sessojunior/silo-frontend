@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface ProjectTask {
 	id: string
@@ -115,8 +116,11 @@ export default function ActivityMiniKanban({ activityId, projectId }: ActivityMi
 		return (
 			<div className='px-6 py-4'>
 				<div className='flex items-center justify-center py-8'>
-					<span className='icon-[lucide--loader-circle] size-5 animate-spin text-zinc-400 mr-2' />
-					<span className='text-sm text-zinc-600 dark:text-zinc-400'>Carregando tarefas...</span>
+					<LoadingSpinner 
+						text="Carregando tarefas..." 
+						size="sm" 
+						variant="horizontal" 
+					/>
 				</div>
 			</div>
 		)

@@ -6,6 +6,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-
 import { CSS } from '@dnd-kit/utilities'
 import { formatDateBR, formatFullDateBR } from '@/lib/utils'
 import Avatar from '@/components/ui/Avatar'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 // Types
 interface Task {
@@ -501,8 +502,12 @@ export default function KanbanBoard({ tasks: externalTasks = [], onTasksReorder,
 
 	if (!isClient) {
 		return (
-			<div className='p-6 bg-gray-50 dark:bg-zinc-900 min-h-screen'>
-				<h1 className='text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6'>Carregando Kanban...</h1>
+			<div className='flex h-[calc(100vh-131px)] w-full items-center justify-center'>
+				<LoadingSpinner 
+					text="Carregando Kanban..." 
+					size="lg" 
+					variant="centered" 
+				/>
 			</div>
 		)
 	}

@@ -13,6 +13,7 @@ import Select from '@/components/ui/Select'
 import UserFormOffcanvas from '@/components/admin/users/UserFormOffcanvas'
 import UserDeleteDialog from '@/components/admin/users/UserDeleteDialog'
 import { AuthUser, Group } from '@/lib/db/schema'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 // Interface para usuário com informações do grupo
 interface UserWithGroup extends AuthUser {
@@ -275,9 +276,12 @@ export default function UsersPage() {
 				{/* Lista de Usuários */}
 				<div className='bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700'>
 					{loading ? (
-						<div className='p-8 text-center'>
-							<span className='icon-[lucide--loader-circle] size-6 animate-spin text-zinc-400 mx-auto' />
-							<p className='text-zinc-600 dark:text-zinc-400 mt-2'>Carregando usuários...</p>
+						<div className='p-12 flex items-center justify-center text-center'>
+							<LoadingSpinner 
+								text="Carregando usuários..." 
+								size="md" 
+								variant="centered" 
+							/>
 						</div>
 					) : filteredUsers.length === 0 ? (
 						<div className='p-8 text-center'>
