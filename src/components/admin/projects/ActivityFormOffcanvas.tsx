@@ -83,7 +83,7 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 				category: activity.category,
 				startDate: activity.startDate || '',
 				endDate: activity.endDate || '',
-				days: activity.estimatedHours ? activity.estimatedHours.toString() : '',
+				days: activity.estimatedDays ? activity.estimatedDays.toString() : '',
 			})
 		} else {
 			// Reset para nova atividade

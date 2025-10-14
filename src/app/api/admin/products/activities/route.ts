@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { productActivity } from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
 import { randomUUID } from 'crypto'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { formatDate } from '@/lib/dateUtils'
 import { recordProductActivityHistory } from '@/lib/productActivityHistory'
 

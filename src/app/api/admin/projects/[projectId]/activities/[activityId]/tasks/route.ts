@@ -17,13 +17,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 		const { projectId, activityId } = await params
 
-		// Buscar tarefas da atividade ordenadas por status e sort
-		const tasks = await db
-			.select()
-			.from(schema.projectTask)
-			.where(and(eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId)))
-			.orderBy(asc(schema.projectTask.status), asc(schema.projectTask.sort))
-
 		// Buscar usuários associados a cada tarefa - OTIMIZADO com JOIN
 		const tasksWithUsersData = await db
 			.select({
@@ -54,7 +47,30 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			.orderBy(asc(schema.projectTask.status), asc(schema.projectTask.sort))
 
 		// Agrupar dados por tarefa
-		const tasksMap = new Map<string, any>()
+		const tasksMap = new Map<string, {
+			id: string
+			projectId: string
+			projectActivityId: string
+			name: string
+			description: string | null
+			status: string
+			priority: string
+			category: string | null
+			startDate: string | null
+			endDate: string | null
+			estimatedDays: number | null
+			sort: number
+			assignedUsers: string[]
+			assignedUsersDetails: Array<{
+				id: string
+				role: string | null
+				name: string | null
+				email: string | null
+				image: string | null
+			}>
+			createdAt: Date
+			updatedAt: Date
+		}>()
 		
 		for (const row of tasksWithUsersData) {
 			if (!tasksMap.has(row.taskId)) {
