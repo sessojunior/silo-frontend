@@ -26,7 +26,7 @@ export async function getAuthUser() {
 		where: eq(authUser.id, session.userId),
 	})
 
-	if (!user || user.emailVerified !== true) return null
+	if (!user || user.emailVerified !== true || !user.isActive) return null
 
 	return user
 }

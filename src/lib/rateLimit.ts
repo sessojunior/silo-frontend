@@ -1,4 +1,4 @@
-import { and, eq, lt } from 'drizzle-orm'
+import { and, eq, lt, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { rateLimit } from '@/lib/db/schema'
 import { randomUUID } from 'crypto'
@@ -36,35 +36,27 @@ export async function isRateLimited({ email, ip, route, limit = 3, windowInSecon
 
 // Atualiza ou cria o registro de tentativa de envio
 export async function recordRateLimit({ email, ip, route }: { email: string; ip: string; route: string }): Promise<void> {
-	// Verifica se existe um registro com o mesmo email, IP e tipo da rota
-	const existing = await db.query.rateLimit.findFirst({
-		where: and(eq(rateLimit.email, email), eq(rateLimit.ip, ip), eq(rateLimit.route, route)),
-	})
-
-	// Se não encontrou, é a primeira tentativa
-	// Cria um novo registro com contador 1 (count: 1)
-	if (!existing) {
-		await db.insert(rateLimit).values({
-			id: randomUUID(),
-			route,
-			email,
-			ip,
-			count: 1,
+	// Usar UPSERT para evitar race condition
+	// PostgreSQL: ON CONFLICT DO UPDATE
+	const resetWindow = new Date(new Date().getTime() - 60 * 1000)
+	
+	await db.insert(rateLimit).values({
+		id: randomUUID(),
+		route,
+		email,
+		ip,
+		count: 1,
+		lastRequest: new Date(),
+	}).onConflictDoUpdate({
+		target: [rateLimit.email, rateLimit.ip, rateLimit.route],
+		set: {
+			count: sql`CASE 
+				WHEN ${rateLimit.lastRequest} < ${resetWindow} THEN 1 
+				ELSE ${rateLimit.count} + 1 
+			END`,
 			lastRequest: new Date(),
-		})
-	} else {
-		// Janela de 60 segundos para resetar o contador caso o tempo tenha passado
-		const resetWindow = new Date(new Date().getTime() - 60 * 1000)
-
-		// Aumenta o contador e atualiza o timestamp
-		await db
-			.update(rateLimit)
-			.set({
-				count: existing.lastRequest < resetWindow ? 1 : existing.count + 1,
-				lastRequest: new Date(),
-			})
-			.where(eq(rateLimit.id, existing.id))
-	}
+		},
+	})
 }
 
 // Função auxiliar que remove registros antigos do banco (ex: mais de 60 minutos)

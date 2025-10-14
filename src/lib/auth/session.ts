@@ -57,7 +57,13 @@ export async function destroySessionCookie(token: string) {
 
 // Remove todas as sessões de um usuário do banco de dados
 export async function destroyAllSession(userId: string) {
-	await db.delete(authSession).where(eq(authSession.userId, userId))
+	try {
+		await db.delete(authSession).where(eq(authSession.userId, userId))
+		console.log('ℹ️ [AUTH_SESSION] Todas as sessões do usuário foram destruídas:', { userId })
+	} catch (error) {
+		console.error('❌ [AUTH_SESSION] Erro ao destruir sessões do usuário:', { userId, error })
+		throw error
+	}
 }
 
 // Valida o token de sessão do usuário

@@ -8,6 +8,13 @@
       "when": 1759154272141,
       "tag": "0000_pale_red_skull",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1760383636516,
+      "tag": "0001_low_kitty_pryde",
+      "breakpoints": true
     }
   ]
 }

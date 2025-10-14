@@ -29,42 +29,32 @@ export async function POST(req: NextRequest) {
 			return jsonResponse({ success: false, error: 'Parâmetros obrigatórios ausentes.' }, 400)
 		}
 
-		// Verificar se já existe registro para productId+date+turn
-		const existing = await db.query.productActivity.findFirst({
-			where: and(eq(productActivity.productId, productId), eq(productActivity.date, normalizedDate), eq(productActivity.turn, turn)),
-		})
-
-		let action: 'created' | 'updated' = 'created'
-		let record
-		if (existing) {
-			// Atualiza registro existente
-			;[record] = await db
-				.update(productActivity)
-				.set({
+		// Usar UPSERT para evitar race condition
+		// Com constraint UNIQUE em (productId, date, turn), podemos usar ON CONFLICT
+		const [record] = await db
+			.insert(productActivity)
+			.values({
+				id: randomUUID(),
+				productId,
+				userId: user.id,
+				date: normalizedDate,
+				turn,
+				status,
+				description: description || null,
+				problemCategoryId: problemCategoryId || null,
+			})
+			.onConflictDoUpdate({
+				target: [productActivity.productId, productActivity.date, productActivity.turn],
+				set: {
 					status,
 					description: description || null,
 					problemCategoryId: problemCategoryId || null,
 					updatedAt: new Date(),
-				})
-				.where(eq(productActivity.id, existing.id))
-				.returning()
-			action = 'updated'
-		} else {
-			// Criar novo registro
-			;[record] = await db
-				.insert(productActivity)
-				.values({
-					id: randomUUID(),
-					productId,
-					userId: user.id,
-					date: normalizedDate,
-					turn,
-					status,
-					description: description || null,
-					problemCategoryId: problemCategoryId || null,
-				})
-				.returning()
-		}
+				},
+			})
+			.returning()
+
+		const action: 'created' | 'updated' = record.createdAt.getTime() === record.updatedAt.getTime() ? 'created' : 'updated'
 
 		// Registrar histórico
 		await recordProductActivityHistory({

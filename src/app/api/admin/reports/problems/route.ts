@@ -139,63 +139,68 @@ export async function GET(request: Request) {
 		const totalProblems = problems.length
 		const avgResolutionHours = problemsByCategory.length > 0 ? Math.round((problemsByCategory.reduce((sum, cat) => sum + cat.avgResolutionHours, 0) / problemsByCategory.length) * 10) / 10 : 0
 
-		// Top problemas (mais recentes) com dados reais
-		const topProblems = await Promise.all(problems.slice(0, 5).map(async (problem) => {
-			const productInfo = productsWithProblems.find((p) => p.id === problem.productId)
-			const categoryInfo = categories.find((c) => c.id === problem.problemCategoryId)
-			
-			// Buscar informações reais do usuário
-			const userInfo = await db
-				.select({ name: authUser.name })
-				.from(authUser)
-				.where(eq(authUser.id, problem.userId))
-				.limit(1)
+		// Top problemas (mais recentes) com dados reais - OTIMIZADO
+		const topProblemsIds = problems.slice(0, 5).map(p => p.id)
+		
+		// Buscar todos os dados necessários em uma única query com JOINs
+		const topProblemsData = await db
+			.select({
+				problemId: productProblem.id,
+				problemTitle: productProblem.title,
+				problemDescription: productProblem.description,
+				problemCreatedAt: productProblem.createdAt,
+				problemUpdatedAt: productProblem.updatedAt,
+				problemCategoryId: productProblem.problemCategoryId,
+				productId: productProblem.productId,
+				userId: productProblem.userId,
+				userName: authUser.name,
+				productName: product.name,
+				productSlug: product.slug,
+				categoryName: productProblemCategory.name,
+				categoryColor: productProblemCategory.color,
+				solutionsCount: sql<number>`count(${productSolution.id})`,
+				avgResolutionHours: sql<number>`avg(extract(epoch from (${productSolution.createdAt} - ${productProblem.createdAt})) / 3600)`,
+			})
+			.from(productProblem)
+			.leftJoin(authUser, eq(productProblem.userId, authUser.id))
+			.leftJoin(product, eq(productProblem.productId, product.id))
+			.leftJoin(productProblemCategory, eq(productProblem.problemCategoryId, productProblemCategory.id))
+			.leftJoin(productSolution, eq(productProblem.id, productSolution.productProblemId))
+			.where(inArray(productProblem.id, topProblemsIds))
+			.groupBy(
+				productProblem.id,
+				productProblem.title,
+				productProblem.description,
+				productProblem.createdAt,
+				productProblem.updatedAt,
+				productProblem.problemCategoryId,
+				productProblem.productId,
+				productProblem.userId,
+				authUser.name,
+				product.name,
+				product.slug,
+				productProblemCategory.name,
+				productProblemCategory.color
+			)
 
-			// Contar soluções reais para este problema
-			const solutionsCount = await db
-				.select({ count: sql<number>`count(*)` })
-				.from(productSolution)
-				.where(eq(productSolution.productProblemId, problem.id))
-
-			// Calcular tempo médio de resolução real
-			const solutions = await db
-				.select({ createdAt: productSolution.createdAt })
-				.from(productSolution)
-				.where(eq(productSolution.productProblemId, problem.id))
-
-			let avgResolutionHours = 0
-			if (solutions.length > 0) {
-				const resolutionTimes = solutions.map(sol => {
-					const resolutionTimeMs = sol.createdAt.getTime() - problem.createdAt.getTime()
-					return resolutionTimeMs / (1000 * 60 * 60) // Converter para horas
-				}).filter(time => time > 0)
-
-				if (resolutionTimes.length > 0) {
-					avgResolutionHours = resolutionTimes.reduce((sum, time) => sum + time, 0) / resolutionTimes.length
-				}
-			}
-
-			return {
-				id: problem.id,
-				title: problem.title,
-				description: problem.description,
-				createdAt: problem.createdAt.toISOString(),
-				updatedAt: problem.updatedAt.toISOString(),
-				product: {
-					name: productInfo?.name || 'Produto',
-					slug: productInfo?.slug || 'produto',
-				},
-				category: {
-					name: categoryInfo?.name || 'Sem categoria',
-					color: categoryInfo?.color || '#6b7280',
-				},
-				reportedBy: userInfo[0]?.name || 'Usuário',
-				solutionsCount: solutionsCount[0]?.count || 0,
-				avgResolutionHours: Math.round(avgResolutionHours * 10) / 10,
-			}
+		const topProblems = topProblemsData.map(data => ({
+			id: data.problemId,
+			title: data.problemTitle,
+			description: data.problemDescription,
+			createdAt: data.problemCreatedAt.toISOString(),
+			updatedAt: data.problemUpdatedAt.toISOString(),
+			product: {
+				name: data.productName || 'Produto',
+				slug: data.productSlug || 'produto',
+			},
+			category: {
+				name: data.categoryName || 'Sem categoria',
+				color: data.categoryColor || '#6b7280',
+			},
+			reportedBy: data.userName || 'Usuário',
+			solutionsCount: data.solutionsCount || 0,
+			avgResolutionHours: Math.round((data.avgResolutionHours || 0) * 10) / 10,
 		}))
-
-
 
 		return NextResponse.json({
 			success: true,

@@ -18,11 +18,6 @@ export async function middleware(req: NextRequest) {
 
 	// Proteção de APIs administrativas - verificação básica de token
 	if (pathname.startsWith('/api/admin/')) {
-		// Temporariamente permitir APIs de relatórios para teste
-		if (pathname.startsWith('/api/admin/reports/')) {
-			return NextResponse.next()
-		}
-
 		if (!token) {
 			console.log('ℹ️ [MIDDLEWARE] Token ausente para API admin:', { pathname })
 			return NextResponse.json({ field: null, message: 'Usuário não autenticado.' }, { status: 401 })

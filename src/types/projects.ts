@@ -43,14 +43,14 @@ export interface Activity {
 	projectId: string
 	name: string
 	description: string
-	status: 'todo' | 'todo_doing' | 'todo_done' | 'in_progress' | 'in_progress_doing' | 'in_progress_done' | 'review' | 'review_doing' | 'review_done' | 'done' | 'blocked'
+	status: 'todo' | 'progress' | 'done' | 'blocked'
 	priority: 'low' | 'medium' | 'high' | 'urgent'
 	progress: number // 0-100
 	category: string // Sprint, Backlog, etc.
 	startDate: string | null
 	endDate: string | null
-	estimatedHours: number | null
-	actualHours: number | null
+	estimatedDays: number | null
+	actualDays: number | null
 
 	// Relacionamentos
 	assignees: ActivityAssignee[] // Usuários atribuídos à atividade
@@ -67,14 +67,14 @@ export interface Task {
 	activityId: string // Relacionamento com atividade
 	name: string
 	description: string
-	status: 'todo' | 'todo_doing' | 'todo_done' | 'in_progress' | 'in_progress_doing' | 'in_progress_done' | 'review' | 'review_doing' | 'review_done' | 'done' | 'blocked'
+	status: 'todo' | 'in_progress' | 'blocked' | 'review' | 'done'
 	priority: 'low' | 'medium' | 'high' | 'urgent'
 	progress: number // 0-100
 	category: string // Sprint, Backlog, etc.
 	startDate: string | null
 	endDate: string | null
-	estimatedHours: number | null
-	actualHours: number | null
+	estimatedDays: number | null
+	actualDays: number | null
 	sort: number // Ordem dentro da coluna/status
 
 	// Relacionamentos

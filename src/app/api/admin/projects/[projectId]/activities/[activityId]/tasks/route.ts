@@ -24,33 +24,74 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 			.where(and(eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId)))
 			.orderBy(asc(schema.projectTask.status), asc(schema.projectTask.sort))
 
+		// Buscar usuários associados a cada tarefa - OTIMIZADO com JOIN
+		const tasksWithUsersData = await db
+			.select({
+				taskId: schema.projectTask.id,
+				taskProjectId: schema.projectTask.projectId,
+				taskProjectActivityId: schema.projectTask.projectActivityId,
+				taskName: schema.projectTask.name,
+				taskDescription: schema.projectTask.description,
+				taskCategory: schema.projectTask.category,
+				taskEstimatedDays: schema.projectTask.estimatedDays,
+				taskStartDate: schema.projectTask.startDate,
+				taskEndDate: schema.projectTask.endDate,
+				taskPriority: schema.projectTask.priority,
+				taskStatus: schema.projectTask.status,
+				taskSort: schema.projectTask.sort,
+				taskCreatedAt: schema.projectTask.createdAt,
+				taskUpdatedAt: schema.projectTask.updatedAt,
+				userId: schema.projectTaskUser.userId,
+				userRole: schema.projectTaskUser.role,
+				userName: schema.authUser.name,
+				userEmail: schema.authUser.email,
+				userImage: schema.authUser.image,
+			})
+			.from(schema.projectTask)
+			.leftJoin(schema.projectTaskUser, eq(schema.projectTask.id, schema.projectTaskUser.taskId))
+			.leftJoin(schema.authUser, eq(schema.projectTaskUser.userId, schema.authUser.id))
+			.where(and(eq(schema.projectTask.projectId, projectId), eq(schema.projectTask.projectActivityId, activityId)))
+			.orderBy(asc(schema.projectTask.status), asc(schema.projectTask.sort))
 
-		// Buscar usuários associados a cada tarefa
-		const tasksWithUsers = await Promise.all(
-			tasks.map(async (task) => {
+		// Agrupar dados por tarefa
+		const tasksMap = new Map<string, any>()
+		
+		for (const row of tasksWithUsersData) {
+			if (!tasksMap.has(row.taskId)) {
+				tasksMap.set(row.taskId, {
+					id: row.taskId,
+					projectId: row.taskProjectId,
+					projectActivityId: row.taskProjectActivityId,
+					name: row.taskName,
+					description: row.taskDescription,
+					category: row.taskCategory,
+					estimatedDays: row.taskEstimatedDays,
+					startDate: row.taskStartDate,
+					endDate: row.taskEndDate,
+					priority: row.taskPriority,
+					status: row.taskStatus,
+					sort: row.taskSort,
+					createdAt: row.taskCreatedAt,
+					updatedAt: row.taskUpdatedAt,
+					assignedUsers: [],
+					assignedUsersDetails: [],
+				})
+			}
+			
+			if (row.userId) {
+				const task = tasksMap.get(row.taskId)!
+				task.assignedUsers.push(row.userId)
+				task.assignedUsersDetails.push({
+					id: row.userId,
+					role: row.userRole,
+					name: row.userName,
+					email: row.userEmail,
+					image: row.userImage,
+				})
+			}
+		}
 
-				const taskUsers = await db
-					.select({
-						id: schema.projectTaskUser.userId,
-						role: schema.projectTaskUser.role,
-						name: schema.authUser.name,
-						email: schema.authUser.email,
-						image: schema.authUser.image,
-					})
-					.from(schema.projectTaskUser)
-					.innerJoin(schema.authUser, eq(schema.projectTaskUser.userId, schema.authUser.id))
-					.where(eq(schema.projectTaskUser.taskId, task.id))
-
-				const taskUsersMap = taskUsers.map((u) => ({ id: u.id, name: u.name, role: u.role }))
-				console.log('ℹ️ [API_PROJECTS_TASKS] Tarefa com usuários encontrados:', { taskId: task.id, users: taskUsersMap })
-
-				return {
-					...task,
-					assignedUsers: taskUsers.map((user) => user.id), // IDs dos usuários para compatibilidade
-					assignedUsersDetails: taskUsers, // Detalhes completos dos usuários
-				}
-			}),
-		)
+		const tasksWithUsers = Array.from(tasksMap.values())
 
 		const tasksWithUsersReduce = tasksWithUsers.reduce(
 			(acc, task) => {
@@ -76,7 +117,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 		const groupedTasksMap = Object.keys(groupedTasks).map((status) => ({
 			status,
 			count: groupedTasks[status].length,
-			tasks: groupedTasks[status].map((t) => ({
+			tasks: groupedTasks[status].map((t: typeof tasksWithUsers[0]) => ({
 				id: t.id,
 				name: t.name,
 				sort: t.sort,

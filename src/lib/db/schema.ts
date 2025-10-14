@@ -90,7 +90,9 @@ export const rateLimit = pgTable('rate_limit', {
 	ip: text('ip').notNull(),
 	count: integer('count').notNull(),
 	lastRequest: timestamp('last_request').notNull(),
-})
+}, (table) => ({
+	uniqueEmailIpRoute: unique('unique_rate_limit_email_ip_route').on(table.email, table.ip, table.route),
+}))
 export type RateLimit = typeof rateLimit.$inferSelect
 
 export const userProfile = pgTable('user_profile', {
@@ -152,7 +154,12 @@ export const productProblem = pgTable('product_problem', {
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 	problemCategoryId: text('problem_category_id').references(() => productProblemCategory.id),
-})
+}, (table) => ({
+	productIdx: index('idx_product_problem_product').on(table.productId),
+	userIdIdx: index('idx_product_problem_user').on(table.userId),
+	categoryIdx: index('idx_product_problem_category').on(table.problemCategoryId),
+	createdAtIdx: index('idx_product_problem_created_at').on(table.createdAt),
+}))
 export type ProductProblem = typeof productProblem.$inferSelect
 
 export const productProblemImage = pgTable('product_problem_image', {
@@ -288,6 +295,7 @@ export const chatMessage = pgTable(
 		groupIdx: index('idx_chat_message_group').on(table.receiverGroupId, table.createdAt),
 		userIdx: index('idx_chat_message_user').on(table.receiverUserId, table.senderUserId, table.createdAt),
 		unreadUserIdx: index('idx_chat_message_unread_user').on(table.receiverUserId, table.readAt),
+		senderIdx: index('idx_chat_message_sender').on(table.senderUserId),
 	}),
 )
 export type ChatMessage = typeof chatMessage.$inferSelect
@@ -447,6 +455,9 @@ export const productActivity = pgTable(
 	},
 	(table) => ({
 		productDateIdx: index('idx_product_activity_product_date').on(table.productId, table.date),
+		productTurnIdx: index('idx_product_activity_product_turn').on(table.productId, table.turn),
+		userIdIdx: index('idx_product_activity_user_id').on(table.userId),
+		uniqueProductDateTurn: unique('unique_product_activity_product_date_turn').on(table.productId, table.date, table.turn),
 	}),
 )
 
