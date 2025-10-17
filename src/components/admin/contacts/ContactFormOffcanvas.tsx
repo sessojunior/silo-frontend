@@ -73,7 +73,6 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 		}
 	}
 
-	// Função removida - agora usando UploadThing
 
 	const handleRemoveImage = async () => {
 		setImagePreview(null)
@@ -176,7 +175,7 @@ export default function ContactFormOffcanvas({ isOpen, onClose, contact, onSucce
 				submitFormData.append('id', contact.id)
 			}
 
-			// Imagem via UploadThing
+			// Imagem via servidor local
 			if (imagePreview) {
 				submitFormData.append('imageUrl', imagePreview)
 			}

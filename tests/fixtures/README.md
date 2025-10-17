@@ -88,7 +88,7 @@ tests/fixtures/*.gif
 
 Os testes verificam:
 
-- ✅ Upload de imagens via UploadThing
+- ✅ Upload de imagens via servidor local
 - ✅ Validação de tamanho máximo
 - ✅ Preview de imagens
 - ✅ Redimensionamento automático

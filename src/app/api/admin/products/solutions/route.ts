@@ -78,7 +78,6 @@ export async function POST(req: NextRequest) {
 	const problemId = formData.get('problemId') as string | null
 	const replyId = formData.get('replyId') as string | null
 	const imageUrl = formData.get('imageUrl') as string | null
-	// const file = formData.get('file') as File | null - não mais usado, apenas UploadThing
 
 	if (!problemId || description.length < 2) {
 		return NextResponse.json({ error: 'Descrição e problema são obrigatórios (mín. 2 caracteres).' }, { status: 400 })
@@ -92,7 +91,6 @@ export async function POST(req: NextRequest) {
 		imagePath = imageUrl
 	}
 
-	// Upload de arquivo local não é mais suportado - usar UploadThing
 
 	const solutionId = randomUUID()
 	await db.insert(productSolution).values({
@@ -126,7 +124,6 @@ export async function PUT(req: NextRequest) {
 	const id = formData.get('id') as string | null
 	const description = (formData.get('description') as string)?.trim() || ''
 	const imageUrl = formData.get('imageUrl') as string | null
-	// const file = formData.get('file') as File | null - não mais usado, apenas UploadThing
 
 	if (!id || description.length < 2) {
 		return NextResponse.json({ error: 'ID e descrição são obrigatórios (mín. 2 caracteres).' }, { status: 400 })
@@ -159,7 +156,6 @@ export async function PUT(req: NextRequest) {
 			description: '',
 		})
 	}
-	// Upload de arquivo local não é mais suportado - usar UploadThing
 	// Se não enviou imagem via URL, pode querer remover a existente
 	if (!imageUrl) {
 		const removeImage = formData.get('removeImage') === 'true'

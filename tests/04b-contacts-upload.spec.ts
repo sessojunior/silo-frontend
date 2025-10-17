@@ -2,7 +2,7 @@ import { test, expect } from './utils/auth-helpers'
 
 test.describe('👥 SISTEMA DE CONTATOS - UPLOAD', () => {
 	test.describe('📁 Upload de Imagens', () => {
-		test('✅ Upload via UploadThing - funciona corretamente', async ({ authenticatedPage }) => {
+		test('✅ Upload via servidor local', async ({ authenticatedPage }) => {
 			await authenticatedPage.goto('/admin/contacts')
 
 			// Clicar em criar novo contato
@@ -96,7 +96,7 @@ test.describe('👥 SISTEMA DE CONTATOS - UPLOAD', () => {
 			}
 		})
 
-		test('✅ Exclusão - remove da UploadThing quando deletado', async ({ authenticatedPage }) => {
+		test('✅ Exclusão - remove do servidor local quando deletado', async ({ authenticatedPage }) => {
 			await authenticatedPage.goto('/admin/contacts')
 
 			// Criar contato com imagem

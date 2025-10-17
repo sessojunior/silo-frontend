@@ -189,7 +189,7 @@ npm run dev
 
 ```bash
 # Verificar imagens em fixtures/
-# Confirmar UploadThing configurado
+# Confirmar servidor local configurado
 # Verificar tamanho das imagens (< 4MB)
 ```
 

@@ -18,15 +18,6 @@ NEXTAUTH_SECRET=test-secret-key-for-playwright
 NEXTAUTH_URL=http://localhost:3000
 ```
 
-### 📤 Configurações do UploadThing
-
-```bash
-# Para testes de upload de imagens
-UPLOADTHING_TOKEN=test-token
-UPLOADTHING_APP_ID=test-app-id
-UPLOADTHING_SECRET=test-secret
-```
-
 ### 📧 Configurações de Email
 
 ```bash
@@ -68,4 +59,4 @@ npm run test
 - **NUNCA** commitar arquivos .env com credenciais reais
 - Use sempre credenciais de teste para execução dos testes
 - Configure banco de dados separado para testes
-- Use UploadThing em modo de teste quando disponível
+- Use servidor local em modo de teste quando disponível

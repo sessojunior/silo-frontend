@@ -29,7 +29,6 @@ interface ProblemFormOffcanvasProps {
 	formError: string | null
 	form: { field: string | null; message: string | null }
 	images: ProductProblemImage[]
-	// Removidos - agora usando UploadThing
 	onDeleteProblem: () => void
 	deleteDialogOpen: boolean
 	setDeleteDialogOpen: (open: boolean) => void

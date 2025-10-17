@@ -17,7 +17,7 @@ export default function HomePage() {
 				{/* Titulo */}
 				<div className='mx-auto mt-5 max-w-2xl text-center'>
 					<h1 className='block text-4xl font-bold text-zinc-800 md:text-5xl lg:text-6xl'>
-						Bem-vindo ao
+						<span>Bem-vindo ao </span>
 						<span className='bg-linear-to-tl from-blue-600 to-violet-600 bg-clip-text text-transparent'>Silo</span>
 					</h1>
 				</div>

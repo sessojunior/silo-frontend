@@ -668,7 +668,7 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 
 **PRIORIDADE MÁXIMA ATUALIZADA**:
 
-- ✅ **Migração Upload**: UploadThing → Servidor local Node.js (CONCLUÍDA)
+- ✅ **Migração Upload**: Servidor local Node.js (CONCLUÍDA)
 - 🔴 **Migração PostgreSQL**: Neon → Servidor local CPTEC/INPE
 - 🔴 **Configuração Segurança**: Firewall, backup, monitoramento
 - 🔴 **Testes Integração**: Validação completa em ambiente CPTEC
@@ -692,7 +692,7 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 **Sistema de Upload**:
 
 - **ATUAL**: ✅ Servidor local Node.js (CONCLUÍDO)
-- **STATUS**: ✅ Migração UploadThing → Servidor local finalizada
+- **STATUS**: ✅ Migração para servidor local finalizada
 - **IMPLEMENTAÇÕES CONCLUÍDAS**:
   - ✅ Servidor Node.js com Express + Multer + Sharp
   - ✅ API de upload customizada com otimização automática
@@ -916,14 +916,14 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 
 **MIGRAÇÃO DE SISTEMA DE UPLOAD**:
 
-**ATUAL**: UploadThing v7 (serviço externo)
+**ATUAL**: Servidor local Node.js (CONCLUÍDO)
 **OBJETIVO**: Servidor local com Nginx + sistema de arquivos
 
 **ARQUITETURA PROPOSTA**:
 
 - 🔴 Servidor Nginx para upload e distribuição de arquivos
 - 🔴 Sistema de armazenamento local seguro
-- 🔴 API de upload customizada para substituir UploadThing
+- 🔴 API de upload customizada para sistema local
 - 🔴 Sistema de cache e otimização de imagens
 - 🔴 Backup automático de arquivos
 - 🔴 Controle de acesso e permissões
@@ -985,7 +985,7 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 **17. 🔴 Migração de Infraestrutura - BLOQUEADOR PARA PRODUÇÃO**
 
 - **Migração de banco Neon → PostgreSQL local**: Servidor dedicado no CPTEC/INPE
-- **Migração de UploadThing → Servidor local**: ✅ Sistema de upload e armazenamento local (CONCLUÍDA)
+- **Migração para Servidor local**: ✅ Sistema de upload e armazenamento local (CONCLUÍDA)
 - **Configuração de segurança e backup**: Firewall, monitoramento, replicação
 - **Refatoração de componentes**: APIs e componentes de upload para sistema local
 
@@ -1021,7 +1021,7 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 
 **✅ MIGRAÇÃO CONCLUÍDA PARA PRODUÇÃO CPTEC/INPE**:
 
-- **STATUS**: ✅ **MIGRAÇÃO COMPLETA** - UploadThing substituído por servidor local
+- **STATUS**: ✅ **MIGRAÇÃO COMPLETA** - Sistema migrado para servidor local
 - **BENEFÍCIOS**: Segurança institucional, controle total sobre dados e conformidade CPTEC/INPE
 - **ARQUITETURA**: Servidor Node.js + sistema de arquivos local + otimização automática
 - **SEGURANÇA**: Controle total sobre arquivos, sem dependências externas
@@ -1043,7 +1043,7 @@ Correções de navegação client-side e eliminação de recarregamentos para ex
 Validação manual de todas as funcionalidades em ambiente real antes do deploy.
 
 **FASE SEGUINTE: MIGRAÇÃO DE INFRAESTRUTURA** 🏗️  
-Migração de Neon → PostgreSQL local + UploadThing → Nginx local do CPTEC/INPE.
+Migração de Neon → PostgreSQL local + Servidor local do CPTEC/INPE.
 
 **FASE DE PRODUÇÃO: IMPLEMENTAÇÃO NO CPTEC/INPE** 🚀  
 Deploy em ambiente de produção do CPTEC com infraestrutura local e dados reais da equipe.
@@ -1263,7 +1263,7 @@ silo-frontend/
 
 ### 🚀 **COMO USAR O SERVIDOR DE ARQUIVOS**
 
-O SILO agora utiliza um servidor de arquivos local Node.js que substitui completamente o UploadThing, oferecendo controle total sobre os dados e conformidade com requisitos de segurança institucional do CPTEC/INPE.
+O SILO agora utiliza um servidor de arquivos local Node.js que oferece controle total sobre os dados e conformidade com requisitos de segurança institucional do CPTEC/INPE.
 
 ### 📋 **ESTRUTURA DO SERVIDOR**
 

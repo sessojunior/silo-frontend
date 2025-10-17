@@ -28,7 +28,7 @@ test.describe('🚨 Sistema de Problemas', () => {
 	})
 
 	test.describe('🖼️ Upload de Imagens', () => {
-		test('✅ Upload de imagens via UploadThing - limite de 3 imagens', async ({ authenticatedPage }) => {
+		test('✅ Upload de imagens via servidor local - limite de 3 imagens', async ({ authenticatedPage }) => {
 			await authenticatedPage.goto('/admin/products/bam/problems')
 			await authenticatedPage.waitForLoadState('networkidle')
 

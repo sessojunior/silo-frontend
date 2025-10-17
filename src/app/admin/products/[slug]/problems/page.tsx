@@ -45,7 +45,6 @@ export default function ProblemsPage() {
 	const [editing, setEditing] = useState<ProductProblem | null>(null)
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 	const [deleteLoading, setDeleteLoading] = useState(false)
-	// const [previewFile, setPreviewFile] = useState<File | null>(null) - não mais necessário com UploadThing
 	const [deleteImageId, setDeleteImageId] = useState<string | null>(null)
 	const [solutionModalOpen, setSolutionModalOpen] = useState(false)
 	const [solutionMode, setSolutionMode] = useState<'create' | 'edit' | 'reply'>('create')
@@ -464,7 +463,7 @@ export default function ProblemsPage() {
 				formData.append('id', editingSolution.id)
 			}
 
-			// Enviar a URL da imagem do UploadThing
+			// Enviar a URL da imagem do servidor local
 			if (solutionImagePreview) {
 				formData.append('imageUrl', solutionImagePreview)
 			}
