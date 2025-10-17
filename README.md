@@ -1736,12 +1736,51 @@ docker-compose up --build nextapp
 
 ### 🔐 **VARIÁVEIS DE AMBIENTE**
 
-Configurar no arquivo `.env`:
+#### **📋 Configuração Completa**
 
+Configurar no arquivo `.env` (baseado em `env.example` ou `env.docker.example`):
+
+**🔧 Variáveis Principais:**
+- **Ambiente**: `NODE_ENV` (development/production)
 - **Banco de dados**: `DATABASE_URL`
 - **Autenticação**: `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
-- **Google OAuth**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-- **Email**: `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`
+- **Google OAuth**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`
+
+**📧 Email (Duas Opções):**
+- **SMTP Principal**: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USERNAME`, `SMTP_PASSWORD`
+- **Email Alternativo**: `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`
+
+**📁 File Server Local:**
+- **URLs**: `FILE_SERVER_URL`, `NEXT_PUBLIC_FILE_SERVER_URL`
+- **Proxy**: `UPLOAD_PROXY_URL`
+
+#### **🔄 Diferenças entre Desenvolvimento e Produção**
+
+**🛠️ Desenvolvimento (`env.example`):**
+```bash
+NODE_ENV='development'
+DATABASE_URL='postgresql://usuario:senha@localhost:5432/silo'
+FILE_SERVER_URL=http://localhost:4000
+NEXT_PUBLIC_FILE_SERVER_URL=http://localhost:4000
+UPLOAD_PROXY_URL=http://localhost:4000/api/upload
+GOOGLE_CALLBACK_URL='http://localhost:3000/api/auth/callback/google'
+```
+
+**🚀 Produção (`env.docker.example`):**
+```bash
+NODE_ENV='production'
+DATABASE_URL='postgresql://usuario:senha@host:5432/silo_db'
+FILE_SERVER_URL=https://files.cptec.inpe.br
+NEXT_PUBLIC_FILE_SERVER_URL=https://files.cptec.inpe.br
+UPLOAD_PROXY_URL=https://files.cptec.inpe.br/api/upload
+GOOGLE_CALLBACK_URL='https://silo.cptec.inpe.br/api/auth/callback/google'
+```
+
+**⚠️ Importante para Produção:**
+- **URLs HTTPS**: Sempre usar HTTPS em produção
+- **Domínios Reais**: Substituir localhost por domínios institucionais
+- **Secrets Seguros**: Usar secrets complexos e únicos
+- **Banco de Dados**: Configurar servidor PostgreSQL dedicado
 
 ### 🗂️ **VOLUMES E PERSISTÊNCIA**
 

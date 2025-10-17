@@ -7,7 +7,18 @@ services:
     ports:
       - '4000:4000'
     environment:
+      # Configuração do servidor
       - PORT=4000
+      - NODE_ENV=${NODE_ENV:-development}
+      
+      # URLs do sistema
+      - FILE_SERVER_URL=${FILE_SERVER_URL:-http://localhost:4000}
+      - NEXT_PUBLIC_APP_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      
+      # Configurações de upload
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-4194304}
+      - MAX_FILES_COUNT=${MAX_FILES_COUNT:-3}
+      - ALLOWED_EXTENSIONS=${ALLOWED_EXTENSIONS:-jpg,jpeg,png,webp,gif}
     volumes:
       - ./fileserver/uploads:/app/uploads
     restart: unless-stopped
@@ -18,15 +29,38 @@ services:
     ports:
       - '3000:3000'
     environment:
+      # Ambiente
+      - NODE_ENV=${NODE_ENV:-development}
+      
+      # Banco de dados
       - DATABASE_URL=${DATABASE_URL}
+      
+      # Autenticação NextAuth
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      
+      # Google OAuth
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - EMAIL_HOST=${EMAIL_HOST}
-      - EMAIL_PORT=${EMAIL_PORT}
+      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL:-http://localhost:3000/api/auth/callback/google}
+      
+      # Email SMTP (variáveis principais)
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      
+      # Email (variáveis alternativas para compatibilidade)
+      - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
       - EMAIL_USER=${EMAIL_USER}
       - EMAIL_PASS=${EMAIL_PASS}
+      
+      # File Server Local
+      - FILE_SERVER_URL=${FILE_SERVER_URL:-http://localhost:4000}
+      - NEXT_PUBLIC_FILE_SERVER_URL=${NEXT_PUBLIC_FILE_SERVER_URL:-http://localhost:4000}
+      - UPLOAD_PROXY_URL=${UPLOAD_PROXY_URL:-http://localhost:4000/api/upload}
     depends_on:
       - fileserver
     restart: unless-stopped
