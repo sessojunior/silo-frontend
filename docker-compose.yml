@@ -57,10 +57,14 @@ services:
       - EMAIL_USER=${EMAIL_USER}
       - EMAIL_PASS=${EMAIL_PASS}
       
-      # File Server Local
+      # File Server Local (desenvolvimento)
       - FILE_SERVER_URL=${FILE_SERVER_URL:-http://localhost:4000}
       - NEXT_PUBLIC_FILE_SERVER_URL=${NEXT_PUBLIC_FILE_SERVER_URL:-http://localhost:4000}
       - UPLOAD_PROXY_URL=${UPLOAD_PROXY_URL:-http://localhost:4000/api/upload}
+      
+      # File Server (produção)
+      - FILE_SERVER_HOSTNAME=${FILE_SERVER_HOSTNAME}
+      - FILE_SERVER_PROTOCOL=${FILE_SERVER_PROTOCOL:-https}
     depends_on:
       - fileserver
     restart: unless-stopped
