@@ -101,7 +101,7 @@ npm run dev
 
 ## 📁 Estrutura de Diretórios
 
-```
+```text
 silo-frontend/
 ├── src/
 │   ├── app/            # App Router (rotas e APIs)
@@ -140,460 +140,141 @@ O sistema possui **25 tabelas** organizadas em **8 módulos principais**:
 | **Ajuda** | 1 | Documentação do sistema |
 | **Contatos** | 1 | Base de contatos globais |
 
-### 1. Módulo de Autenticação e Segurança
-
-#### `auth_user`
-Tabela principal de usuários do sistema.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK - ID único do usuário |
-| `name` | text | Nome completo |
-| `email` | text | Email único (validado @inpe.br) |
-| `emailVerified` | boolean | Email verificado (default: false) |
-| `password` | text | Senha hash (bcrypt) |
-| `image` | text | URL da foto de perfil |
-| `isActive` | boolean | **Usuário ativo (default: false)** - requer ativação por admin |
-| `lastLogin` | timestamp | Último acesso |
-| `createdAt` | timestamp | Data de criação |
-
-**Segurança**: Novos usuários são criados **inativos** por padrão e precisam ser ativados por um administrador.
-
-#### `auth_session`
-Sessões ativas dos usuários (JWT).
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK - ID da sessão |
-| `userId` | text | FK → auth_user |
-| `token` | text | Token JWT |
-| `expiresAt` | timestamp | Data de expiração |
-
-#### `auth_code`
-Códigos OTP para login por email e recuperação de senha.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK - ID do código |
-| `userId` | text | FK → auth_user |
-| `code` | text | Código OTP (6 dígitos) |
-| `email` | text | Email de destino |
-| `expiresAt` | timestamp | Expiração (15 minutos) |
-
-#### `auth_provider`
-Provedores OAuth (Google).
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK - ID do provider |
-| `userId` | text | FK → auth_user |
-| `googleId` | text | ID da conta Google |
-
-#### `rate_limit`
-Controle de taxa de requisições (rate limiting).
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `route` | text | Rota da API |
-| `email` | text | Email do usuário |
-| `ip` | text | Endereço IP |
-| `count` | integer | Número de tentativas |
-| `lastRequest` | timestamp | Última requisição |
-
-**Constraint**: `unique(email, ip, route)` - Limite de 3 tentativas por minuto.
-
-### 2. Módulo de Perfis e Preferências
-
-#### `user_profile`
-Perfil profissional do usuário.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `userId` | text | FK → auth_user |
-| `genre` | text | Gênero |
-| `phone` | text | Telefone |
-| `role` | text | Cargo/função |
-| `team` | text | Equipe/setor |
-| `company` | text | Empresa/instituição |
-| `location` | text | Localização |
-
-#### `user_preferences`
-Preferências do usuário.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `userId` | text | FK → auth_user |
-| `chatEnabled` | boolean | Chat ativado (default: true) |
-
-### 3. Módulo de Grupos
-
-#### `group`
-Grupos de usuários (para chat e organização).
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `name` | text | Nome único |
-| `description` | text | Descrição |
-| `icon` | text | Ícone Lucide (default: users) |
-| `color` | text | Cor hex (default: #3B82F6) |
-| `active` | boolean | Ativo (default: true) |
-| `isDefault` | boolean | Grupo padrão (default: false) |
-| `maxUsers` | integer | Limite de usuários (opcional) |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
-
-**6 grupos padrão**: Administradores, Meteorologistas, Analistas, Desenvolvedores, Suporte, Visitantes.
-
-#### `user_group`
-Relacionamento many-to-many entre usuários e grupos.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `userId` | text | FK → auth_user |
-| `groupId` | text | FK → group |
-| `role` | text | Papel: member, admin, owner |
-| `joinedAt` | timestamp | Data de entrada |
-| `createdAt` | timestamp | Data de criação |
-
-**Constraint**: `unique(userId, groupId)` + índices otimizados.
-
-### 4. Módulo de Produtos (11 Tabelas)
-
-#### `product`
-Produtos meteorológicos gerenciados.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `name` | text | Nome do produto |
-| `slug` | text | Slug único |
-| `available` | boolean | Disponível (default: true) |
-| `priority` | text | Prioridade: low, normal, high, urgent |
-| `turns` | jsonb | Turnos: ["0", "6", "12", "18"] |
-| `description` | text | Descrição |
-
-#### `product_activity`
-Atividades/rodadas de execução de produtos.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `productId` | text | FK → product |
-| `userId` | text | FK → auth_user |
-| `date` | date | Data da atividade |
-| `turn` | integer | Turno: 0, 6, 12, 18 |
-| `status` | text | Status: completed, pending, in_progress, not_run, with_problems, etc. |
-| `problemCategoryId` | text | FK → product_problem_category (opcional) |
-| `description` | text | Descrição da atividade |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
-
-**Constraint**: `unique(productId, date, turn)` - Um registro por produto/data/turno.  
-**Índices**: Otimizados para consultas por produto, data e turno.
-
-#### `product_activity_history`
-Histórico de alterações nas atividades.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `productActivityId` | uuid | FK → product_activity |
-| `userId` | text | FK → auth_user |
-| `status` | text | Status anterior |
-| `description` | text | Descrição da alteração |
-| `createdAt` | timestamp | Data da alteração |
-
-#### `product_problem_category`
-Categorias de problemas dos produtos.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `name` | text | Nome único |
-| `color` | text | Cor da categoria (hex) |
-| `isSystem` | boolean | Categoria do sistema (não pode ser excluída) |
-| `sortOrder` | integer | Ordem de exibição |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
-
-#### `product_problem`
-Problemas reportados nos produtos.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `productId` | text | FK → product |
-| `userId` | text | FK → auth_user |
-| `title` | text | Título do problema |
-| `description` | text | Descrição detalhada |
-| `problemCategoryId` | text | FK → product_problem_category |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
-
-**Índices**: Otimizados para produto, usuário, categoria e data.
-
-#### `product_problem_image`
-Imagens anexadas aos problemas.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `productProblemId` | text | FK → product_problem |
-| `image` | text | URL da imagem (otimizada WebP) |
-| `description` | text | Descrição da imagem |
-
-#### `product_solution`
-Soluções/respostas para problemas.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `userId` | text | FK → auth_user |
-| `productProblemId` | text | FK → product_problem |
-| `description` | text | Descrição da solução |
-| `replyId` | text | ID da resposta pai (threading) |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
-
-#### `product_solution_checked`
-Marca soluções como verificadas/resolvidas.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `userId` | text | FK → auth_user |
-| `productSolutionId` | text | FK → product_solution |
-
-#### `product_solution_image`
-Imagens anexadas às soluções.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `productSolutionId` | text | FK → product_solution |
-| `image` | text | URL da imagem |
-| `description` | text | Descrição |
-
-#### `product_dependency`
-Dependências hierárquicas dos produtos (self-referencing tree).
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `productId` | text | FK → product |
-| `name` | text | Nome da dependência |
-| `icon` | text | Ícone Lucide |
-| `description` | text | Descrição |
-| `parentId` | text | FK → product_dependency (self-reference) |
-| `treePath` | text | Caminho completo: "/1/2/3" |
-| `treeDepth` | integer | Profundidade: 0, 1, 2... |
-| `sortKey` | text | Chave de ordenação: "001.002.003" |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
-
-**Estrutura híbrida otimizada**: Adjacency List + Path Enumeration + Nested Sets para consultas eficientes.
-
-#### `product_manual`
-Manual do produto (Markdown).
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `productId` | text | FK → product |
-| `description` | text | Conteúdo Markdown completo |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
-
-#### `product_contact`
-Associação many-to-many entre produtos e contatos.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `productId` | text | FK → product |
-| `contactId` | text | FK → contact |
-| `createdAt` | timestamp | Data de criação |
-
-### 5. Módulo de Contatos
-
-#### `contact`
-Base de contatos globais.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `name` | text | Nome completo |
-| `role` | text | Cargo/função |
-| `team` | text | Equipe/setor |
-| `email` | text | Email único |
-| `phone` | text | Telefone (opcional) |
-| `image` | text | Foto do contato (otimizada) |
-| `active` | boolean | Ativo (default: true) |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
-
-### 6. Módulo de Chat
-
-#### `chat_message`
-Mensagens unificadas (grupos e DMs).
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `content` | text | Conteúdo da mensagem |
-| `senderUserId` | text | FK → auth_user (remetente) |
-| `receiverGroupId` | text | FK → group (mensagem de grupo) |
-| `receiverUserId` | text | FK → auth_user (mensagem privada) |
-| `readAt` | timestamp | Lida em (apenas DMs) |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
-| `deletedAt` | timestamp | Soft delete |
-
-**Lógica**: `receiverGroupId` **OU** `receiverUserId` preenchido (nunca os dois).  
-**Índices**: Otimizados para consultas por grupo, usuário e mensagens não lidas.
-
-#### `chat_user_presence`
-Status de presença dos usuários.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `userId` | text | PK → auth_user |
-| `status` | text | Status: visible, invisible |
-| `lastActivity` | timestamp | Última atividade |
-| `updatedAt` | timestamp | Data de atualização |
-
-### 7. Módulo de Projetos
-
-#### `project`
-Projetos gerenciados.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `name` | text | Nome do projeto |
-| `shortDescription` | text | Descrição curta |
-| `description` | text | Descrição completa |
-| `startDate` | date | Data de início |
-| `endDate` | date | Data de fim |
-| `priority` | text | Prioridade: low, medium, high, urgent |
-| `status` | text | Status: active, completed, paused, cancelled |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
-
-#### `project_activity`
-Atividades dos projetos.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `projectId` | uuid | FK → project |
-| `name` | text | Nome da atividade |
-| `description` | text | Descrição |
-| `category` | text | Categoria |
-| `estimatedDays` | integer | Dias estimados |
-| `startDate` | date | Data de início |
-| `endDate` | date | Data de fim |
-| `priority` | text | Prioridade |
-| `status` | text | Status: todo, progress, done, blocked |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
-
-#### `project_task`
-Tarefas do Kanban (5 colunas).
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `projectId` | uuid | FK → project |
-| `projectActivityId` | uuid | FK → project_activity |
-| `name` | text | Nome da tarefa |
-| `description` | text | Descrição |
-| `category` | text | Categoria |
-| `estimatedDays` | integer | Dias estimados |
-| `startDate` | date | Data de início |
-| `endDate` | date | Data de fim |
-| `priority` | text | Prioridade |
-| `status` | text | Status: todo, in_progress, blocked, review, done |
-| `sort` | integer | Ordem dentro da coluna (drag & drop) |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
-
-#### `project_task_user`
-Associação many-to-many entre tarefas e usuários.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `taskId` | uuid | FK → project_task |
-| `userId` | text | FK → auth_user |
-| `role` | text | Papel: assignee, reviewer, watcher |
-| `assignedAt` | timestamp | Data de atribuição |
-| `createdAt` | timestamp | Data de criação |
-
-**Constraint**: `unique(taskId, userId)` + índices otimizados.
-
-#### `project_task_history`
-Histórico de movimentação de tarefas no Kanban.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `taskId` | uuid | FK → project_task |
-| `userId` | text | FK → auth_user |
-| `action` | text | Ação: status_change, created, updated, deleted |
-| `fromStatus` | text | Status anterior |
-| `toStatus` | text | Status novo |
-| `fromSort` | integer | Posição anterior |
-| `toSort` | integer | Posição nova |
-| `details` | jsonb | Dados extras (campos alterados) |
-| `createdAt` | timestamp | Data da ação |
-
-**Índices**: Otimizados para consultas por tarefa, usuário e data.
-
-### 8. Módulo de Ajuda
-
-#### `help`
-Documentação do sistema (Markdown único).
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | text | PK |
-| `description` | text | Conteúdo Markdown completo |
-| `createdAt` | timestamp | Data de criação |
-| `updatedAt` | timestamp | Data de atualização |
+### 1. Módulo de Autenticação e Segurança (5 tabelas)
+
+#### `auth_user` - Usuários do sistema
+**Campos**: `id` (text, PK), `name` (text), `email` (text, único), `emailVerified` (boolean), `password` (text), `image` (text), `isActive` (boolean, default: false), `lastLogin` (timestamp), `createdAt` (timestamp)  
+**Regra**: Novos usuários são criados inativos e precisam ser ativados por administrador
+
+#### `auth_session` - Sessões JWT
+**Campos**: `id` (text, PK), `userId` (text, FK), `token` (text), `expiresAt` (timestamp)
+
+#### `auth_code` - Códigos OTP
+**Campos**: `id` (text, PK), `userId` (text, FK), `code` (text), `email` (text), `expiresAt` (timestamp, 15min)
+
+#### `auth_provider` - OAuth Google
+**Campos**: `id` (text, PK), `userId` (text, FK), `googleId` (text)
+
+#### `rate_limit` - Controle de taxa
+**Campos**: `id` (text, PK), `route` (text), `email` (text), `ip` (text), `count` (integer), `lastRequest` (timestamp)  
+**Constraint**: `unique(email, ip, route)` - Limite de 3 tentativas/minuto
+
+### 2. Módulo de Perfis e Preferências (2 tabelas)
+
+#### `user_profile` - Perfil profissional
+**Campos**: `id` (text, PK), `userId` (text, FK), `genre` (text), `phone` (text), `role` (text), `team` (text), `company` (text), `location` (text)
+
+#### `user_preferences` - Preferências
+**Campos**: `id` (text, PK), `userId` (text, FK), `chatEnabled` (boolean, default: true)
+
+### 3. Módulo de Grupos (2 tabelas)
+
+#### `group` - Grupos de usuários
+**Campos**: `id` (text, PK, único), `name` (text), `description` (text), `icon` (text, default: users), `color` (text, default: #3B82F6), `active` (boolean), `isDefault` (boolean), `maxUsers` (integer), `createdAt` (timestamp), `updatedAt` (timestamp)  
+**Padrão**: 6 grupos (Administradores, Meteorologistas, Analistas, Desenvolvedores, Suporte, Visitantes)
+
+#### `user_group` - Relacionamento usuários ↔ grupos (N:N)
+**Campos**: `id` (uuid, PK), `userId` (text, FK), `groupId` (text, FK), `role` (text: member/admin/owner), `joinedAt` (timestamp), `createdAt` (timestamp)  
+**Constraint**: `unique(userId, groupId)`
+
+### 4. Módulo de Produtos (11 tabelas)
+
+#### `product` - Produtos meteorológicos
+**Campos**: `id` (text, PK), `name` (text), `slug` (text, único), `available` (boolean), `priority` (text: low/normal/high/urgent), `turns` (jsonb: ["0","6","12","18"]), `description` (text)
+
+#### `product_activity` - Atividades/rodadas de execução
+**Campos**: `id` (uuid, PK), `productId` (text, FK), `userId` (text, FK), `date` (date), `turn` (integer: 0/6/12/18), `status` (text), `problemCategoryId` (text, FK, opcional), `description` (text), `createdAt` (timestamp), `updatedAt` (timestamp)  
+**Constraint**: `unique(productId, date, turn)` - Um registro por produto/data/turno
+
+#### `product_activity_history` - Histórico de alterações
+**Campos**: `id` (uuid, PK), `productActivityId` (uuid, FK), `userId` (text, FK), `status` (text), `description` (text), `createdAt` (timestamp)
+
+#### `product_problem_category` - Categorias de problemas
+**Campos**: `id` (text, PK), `name` (text, único), `color` (text, hex), `isSystem` (boolean), `sortOrder` (integer), `createdAt` (timestamp), `updatedAt` (timestamp)
+
+#### `product_problem` - Problemas reportados
+**Campos**: `id` (text, PK), `productId` (text, FK), `userId` (text, FK), `title` (text), `description` (text), `problemCategoryId` (text, FK), `createdAt` (timestamp), `updatedAt` (timestamp)
+
+#### `product_problem_image` - Imagens de problemas
+**Campos**: `id` (text, PK), `productProblemId` (text, FK), `image` (text, WebP), `description` (text)
+
+#### `product_solution` - Soluções para problemas
+**Campos**: `id` (text, PK), `userId` (text, FK), `productProblemId` (text, FK), `description` (text), `replyId` (text, threading), `createdAt` (timestamp), `updatedAt` (timestamp)
+
+#### `product_solution_checked` - Soluções verificadas
+**Campos**: `id` (text, PK), `userId` (text, FK), `productSolutionId` (text, FK)
+
+#### `product_solution_image` - Imagens de soluções
+**Campos**: `id` (text, PK), `productSolutionId` (text, FK), `image` (text), `description` (text)
+
+#### `product_dependency` - Dependências hierárquicas (tree)
+**Campos**: `id` (text, PK), `productId` (text, FK), `name` (text), `icon` (text), `description` (text), `parentId` (text, FK self-ref), `treePath` (text), `treeDepth` (integer), `sortKey` (text), `createdAt` (timestamp), `updatedAt` (timestamp)  
+**Estrutura**: Adjacency List + Path Enumeration + Nested Sets
+
+#### `product_manual` - Manual do produto (Markdown)
+**Campos**: `id` (text, PK), `productId` (text, FK), `description` (text, Markdown), `createdAt` (timestamp), `updatedAt` (timestamp)
+
+#### `product_contact` - Relacionamento produtos ↔ contatos (N:N)
+**Campos**: `id` (text, PK), `productId` (text, FK), `contactId` (text, FK), `createdAt` (timestamp)
+
+### 5. Módulo de Contatos (1 tabela)
+
+#### `contact` - Base de contatos globais
+**Campos**: `id` (text, PK), `name` (text), `role` (text), `team` (text), `email` (text, único), `phone` (text, opcional), `image` (text, otimizada), `active` (boolean), `createdAt` (timestamp), `updatedAt` (timestamp)
+
+### 6. Módulo de Chat (2 tabelas)
+
+#### `chat_message` - Mensagens (grupos e DMs)
+**Campos**: `id` (uuid, PK), `content` (text), `senderUserId` (text, FK), `receiverGroupId` (text, FK, grupo), `receiverUserId` (text, FK, DM), `readAt` (timestamp), `createdAt` (timestamp), `updatedAt` (timestamp), `deletedAt` (timestamp, soft delete)  
+**Regra**: `receiverGroupId` OU `receiverUserId` preenchido (nunca os dois)
+
+#### `chat_user_presence` - Presença dos usuários
+**Campos**: `userId` (text, PK, FK), `status` (text: visible/invisible), `lastActivity` (timestamp), `updatedAt` (timestamp)
+
+### 7. Módulo de Projetos (5 tabelas)
+
+#### `project` - Projetos gerenciados
+**Campos**: `id` (uuid, PK), `name` (text), `shortDescription` (text), `description` (text), `startDate` (date), `endDate` (date), `priority` (text: low/medium/high/urgent), `status` (text: active/completed/paused/cancelled), `createdAt` (timestamp), `updatedAt` (timestamp)
+
+#### `project_activity` - Atividades dos projetos
+**Campos**: `id` (uuid, PK), `projectId` (uuid, FK), `name` (text), `description` (text), `category` (text), `estimatedDays` (integer), `startDate` (date), `endDate` (date), `priority` (text), `status` (text: todo/progress/done/blocked), `createdAt` (timestamp), `updatedAt` (timestamp)
+
+#### `project_task` - Tarefas do Kanban (5 colunas)
+**Campos**: `id` (uuid, PK), `projectId` (uuid, FK), `projectActivityId` (uuid, FK), `name` (text), `description` (text), `category` (text), `estimatedDays` (integer), `startDate` (date), `endDate` (date), `priority` (text), `status` (text: todo/in_progress/blocked/review/done), `sort` (integer, drag & drop), `createdAt` (timestamp), `updatedAt` (timestamp)
+
+#### `project_task_user` - Relacionamento tarefas ↔ usuários (N:N)
+**Campos**: `id` (uuid, PK), `taskId` (uuid, FK), `userId` (text, FK), `role` (text: assignee/reviewer/watcher), `assignedAt` (timestamp), `createdAt` (timestamp)  
+**Constraint**: `unique(taskId, userId)`
+
+#### `project_task_history` - Histórico de movimentação Kanban
+**Campos**: `id` (uuid, PK), `taskId` (uuid, FK), `userId` (text, FK), `action` (text), `fromStatus` (text), `toStatus` (text), `fromSort` (integer), `toSort` (integer), `details` (jsonb), `createdAt` (timestamp)
+
+### 8. Módulo de Ajuda (1 tabela)
+
+#### `help` - Documentação do sistema (Markdown)
+**Campos**: `id` (text, PK), `description` (text, Markdown), `createdAt` (timestamp), `updatedAt` (timestamp)
 
 ### Relacionamentos Principais
 
-```
-auth_user (1) ──→ (N) user_profile
-auth_user (1) ──→ (N) user_preferences
-auth_user (1) ──→ (N) auth_session
-auth_user (N) ←──→ (N) group [via user_group]
+#### 🔐 Autenticação e Usuários
+- **auth_user** (1) → (N) **user_profile**, **user_preferences**, **auth_session**
+- **auth_user** (N) ↔ (N) **group** via `user_group`
 
-product (1) ──→ (N) product_activity
-product (1) ──→ (N) product_problem
-product (1) ──→ (N) product_dependency (self-referencing)
-product (1) ──→ (1) product_manual
-product (N) ←──→ (N) contact [via product_contact]
+#### 📦 Produtos
+- **product** (1) → (N) **product_activity**, **product_problem**, **product_dependency**
+- **product** (1) → (1) **product_manual**
+- **product** (N) ↔ (N) **contact** via `product_contact`
+- **product_problem** (1) → (N) **product_solution**, **product_problem_image**
+- **product_solution** (1) → (N) **product_solution_image**
 
-product_problem (1) ──→ (N) product_solution
-product_problem (1) ──→ (N) product_problem_image
-product_solution (1) ──→ (N) product_solution_image
+#### 📋 Projetos e Kanban
+- **project** (1) → (N) **project_activity** → (N) **project_task**
+- **project_task** (N) ↔ (N) **auth_user** via `project_task_user`
+- **project_task** (1) → (N) **project_task_history**
 
-project (1) ──→ (N) project_activity
-project_activity (1) ──→ (N) project_task
-project_task (N) ←──→ (N) auth_user [via project_task_user]
-project_task (1) ──→ (N) project_task_history
-
-chat_message (N) ──→ (1) auth_user [sender]
-chat_message (N) ──→ (1) group [group message]
-chat_message (N) ──→ (1) auth_user [DM]
-```
+#### 💬 Chat
+- **chat_message** (N) → (1) **auth_user** (sender)
+- **chat_message** (N) → (1) **group** (grupo) | **auth_user** (DM)
 
 ### Migrações
 
@@ -629,6 +310,7 @@ npm run db:push
 ### Dados de Seed
 
 O sistema possui seed inicial para:
+
 - 6 grupos padrão
 - Categorias de problemas do sistema
 - Usuário administrador inicial (desenvolvimento)
@@ -800,7 +482,7 @@ O SILO utiliza um servidor de arquivos local Node.js que oferece controle total 
 
 ### Estrutura do Servidor
 
-```
+```text
 fileserver/                    # Servidor de arquivos independente
 ├── src/
 │   ├── server.ts              # Servidor principal Express + Multer + Sharp
@@ -908,6 +590,7 @@ export const config = {
 #### Validação de Domínio @inpe.br
 
 **Função Centralizada** (`src/lib/auth/validate.ts`):
+
 ```typescript
 export function isValidDomain(email: string): boolean {
     const lowerEmail = email.toLowerCase().trim()
@@ -916,6 +599,7 @@ export function isValidDomain(email: string): boolean {
 ```
 
 **Endpoints Protegidos**:
+
 - ✅ Registro (`/api/auth/register`)
 - ✅ Login por email (`/api/auth/login-email`)
 - ✅ Recuperação de senha (`/api/auth/forget-password`)
@@ -933,6 +617,7 @@ export function isValidDomain(email: string): boolean {
 #### Proteções de Auto-Modificação
 
 **Proteção Frontend**:
+
 - Botões de desativar/excluir desabilitados para usuário atual
 - Campos nome/email desabilitados no próprio perfil via admin
 - Switches de status desabilitados
@@ -940,6 +625,7 @@ export function isValidDomain(email: string): boolean {
 - Toasts informativos para ações não permitidas
 
 **Proteção Backend** (`/api/admin/users`):
+
 - ❌ Alterar próprio nome
 - ❌ Alterar próprio email
 - ❌ Desativar própria conta
@@ -949,10 +635,12 @@ export function isValidDomain(email: string): boolean {
 #### Alteração Segura de Email
 
 **Fluxo de 2 Etapas**:
+
 1. **Solicitação**: Usuário informa novo email → OTP enviado para novo email
 2. **Confirmação**: Usuário informa código OTP → Email alterado e verificado
 
 **Segurança**:
+
 - Validação de formato e domínio @inpe.br
 - Verificação de email não duplicado
 - Código OTP com expiração
@@ -962,6 +650,7 @@ export function isValidDomain(email: string): boolean {
 #### Sistema de Contexto de Usuário
 
 **UserContext Implementado**:
+
 - Estado global: `user`, `userProfile`, `userPreferences` centralizados
 - Atualizações em tempo real sem reload da página
 - Hooks especializados: `useUser()`, `useUserProfile()`, `useUserPreferences()`
