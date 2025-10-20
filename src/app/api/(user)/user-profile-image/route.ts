@@ -4,6 +4,7 @@ import { uploadProfileImageFromInput, deleteUserProfileImage } from '@/lib/profi
 import { db } from '@/lib/db'
 import { authUser } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
+import { config, requestUtils } from '@/lib/config'
 
 // Faz o upload da imagem de perfil do usuário
 export async function POST(req: NextRequest) {
@@ -49,13 +50,12 @@ export async function DELETE() {
 			const imageUrl = currentUser[0].image
 
 			// Verificar se é URL do servidor local
-			const fileServerUrl = process.env.FILE_SERVER_URL || 'http://localhost:4000'
-			if (imageUrl.startsWith(fileServerUrl)) {
+			if (requestUtils.isFileServerUrl(imageUrl)) {
 				// Extrair filename da URL
 				const filename = imageUrl.split('/').pop()
 				if (filename) {
 					try {
-						const deleteResponse = await fetch(`${fileServerUrl}/files/avatars/${filename}`, {
+						const deleteResponse = await fetch(`${config.fileServerUrl}/files/avatars/${filename}`, {
 							method: 'DELETE',
 						})
 						if (deleteResponse.ok) {

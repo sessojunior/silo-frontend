@@ -4,6 +4,7 @@ import { productSolutionImage } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { getAuthUser } from '@/lib/auth/token'
+import { config, requestUtils } from '@/lib/config'
 
 export async function GET(req: NextRequest) {
 	const user = await getAuthUser()
@@ -75,20 +76,15 @@ export async function DELETE(req: NextRequest) {
 		// Remover arquivo do disco também
 		try {
 			const imageUrl = img[0].image
-			const fileServerUrl = process.env.FILE_SERVER_URL || 'http://localhost:4000'
-			if (imageUrl.includes(`${fileServerUrl}/files/`)) {
-				// Extrair o caminho do arquivo da URL
-				const urlParts = imageUrl.split('/files/')
-				if (urlParts.length === 2) {
-					const filePath = urlParts[1] // ex: "solutions/filename.webp"
-					const deleteUrl = `${fileServerUrl}/files/${filePath}`
+			if (requestUtils.isFileServerUrl(imageUrl)) {
+				const filePath = requestUtils.extractFilePath(imageUrl)
+				if (filePath) {
+					const deleteUrl = requestUtils.buildDeleteUrl(filePath)
 
 					// Fazer requisição DELETE para o servidor de arquivos
 					await fetch(deleteUrl, {
 						method: 'DELETE',
 					})
-
-
 				}
 			}
 		} catch (error) {

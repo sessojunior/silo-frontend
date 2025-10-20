@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { config } from '@/lib/config'
 
 export async function POST(request: NextRequest) {
 	try {
@@ -6,7 +7,7 @@ export async function POST(request: NextRequest) {
 		const formData = await request.formData()
 
 		// Enviar para o servidor de arquivos local
-		const fileServerUrl = process.env.FILE_SERVER_URL || 'http://localhost:4000'
+		const fileServerUrl = config.fileServerUrl
 		const response = await fetch(`${fileServerUrl}/upload/solution`, {
 			method: 'POST',
 			body: formData,

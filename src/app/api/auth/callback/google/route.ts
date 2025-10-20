@@ -8,6 +8,7 @@ import { db } from '@/lib/db'
 import { authUser } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { updateUserLastLogin } from '@/lib/auth/user-groups'
+import { requestUtils } from '@/lib/config'
 
 // Valida o retorno de chamada do Google pelo código de autorização
 // - Verifica se o estado na URL corresponde ao estado armazenado
@@ -27,17 +28,13 @@ export async function GET(req: NextRequest) {
 
 	// 3. Verifica se os parâmetros foram enviados
 	if (!state || !code || !stateCookie || !verifierCookie) {
-		const protocol = req.headers.get('x-forwarded-proto') || 'http'
-		const host = req.headers.get('host') || 'localhost:3000'
-		const baseUrl = `${protocol}://${host}`
+		const baseUrl = requestUtils.getHostFromRequest(req)
 		return NextResponse.redirect(new URL('/error?error=invalid_params&status=400', baseUrl))
 	}
 
 	// 4. Proteção contra CSRF: compara o state original com o retornado
 	if (state !== stateCookie) {
-		const protocol = req.headers.get('x-forwarded-proto') || 'http'
-		const host = req.headers.get('host') || 'localhost:3000'
-		const baseUrl = `${protocol}://${host}`
+		const baseUrl = requestUtils.getHostFromRequest(req)
 		return NextResponse.redirect(new URL('/error?error=invalid_state&status=400', baseUrl))
 	}
 
@@ -48,9 +45,7 @@ export async function GET(req: NextRequest) {
 		tokens = await google.validateAuthorizationCode(code, verifierCookie)
 	} catch {
 		// Caso o código de autorização ou o código verificador seja inválido
-		const protocol = req.headers.get('x-forwarded-proto') || 'http'
-		const host = req.headers.get('host') || 'localhost:3000'
-		const baseUrl = `${protocol}://${host}`
+		const baseUrl = requestUtils.getHostFromRequest(req)
 		return NextResponse.redirect(new URL('/error?error=invalid_code&status=400', baseUrl))
 	}
 
@@ -68,9 +63,7 @@ export async function GET(req: NextRequest) {
 
 	// 7. Verifica se o e-mail pertence ao domínio @inpe.br
 	if (!isValidDomain(email)) {
-		const protocol = req.headers.get('x-forwarded-proto') || 'http'
-		const host = req.headers.get('host') || 'localhost:3000'
-		const baseUrl = `${protocol}://${host}`
+		const baseUrl = requestUtils.getHostFromRequest(req)
 		return NextResponse.redirect(new URL('/error?error=unauthorized&status=403', baseUrl))
 	}
 
@@ -87,18 +80,14 @@ export async function GET(req: NextRequest) {
 	})
 
 	if (!userWithStatus?.isActive) {
-		const protocol = req.headers.get('x-forwarded-proto') || 'http'
-		const host = req.headers.get('host') || 'localhost:3000'
-		const baseUrl = `${protocol}://${host}`
+		const baseUrl = requestUtils.getHostFromRequest(req)
 		return NextResponse.redirect(new URL('/error?error=account_not_activated&status=403', baseUrl))
 	}
 
 	// 11. Cria a sessão e o cookie de sessão
 	const sessionToken = await createSessionCookie(user.id)
 	if ('error' in sessionToken) {
-		const protocol = req.headers.get('x-forwarded-proto') || 'http'
-		const host = req.headers.get('host') || 'localhost:3000'
-		const baseUrl = `${protocol}://${host}`
+		const baseUrl = requestUtils.getHostFromRequest(req)
 		return NextResponse.redirect(new URL('/error?error=session_error&status=500', baseUrl))
 	}
 

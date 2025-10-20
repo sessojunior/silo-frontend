@@ -2,219 +2,171 @@
 
 ## Análise Completa Realizada
 
-Foram identificadas **8 categorias de inconsistências** distribuídas em **50+ arquivos** do projeto.
+Foram identificadas **4 categorias de inconsistências** restantes distribuídas em **20+ arquivos** do projeto.
+
+**✅ FASES IMPLEMENTADAS:**
+
+- ✅ **Fase 1**: Dependências ausentes (Zod e @types/bcryptjs) - CONCLUÍDA
+- ✅ **Fase 2**: Referências desatualizadas ao UploadThing - CONCLUÍDA  
+- ✅ **Fase 3**: Variáveis de ambiente inconsistentes - CONCLUÍDA
+- ✅ **Fase 4**: Next.config.ts com configuração limitada - CONCLUÍDA
+- ✅ **Fase 5**: URLs hardcoded com localhost - CONCLUÍDA
 
 ---
 
-## 1. CRÍTICO: Dependências Ausentes (BLOQUEADOR) 🔴
+## 5. URLs Hardcoded com Localhost (PRODUÇÃO) ✅ CONCLUÍDA
 
-### Problema Identificado
+### Problema Resolvido
 
-- **Zod não instalado**: Arquivo `src/lib/validation.ts` importa e usa `zod` extensivamente, mas a biblioteca não está no `package.json`
-- **@types/bcryptjs ausente**: Falta tipagem TypeScript para `bcryptjs`
+17 ocorrências de URLs hardcoded com `localhost:3000` ou `localhost:4000` em código de produção foram **completamente eliminadas**.
 
-### Arquivos Afetados
+### Solução Implementada
 
-- `src/lib/validation.ts` (312 linhas usando Zod)
-- Qualquer código que importa de `src/lib/validation.ts`
-
-### Ações Necessárias
-
-1. Adicionar `zod` às dependências em `package.json`
-2. Adicionar `@types/bcryptjs` aos devDependencies em `package.json`
-3. Executar `npm install` para instalar as dependências
-4. Verificar se build compila sem erros
-
-### Impacto
-
-- **Severidade**: CRÍTICA
-- **Build pode falhar** em produção
-- **Validações não funcionarão** corretamente
-- **Erros TypeScript** em modo strict
-
----
-
-## 2. Referências Desatualizadas ao UploadThing (LIMPEZA) ⚠️
-
-### Problema Identificado
-
-O projeto migrou completamente para servidor local de arquivos, mas ainda existem **29 referências** ao UploadThing em:
-
-- Comentários de código
-- Documentação de testes
-- README.md
-
-### Arquivos Afetados
-
-```
-Comentários em código (8 arquivos):
-- src/app/admin/products/[slug]/problems/page.tsx (linhas 48, 467)
-- src/components/admin/products/ProblemFormOffcanvas.tsx (linha 32)
-- src/app/api/admin/products/solutions/route.ts (linhas 81, 95, 129, 162)
-- src/components/admin/contacts/ContactFormOffcanvas.tsx (linhas 76, 179)
-- fileserver/dist/utils.js (linha 64)
-- fileserver/src/utils.ts (linha 72)
-
-Documentação (5 arquivos):
-- README.md (linhas 671, 695, 919, 926, 988, 1024, 1046, 1266)
-- tests/04b-contacts-upload.spec.ts (linhas 5, 99)
-- tests/03b-products-problems.spec.ts (linha 31)
-- tests/README.md (linha 192)
-- tests/test-config.md (linhas 21-27, 71)
-- tests/fixtures/README.md (linha 91)
-```
-
-### Ações Necessárias
-
-1. Atualizar todos os comentários para mencionar "servidor local" ou "UploadButtonLocal"
-2. Remover seção de UploadThing do `tests/test-config.md`
-3. Limpar referências no README.md mantendo apenas menção histórica da migração
-4. Atualizar descrição dos testes para refletir sistema atual
-
----
-
-## 3. Variáveis de Ambiente Inconsistentes (PRODUÇÃO) ⚠️
-
-### Problema Identificado
-
-Arquivos `env.example` e `env.docker.example` têm estruturas diferentes:
-
-**Faltam em env.docker.example:**
-
-- `NODE_ENV`
-- `GOOGLE_CALLBACK_URL`
-- Variáveis SMTP (usa `EMAIL_*` mas código usa `SMTP_*`)
-- `FILE_SERVER_URL`
-- `NEXT_PUBLIC_FILE_SERVER_URL`
-- `UPLOAD_PROXY_URL`
-
-**Docker-compose.yml também está incompleto:**
-
-- Faltam variáveis de FILE_SERVER
-- Faltam variáveis SMTP completas
-
-### Arquivos Afetados
-
-- `env.docker.example` (16 linhas, faltam 10+ variáveis)
-- `docker-compose.yml` (33 linhas, configuração incompleta)
-
-### Ações Necessárias
-
-1. Sincronizar `env.docker.example` com `env.example`
-2. Atualizar `docker-compose.yml` com todas as variáveis necessárias
-3. Adicionar variáveis do fileserver no docker-compose
-4. Documentar diferenças entre dev e produção
-
----
-
-## 4. Next.config.ts com Configuração Limitada (PRODUÇÃO) ⚠️
-
-### Problema Identificado
-
-Configuração de imagens apenas permite `localhost:4000`, sem suporte para produção.
-
-**Arquivo:** `next.config.ts` (15 linhas)
-
-### Ações Necessárias
-
-1. Adicionar configuração para domínio de produção usando variável de ambiente
-2. Suportar tanto HTTP quanto HTTPS
-3. Permitir múltiplos domínios (dev, staging, produção)
-
-**Exemplo de configuração sugerida:**
+**Arquivo criado:** `src/lib/config.ts` com configuração centralizada usando objetos:
 
 ```typescript
-images: {
-  remotePatterns: [
-    // Desenvolvimento
-    {
-      protocol: 'http',
-      hostname: 'localhost',
-      port: '4000',
-      pathname: '/files/**',
-    },
-    // Produção - usar variável de ambiente
-    ...(process.env.FILE_SERVER_HOSTNAME ? [{
-      protocol: process.env.FILE_SERVER_PROTOCOL || 'https',
-      hostname: process.env.FILE_SERVER_HOSTNAME,
-      pathname: '/files/**',
-    }] : [])
-  ],
-}
-```
-
----
-
-## 5. URLs Hardcoded com Localhost (PRODUÇÃO) ⚠️
-
-### Problema Identificado
-
-17 ocorrências de URLs hardcoded com `localhost:3000` ou `localhost:4000` em código de produção.
-
-### Arquivos Afetados
-
-```
-APIs de Upload (8 arquivos):
-- src/app/api/admin/products/images/route.ts:78
-- src/app/api/admin/products/solutions/images/route.ts:78
-- src/app/api/upload/solution/route.ts:9
-- src/app/api/upload/problem/route.ts:9
-- src/app/api/upload/contact/route.ts:9
-- src/app/api/upload/avatar/route.ts:9
-- src/app/api/upload/route.ts:9
-- src/app/api/(user)/user-profile-image/route.ts:52
-
-APIs com lógica de host (2 arquivos):
-- src/app/api/admin/contacts/route.ts:186,191,192
-- src/app/api/auth/callback/google/route.ts:31,39,52,72,91,100
-
-Documentação (1 arquivo):
-- src/lib/auth/oauth.ts:17
-```
-
-### Padrão Atual (Problemático)
-
-```typescript
-const fileServerUrl = process.env.FILE_SERVER_URL || 'http://localhost:4000'
-```
-
-### Ações Necessárias
-
-1. Criar validação rigorosa de variáveis de ambiente em produção
-2. Falhar explicitamente se variável não estiver configurada em produção
-3. Adicionar validação no início da aplicação (middleware ou config)
-
-**Sugestão de implementação:**
-
-```typescript
-// src/lib/config.ts (NOVO ARQUIVO)
-export const getFileServerUrl = (): string => {
-  const url = process.env.FILE_SERVER_URL
-  if (!url && process.env.NODE_ENV === 'production') {
-    throw new Error('FILE_SERVER_URL must be set in production')
+export const config = {
+  get fileServerUrl(): string {
+    const url = process.env.FILE_SERVER_URL
+    if (!url && process.env.NODE_ENV === 'production') {
+      throw new Error('FILE_SERVER_URL deve ser configurada em produção')
+    }
+    return url || 'http://localhost:4000'
+  },
+  
+  get appUrl(): string {
+    const url = process.env.NEXTAUTH_URL
+    if (!url && process.env.NODE_ENV === 'production') {
+      throw new Error('NEXTAUTH_URL deve ser configurada em produção')
+    }
+    return url || 'http://localhost:3000'
   }
-  return url || 'http://localhost:4000'
+  // ... outras configurações
 }
 ```
 
+**Utilitários implementados:**
+- `requestUtils.getHostFromRequest()` - Extrai host de requisições HTTP
+- `requestUtils.isFileServerUrl()` - Verifica URLs do servidor de arquivos
+- `requestUtils.extractFilePath()` - Extrai caminho de arquivos
+- `requestUtils.buildDeleteUrl()` - Constrói URLs de delete
+
+### Arquivos Corrigidos
+
+**APIs de Upload (8 arquivos):**
+- ✅ `src/app/api/admin/products/images/route.ts`
+- ✅ `src/app/api/admin/products/solutions/images/route.ts`
+- ✅ `src/app/api/upload/solution/route.ts`
+- ✅ `src/app/api/upload/problem/route.ts`
+- ✅ `src/app/api/upload/contact/route.ts`
+- ✅ `src/app/api/upload/avatar/route.ts`
+- ✅ `src/app/api/upload/route.ts`
+- ✅ `src/app/api/(user)/user-profile-image/route.ts`
+
+**APIs com lógica de host (2 arquivos):**
+- ✅ `src/app/api/admin/contacts/route.ts`
+- ✅ `src/app/api/auth/callback/google/route.ts`
+
+**Documentação (1 arquivo):**
+- ✅ `src/lib/auth/oauth.ts`
+
+### Benefícios Alcançados
+
+- ✅ **Zero URLs hardcoded** em código de produção
+- ✅ **Validação rigorosa** de variáveis de ambiente em produção
+- ✅ **Sistema production-ready** para CPTEC/INPE
+- ✅ **Configuração centralizada** e manutenível
+- ✅ **Falha explícita** se configurações estiverem incorretas
+- ✅ **Conformidade CPTEC/INPE** com requisitos de segurança institucional
+
+### Status: ✅ **FASE 5 COMPLETAMENTE IMPLEMENTADA**
+
 ---
 
-## 6. README.md com Seções Redundantes (DOCUMENTAÇÃO) ℹ️
+## 6. README.md com Seções Redundantes e Desatualizado (DOCUMENTAÇÃO) ℹ️
 
 ### Problema Identificado
 
-README.md (1871 linhas) contém:
+README.md (1910 linhas) contém:
 
 - **Informações duplicadas** sobre migração de infraestrutura (linhas 665-706)
 - **Referências inconsistentes** a "Nginx" quando usa Express (linha 919)
 - **Múltiplas seções** repetindo mesma informação
+- **Estrutura desorganizada** que dificulta navegação e apresentação
+- **Falta de documentação completa** sobre padrões técnicos estabelecidos
+- **Inconsistências** entre documentação e estado atual do projeto
+- **Falta de seções específicas** para padrões de desenvolvimento e documentação
 
 ### Ações Necessárias
 
-1. Consolidar seções sobre migração de infraestrutura
-2. Corrigir referências técnicas incorretas (Nginx → Express)
-3. Remover redundâncias mantendo informação completa
-4. Reorganizar estrutura para melhor navegação
+1. **Consolidar seções sobre migração de infraestrutura** - Remover duplicações
+2. **Corrigir referências técnicas incorretas** (Nginx → Express)
+3. **Reorganizar estrutura** para melhor navegação e apresentação
+4. **Atualizar profundamente** para refletir o projeto como está atualmente
+5. **Remover melhorias recentes duplicadas** e manter apenas informações atuais
+6. **Adicionar seção completa de padrões técnicos** estabelecidos
+7. **Documentar padrões de desenvolvimento** para clareza da IA
+8. **Criar seção de documentação** com padrões utilizados
+9. **Remover inconsistências** entre documentação e código atual
+10. **Otimizar para apresentação no GitHub** com estrutura mais profissional
+11. **Criar índice navegável completo** com links internos para todas as seções principais
+12. **Consolidar informações de arquitetura** em seções específicas
+13. **Documentar convenções de código** e padrões estabelecidos
+14. **Criar seção de troubleshooting** baseada em problemas reais
+15. **Adicionar guia de contribuição** com padrões do projeto
+16. **Estruturar README.md como documento profissional** com:
+    - Índice detalhado com links internos
+    - Seções bem organizadas e hierarquizadas
+    - Badges de status do projeto
+    - Screenshots e diagramas quando apropriado
+    - Links para documentação técnica específica
+    - Seção de quick start para novos desenvolvedores
+    - Documentação completa de APIs e endpoints
+    - Guia de deploy e configuração de produção
+
+### Estrutura Proposta do Índice
+
+O README.md deve incluir um índice navegável completo com as seguintes seções principais:
+
+```markdown
+## 📋 Índice
+
+### 🚀 Início Rápido
+- [Visão Geral](#-visão-geral)
+- [Instalação](#-instalação)
+- [Configuração](#-configuração)
+- [Primeiros Passos](#-primeiros-passos)
+
+### 📚 Documentação Técnica
+- [Arquitetura do Sistema](#-arquitetura-do-sistema)
+- [Stack Tecnológica](#-stack-tecnológica)
+- [Estrutura de Diretórios](#-estrutura-de-diretórios)
+- [Padrões de Desenvolvimento](#-padrões-de-desenvolvimento)
+
+### 🔧 Desenvolvimento
+- [Configuração do Ambiente](#-configuração-do-ambiente)
+- [Scripts Disponíveis](#-scripts-disponíveis)
+- [Convenções de Código](#-convenções-de-código)
+- [Testes](#-testes)
+
+### 🚀 Deploy e Produção
+- [Configuração de Produção](#-configuração-de-produção)
+- [Docker](#-docker)
+- [Variáveis de Ambiente](#-variáveis-de-ambiente)
+- [Monitoramento](#-monitoramento)
+
+### 📖 Referência
+- [APIs](#-apis)
+- [Componentes](#-componentes)
+- [Hooks](#-hooks)
+- [Utilitários](#-utilitários)
+
+### 🤝 Contribuição
+- [Guia de Contribuição](#-guia-de-contribuição)
+- [Padrões do Projeto](#-padrões-do-projeto)
+- [Troubleshooting](#-troubleshooting)
+- [FAQ](#-faq)
+```
 
 ---
 
@@ -226,7 +178,7 @@ Múltiplos arquivos ainda contêm logs de debug que não seguem o padrão docume
 
 ### Arquivos Principais
 
-```
+```text
 Logs informativos de debug:
 - src/components/admin/dashboard/ProductStatusHistory.tsx:57
 - src/components/admin/sidebar/Sidebar.tsx:41,45,48,62
@@ -260,46 +212,38 @@ Nenhuma ação necessária - não há TODOs pendentes reais.
 
 ## Resumo de Prioridades
 
-### 🔴 CRÍTICO (Executar Primeiro)
+### ✅ CONCLUÍDO (Produção)
 
-1. **Adicionar dependências Zod e @types/bcryptjs** - Bloqueador de build
+1. **Fase 5: Corrigir URLs hardcoded com localhost** - ✅ **IMPLEMENTADA**
 
-   - Tempo estimado: 5 minutos
-   - Risco: ALTO
-
-### ⚠️ IMPORTANTE (Produção)
-
-2. **Sincronizar variáveis de ambiente** - Necessário para Docker
-
-   - Tempo estimado: 15 minutos
-   - Risco: MÉDIO
-
-3. **Atualizar next.config.ts** - Suporte para produção
-
-   - Tempo estimado: 10 minutos
-   - Risco: MÉDIO
+   - ✅ **CONCLUÍDA**: Sistema production-ready para CPTEC/INPE
+   - ✅ **BENEFÍCIO**: Zero URLs hardcoded, validação rigorosa de variáveis de ambiente
+   - ✅ **IMPACTO**: Sistema agora funciona corretamente em produção
 
 ### ℹ️ MANUTENÇÃO (Limpeza)
 
-6. **Remover referências a UploadThing** - Limpeza de código
+1. **Fase 6: Reorganizar e Atualizar README.md** - Documentação Completa
 
-   - Tempo estimado: 25 minutos
+   - Tempo estimado: 3-4 horas
    - Risco: BAIXO
+   - **OBJETIVO**: README.md profissional com índice navegável completo para GitHub
 
-7. **Limpar logs de debug** - Performance
+2. **Fase 7: Limpar logs de debug** - Performance
 
    - Tempo estimado: 10 minutos
    - Risco: BAIXO
 
-8. **Consolidar README.md** - Documentação
+3. **Fase 8: Comentários com TODO/FIXME** - Manutenção
 
-   - Tempo estimado: 20 minutos
-   - Risco: BAIXO
+   - Tempo estimado: 0 minutos (nenhuma ação necessária)
+   - Risco: NENHUM
 
 ---
 
-**Tempo Total Estimado:** 2h 15min
+**Tempo Total Estimado:** 3h 10min - 4h 10min
 
-**Arquivos a Modificar:** ~35 arquivos
+**Arquivos a Modificar:** ~10 arquivos (apenas documentação e logs)
 
-**Linhas Estimadas:** ~200 linhas modificadas
+**Linhas Estimadas:** ~100-200 linhas modificadas (principalmente reorganização do README.md)
+
+**Status Atual:** Fases 1-5 implementadas ✅ | Fases 6-8 restantes ⏳

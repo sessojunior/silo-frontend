@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { contact, productContact } from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
+import { config, requestUtils } from '@/lib/config'
 
 // GET - Listar contatos com filtros
 export async function GET(req: NextRequest) {
@@ -183,12 +184,10 @@ export async function PUT(req: NextRequest) {
 			// Remover arquivo do disco também
 			try {
 				const imageUrl = existingContact.image
-				if (imageUrl.includes('localhost:4000/files/')) {
-					// Extrair o caminho do arquivo da URL
-					const urlParts = imageUrl.split('/files/')
-					if (urlParts.length === 2) {
-						const filePath = urlParts[1] // ex: "contacts/filename.webp"
-						const deleteUrl = `http://localhost:4000/files/${filePath}`
+				if (requestUtils.isFileServerUrl(imageUrl)) {
+					const filePath = requestUtils.extractFilePath(imageUrl)
+					if (filePath) {
+						const deleteUrl = requestUtils.buildDeleteUrl(filePath)
 
 						// Fazer requisição DELETE para o servidor de arquivos
 						const deleteResponse = await fetch(deleteUrl, {
