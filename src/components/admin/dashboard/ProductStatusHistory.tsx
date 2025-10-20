@@ -50,11 +50,10 @@ export default function ProductStatusHistory({ productId, date, turn }: ProductS
 			const response = await fetch(`/api/admin/products/${productId}/history?date=${date}&turn=${turn}`)
 			const data = await response.json()
 
-			if (!response.ok || !data.success) {
-				throw new Error(data.error || 'Erro ao carregar histórico')
-			}
+		if (!response.ok || !data.success) {
+			throw new Error(data.error || 'Erro ao carregar histórico')
+		}
 
-			console.log('ℹ️ [COMPONENT_PRODUCT_STATUS_HISTORY] Dados recebidos:', { data })
 			setHistory(data.history || [])
 		} catch (error) {
 			console.error('❌ [COMPONENT_PRODUCT_STATUS_HISTORY] Erro ao carregar histórico:', { error })

@@ -36,16 +36,11 @@ export default function Sidebar() {
 				if (response.ok) {
 					const data = await response.json()
 					const enabled = data.userPreferences?.chatEnabled !== false
-					
-					// Log para debug
-					console.log('ℹ️ [COMPONENT_SIDEBAR] Verificando chat:', { currentPresence, preferenceEnabled: enabled, userPreferences: data.userPreferences })
 				
 					// Só desabilitar se estiver invisível E não estiver habilitado nas preferências
 					if (currentPresence === 'invisible' && !enabled) {
-						console.log('ℹ️ [COMPONENT_SIDEBAR] Chat desabilitado: invisível + preferência desabilitada')
 						setChatEnabled(false)
 					} else {
-						console.log('ℹ️ [COMPONENT_SIDEBAR] Chat habilitado:', { enabled })
 						setChatEnabled(enabled)
 					}
 				}
@@ -59,7 +54,6 @@ export default function Sidebar() {
 		// Listener para atualização automática quando preferência de chat mudar
 		const handleChatPreferenceChange = (event: CustomEvent) => {
 			const newChatEnabled = event.detail.chatEnabled
-			console.log('ℹ️ [COMPONENT_SIDEBAR] Evento chatPreferenceChanged:', { newChatEnabled, currentPresence })
 			
 		// Só desabilitar se estiver invisível E não estiver habilitado nas preferências
 		if (currentPresence === 'invisible' && !newChatEnabled) {
@@ -67,7 +61,7 @@ export default function Sidebar() {
 		} else {
 			setChatEnabled(newChatEnabled)
 		}
-		}
+	}
 
 		window.addEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
 
