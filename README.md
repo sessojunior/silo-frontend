@@ -127,7 +127,7 @@ O SILO utiliza **PostgreSQL** com **Drizzle ORM** para gerenciamento do banco de
 
 ### Visão Geral das Tabelas
 
-O sistema possui **25 tabelas** organizadas em **8 módulos principais**:
+O sistema possui os seguintes módulos: **autenticação**, **perfis**, **grupos**, **produtos**, **chat**, **projetos**, **ajuda** e **contatos**.
 
 | Módulo | Tabelas | Descrição |
 |--------|---------|-----------|
@@ -141,6 +141,8 @@ O sistema possui **25 tabelas** organizadas em **8 módulos principais**:
 | **Contatos** | 1 | Base de contatos globais |
 
 ### Detalhamento das Tabelas por Módulo
+
+O sistema possui **25 tabelas** organizadas em **8 módulos principais**:
 
 | Módulo | Tabela | Campos (tipo) |
 |--------|--------|---------------|
