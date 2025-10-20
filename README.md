@@ -1,6 +1,8 @@
 # SILO - Sistema de Gerenciamento de Produtos Meteorológicos
 
-O Silo é um sistema robusto de gestão de produtos meteorológicos voltado para colaboração, monitoramento e documentação técnica. Permite controle centralizado de processos, acompanhamento de status e notificações de produtos, gestão integrada de problemas e soluções, chat interno, relatórios automáticos e exportação de dados. Oferece segurança institucional, performance otimizada e interface intuitiva. Suporta uploads otimizados, integração fácil com bancos de dados PostgreSQL e garante personalização total para equipes técnicas do CPTEC/INPE. Ideal para coordenação ágil e tomada de decisão em operações meteorológicas.
+O Silo é um sistema robusto de gestão de produtos meteorológicos voltado para colaboração, monitoramento e documentação técnica. Permite controle centralizado de processos, acompanhamento de status e notificações de produtos, gestão integrada de problemas e soluções, chat interno, relatórios automáticos e exportação de dados.
+
+O Silo oferece segurança institucional, performance otimizada e interface intuitiva. Suporta uploads otimizados, integração fácil com bancos de dados PostgreSQL e garante personalização total para equipes técnicas do CPTEC/INPE. Ideal para coordenação ágil e tomada de decisão em operações meteorológicas.
 
 ## Índice
 
@@ -17,7 +19,6 @@ O Silo é um sistema robusto de gestão de produtos meteorológicos voltado para
 - [Padrões de Desenvolvimento](#-padrões-de-desenvolvimento)
 - [Docker e Containerização](#-docker-e-containerização)
 - [Deploy e Produção](#-deploy-e-produção)
-- [Testes](#-testes)
 - [Troubleshooting](#-troubleshooting)
 - [Guia de Contribuição](#-guia-de-contribuição)
 - [Autor e Mantenedor](#-autor-e-mantenedor)
@@ -114,7 +115,6 @@ silo-frontend/
 │   └── uploads/        # avatars, contacts, problems, solutions, general, temp
 ├── public/             # Arquivos estáticos
 ├── drizzle/            # Migrações do banco
-├── tests/              # Suíte de testes Playwright
 ├── docker-compose.yml  # Orquestração Docker
 └── next.config.ts      # Configuração Next.js
 ```
@@ -1509,7 +1509,7 @@ npm run dev
 
 ### Migração de Infraestrutura (Pendente)
 
-**🔴 BLOQUEADOR PARA PRODUÇÃO**
+**🔴 REQUISITOS PARA PRODUÇÃO**
 
 #### Migração de Banco de Dados
 
@@ -1526,41 +1526,6 @@ npm run dev
 - 🔴 Configurar firewall e segurança de rede
 
 **Impacto**: Sistema não pode ser usado em produção até migração completa.
-
----
-
-## 🧪 Testes
-
-### Suíte de Testes Playwright
-
-Localização: `/tests/`
-
-**Cobertura**:
-- ✅ Autenticação (login, registro, OAuth, recuperação)
-- ✅ Dashboard (estatísticas, gráficos, responsividade)
-- ✅ Produtos (CRUD, problemas, soluções, dependências)
-- ✅ Projetos (CRUD, Kanban, tarefas)
-- ✅ Chat (mensagens, presença, notificações)
-- ✅ Contatos (CRUD, upload, associações)
-- ✅ Grupos e Usuários (CRUD, relacionamentos)
-- ✅ Configurações (perfil, preferências, segurança)
-- ✅ Ajuda (navegação, busca, edição)
-- ✅ Integração (navegação, visual, performance)
-
-**Execução**:
-```bash
-# Executar todos os testes
-npm test
-
-# Executar testes específicos
-npx playwright test tests/01-authentication.spec.ts
-
-# Modo UI (interativo)
-npx playwright test --ui
-
-# Ver relatório
-npx playwright show-report
-```
 
 ---
 
@@ -1634,22 +1599,6 @@ docker-compose logs -f fileserver
 
 ## 🤝 Guia de Contribuição
 
-### Autorização para Contribuições
-
-⚠️ **IMPORTANTE**: Todas as novas implementações, alterações significativas e Pull Requests devem ser **previamente aprovadas** por:
-
-**Mario A. Sesso Junior**  
-- GitHub: [@sessojunior](https://github.com/sessojunior)
-- Cargo: Técnico - INPE/CPTEC
-- Email: Disponível no perfil do GitHub
-
-**Processo de Aprovação**:
-1. Abra uma **Issue** descrevendo a proposta de mudança
-2. Aguarde aprovação do mantenedor antes de iniciar o desenvolvimento
-3. Após aprovação, siga o fluxo de trabalho padrão para criar o PR
-
-**Sem aprovação prévia, o PR poderá ser fechado sem análise.**
-
 ### Diretrizes
 
 1. **PRs pequenos e focados**: Um objetivo por Pull Request
@@ -1675,30 +1624,27 @@ git commit -m "feat: descrição da feature"
 # 3. Garantir qualidade
 npm run lint
 npm run build
-npm test
 
 # 4. Push e abrir PR
 git push origin feature/nome-da-feature
 ```
 
-### Convenções
+### Convenções futuras
 
 - **Commits**: Seguir conventional commits (feat, fix, docs, refactor, test, chore)
 - **Código**: Manter legibilidade e simplicidade
-- **Testes**: Adicionar testes para novas funcionalidades
 - **Documentação**: Atualizar README.md quando necessário
+- **Qualidade**: Garantir build e lint limpos antes de submeter PR
 
 ---
 
 ## 👨‍💻 Autor e Mantenedor
 
-**Mario A. Sesso Junior**  
-Técnico - INPE/CPTEC
+**Mario A. Sesso Junior**
 
 - 🔗 GitHub: [@sessojunior](https://github.com/sessojunior)
 - 💼 LinkedIn: [in/sessojunior](https://linkedin.com/in/sessojunior)
-- 🏢 Instituição: INPE (Instituto Nacional de Pesquisas Espaciais)
-- 📍 Localização: CPTEC (Cachoeira Paulista, SP)
+- 🏢 Instituição: CPTEC/INPE (Instituto Nacional de Pesquisas Espaciais)
 
 **Projetos Relacionados**:
 - [inpe-previsao-react](https://github.com/sessojunior/inpe-previsao-react) - Projeto de Previsão Numérica de Tempo (JavaScript)
@@ -1706,4 +1652,4 @@ Técnico - INPE/CPTEC
 
 ---
 
-**Desenvolvido para CPTEC/INPE** 🛰️ | **Versão**: 1.0 | **Última atualização**: 2025
+Desenvolvido para *CPTEC/INPE*. Versão: *1.0*. Última atualização: *2025*
