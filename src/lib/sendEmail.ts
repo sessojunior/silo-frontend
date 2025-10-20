@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { config } from '@/lib/config'
 import { sendEmailTemplate } from './email/sendEmailTemplate'
 import { EmailTemplate, EmailTemplateData } from './email/types'
 
@@ -6,12 +7,12 @@ import { EmailTemplate, EmailTemplateData } from './email/types'
 async function sendEmailOriginal({ to, subject, text }: { to: string; subject: string; text: string }): Promise<{ success: boolean } | { error: { code: string; message: string } }> {
 	// Configuração do SMTP
 	const transporter = nodemailer.createTransport({
-		host: process.env.SMTP_HOST,
-		port: parseInt(process.env.SMTP_PORT || '587'),
-		secure: process.env.SMTP_SECURE === 'true',
+		host: config.email.host,
+		port: config.email.port,
+		secure: config.email.secure,
 		auth: {
-			user: process.env.SMTP_USERNAME,
-			pass: process.env.SMTP_PASSWORD,
+			user: config.email.username,
+			pass: config.email.password,
 		},
 	})
 
@@ -25,7 +26,7 @@ async function sendEmailOriginal({ to, subject, text }: { to: string; subject: s
 
 	// Configuração do e-mail
 	const mailOptions = {
-		from: process.env.SMTP_USERNAME,
+		from: config.email.from,
 		to,
 		subject,
 		text,

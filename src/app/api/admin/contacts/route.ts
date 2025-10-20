@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { contact, productContact } from '@/lib/db/schema'
 import { getAuthUser } from '@/lib/auth/token'
-import { config, requestUtils } from '@/lib/config'
+import { requestUtils } from '@/lib/config'
 
 // GET - Listar contatos com filtros
 export async function GET(req: NextRequest) {

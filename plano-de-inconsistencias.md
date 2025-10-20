@@ -210,6 +210,37 @@ Nenhuma ação necessária - não há TODOs pendentes reais.
 
 ---
 
+## 9. Remoção do Playwright (TESTES) ℹ️
+
+### Problema Identificado
+
+O projeto mantém suíte e infraestrutura do Playwright (testes, relatórios, configurações e scripts), mas a estratégia atual é descontinuar esse framework de testes end-to-end.
+
+### Ações Necessárias
+
+1. Planejar migração/remoção dos testes E2E do Playwright
+2. Remover dependências do Playwright do `package.json` e scripts relacionados
+3. Remover diretório `tests/`, `playwright.config.ts` e artefatos (`playwright-report/`, `test-results/`)
+4. Atualizar documentação (`README.md`) removendo referências a Playwright
+5. Ajustar pipelines/CI (se houver) para não executar Playwright
+6. Validar que a remoção não impacta o build do Next.js
+
+### Passos Propostos
+
+- Remover dependências: `@playwright/test`, `playwright`, e afins
+- Remover scripts: `test`, `test:ui`, `test:report` que invoquem Playwright
+- Excluir arquivos e pastas: `tests/`, `playwright.config.ts`, `playwright-report/`, `test-results/`
+- Revisar importações/menções em `README.md` e demais docs
+- Rodar `npm run build` para garantir integridade pós-remoção
+
+### Impacto Esperado
+
+- Redução do tempo de instalação e tamanho do projeto
+- Simplificação de manutenção e pipelines
+- Necessidade de definir (posteriormente) estratégia alternativa de testes (ex.: unitários/integrados)
+
+---
+
 ## Resumo de Prioridades
 
 ### ✅ CONCLUÍDO (Produção)

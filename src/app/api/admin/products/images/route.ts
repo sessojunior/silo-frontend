@@ -4,7 +4,7 @@ import { productProblemImage } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { getAuthUser } from '@/lib/auth/token'
-import { config, requestUtils } from '@/lib/config'
+import { requestUtils } from '@/lib/config'
 
 export async function GET(req: NextRequest) {
 	const user = await getAuthUser()

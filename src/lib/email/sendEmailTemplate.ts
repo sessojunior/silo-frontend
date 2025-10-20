@@ -1,6 +1,7 @@
 // Função independente para envio de emails com templates
 
 import nodemailer from 'nodemailer'
+import { config } from '@/lib/config'
 import { EmailTemplate, SendEmailTemplateParams } from './types'
 import { generateEmailTemplate, generateTextFallback } from './templates'
 
@@ -12,12 +13,12 @@ export async function sendEmailTemplate<T extends EmailTemplate>(
 	
 	// Configuração do SMTP (mesma da função original)
 	const transporter = nodemailer.createTransport({
-		host: process.env.SMTP_HOST,
-		port: parseInt(process.env.SMTP_PORT || '587'),
-		secure: process.env.SMTP_SECURE === 'true',
+		host: config.email.host,
+		port: config.email.port,
+		secure: config.email.secure,
 		auth: {
-			user: process.env.SMTP_USERNAME,
-			pass: process.env.SMTP_PASSWORD,
+			user: config.email.username,
+			pass: config.email.password,
 		},
 	})
 
@@ -43,7 +44,7 @@ export async function sendEmailTemplate<T extends EmailTemplate>(
 
 	// Configuração do e-mail com HTML e fallback de texto
 	const mailOptions = {
-		from: process.env.SMTP_USERNAME,
+		from: config.email.from,
 		to,
 		subject,
 		html,

@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto'
 import { Google } from 'arctic'
+import { config } from '@/lib/config'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { authUser, authProvider } from '@/lib/db/schema'
@@ -21,7 +22,7 @@ import { addUserToDefaultGroup } from '@/lib/auth/user-groups'
 // 7. Agora já pode utilizar no projeto.
 
 // Inicializa o provedor social do Google com o ID do cliente, o segredo do cliente e a URL de redirecionamento
-export const google = new Google(process.env.GOOGLE_CLIENT_ID!, process.env.GOOGLE_CLIENT_SECRET!, process.env.GOOGLE_CALLBACK_URL!)
+export const google = new Google(config.googleClientId, config.googleClientSecret, config.googleCallbackUrl)
 
 // Obtém o usuário do banco de dados pelo Google ID
 export async function getUserFromGoogleId(googleId: string) {

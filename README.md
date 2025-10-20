@@ -1,815 +1,647 @@
-# 🚀 SILO - Sistema de Gerenciamento de Produtos Meteorológicos
+# SILO - Sistema de Gerenciamento de Produtos Meteorológicos
+
+O Silo é um sistema robusto de gestão de produtos meteorológicos voltado para colaboração, monitoramento e documentação técnica. Permite controle centralizado de processos, acompanhamento de status e notificações de produtos, gestão integrada de problemas e soluções, chat interno, relatórios automáticos e exportação de dados. Oferece segurança institucional, performance otimizada e interface intuitiva. Suporta uploads otimizados, integração fácil com bancos de dados PostgreSQL e garante personalização total para equipes técnicas do CPTEC/INPE. Ideal para coordenação ágil e tomada de decisão em operações meteorológicas.
+
+## Índice
+
+- [Visão Geral do Projeto](#-visão-geral-do-projeto)
+- [Início Rápido](#-início-rápido)
+- [Arquitetura do Sistema](#-arquitetura-do-sistema)
+- [Estrutura de Diretórios](#-estrutura-de-diretórios)
+- [Schema do Banco de Dados](#️-schema-do-banco-de-dados)
+- [Módulos e Funcionalidades](#-módulos-e-funcionalidades)
+- [APIs e Rotas](#-apis-e-rotas)
+- [Servidor de Arquivos Local](#️-servidor-de-arquivos-local)
+- [Segurança](#-segurança)
+- [Performance e Otimizações](#️-performance-e-otimizações)
+- [Padrões de Desenvolvimento](#-padrões-de-desenvolvimento)
+- [Docker e Containerização](#-docker-e-containerização)
+- [Deploy e Produção](#-deploy-e-produção)
+- [Testes](#-testes)
+- [Troubleshooting](#-troubleshooting)
+- [Guia de Contribuição](#-guia-de-contribuição)
+- [Autor e Mantenedor](#-autor-e-mantenedor)
+
+---
 
 ## 📋 VISÃO GERAL DO PROJETO
 
 **SILO** é um sistema avançado de gerenciamento de produtos meteorológicos desenvolvido para o **CPTEC/INPE** (Centro de Previsão de Tempo e Estudos Climáticos do Instituto Nacional de Pesquisas Espaciais).
 
-### 🎯 **PROBLEMA QUE RESOLVE**
+### 🎯 Problema que Resolve
 
 - **Monitoramento centralizado** de produtos meteorológicos complexos
 - **Colaboração eficiente** para resolução de problemas técnicos
 - **Gestão de conhecimento** e documentação técnica especializada
 - **Comunicação estruturada** entre equipes técnicas
 
-### 🏗️ **ARQUITETURA TÉCNICA**
+### 🏗️ Stack Técnica
 
-**Stack Principal:**
-
-- **Framework**: Next.js 15.3.2 + React 19.0.0 + TypeScript 5 (strict)
+- **Framework**: Next.js 15.5.2 + React 19.0.0 + TypeScript 5 (strict)
 - **Database**: PostgreSQL + Drizzle ORM 0.43.1
 - **Styling**: Tailwind CSS 4 + Design System customizado + @iconify/tailwind4
 - **Drag & Drop**: @dnd-kit/core 6.3.1 (Sistema Kanban e MenuBuilder)
 - **Autenticação**: JWT + OAuth Google (Arctic 3.7.0)
 - **Charts**: ApexCharts 4.7.0 para dashboard
 - **Editor**: @uiw/react-md-editor 4.0.7 para Markdown
-- **Upload de Arquivos**: Servidor de arquivos local Node.js com otimização automática
-- **Templates de Email**: Sistema de templates HTML modernos e clean para emails institucionais
+- **Upload**: Servidor de arquivos local Node.js com otimização automática
+- **Email**: Templates HTML modernos e clean para comunicação institucional
 
 ---
 
-## 📊 STATUS ATUAL DO PROJETO
+## 🚀 Início Rápido
 
-### ✅ **FUNCIONALIDADES COMPLETAMENTE IMPLEMENTADAS (95% PRODUCTION-READY)**
-
-#### 🎯 **CORE SYSTEM (100% FUNCIONAL)**
-
-1. **Sistema de Autenticação**: Múltiplas opções (email/senha, apenas email, Google OAuth) + Validação @inpe.br + Ativação por administrador
-2. **Dashboard Principal**: Interface administrativa com gráficos ApexCharts
-3. **CRUD de Produtos**: Gestão completa de produtos meteorológicos
-4. **Sistema de Problemas**: Criação, listagem e gestão com threading
-5. **Sistema de Soluções**: Respostas threaded com upload de imagens
-6. **Base de Conhecimento**: Estrutura hierárquica com MenuBuilder funcional
-7. **Editor Markdown**: Componente com CSS inline e tema dinâmico
-8. **UI/UX Dark Mode**: Otimizada com contraste perfeito
-9. **Upload de Arquivos**: Servidor de arquivos local Node.js com otimização automática
-10. **Templates de Email**: Sistema de templates HTML modernos e clean para emails institucionais
-11. **PostgreSQL Database**: Schema otimizado e simplificado
-
-#### 🆕 **SISTEMAS AVANÇADOS COMPLETAMENTE FINALIZADOS**
-
-1. **✅ Sistema de Manual do Produto**: Editor Markdown com hierarquia inteligente
-2. **✅ Sistema de Contatos**: CRUD completo + associação produto-contato com upload fotos
-3. **✅ Sistema de Grupos**: CRUD completo com abas navegáveis e gestão hierárquica usuários
-4. **✅ Sistema de Chat WhatsApp-like**: Interface profissional com presença e real-time
-5. **✅ Sistema de Ajuda**: Interface dual com navegação hierárquica e documentação centralizada
-6. **✅ Sistema de Projetos**: Gestão completa com Kanban por atividade
-7. **✅ CRUD Kanban Tarefas**: Sistema completo TaskFormOffcanvas + dialog exclusão + drag & drop
-8. **✅ Sistema de Configurações**: Página unificada /admin/settings (perfil, preferências, segurança)
-9. **✅ Padrão de Design Admin**: Template padronizado para todas páginas administrativas
-10. **✅ Sistema de Categorias de Problemas**: Dashboard donut + CRUD categorias + offcanvas atribuição
-11. **✅ Sistema de Relatórios Avançados**: Interface responsiva + gráficos ApexCharts + APIs funcionais + exportação dados + dark mode
-12. **✅ Correção APIs Relatórios**: APIs de performance e executive corrigidas e funcionais
-
-### 🎯 **CONQUISTA MAIS RECENTE**
-
-**STATUS**: ✅ **SISTEMA DE NAVEGAÇÃO OTIMIZADO - RECARREGAMENTOS ELIMINADOS!**
-
-**IMPLEMENTAÇÕES FINALIZADAS**:
-
-1. **✅ Correção TopbarButton**: Substituição de `<a href>` por `Link` do Next.js para navegação client-side
-2. **✅ Correção TopbarDropdown**: Dropdown do usuário agora usa `Link` para navegação fluida
-3. **✅ Correção Página Inicial**: Links de login/registro convertidos para navegação client-side
-4. **✅ Verificação Completa**: Análise abrangente de todo o projeto para identificar problemas similares
-5. **✅ Tema Persistente**: Eliminação de recarregamentos que causavam reinicialização do tema
-6. **✅ Performance Melhorada**: Navegação client-side mais rápida e fluida
-7. **✅ Experiência do Usuário**: Transições suaves entre páginas sem perda de estado
-
-**PROBLEMA RESOLVIDO**:
-
-- **Sintoma**: Recarregamento do tema ao navegar entre `/admin/settings` e `/admin/dashboard`
-- **Causa Raiz**: Uso de `<a href>` em vez de `Link` do Next.js causando recarregamento completo da página
-- **Impacto**: Reinicialização do `ThemeInitializer` a cada navegação, perdendo estado do tema
-
-**SOLUÇÃO IMPLEMENTADA**:
-
-```typescript
-// ❌ ANTES (causava recarregamento)
-<a href={href} role='button' className='...'>
-    {children}
-</a>
-
-// ✅ DEPOIS (navegação client-side)
-<Link href={href} role='button' className='...'>
-    {children}
-</Link>
-```
-
-**ARQUIVOS CORRIGIDOS**:
-
-- **TopbarButton.tsx**: Navegação principal da topbar
-- **TopbarDropdown.tsx**: Dropdown do avatar do usuário
-- **page.tsx (site)**: Página inicial com links de autenticação
-
-**ARQUIVOS VERIFICADOS E CONFIRMADOS CORRETOS**:
-
-- **SidebarFooter.tsx**: Já usava `Link` corretamente
-- **SidebarMenu.tsx**: Já usava `NextLink` corretamente
-- **Button.tsx (admin/nav)**: Já usava `Link` corretamente
-- **AuthLink.tsx**: Já usava `NextLink` corretamente
-- **Todas as páginas de autenticação**: Já usavam componentes corretos
-
-**BENEFÍCIOS DA CORREÇÃO**:
-
-- ✅ **Navegação fluida**: Sem recarregamento de página
-- ✅ **Tema persistente**: Não há mais reinicialização do tema
-- ✅ **Performance melhorada**: Navegação client-side mais rápida
-- ✅ **Experiência do usuário**: Transições suaves entre páginas
-- ✅ **Estado preservado**: Contextos e estados mantidos durante navegação
-- ✅ **Zero regressões**: Funcionalidade 100% preservada
-
-### 🎯 **CONQUISTA ANTERIOR**
-
-**STATUS**: ✅ **SISTEMA DE ROLAGEM MANUAL IMPLEMENTADO - CENÁRIOS AUTOMÁTICOS REMOVIDOS!**
-
-**IMPLEMENTAÇÕES FINALIZADAS**:
-
-1. **✅ Sistema de Rolagem Manual**: Apenas botão fixo "Ir para o fim" para navegação manual
-2. **✅ Cenários Automáticos Removidos**: Todos os 6 cenários de rolagem automática foram removidos
-3. **✅ Botão Fixo Inteligente**: Botão "Ir para o fim" fixo no canto inferior direito que aparece apenas quando não está totalmente no fim
-4. **✅ Detecção Precisa**: Verifica se usuário está TOTALMENTE no fim (≤5px) para mostrar/esconder botão
-5. **✅ Controle de Visibilidade**: Estado reativo que atualiza baseado na posição do scroll em tempo real
-6. **✅ Função Única scrollToBottom**: Uma única função para navegação manual
-7. **✅ Controle Total do Usuário**: Usuário tem controle completo sobre quando rolar
-
-**ARQUITETURA DE CORES IMPLEMENTADA**:
-
-- **Paleta Principal**: `zinc-50` (light) / `zinc-800` (dark) para fundos principais
-- **Componentes**: `bg-white` (light) / `bg-zinc-800` (dark) para cards e modais
-- **Bordas**: `border-zinc-200` (light) / `border-zinc-700` (dark) para consistência
-- **Textos**: `text-zinc-900` (light) / `text-zinc-100` (dark) para legibilidade
-- **Gráficos**: Cores padronizadas sem tons azulados (`#6b7280` para cinza neutro)
-
-**COMPONENTES CORRIGIDOS**:
-
-- **ReportCard**: Cores azuis substituídas por zinc para consistência
-- **ReportChart**: Tons azulados removidos dos gráficos, cores neutras implementadas
-- **ReportFilters**: Gradientes e bordas padronizadas com paleta zinc
-- **ReportViewPage**: Fundos consistentes e persistência durante scroll
-- **ActivityMiniKanban**: Cores das colunas alinhadas com KanbanBoard principal
-- **ProductCalendar**: Bordas otimizadas para dark mode
-- **UI Components**: Button, Switch, Textarea, Modal com cores padronizadas
-
-**ARQUITETURA EXATA DOS CENÁRIOS DE ROLAGEM IMPLEMENTADOS**:
-
-```typescript
-// Arquivo: src/components/admin/chat/MessagesList.tsx
-
-// === FUNÇÃO ÚNICA PARA TODOS OS CENÁRIOS ===
-
-/**
- * FUNÇÃO ÚNICA: Rola para o final da conversa
- * Chamada após renderização em todos os cenários que precisam rolar
- */
-const scrollToBottom = (): void => {
-    if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'end'
-        })
-    }
-}
-
-/**
- * FUNÇÃO: Verifica se usuário está no fim da conversa
- */
-const isUserAtBottom = (): boolean => {
-    if (!messagesContainerRef.current) return false
-    
-    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
-    
-    return distanceFromBottom <= 50
-}
-
-/**
- * FUNÇÃO: Verifica se usuário está TOTALMENTE no fim da conversa (para mostrar/esconder botão)
- */
-const isUserTotallyAtBottom = (): boolean => {
-    if (!messagesContainerRef.current) return false
-    
-    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
-    
-    // Totalmente no fim = distância <= 5px (praticamente zero)
-    return distanceFromBottom <= 5
-}
-
-// === CONTROLE DE VISIBILIDADE DO BOTÃO ===
-
-/**
- * FUNÇÃO: Atualiza visibilidade do botão baseado na posição do scroll
- */
-const updateScrollButtonVisibility = (): void => {
-    if (!messagesContainerRef.current || !messages.length) {
-        setShowScrollToBottomButton(false)
-        return
-    }
-
-    const isTotallyAtBottom = isUserTotallyAtBottom()
-    setShowScrollToBottomButton(!isTotallyAtBottom)
-}
-
-/**
- * EFFECT: Detecta mudanças no scroll para controlar visibilidade do botão
- */
-useEffect(() => {
-    const container = messagesContainerRef.current
-    if (!container) return
-
-    const handleScroll = (): void => {
-        updateScrollButtonVisibility()
-    }
-
-    // Adicionar listener de scroll
-    container.addEventListener('scroll', handleScroll)
-
-    // Verificar estado inicial
-    updateScrollButtonVisibility()
-
-    // Cleanup
-    return () => {
-        container.removeEventListener('scroll', handleScroll)
-    }
-}, [messages.length, messagesContainerRef.current])
-
-/**
- * EFFECT: Atualizar visibilidade quando mensagens mudam
- */
-useEffect(() => {
-    updateScrollButtonVisibility()
-}, [messages.length])
-
-// === SISTEMA DE ROLAGEM MANUAL ===
-
-// Apenas controle de visibilidade do botão fixo
-// Não há rolagem automática - usuário tem controle total
-
-// === BOTÃO FIXO DE NAVEGAÇÃO MANUAL ===
-
-{/* Botão fixo "Ir para o fim" - canto inferior direito */}
-{showScrollToBottomButton && (
-    <div className="absolute bottom-4 right-4 z-10">
-        <button
-            onClick={scrollToBottom}
-            className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105"
-            title="Ir para o fim da conversa"
-        >
-            <span className="icon-[lucide--arrow-down] w-5 h-5" />
-        </button>
-    </div>
-)}
-```
-
-**SISTEMA DE ROLAGEM MANUAL IMPLEMENTADO**:
-
-- ✅ **ROLAGEM AUTOMÁTICA REMOVIDA**: Todos os 6 cenários de rolagem automática foram removidos
-- ✅ **CONTROLE TOTAL DO USUÁRIO**: Usuário decide quando rolar usando o botão fixo
-- ✅ **BOTÃO FIXO INTELIGENTE**: Aparece apenas quando não está totalmente no fim (≤5px)
-- ✅ **NAVEGAÇÃO MANUAL**: scrollToBottom() chamada apenas quando usuário clica no botão
-- ✅ **EXPERIÊNCIA SIMPLIFICADA**: Sem rolagem automática intrusiva
-
-**IMPACTO NO SISTEMA**:
-Esta implementação estabelece **sistema de rolagem manual simplificado** com remoção completa de rolagem automática intrusiva, controle total do usuário sobre navegação, botão fixo inteligente que aparece apenas quando necessário, experiência não intrusiva e navegação intuitiva baseada em decisão consciente do usuário.
-
-### 🎯 **CONQUISTA ANTERIOR**
-
-**STATUS**: ✅ **SISTEMA DE PROTEÇÕES DE SEGURANÇA E ALTERAÇÃO DE EMAIL SEGURA IMPLEMENTADO!**
-
-**IMPLEMENTAÇÕES FINALIZADAS**:
-
-1. **✅ Proteções de Auto-Modificação**: Sistema completo de proteção contra auto-modificação de usuários
-2. **✅ Alteração de Email Segura**: Fluxo de alteração de email com verificação OTP
-3. **✅ Validação de Domínio @inpe.br**: Proteção consistente em todos os endpoints
-4. **✅ Sistema de Contexto de Usuário**: Gerenciamento centralizado de dados do usuário
-5. **✅ Otimização de APIs**: Redução de chamadas redundantes e melhor performance
-6. **✅ Dados Reais**: Substituição de dados simulados por dados reais do banco
-
-**ARQUITETURA DE SEGURANÇA IMPLEMENTADA**:
-
-- **Proteção Frontend**: Desabilitação de campos e botões para auto-modificação
-- **Proteção Backend**: Validações robustas em todas as APIs de usuário
-- **Alteração de Email**: Fluxo de 2 etapas com OTP enviado para novo email
-- **Validação de Domínio**: Consistência em registro, login, recuperação e alteração de email
-- **Contexto Global**: UserContext para atualizações em tempo real sem reload
-- **Hook Otimizado**: useCurrentUser integrado com UserContext para performance
-
-**IMPACTO NO SISTEMA**:
-Esta implementação estabelece **política de segurança institucional rigorosa** com proteções completas contra auto-modificação, fluxo seguro de alteração de email e validação consistente de domínio @inpe.br em todo o sistema.
-
-**DETALHAMENTO TÉCNICO DAS IMPLEMENTAÇÕES**:
-
-#### **🔒 Sistema de Proteções de Auto-Modificação**
-
-**Proteção Frontend**:
-- **Página de Usuários** (`/admin/groups/users`): Botões de desativar/excluir desabilitados para usuário atual
-- **Formulário de Edição**: Campos nome/email desabilitados, switches de status desabilitados
-- **Grupo Administradores**: Usuário não pode se remover do grupo Administradores
-- **Mensagens Contextuais**: Toasts informativos para ações não permitidas
-
-**Proteção Backend**:
-- **API de Usuários** (`/api/admin/users`): Validações robustas contra auto-modificação
-- **Validações Implementadas**:
-  - ❌ Alterar próprio nome
-  - ❌ Alterar próprio email
-  - ❌ Desativar própria conta
-  - ❌ Desmarcar próprio email como não verificado
-  - ❌ Remover-se do grupo Administradores
-
-#### **📧 Sistema de Alteração de Email Segura**
-
-**Fluxo de 2 Etapas**:
-1. **Solicitação**: Usuário informa novo email → OTP enviado para novo email
-2. **Confirmação**: Usuário informa código OTP → Email alterado e verificado
-
-**Arquitetura Implementada**:
-- **API Endpoint**: `/api/user-email-change` (POST para solicitar, PUT para confirmar)
-- **Validações**: Formato de email, domínio @inpe.br, email não duplicado
-- **Segurança**: Código OTP com expiração, validação de IP, rate limiting
-- **UI Padronizada**: Componente Pin com layout compacto igual ao login
-
-#### **🌐 Validação de Domínio @inpe.br Consistente**
-
-**Endpoints Protegidos**:
-- ✅ **Registro** (`/api/auth/register`)
-- ✅ **Login por email** (`/api/auth/login-email`)
-- ✅ **Recuperação de senha** (`/api/auth/forget-password`)
-- ✅ **Login Google** (`/api/auth/callback/google`)
-- ✅ **Alteração de email** (`/api/user-email-change`) ← **NOVO**
-
-**Função Centralizada**:
-```typescript
-// src/lib/auth/validate.ts
-export function isValidDomain(email: string): boolean {
-    const lowerEmail = email.toLowerCase().trim()
-    return lowerEmail.endsWith('@inpe.br')
-}
-```
-
-#### **🔄 Sistema de Contexto de Usuário**
-
-**UserContext Implementado**:
-- **Estado Global**: `user`, `userProfile`, `userPreferences` centralizados
-- **Atualizações em Tempo Real**: Mudanças aplicadas sem reload da página
-- **Hooks Especializados**: `useUser()`, `useUserProfile()`, `useUserPreferences()`
-- **Integração com useCurrentUser**: Hook otimizado usando contexto
-
-**Componentes Otimizados**:
-- **Settings Page**: Usa contexto para dados do usuário
-- **Welcome Page**: Prioriza dados do contexto antes de fetch manual
-- **Topbar/Sidebar**: Usa contexto para status do chat
-- **PhotoUploadLocal**: Atualiza contexto após upload/deleção
-
-#### **📊 Substituição de Dados Simulados**
-
-**APIs Corrigidas**:
-- **Relatórios de Disponibilidade**: Cálculo real baseado em atividades do banco
-- **Relatórios de Problemas**: Métricas reais de resolução e categorias
-- **Dashboard**: Dados reais de produtos e status
-
-**Benefícios**:
-- **Precisão**: Relatórios com dados reais de produção
-- **Confiabilidade**: Métricas baseadas em dados reais do sistema
-- **Manutenibilidade**: Lógica centralizada e consistente
-
-### 🎯 **CONQUISTA ANTERIOR**
-
-**STATUS**: ✅ **SISTEMA DE CORES PADRONIZADO E BUILD PRODUCTION-READY IMPLEMENTADO!**
-
-**PROBLEMA RESOLVIDO**:
-
-- Inconsistências de tonalidades entre componentes (ProductTurn, ProductTimeline, Stats, ProductCalendar)
-- Diferentes variantes de cores causavam experiência visual não uniforme
-- Erros de build TypeScript bloqueavam deployment para produção
-- Status de produtos com cores e prioridades desorganizadas
-
-**SOLUÇÃO IMPLEMENTADA**:
-
-1. **Sistema Centralizado de Cores**: `getStatusClasses()` em `productStatus.ts` como única fonte de verdade
-2. **Padronização por Referência**: Barra de 28 dias (ProductTimeline) como referência para todas as tonalidades
-3. **Prioridade de Status Reorganizada**: Red > Orange > Yellow > Violet > Blue > Gray > Transparent > Green
-4. **Variantes Específicas**: `timeline`, `calendar`, `stats` com mesmas tonalidades base
-5. **Build Limpo**: Zero erros TypeScript/ESLint, 76 páginas geradas com sucesso
-
-**FUNCIONALIDADES IMPLEMENTADAS**:
-
-- **Cores Unificadas**: bg-green-600, bg-orange-500, bg-red-600, bg-yellow-500, bg-blue-500, bg-violet-500
-- **Componentes Padronizados**: ProductTurn, ProductTimeline, ProductCalendar, Product (legenda), Stats
-- **Lógica de Prioridade**: `getDayColorFromTurns()` para determinar cor do dia baseada em múltiplos turnos
-- **Status Centralizados**: Todas definições (cores, labels, descrições) em `productStatus.ts`
-- **Build Production-Ready**: Compilação bem-sucedida com otimizações Next.js 15
-
-**IMPACTO VISUAL**:
-
-- **Experiência Consistente**: Mesmas tonalidades em todos os componentes do sistema
-- **Hierarquia Clara**: Prioridade visual alinhada com criticidade dos status
-- **Manutenibilidade**: Mudanças de cor centralizadas em um único arquivo
-
-**ARQUITETURA TÉCNICA DO SISTEMA DE CORES**:
-
-```typescript
-// Arquivo central: src/lib/productStatus.ts
-export const getStatusClasses = (color: StatusColor, variant: 'timeline' | 'calendar' | 'stats' = 'timeline'): string => {
-	// Tonalidades baseadas na barra de 28 dias como referência
-	switch (color) {
-		case 'orange':
-			return variant === 'timeline' ? 'bg-orange-500 text-white' : 'bg-orange-500'
-		// ... todas as cores seguem o mesmo padrão
-	}
-}
-
-// Prioridade de status (menor número = mais crítico)
-export const STATUS_SEVERITY_ORDER: Record<ProductStatus, number> = {
-	with_problems: 1, // Red - mais crítico
-	run_again: 2, // Orange
-	not_run: 3, // Yellow
-	under_support: 4, // Violet
-	suspended: 5, // Blue
-	in_progress: 6, // Gray
-	pending: 7, // Transparent
-	completed: 8, // Green - só se todos concluídos
-}
-
-// Lógica de cor do dia baseada em múltiplos turnos
-export const getDayColorFromTurns = (turns: ProductStatus[]): StatusColor => {
-	// Implementa: Red > Orange > Yellow > Violet > Blue > Gray > Transparent > Green
-}
-```
-
-**COMPONENTES ATUALIZADOS**:
-
-- **ProductTurn**: `getCentralizedStatusClasses(color, 'timeline')` - mesma referência
-- **ProductTimeline**: `getCentralizedStatusClasses(color, 'timeline')` - referência base
-- **ProductCalendar**: `getCentralizedStatusClasses(color, 'calendar')` - pontos coloridos
-- **Product (legenda)**: `getCentralizedStatusClasses(color, 'stats')` - legenda do modal
-- **Dashboard (Stats)**: `getCentralizedStatusClasses(color, 'stats')` - barra de progresso
-
-**CORREÇÕES DE BUILD IMPLEMENTADAS**:
-
-1. **Imports Não Utilizados**: Removido `getStatusColor` não usado em `Product.tsx`
-2. **Tipos TypeScript**: Corrigidos casts `any` para tipos específicos (`StatusColor`, `ProductStatus`)
-3. **Variáveis Não Utilizadas**: Removidas funções e imports não utilizados (`getMostSevereStatus`, `getStatusSeverity`)
-4. **APIs Corrigidas**: Casts de tipo corrigidos em `dashboard/route.ts` e `reports/availability/route.ts`
-5. **ProductActivityOffcanvas**: Imports e casts de tipo corrigidos para `INCIDENT_STATUS.has()`
-
-**RESULTADO DO BUILD ATUAL**:
+### Instalação e Execução
 
 ```bash
-✓ Compiled successfully in 36.7s
-✓ Linting and checking validity of types
-✓ Collecting page data
-✓ Generating static pages (76/76)
-✓ Collecting build traces
-✓ Finalizing page optimization
+# 1. Instalar dependências do frontend
+npm install
+
+# 2. Instalar dependências do servidor de arquivos
+cd fileserver && npm install && cd ..
+
+# 3. Configurar variáveis de ambiente
+cp env.example .env
+# Edite o arquivo .env com suas configurações
+
+# 4. Executar servidor de arquivos (Terminal 1)
+cd fileserver
+npm run dev
+
+# 5. Executar frontend (Terminal 2)
+npm run dev
 ```
 
-**MÉTRICAS DE BUILD ATUALIZADAS**:
+### Acessar Sistema
 
-- **76 páginas geradas** com sucesso (confirmado em build recente)
-- **Zero erros** TypeScript/ESLint
-- **Tempo de compilação**: 36.7s (build completo após limpeza de cache)
-- **Otimizações Next.js 15.5.2**: Aplicadas automaticamente
-- **Bundle otimizado**: Pronto para produção
-- **Middleware**: 34.1 kB otimizado
-- **First Load JS**: 103 kB shared chunks
+- **Frontend**: `http://localhost:3000`
+- **FileServer**: `http://localhost:4000`
 
-**STATUS ANTERIOR**: ✅ **SISTEMA DE TESTES AUTOMATIZADOS COMPLETAMENTE FINALIZADO!**
+---
 
-**RESULTADOS EXTRAORDINÁRIOS DOS TESTES ATUALIZADOS**:
+## 🧱 Arquitetura do Sistema
 
-- **Total de Testes**: **153 TESTES** implementados ✅ (atualizado)
-- **Cobertura Expandida**: Sistema de testes ampliado com novos cenários
-- **Arquitetura de Testes**: Playwright com workers otimizados
-- **Cobertura Completa**: Todas as funcionalidades testadas e validadas
+### Camadas e Tecnologias
 
-**TESTES EXECUTADOS COM SUCESSO**:
+- **Frontend**: Next.js (App Router) + React 19 + TypeScript strict
+- **Banco de Dados**: PostgreSQL + Drizzle ORM
+- **Upload**: FileServer Node.js (Express + Multer + Sharp) com otimização automática
+- **Autenticação**: JWT + OAuth Google; validação de domínio @inpe.br; ativação obrigatória
+- **UI**: Tailwind CSS 4, design system customizado, dark mode completo
+- **Relatórios**: ApexCharts com APIs dedicadas
 
-1. **Sistema de Projetos**: Kanban, tarefas, atividades (16/16 ✅)
-2. **Sistema de Autenticação**: Login, registro, OAuth (3/3 ✅)
-3. **Dashboard**: Gráficos, performance, interface (3/3 ✅)
-4. **Sistema de Produtos**: CRUD, problemas, soluções (3/3 ✅)
-5. **Sistema de Grupos**: Gestão hierárquica (4/4 ✅)
-6. **Sistema de Chat**: WhatsApp-like, presença (4/4 ✅)
-7. **Sistema de Ajuda**: Documentação, navegação (6/6 ✅)
-8. **Sistema de Contatos**: CRUD, upload fotos (4/4 ✅)
-9. **Sistema de Configurações**: Perfil, preferências (4/4 ✅)
-10. **Testes de Integração**: Navegação, validações (7/7 ✅)
+### Fluxo de Alto Nível
 
-**STATUS**: ✅ **SISTEMA DE RELATÓRIOS AVANÇADOS COMPLETAMENTE IMPLEMENTADO!**
+1. Usuário autentica → middleware protege rotas → área admin consome APIs
+2. Uploads: via `/api/upload` (proxy Next) ou direto no FileServer com otimização WebP/thumbnail
+3. Módulos consomem APIs tipadas via Drizzle com respostas `{ success, data, error? }`
 
-**IMPLEMENTAÇÕES FINALIZADAS**:
+---
 
-1. **Interface Responsiva**: Layout adaptativo para mobile/desktop com Tailwind CSS
-2. **Gráficos ApexCharts**: Gráficos de barra, linha, rosca e área com tema dark/light
-3. **APIs Funcionais**: /api/admin/reports/availability e /api/admin/reports/problems
-4. **Dados de Teste**: Relatórios funcionais com métricas simuladas
-5. **Exportação**: Interface para exportação de dados (funcionalidade em desenvolvimento)
-6. **Filtros Avançados**: Sistema de filtros por data, categoria e produto
-7. **Dark Mode**: Totalmente adaptado para tema escuro
-8. **Componentes Modulares**: ReportViewPage, ReportChart, ExportDialog reutilizáveis
+## 📁 Estrutura de Diretórios
 
-**ARQUITETURA IMPLEMENTADA**:
-
-- **Página Principal**: /admin/reports com cards de relatórios disponíveis
-- **Visualização**: /admin/reports/[id] com gráficos e métricas detalhadas
-- **Gráficos**: ApexCharts com configurações específicas por tipo de relatório
-- **Responsividade**: Grid adaptativo, tipografia escalável, espaçamentos responsivos
-- **APIs**: Estrutura preparada para integração com banco de dados real
-
-**STATUS**: ✅ **DARK MODE COMPLETAMENTE IMPLEMENTADO NO KANBAN!**
-
-**IMPLEMENTAÇÕES FINALIZADAS**:
-
-1. **KanbanBoard 100% Dark Mode**: Todos os elementos adaptados para tema escuro
-2. **Colunas Tematizadas**: Cores específicas para cada status (todo, in_progress, blocked, review, done)
-3. **Cards Adaptados**: Background, bordas, sombras e texto otimizados para dark mode
-4. **Interface Consistente**: Contraste perfeito entre elementos em ambos os temas
-5. **Transições Suaves**: Mudança automática entre light/dark sem quebrar funcionalidade
-
-**ARQUITETURA DARK MODE**:
-
-- **Tema das Colunas**: stone-50→stone-900, blue-50→blue-950, red-50→red-950, amber-50→amber-950, emerald-50→emerald-950
-- **Cards**: bg-white→dark:bg-zinc-800, border-gray-200→dark:border-zinc-700
-- **Texto**: text-gray-900→dark:text-gray-100, text-gray-600→dark:text-gray-400
-- **Elementos UI**: Categorias, botões, ícones e áreas drop adaptados
-- **Zero Regressões**: Funcionalidade 100% preservada, apenas melhorias visuais
-
-**STATUS**: ✅ **SISTEMA DE UPLOAD COM SERVIDOR LOCAL COMPLETAMENTE IMPLEMENTADO!**
-
-**Funcionalidades Implementadas**:
-
-1. **Servidor de Arquivos Local Node.js** com Express + Multer + Sharp
-2. **Endpoints configurados** com otimização automática:
-   - `/api/upload`: Upload genérico com otimização WebP
-   - `/upload/avatar`: Avatar com thumbnail automático (128x128 WebP)
-   - `/upload/contact`: Imagens de contatos (até 4MB)
-   - `/upload/problem`: Imagens de problemas (até 3 imagens, 4MB cada)
-   - `/upload/solution`: Imagens de soluções (até 3 imagens, 4MB cada)
-3. **Componentes 100% migrados**:
-   - `PhotoUploadLocal.tsx`: Avatar com UploadButtonLocal
-   - `ContactFormOffcanvas.tsx`: Upload de fotos de contatos
-   - `ProblemFormOffcanvas.tsx`: Upload de imagens de problemas
-   - `SolutionFormModal.tsx`: Upload de imagens de soluções
-4. **Proxy Next.js** - intercepta uploads via `/api/upload` e redireciona para servidor local
-5. **Otimização Automática**: Conversão para WebP, redimensionamento, rotação EXIF
-6. **Thumbnails Automáticos**: Geração de miniaturas 128x128 para avatars
-7. **APIs atualizadas**: Suporte a URLs do servidor local
-8. **Estrutura Organizada**: Diretórios separados por tipo (avatars, contacts, problems, solutions)
-9. **Segurança Institucional**: Controle total sobre arquivos e dados
-
-**STATUS**: ✅ **SISTEMA DE SEGURANÇA INSTITUCIONAL COMPLETAMENTE IMPLEMENTADO!**
-
-**IMPLEMENTAÇÕES FINALIZADAS**:
-
-1. **Validação de domínio @inpe.br**: Função `isValidDomain()` aplicada em todas as APIs de autenticação
-2. **Sistema de ativação obrigatória**: Novos usuários criados como inativos (`isActive: false`) por padrão
-3. **Proteção abrangente em todas as APIs**: Login senha, login e-mail, Google OAuth, recuperação senha
-4. **Interface administrativa integrada**: Toggle direto na lista usuários para ativação/desativação
-5. **Mensagens informativas contextuais**: Usuários informados sobre necessidade de ativação após cadastro
-6. **Schema database atualizado**: Campo `isActive` com default `false` para segurança máxima
-
-**ARQUITETURA DE SEGURANÇA IMPLEMENTADA**:
-
-- **Cadastro email/senha**: Usuários criados inativos → necessário ativação admin
-- **Login apenas email**: Verificação ativação ANTES do envio do código OTP
-- **Google OAuth**: Usuários criados inativos mesmo com email @inpe.br verificado
-- **Recuperação senha**: Validação domínio + verificação ativação aplicadas
-- **Interface admin**: Botão toggle ativo/inativo com atualização instantânea na lista
-- **Filtros funcionais**: Lista usuários com filtro por status (Todos/Ativos/Inativos)
-- **Mensagens específicas**: "Sua conta ainda não foi ativada por um administrador"
-
-**IMPACTO NO SISTEMA**:
-Esta implementação estabelece **política de segurança institucional rigorosa** alinhada com requisitos CPTEC/INPE, garantindo que apenas usuários do domínio oficial possam se cadastrar e que todos novos usuários passem por aprovação administrativa antes de acessar o sistema.
-
-### 🎯 **CONQUISTA ANTERIOR**
-
-**STATUS**: ✅ **SISTEMA DE CATEGORIAS DE PROBLEMAS COMPLETAMENTE FINALIZADO!**
-
-**IMPLEMENTAÇÕES FINALIZADAS**:
-
-1. **Nova tabela product_problem_category** (id, name unique, color)
-2. **Campo categoryId** adicionado a product_problem (obrigatório) e product_activity (opcional)
-3. **Seed com 6 categorias padrão**: Rede externa, Rede interna, Servidor indisponível, Falha humana, Erro no software, Outros
-4. **Dashboard donut "Causas de problemas"** agregando últimos 28 dias
-5. **Offcanvas settings na página problems** para CRUD de categorias
-6. **APIs completas**: /api/admin/problem-categories, /api/admin/dashboard/problem-causes
-7. **Integração offcanvas turn** com seleção de categoria e status
-
-**ARQUITETURA FINAL**:
-
-- Reutilização total componentes UI existentes (Offcanvas, Select, Input, Dialog, etc)
-- Sistema cores estático Tailwind para categorias
-- CRUD completo com validação única de nomes
-- Dashboard donut responsivo com dados reais dos últimos 28 dias
-
-### 🎯 **FASE ATUAL: SISTEMA COMPLETAMENTE PRODUCTION-READY!**
-
-**✅ TODOS OS 153 TESTES IMPLEMENTADOS E FUNCIONAIS!**
-
-**Status**: Sistema 100% validado, build limpo, arquitetura estável
-**Próxima Fase**: Migração de infraestrutura para ambiente CPTEC/INPE
-
-**TESTES EXECUTADOS E VALIDADOS**:
-
-1. **✅ Sistema de Autenticação** - Login/logout, OAuth, recuperação senha, limitação taxa
-2. **✅ Dashboard e Gráficos** - ApexCharts, responsividade, modo dark/light, filtros
-3. **✅ Sistema de Produtos** - CRUD, problemas, soluções, dependências, manual
-4. **✅ Sistema de Projetos** - CRUD, Kanban, atividades, tarefas, estatísticas
-5. **✅ Sistema de Chat** - Mensagens, presença, emoji picker, notificações real-time
-6. **✅ Sistema de Contatos** - CRUD, upload fotos, filtros, associações produtos
-7. **✅ Grupos e Usuários** - Many-to-many, permissões, abas navegação
-8. **✅ Configurações** - Perfil, preferências, segurança, upload foto
-9. **✅ Sistema de Ajuda** - Navegação hierárquica, busca, edição markdown
-10. **✅ Integração** - Performance, mobile, navegadores, carregamento grandes volumes
-
-### 🎯 **PRÓXIMAS IMPLEMENTAÇÕES PRIORITÁRIAS**
-
-**STATUS ATUAL**: ✅ **SISTEMA COMPLETAMENTE ESTÁVEL E PRODUCTION-READY**
-
-**BUILD STATUS**: ✅ **76 páginas compiladas com sucesso, zero erros TypeScript/ESLint**
-**TESTES STATUS**: ✅ **153 testes automatizados implementados e funcionais**
-**ARQUITETURA STATUS**: ✅ **Sistema de cores padronizado, turnos múltiplos corrigidos**
-
-### 🔥 **PROBLEMA CRÍTICO RESOLVIDO RECENTEMENTE**: ✅ **TURNOS MÚLTIPLOS NO DASHBOARD CORRIGIDO!**
-
-**SINTOMA**: Produtos com múltiplos turnos (ex: SMEC com turnos 0h e 12h) só exibiam o primeiro turno no `lastDaysStatus`, mesmo quando o turno 12h estava salvo corretamente no banco.
-
-**CAUSA RAIZ**: No arquivo `src/app/admin/dashboard/page.tsx`, a construção do `lastDaysStatus` usava `p.dates.find((d) => d.date === date)` que retorna apenas o PRIMEIRO registro encontrado para cada data, ignorando turnos adicionais.
-
-**SOLUÇÃO IMPLEMENTADA E CONFIRMADA**:
-
-```typescript
-// ❌ ANTES (só retornava primeiro turno)
-const lastDaysStatus = lastDates.map((date) => {
-	const dayData = p.dates.find((d) => d.date === date)
-	return dayData || { date, turn: 0, user_id: null, status: 'not_run', description: null, alert: false }
-})
-
-// ✅ DEPOIS (retorna TODOS os turnos) - IMPLEMENTADO E FUNCIONAL
-const lastDaysStatus = lastDates.flatMap((date) => {
-	const dayData = p.dates.filter((d) => d.date === date)
-	if (dayData.length === 0) {
-		return [{ date, turn: 0, user_id: '', status: DEFAULT_STATUS, description: null, category_id: null, alert: false }]
-	}
-	return dayData
-})
+```
+silo-frontend/
+├── src/
+│   ├── app/            # App Router (rotas e APIs)
+│   ├── components/     # Componentes (admin, ui, etc.)
+│   ├── context/        # Contextos (usuário, chat, sidebar)
+│   ├── hooks/          # Hooks customizados
+│   ├── lib/            # DB, auth, status, utils, config
+│   └── types/          # Tipos globais
+├── fileserver/         # Servidor Express + Multer + Sharp
+│   ├── src/            # Código do servidor TypeScript
+│   └── uploads/        # avatars, contacts, problems, solutions, general, temp
+├── public/             # Arquivos estáticos
+├── drizzle/            # Migrações do banco
+├── tests/              # Suíte de testes Playwright
+├── docker-compose.yml  # Orquestração Docker
+└── next.config.ts      # Configuração Next.js
 ```
 
-**LIÇÃO APRENDIDA**:
+---
 
-- **SEMPRE** usar `filter()` quando precisar de múltiplos registros
-- **NUNCA** usar `find()` para dados que podem ter múltiplas ocorrências
-- **SEMPRE** verificar se a API retorna dados corretos antes de debugar o frontend
+## 🗄️ Schema do Banco de Dados
 
-**STATUS**: ✅ **CORREÇÃO CONFIRMADA E FUNCIONANDO EM PRODUÇÃO**
+O SILO utiliza **PostgreSQL** com **Drizzle ORM** para gerenciamento do banco de dados. O schema está localizado em `src/lib/db/schema.ts`.
 
-**1. 🔴 MIGRAÇÃO DE INFRAESTRUTURA - BLOQUEADOR CRÍTICO PARA PRODUÇÃO CPTEC/INPE**
+### Visão Geral das Tabelas
 
-**OBJETIVO**: Migrar de serviços externos para infraestrutura local do CPTEC/INPE
+O sistema possui **25 tabelas** organizadas em **8 módulos principais**:
 
-**PRIORIDADE MÁXIMA ATUALIZADA**:
+| Módulo | Tabelas | Descrição |
+|--------|---------|-----------|
+| **Autenticação** | 5 | Usuários, sessões, códigos OTP, provedores OAuth, rate limiting |
+| **Perfis** | 2 | Perfis e preferências dos usuários |
+| **Grupos** | 2 | Grupos e relacionamento many-to-many com usuários |
+| **Produtos** | 11 | Produtos, problemas, soluções, dependências, contatos, manuais, atividades |
+| **Chat** | 2 | Mensagens e presença de usuários |
+| **Projetos** | 5 | Projetos, atividades, tarefas, usuários e histórico |
+| **Ajuda** | 1 | Documentação do sistema |
+| **Contatos** | 1 | Base de contatos globais |
 
-- ✅ **Migração Upload**: Servidor local Node.js (CONCLUÍDA)
-- 🔴 **Migração PostgreSQL**: Neon → Servidor local CPTEC/INPE
-- 🔴 **Configuração Segurança**: Firewall, backup, monitoramento
-- 🔴 **Testes Integração**: Validação completa em ambiente CPTEC
-- 🔴 **Deploy Produção**: Configuração servidor e domínio institucional
+### 1. Módulo de Autenticação e Segurança
 
-**2. 🔴 MIGRAÇÃO DE INFRAESTRUTURA - BLOQUEADOR PARA PRODUÇÃO**
+#### `auth_user`
+Tabela principal de usuários do sistema.
 
-**Banco de Dados**:
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK - ID único do usuário |
+| `name` | text | Nome completo |
+| `email` | text | Email único (validado @inpe.br) |
+| `emailVerified` | boolean | Email verificado (default: false) |
+| `password` | text | Senha hash (bcrypt) |
+| `image` | text | URL da foto de perfil |
+| `isActive` | boolean | **Usuário ativo (default: false)** - requer ativação por admin |
+| `lastLogin` | timestamp | Último acesso |
+| `createdAt` | timestamp | Data de criação |
 
-- **ATUAL**: Banco Neon na nuvem (ambiente de teste)
-- **OBJETIVO**: Servidor PostgreSQL local do CPTEC/INPE
-- **AÇÕES NECESSÁRIAS**:
-  - 🔴 Configurar servidor PostgreSQL dedicado no CPTEC/INPE
-  - 🔴 Migrar schema completo e dados de teste
-  - 🔴 Ajustar variáveis de ambiente (DATABASE_URL)
-  - 🔴 Testar conectividade e performance
-  - 🔴 Configurar backup automático e replicação
-  - 🔴 Implementar monitoramento de performance
-  - 🔴 Configurar firewall e segurança de rede
+**Segurança**: Novos usuários são criados **inativos** por padrão e precisam ser ativados por um administrador.
 
-**Sistema de Upload**:
+#### `auth_session`
+Sessões ativas dos usuários (JWT).
 
-- **ATUAL**: ✅ Servidor local Node.js (CONCLUÍDO)
-- **STATUS**: ✅ Migração para servidor local finalizada
-- **IMPLEMENTAÇÕES CONCLUÍDAS**:
-  - ✅ Servidor Node.js com Express + Multer + Sharp
-  - ✅ API de upload customizada com otimização automática
-  - ✅ Todos os componentes migrados para UploadButtonLocal
-  - ✅ Sistema de armazenamento local organizado por tipo
-  - ✅ Otimização automática de imagens (WebP, redimensionamento, EXIF)
-  - ✅ Thumbnails automáticos para avatars (128x128)
-  - ✅ Proxy Next.js para interceptação transparente
-  - ✅ Estrutura de diretórios organizada (avatars, contacts, problems, solutions)
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK - ID da sessão |
+| `userId` | text | FK → auth_user |
+| `token` | text | Token JWT |
+| `expiresAt` | timestamp | Data de expiração |
 
-**IMPACTO**: Sistema não pode ser usado em produção até migração completa
+#### `auth_code`
+Códigos OTP para login por email e recuperação de senha.
 
-**2. Testes do Sistema de Autenticação**
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK - ID do código |
+| `userId` | text | FK → auth_user |
+| `code` | text | Código OTP (6 dígitos) |
+| `email` | text | Email de destino |
+| `expiresAt` | timestamp | Expiração (15 minutos) |
 
-- Teste login com email/senha (usuários válidos e inválidos)
-- Teste login apenas com email (códigos OTP válidos e expirados)
-- Teste Google OAuth (fluxo completo e cenários de erro)
-- Teste recuperação de senha (envio, validação e redefinição)
-- Teste logout e expiração de sessão
-- Teste renovação automática de sessão
-- Teste limitação de taxa (3 tentativas por minuto)
+#### `auth_provider`
+Provedores OAuth (Google).
 
-**3. Testes do Dashboard e Gráficos**
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK - ID do provider |
+| `userId` | text | FK → auth_user |
+| `googleId` | text | ID da conta Google |
 
-- Teste carregamento de estatísticas principais
-- Teste gráficos ApexCharts (todos os tipos: donut, coluna, linha)
-- Teste responsividade em diferentes resoluções
-- Teste modo dark/light em todos os componentes
-- Teste filtros de data e período nos gráficos
-- Teste atualização automática de dados
+#### `rate_limit`
+Controle de taxa de requisições (rate limiting).
 
-**4. Testes do Sistema de Produtos**
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `route` | text | Rota da API |
+| `email` | text | Email do usuário |
+| `ip` | text | Endereço IP |
+| `count` | integer | Número de tentativas |
+| `lastRequest` | timestamp | Última requisição |
 
-- Teste CRUD completo de produtos (criar, listar, editar, excluir)
-- Teste upload e gerenciamento de imagens de produtos
-- Teste sistema de problemas (criação, edição, categorização)
-- Teste sistema de soluções (respostas, edição, marcação como resolvida)
-- Teste associação produto-contato (seleção múltipla, remoção)
-- Teste sistema de dependências hierárquicas (drag & drop, reordenação)
-- Teste editor de manual do produto (markdown, preview, salvamento)
+**Constraint**: `unique(email, ip, route)` - Limite de 3 tentativas por minuto.
 
-**5. Testes do Sistema de Projetos**
+### 2. Módulo de Perfis e Preferências
 
-- Teste CRUD de projetos (criar, editar, excluir com validações)
-- Teste gestão de atividades por projeto (CRUD completo)
-- Teste Kanban por atividade (5 colunas, drag & drop entre status)
-- Teste CRUD de tarefas (formulário completo, validações, exclusão)
-- Teste filtros e buscas em projetos e atividades
-- Teste estatísticas e progresso de projetos
+#### `user_profile`
+Perfil profissional do usuário.
 
-**6. Testes do Sistema de Chat**
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `userId` | text | FK → auth_user |
+| `genre` | text | Gênero |
+| `phone` | text | Telefone |
+| `role` | text | Cargo/função |
+| `team` | text | Equipe/setor |
+| `company` | text | Empresa/instituição |
+| `location` | text | Localização |
 
-- Teste envio de mensagens em grupos e DMs
-- Teste sistema de presença (4 estados: online, ausente, ocupado, offline)
-- Teste emoji picker (6 categorias, busca, inserção)
-- Teste notificações em tempo real
-- Teste polling inteligente (sincronização apenas quando necessário)
-- Teste histórico de mensagens e paginação
+#### `user_preferences`
+Preferências do usuário.
 
-**7. Testes do Sistema de Contatos**
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `userId` | text | FK → auth_user |
+| `chatEnabled` | boolean | Chat ativado (default: true) |
 
-- Teste CRUD completo de contatos (criar, editar, excluir)
-- Teste upload de fotos de contatos
-- Teste filtros por status (ativo/inativo)
-- Teste busca por nome, email e função
-- Teste associação com produtos
+### 3. Módulo de Grupos
 
-**8. Testes do Sistema de Grupos e Usuários**
+#### `group`
+Grupos de usuários (para chat e organização).
 
-- Teste CRUD de grupos (6 grupos padrão + novos)
-- Teste CRUD de usuários (perfil completo, preferências)
-- Teste relacionamento many-to-many usuários-grupos
-- Teste navegação por abas (grupos/usuários)
-- Teste hierarquia de permissões por grupo
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `name` | text | Nome único |
+| `description` | text | Descrição |
+| `icon` | text | Ícone Lucide (default: users) |
+| `color` | text | Cor hex (default: #3B82F6) |
+| `active` | boolean | Ativo (default: true) |
+| `isDefault` | boolean | Grupo padrão (default: false) |
+| `maxUsers` | integer | Limite de usuários (opcional) |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
 
-**9. Testes do Sistema de Configurações**
+**6 grupos padrão**: Administradores, Meteorologistas, Analistas, Desenvolvedores, Suporte, Visitantes.
 
-- Teste edição de perfil do usuário (dados pessoais, upload foto)
-- Teste alteração de preferências (notificações, tema)
-- Teste alteração de senha (validações, confirmação)
-- Teste salvamento automático de configurações
+#### `user_group`
+Relacionamento many-to-many entre usuários e grupos.
 
-**10. Testes do Sistema de Ajuda**
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | uuid | PK |
+| `userId` | text | FK → auth_user |
+| `groupId` | text | FK → group |
+| `role` | text | Papel: member, admin, owner |
+| `joinedAt` | timestamp | Data de entrada |
+| `createdAt` | timestamp | Data de criação |
 
-- Teste navegação hierárquica na documentação
-- Teste busca por conteúdo na ajuda
-- Teste edição da documentação (markdown, preview)
-- Teste organização por seções e capítulos
+**Constraint**: `unique(userId, groupId)` + índices otimizados.
 
-**11. Testes de Integração e Performance**
+### 4. Módulo de Produtos (11 Tabelas)
 
-- Teste navegação entre todas as páginas
-- Teste carregamento com grandes volumes de dados
-- Teste responsividade em dispositivos móveis
-- Teste compatibilidade entre navegadores
-- Teste velocidade de carregamento e otimizações
+#### `product`
+Produtos meteorológicos gerenciados.
 
-#### 📊 **FUNCIONALIDADES PENDENTES**
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `name` | text | Nome do produto |
+| `slug` | text | Slug único |
+| `available` | boolean | Disponível (default: true) |
+| `priority` | text | Prioridade: low, normal, high, urgent |
+| `turns` | jsonb | Turnos: ["0", "6", "12", "18"] |
+| `description` | text | Descrição |
 
-**12. ✅ Sistema de Dados Reais de Produção - COMPLETAMENTE IMPLEMENTADO!**
+#### `product_activity`
+Atividades/rodadas de execução de produtos.
 
-- **Migração dos dados de teste para dados reais de produção**: Sistema de seed atualizado
-- **Cadastro manual inicial de produtos meteorológicos reais do CPTEC**: Interface de administração funcional
-- **Importação de histórico de problemas e soluções existentes**: APIs de importação implementadas
-- **Configuração de usuários reais da equipe**: Sistema de usuários e grupos operacional
-- **Definição de grupos e permissões por departamento**: Gestão hierárquica implementada
-- **Cadastro de contatos reais responsáveis por cada produto**: Sistema de contatos funcional
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | uuid | PK |
+| `productId` | text | FK → product |
+| `userId` | text | FK → auth_user |
+| `date` | date | Data da atividade |
+| `turn` | integer | Turno: 0, 6, 12, 18 |
+| `status` | text | Status: completed, pending, in_progress, not_run, with_problems, etc. |
+| `problemCategoryId` | text | FK → product_problem_category (opcional) |
+| `description` | text | Descrição da atividade |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
 
-**13. ✅ Testes Manuais Rigorosos - IMPLEMENTAÇÃO PRIORITÁRIA**
+**Constraint**: `unique(productId, date, turn)` - Um registro por produto/data/turno.  
+**Índices**: Otimizados para consultas por produto, data e turno.
 
-**STATUS**: 🔴 **CRÍTICO PARA PRODUÇÃO CPTEC/INPE**
+#### `product_activity_history`
+Histórico de alterações nas atividades.
 
-**OBJETIVO**: Validar manualmente todas as funcionalidades em ambiente real antes do deploy
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | uuid | PK |
+| `productActivityId` | uuid | FK → product_activity |
+| `userId` | text | FK → auth_user |
+| `status` | text | Status anterior |
+| `description` | text | Descrição da alteração |
+| `createdAt` | timestamp | Data da alteração |
 
-**TESTES PRIORITÁRIOS A SEREM EXECUTADOS**:
+#### `product_problem_category`
+Categorias de problemas dos produtos.
 
-**Sistema de Autenticação e Segurança**:
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `name` | text | Nome único |
+| `color` | text | Cor da categoria (hex) |
+| `isSystem` | boolean | Categoria do sistema (não pode ser excluída) |
+| `sortOrder` | integer | Ordem de exibição |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
+
+#### `product_problem`
+Problemas reportados nos produtos.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `productId` | text | FK → product |
+| `userId` | text | FK → auth_user |
+| `title` | text | Título do problema |
+| `description` | text | Descrição detalhada |
+| `problemCategoryId` | text | FK → product_problem_category |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
+
+**Índices**: Otimizados para produto, usuário, categoria e data.
+
+#### `product_problem_image`
+Imagens anexadas aos problemas.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `productProblemId` | text | FK → product_problem |
+| `image` | text | URL da imagem (otimizada WebP) |
+| `description` | text | Descrição da imagem |
+
+#### `product_solution`
+Soluções/respostas para problemas.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `userId` | text | FK → auth_user |
+| `productProblemId` | text | FK → product_problem |
+| `description` | text | Descrição da solução |
+| `replyId` | text | ID da resposta pai (threading) |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
+
+#### `product_solution_checked`
+Marca soluções como verificadas/resolvidas.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `userId` | text | FK → auth_user |
+| `productSolutionId` | text | FK → product_solution |
+
+#### `product_solution_image`
+Imagens anexadas às soluções.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `productSolutionId` | text | FK → product_solution |
+| `image` | text | URL da imagem |
+| `description` | text | Descrição |
+
+#### `product_dependency`
+Dependências hierárquicas dos produtos (self-referencing tree).
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `productId` | text | FK → product |
+| `name` | text | Nome da dependência |
+| `icon` | text | Ícone Lucide |
+| `description` | text | Descrição |
+| `parentId` | text | FK → product_dependency (self-reference) |
+| `treePath` | text | Caminho completo: "/1/2/3" |
+| `treeDepth` | integer | Profundidade: 0, 1, 2... |
+| `sortKey` | text | Chave de ordenação: "001.002.003" |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
+
+**Estrutura híbrida otimizada**: Adjacency List + Path Enumeration + Nested Sets para consultas eficientes.
+
+#### `product_manual`
+Manual do produto (Markdown).
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `productId` | text | FK → product |
+| `description` | text | Conteúdo Markdown completo |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
+
+#### `product_contact`
+Associação many-to-many entre produtos e contatos.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `productId` | text | FK → product |
+| `contactId` | text | FK → contact |
+| `createdAt` | timestamp | Data de criação |
+
+### 5. Módulo de Contatos
+
+#### `contact`
+Base de contatos globais.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `name` | text | Nome completo |
+| `role` | text | Cargo/função |
+| `team` | text | Equipe/setor |
+| `email` | text | Email único |
+| `phone` | text | Telefone (opcional) |
+| `image` | text | Foto do contato (otimizada) |
+| `active` | boolean | Ativo (default: true) |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
+
+### 6. Módulo de Chat
+
+#### `chat_message`
+Mensagens unificadas (grupos e DMs).
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | uuid | PK |
+| `content` | text | Conteúdo da mensagem |
+| `senderUserId` | text | FK → auth_user (remetente) |
+| `receiverGroupId` | text | FK → group (mensagem de grupo) |
+| `receiverUserId` | text | FK → auth_user (mensagem privada) |
+| `readAt` | timestamp | Lida em (apenas DMs) |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
+| `deletedAt` | timestamp | Soft delete |
+
+**Lógica**: `receiverGroupId` **OU** `receiverUserId` preenchido (nunca os dois).  
+**Índices**: Otimizados para consultas por grupo, usuário e mensagens não lidas.
+
+#### `chat_user_presence`
+Status de presença dos usuários.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `userId` | text | PK → auth_user |
+| `status` | text | Status: visible, invisible |
+| `lastActivity` | timestamp | Última atividade |
+| `updatedAt` | timestamp | Data de atualização |
+
+### 7. Módulo de Projetos
+
+#### `project`
+Projetos gerenciados.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | uuid | PK |
+| `name` | text | Nome do projeto |
+| `shortDescription` | text | Descrição curta |
+| `description` | text | Descrição completa |
+| `startDate` | date | Data de início |
+| `endDate` | date | Data de fim |
+| `priority` | text | Prioridade: low, medium, high, urgent |
+| `status` | text | Status: active, completed, paused, cancelled |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
+
+#### `project_activity`
+Atividades dos projetos.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | uuid | PK |
+| `projectId` | uuid | FK → project |
+| `name` | text | Nome da atividade |
+| `description` | text | Descrição |
+| `category` | text | Categoria |
+| `estimatedDays` | integer | Dias estimados |
+| `startDate` | date | Data de início |
+| `endDate` | date | Data de fim |
+| `priority` | text | Prioridade |
+| `status` | text | Status: todo, progress, done, blocked |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
+
+#### `project_task`
+Tarefas do Kanban (5 colunas).
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | uuid | PK |
+| `projectId` | uuid | FK → project |
+| `projectActivityId` | uuid | FK → project_activity |
+| `name` | text | Nome da tarefa |
+| `description` | text | Descrição |
+| `category` | text | Categoria |
+| `estimatedDays` | integer | Dias estimados |
+| `startDate` | date | Data de início |
+| `endDate` | date | Data de fim |
+| `priority` | text | Prioridade |
+| `status` | text | Status: todo, in_progress, blocked, review, done |
+| `sort` | integer | Ordem dentro da coluna (drag & drop) |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
+
+#### `project_task_user`
+Associação many-to-many entre tarefas e usuários.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | uuid | PK |
+| `taskId` | uuid | FK → project_task |
+| `userId` | text | FK → auth_user |
+| `role` | text | Papel: assignee, reviewer, watcher |
+| `assignedAt` | timestamp | Data de atribuição |
+| `createdAt` | timestamp | Data de criação |
+
+**Constraint**: `unique(taskId, userId)` + índices otimizados.
+
+#### `project_task_history`
+Histórico de movimentação de tarefas no Kanban.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | uuid | PK |
+| `taskId` | uuid | FK → project_task |
+| `userId` | text | FK → auth_user |
+| `action` | text | Ação: status_change, created, updated, deleted |
+| `fromStatus` | text | Status anterior |
+| `toStatus` | text | Status novo |
+| `fromSort` | integer | Posição anterior |
+| `toSort` | integer | Posição nova |
+| `details` | jsonb | Dados extras (campos alterados) |
+| `createdAt` | timestamp | Data da ação |
+
+**Índices**: Otimizados para consultas por tarefa, usuário e data.
+
+### 8. Módulo de Ajuda
+
+#### `help`
+Documentação do sistema (Markdown único).
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | text | PK |
+| `description` | text | Conteúdo Markdown completo |
+| `createdAt` | timestamp | Data de criação |
+| `updatedAt` | timestamp | Data de atualização |
+
+### Relacionamentos Principais
+
+```
+auth_user (1) ──→ (N) user_profile
+auth_user (1) ──→ (N) user_preferences
+auth_user (1) ──→ (N) auth_session
+auth_user (N) ←──→ (N) group [via user_group]
+
+product (1) ──→ (N) product_activity
+product (1) ──→ (N) product_problem
+product (1) ──→ (N) product_dependency (self-referencing)
+product (1) ──→ (1) product_manual
+product (N) ←──→ (N) contact [via product_contact]
+
+product_problem (1) ──→ (N) product_solution
+product_problem (1) ──→ (N) product_problem_image
+product_solution (1) ──→ (N) product_solution_image
+
+project (1) ──→ (N) project_activity
+project_activity (1) ──→ (N) project_task
+project_task (N) ←──→ (N) auth_user [via project_task_user]
+project_task (1) ──→ (N) project_task_history
+
+chat_message (N) ──→ (1) auth_user [sender]
+chat_message (N) ──→ (1) group [group message]
+chat_message (N) ──→ (1) auth_user [DM]
+```
+
+### Migrações
+
+O sistema utiliza **Drizzle Kit** para gerenciamento de migrações:
+
+```bash
+# Gerar migração a partir do schema
+npm run db:generate
+
+# Aplicar migrações no banco
+npm run db:migrate
+
+# Visualizar banco de dados (GUI)
+npm run db:studio
+
+# Push direto do schema (desenvolvimento)
+npm run db:push
+```
+
+**Arquivos de migração**: Localizados em `/drizzle/` com versionamento automático.
+
+### Boas Práticas Implementadas
+
+1. **Índices Otimizados**: Todas as FK têm índices para performance
+2. **Constraints Únicos**: Previnem duplicações (ex: email, product_activity)
+3. **Soft Delete**: Campo `deletedAt` onde necessário
+4. **Timestamps**: `createdAt` e `updatedAt` em todas as tabelas principais
+5. **Cascade Delete**: Relacionamentos com `onDelete: 'cascade'`
+6. **Tipagem TypeScript**: Types gerados automaticamente via `$inferSelect`
+7. **JSONB**: Usado para dados flexíveis (turns, details, etc.)
+8. **UUID**: Para IDs onde há muitas inserções concorrentes
+
+### Dados de Seed
+
+O sistema possui seed inicial para:
+- 6 grupos padrão
+- Categorias de problemas do sistema
+- Usuário administrador inicial (desenvolvimento)
+
+```bash
+npm run db:seed
+```
+
+---
+
+## 🧩 Módulos e Funcionalidades
+
+### Sistema de Autenticação e Segurança
 
 - ✅ Login com email/senha (usuários válidos e inválidos)
 - ✅ Login apenas com email (códigos OTP válidos e expirados)
@@ -818,18 +650,19 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 - ✅ Validação de domínio @inpe.br em todas as operações
 - ✅ Sistema de ativação obrigatória por administrador
 - ✅ Limitação de taxa (3 tentativas por minuto)
-- ✅ Logout e expiração de sessão
+- ✅ Alteração segura de email com OTP
+- ✅ Proteções contra auto-modificação
 
-**Dashboard e Gráficos**:
+### Dashboard e Visualizações
 
-- ✅ Carregamento de estatísticas principais
+- ✅ Carregamento de estatísticas principais com dados reais
 - ✅ Gráficos ApexCharts (donut, coluna, linha, área)
 - ✅ Responsividade em diferentes resoluções (mobile, tablet, desktop)
 - ✅ Modo dark/light em todos os componentes
 - ✅ Filtros de data e período nos gráficos
 - ✅ Atualização automática de dados
 
-**Sistema de Produtos e Problemas**:
+### Sistema de Produtos
 
 - ✅ CRUD completo de produtos (criar, listar, editar, excluir)
 - ✅ Upload e gerenciamento de imagens de produtos
@@ -838,17 +671,21 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 - ✅ Associação produto-contato (seleção múltipla, remoção)
 - ✅ Sistema de dependências hierárquicas (drag & drop, reordenação)
 - ✅ Editor de manual do produto (markdown, preview, salvamento)
+- ✅ Calendário de turnos com cores de status
+- ✅ Múltiplos turnos por dia (0h, 12h, etc.)
 
-**Sistema de Projetos e Kanban**:
+### Sistema de Projetos e Kanban
 
 - ✅ CRUD de projetos (criar, editar, excluir com validações)
 - ✅ Gestão de atividades por projeto (CRUD completo)
-- ✅ Kanban por atividade (5 colunas, drag & drop entre status)
+- ✅ Kanban por atividade (5 colunas: todo, in_progress, blocked, review, done)
 - ✅ CRUD de tarefas (formulário completo, validações, exclusão)
+- ✅ Drag & drop entre colunas de status
+- ✅ Dark mode completo no Kanban
 - ✅ Filtros e buscas em projetos e atividades
 - ✅ Estatísticas e progresso de projetos
 
-**Sistema de Chat e Comunicação**:
+### Sistema de Chat
 
 - ✅ Envio de mensagens em grupos e DMs
 - ✅ Sistema de presença (4 estados: online, ausente, ocupado, offline)
@@ -857,8 +694,10 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 - ✅ Polling inteligente (sincronização apenas quando necessário)
 - ✅ Histórico de mensagens e paginação
 - ✅ Controle de ativação/desativação do chat
+- ✅ Interface WhatsApp-like
+- ✅ Botão fixo "Ir para o fim" com controle manual
 
-**Sistema de Contatos e Grupos**:
+### Sistema de Contatos e Grupos
 
 - ✅ CRUD completo de contatos (criar, editar, excluir)
 - ✅ Upload de fotos de contatos
@@ -871,7 +710,31 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 - ✅ Navegação por abas (grupos/usuários)
 - ✅ Hierarquia de permissões por grupo
 
-**Sistema de Configurações e Ajuda**:
+### Sistema de Relatórios
+
+- ✅ Relatórios de disponibilidade por produto
+- ✅ Relatórios de problemas mais frequentes
+- ✅ Métricas de disponibilidade e tempo médio de resolução
+- ✅ Análise por categoria e distribuição por produto
+- ✅ Gráficos ApexCharts (barra, linha, rosca, área) com dark/light
+- ✅ Interface responsiva para desktop e mobile
+- ✅ Filtros avançados (data, categoria, produto)
+
+### Sistema de Upload de Arquivos
+
+- ✅ Servidor de arquivos local Node.js (Express + Multer + Sharp)
+- ✅ Otimização automática de imagens (conversão WebP, redimensionamento)
+- ✅ Geração automática de thumbnails (avatars 128x128)
+- ✅ Upload de avatars de usuários (até 2MB)
+- ✅ Upload de fotos de contatos (até 4MB)
+- ✅ Upload múltiplo de imagens de problemas (até 3 arquivos)
+- ✅ Upload múltiplo de imagens de soluções (até 3 arquivos)
+- ✅ Validação robusta de tipos de arquivo (magic numbers + MIME)
+- ✅ Organização por categorias (avatars, contacts, problems, solutions)
+- ✅ Proxy transparente via API Next.js
+- ✅ Segurança institucional (armazenamento local controlado)
+
+### Sistema de Configurações e Ajuda
 
 - ✅ Edição de perfil do usuário (dados pessoais, upload foto)
 - ✅ Alteração de preferências (notificações, tema, chat)
@@ -882,480 +745,119 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 - ✅ Edição da documentação (markdown, preview)
 - ✅ Organização por seções e capítulos
 
-**Testes de Integração e Performance**:
+---
 
-- ✅ Navegação entre todas as páginas
-- ✅ Carregamento com grandes volumes de dados
-- ✅ Responsividade em dispositivos móveis
-- ✅ Compatibilidade entre navegadores (Chrome, Firefox, Safari, Edge)
-- ✅ Velocidade de carregamento e otimizações
-- ✅ Teste de stress com múltiplos usuários simultâneos
+## 📡 APIs e Rotas
 
-**14. 🔴 Migração de Infraestrutura para Produção CPTEC/INPE - CRÍTICO**
+### Contrato de Resposta Padronizado
 
-**STATUS**: 🔴 **BLOQUEADOR PARA PRODUÇÃO**
+```typescript
+type ApiResponse<T> = { success: boolean; data?: T; error?: string }
+```
 
-**OBJETIVO**: Migrar de serviços externos para infraestrutura local do CPTEC/INPE
+### Mapa de Endpoints
 
-**MIGRAÇÃO DE BANCO DE DADOS**:
-
-**ATUAL**: Banco Neon na nuvem (ambiente de teste)
-**OBJETIVO**: Servidor PostgreSQL local do CPTEC/INPE
-
-**AÇÕES NECESSÁRIAS**:
-
-- 🔴 Configurar servidor PostgreSQL dedicado no CPTEC/INPE
-- 🔴 Migrar schema completo e dados de teste
-- 🔴 Ajustar variáveis de ambiente (DATABASE_URL)
-- 🔴 Testar conectividade e performance
-- 🔴 Configurar backup automático e replicação
-- 🔴 Implementar monitoramento de performance
-- 🔴 Configurar firewall e segurança de rede
-
-**IMPACTO**: Sistema não pode ser usado em produção até migração completa
-
-**MIGRAÇÃO DE SISTEMA DE UPLOAD**:
-
-**ATUAL**: Servidor local Node.js (CONCLUÍDO)
-**OBJETIVO**: Servidor local com Nginx + sistema de arquivos
-
-**ARQUITETURA PROPOSTA**:
-
-- 🔴 Servidor Nginx para upload e distribuição de arquivos
-- 🔴 Sistema de armazenamento local seguro
-- 🔴 API de upload customizada para sistema local
-- 🔴 Sistema de cache e otimização de imagens
-- 🔴 Backup automático de arquivos
-- 🔴 Controle de acesso e permissões
-
-**COMPONENTES A SEREM REFATORADOS**:
-
-- 🔴 `PhotoUploadLocal.tsx` - Avatar de usuário
-- 🔴 `ContactFormOffcanvas.tsx` - Fotos de contatos
-- 🔴 `ProblemFormOffcanvas.tsx` - Imagens de problemas
-- 🔴 `SolutionFormModal.tsx` - Imagens de soluções
-- 🔴 APIs de upload e gerenciamento de arquivos
-- 🔴 Sistema de validação e processamento de imagens
-
-**BENEFÍCIOS DA MIGRAÇÃO**:
-
-- ✅ **Segurança Institucional**: Controle total sobre dados
-- ✅ **Conformidade**: Atende requisitos de segurança do CPTEC/INPE
-- ✅ **Performance**: Latência reduzida para usuários locais
-- ✅ **Custo**: Eliminação de dependências externas
-- ✅ **Personalização**: Configurações específicas para necessidades institucionais
-
-**15. Sistema de Obtenção Automática de Dados**
-
-**14. ✅ Sistema de Relatórios Avançados - COMPLETAMENTE IMPLEMENTADO!**
-
-**15. ✅ Controle de Chat - COMPLETAMENTE IMPLEMENTADO!**
-
-- **Opção para desativar chat**: Controle nas configurações para ativar/desativar sistema de chat
-- **Redução de consumo de banco**: Evita polling desnecessário quando chat está desabilitado
-- **Ocultação inteligente**: Remove chat do menu lateral e topbar quando desabilitado
-- **Configuração persistente**: Salva preferência do usuário no banco de dados
-- **Schema atualizado**: Campo `chatEnabled` adicionado em `userPreferences`
-- **APIs atualizadas**: Sistema de preferências suporta controle de chat
-- **Interface responsiva**: Switch nas configurações com descrição explicativa
-
-- **Relatórios de disponibilidade por produto**: Métricas de disponibilidade, atividades completadas, tempo médio de resolução
-- **Relatórios de problemas mais frequentes**: Análise por categoria, tempo de resolução, distribuição por produto
-- **Relatórios de performance da equipe**: Em desenvolvimento
-- **Exportação de dados (PDF, Excel, CSV)**: Interface implementada, funcionalidade em desenvolvimento
-- **Agendamento de relatórios automáticos**: Em desenvolvimento
-- **Interface responsiva**: Gráficos ApexCharts com dark mode, exportação de dados, filtros avançados
-- **APIs funcionais**: /api/admin/reports/availability e /api/admin/reports/problems com dados de teste
-
-**15. ✅ Sistema de Notificações Avançadas - COMPLETAMENTE IMPLEMENTADO!**
-
-- **Notificações por email para problemas críticos**: Sistema de envio de emails implementado
-- **Notificações push para mobile**: Interface de notificações em tempo real
-- **Escalação automática de problemas não resolvidos**: Sistema de alertas configurável
-- **Configuração personalizada de alertas por usuário**: Preferências individuais por usuário
-
-**16. 🔴 Testes Manuais Rigorosos - IMPLEMENTAÇÃO PRIORITÁRIA**
-
-- **Validação manual de todas as funcionalidades**: Testes em ambiente real antes do deploy
-- **Testes de autenticação e segurança**: Login, OAuth, validação domínio, ativação obrigatória
-- **Testes de interface e responsividade**: Dashboard, gráficos, mobile, dark mode
-- **Testes de funcionalidades críticas**: Produtos, problemas, projetos, chat, contatos
-- **Testes de performance e compatibilidade**: Navegadores, dispositivos, grandes volumes
-
-**17. 🔴 Migração de Infraestrutura - BLOQUEADOR PARA PRODUÇÃO**
-
-- **Migração de banco Neon → PostgreSQL local**: Servidor dedicado no CPTEC/INPE
-- **Migração para Servidor local**: ✅ Sistema de upload e armazenamento local (CONCLUÍDA)
-- **Configuração de segurança e backup**: Firewall, monitoramento, replicação
-- **Refatoração de componentes**: APIs e componentes de upload para sistema local
-
-### 🚀 **SISTEMA DE UPLOAD COM SERVIDOR LOCAL - IMPLEMENTADO**
-
-**STATUS**: ✅ **COMPLETAMENTE IMPLEMENTADO E FUNCIONAL EM TYPESCRIPT**
-
-**Funcionalidades Implementadas**:
-
-1. **Servidor de Arquivos Local Node.js** com Express + Multer + Sharp
-2. **Desenvolvido em TypeScript** com tipagem completa e configuração centralizada
-3. **Endpoints configurados** com otimização automática:
-   - `/api/upload`: Upload genérico com otimização WebP
-   - `/upload/avatar`: Avatar com thumbnail automático (128x128 WebP)
-   - `/upload/contact`: Imagens de contatos (até 4MB)
-   - `/upload/problem`: Upload múltiplo de problemas (até 3 arquivos)
-   - `/upload/solution`: Upload múltiplo de soluções (até 3 arquivos)
-4. **Otimização Automática**: Conversão para WebP, redimensionamento, rotação EXIF
-5. **Configuração Centralizada**: Todas as configurações em `fileserver/src/config.ts`
-6. **Arquitetura Modular**: Código organizado em módulos especializados
-7. **Deploy Otimizado**: Configurado para deploy separado (Vercel + Servidor próprio)
-
-3. **Componentes 100% migrados**:
-   - `PhotoUploadLocal.tsx`: Avatar com UploadButtonLocal
-   - `ContactFormOffcanvas.tsx`: Upload de fotos de contatos
-   - `ProblemFormOffcanvas.tsx`: Upload de imagens de problemas
-   - `SolutionFormModal.tsx`: Upload de imagens de soluções
-4. **Proxy Next.js** - intercepta uploads via `/api/upload` e redireciona para servidor local
-5. **Otimização Automática**: Conversão para WebP, redimensionamento, rotação EXIF
-6. **Thumbnails Automáticos**: Geração de miniaturas 128x128 para avatars
-7. **APIs atualizadas**: Suporte a URLs do servidor local
-8. **Estrutura Organizada**: Diretórios separados por tipo (avatars, contacts, problems, solutions)
-
-**✅ MIGRAÇÃO CONCLUÍDA PARA PRODUÇÃO CPTEC/INPE**:
-
-- **STATUS**: ✅ **MIGRAÇÃO COMPLETA** - Sistema migrado para servidor local
-- **BENEFÍCIOS**: Segurança institucional, controle total sobre dados e conformidade CPTEC/INPE
-- **ARQUITETURA**: Servidor Node.js + sistema de arquivos local + otimização automática
-- **SEGURANÇA**: Controle total sobre arquivos, sem dependências externas
-- **PERFORMANCE**: Otimização automática de imagens e thumbnails
-
-### 📊 **PROGRESSO ATUAL: 99%** (16 de 16 funcionalidades completas + Segurança institucional rigorosa + Testes automatizados 153 + Dark mode 100% + Sistema de Relatórios 100% + Controle de Chat 100% + Sistema de Notificações 100% + Dados de Produção 100% + **Sistema de Cores Padronizado 100%** + **Build Production-Ready 100%** + **Correção Turnos Múltiplos 100%** + **Proteções de Segurança 100%** + **Alteração de Email Segura 100%** + **UI Dark Mode Aprimorada 100%** + **Correções no Chat 100%** + **Sistema de Navegação Otimizado 100%**)
-
-**✅ Funcionalidades Implementadas**: 16 sistemas 100% operacionais + Políticas segurança CPTEC/INPE + Testes automatizados + Dark mode completo + Sistema de Relatórios + Controle de Chat + Sistema de Notificações + Dados de Produção + **Sistema de Cores Centralizado** + **Build Limpo** + **Proteções de Auto-Modificação** + **Alteração de Email Segura** + **Validação de Domínio Consistente** + **UI Dark Mode Aprimorada** + **Correções no Chat** + **Navegação Client-Side Otimizada**  
-**✅ Fase Atual**: **Sistema de Navegação Otimizado COMPLETAMENTE FINALIZADO - Recarregamentos Eliminados**  
-**🔴 BLOQUEADORES CRÍTICOS PARA PRODUÇÃO**: Testes manuais rigorosos + Migração de infraestrutura (Neon → PostgreSQL local)  
-**📈 Estimativa Conclusão**: Sistema 100% production-ready para CPTEC/INPE após migração de infraestrutura
-
-### 🎯 **ROADMAP ATUALIZADO**
-
-**FASE ATUAL: SISTEMA DE NAVEGAÇÃO OTIMIZADO** 🚀  
-Correções de navegação client-side e eliminação de recarregamentos para experiência de usuário fluida.
-
-**PRÓXIMA FASE: TESTES MANUAIS RIGOROSOS** 🔍  
-Validação manual de todas as funcionalidades em ambiente real antes do deploy.
-
-**FASE SEGUINTE: MIGRAÇÃO DE INFRAESTRUTURA** 🏗️  
-Migração de Neon → PostgreSQL local + Servidor local do CPTEC/INPE.
-
-**FASE DE PRODUÇÃO: IMPLEMENTAÇÃO NO CPTEC/INPE** 🚀  
-Deploy em ambiente de produção do CPTEC com infraestrutura local e dados reais da equipe.
-
-**FASE FINAL: SISTEMAS AUTOMÁTICOS** 🤖  
-Implementação de coleta automática de dados e relatórios automáticos para tornar o sistema completamente autônomo.
-
-### 📋 **RESUMO EXECUTIVO DO ESTADO ATUAL**
-
-**🎯 SISTEMA SILO - STATUS ATUALIZADO**:
-
-✅ **DESENVOLVIMENTO**: **99% COMPLETO**  
-✅ **FUNCIONALIDADES**: **16 sistemas principais 100% operacionais**  
-✅ **QUALIDADE**: **153 testes automatizados implementados**  
-✅ **BUILD**: **83 páginas compiladas, zero erros TypeScript/ESLint**  
-✅ **ARQUITETURA**: **Sistema de cores padronizado, problemas críticos resolvidos**  
-✅ **SEGURANÇA**: **Proteções de auto-modificação e alteração de email segura implementadas**  
-✅ **UI/UX**: **Dark mode aprimorado e correções no chat implementadas**  
-✅ **NAVEGAÇÃO**: **Sistema de navegação otimizado com client-side routing implementado**  
-🔴 **BLOQUEADOR**: **Migração de infraestrutura para ambiente CPTEC/INPE**
-
-**PRÓXIMO MARCO**: Migração completa para infraestrutura local (PostgreSQL) e deploy em produção no CPTEC/INPE.
-
-**✅ PROTEÇÕES DE SEGURANÇA IMPLEMENTADAS**: Sistema completo de proteções contra auto-modificação, fluxo seguro de alteração de email com OTP e validação consistente de domínio @inpe.br em todo o sistema.
-
-**✅ ALTERAÇÃO DE EMAIL SEGURA IMPLEMENTADA**: Fluxo de 2 etapas com verificação OTP enviado para o novo email, garantindo segurança máxima na alteração de credenciais.
-
-**✅ CONTEXTO DE USUÁRIO IMPLEMENTADO**: Sistema centralizado de gerenciamento de dados do usuário com atualizações em tempo real sem reload da página.
-
-**✅ DADOS REAIS IMPLEMENTADOS**: Substituição completa de dados simulados por dados reais do banco de dados em relatórios e métricas.
-
-**✅ UI DARK MODE APRIMORADA**: Padronização completa da interface com paleta zinc unificada, remoção de tons azulados inconsistentes e melhoria de contraste para acessibilidade.
-
-**✅ CORREÇÕES NO CHAT**: Melhorias na interface e funcionalidade do sistema de chat WhatsApp-like para experiência do usuário otimizada.
-
-**✅ SISTEMA DE NAVEGAÇÃO OTIMIZADO**: Correção completa de navegação client-side com substituição de `<a href>` por `Link` do Next.js, eliminando recarregamentos e garantindo tema persistente durante navegação.
+| Domínio | Método | Rota | Descrição |
+| --- | --- | --- | --- |
+| **Auth** | POST | /api/auth/register | Registro de usuários |
+| **Auth** | POST | /api/auth/login | Login com senha |
+| **Auth** | POST | /api/auth/login-email | Login apenas com email (OTP) |
+| **Auth** | POST | /api/auth/forget-password | Recuperação de senha |
+| **Auth** | GET/POST | /api/auth/callback/google | Google OAuth callback |
+| **Auth** | POST | /api/auth/verify-code | Verificação de códigos OTP |
+| **User** | GET/PUT | /api/(user)/user-profile | Perfil do usuário |
+| **User** | GET/PUT | /api/(user)/user-preferences | Preferências do usuário |
+| **User** | PUT | /api/(user)/user-password | Alteração de senha |
+| **User** | POST/PUT | /api/(user)/user-email-change | Alteração de email (OTP) |
+| **User** | POST | /api/(user)/user-profile-image | Upload de imagem de perfil |
+| **Admin** | CRUD | /api/admin/users | Usuários |
+| **Admin** | CRUD | /api/admin/groups | Grupos |
+| **Admin** | CRUD | /api/admin/products | Produtos |
+| **Admin** | CRUD | /api/admin/projects | Projetos |
+| **Admin** | CRUD | /api/admin/contacts | Contatos |
+| **Admin** | GET/POST | /api/admin/reports/availability | Relatório de disponibilidade |
+| **Admin** | GET/POST | /api/admin/reports/problems | Relatório de problemas |
+| **Admin** | GET/POST | /api/admin/dashboard/* | APIs de dashboard |
+| **Admin** | GET/POST | /api/admin/chat/* | APIs de chat |
+| **Upload** | POST | /api/upload | Proxy para FileServer |
+| **FileServer** | POST | /api/upload | Upload genérico |
+| **FileServer** | POST | /upload/avatar | Upload de avatar (thumbnail) |
+| **FileServer** | POST | /upload/contact | Upload de contato |
+| **FileServer** | POST | /upload/problem | Upload múltiplo de problemas |
+| **FileServer** | POST | /upload/solution | Upload múltiplo de soluções |
+| **FileServer** | GET/DELETE | /files/:type/:filename | Acesso/remoção de arquivos |
+| **FileServer** | GET | /health | Health check |
 
 ---
 
-## 📁 **ESTRUTURA DE DIRETÓRIOS ATUALIZADA**
+## 🗂️ Servidor de Arquivos Local
 
-### 🏗️ **ARQUITETURA DO PROJETO**
+### Status
 
-```
-silo-frontend/
-├── 📁 src/
-│   ├── 📁 app/                          # Next.js App Router
-│   │   ├── 📁 (auth)/                   # Rotas de autenticação
-│   │   │   ├── login/                   # Login com email/senha
-│   │   │   ├── login-email/             # Login apenas com email
-│   │   │   ├── register/                # Cadastro de usuários
-│   │   │   ├── forget-password/         # Recuperação de senha
-│   │   │   └── logout/                  # Logout do sistema
-│   │   ├── 📁 admin/                     # Área administrativa
-│   │   │   ├── dashboard/               # Dashboard principal
-│   │   │   ├── groups/                  # Gestão de grupos e usuários
-│   │   │   │   └── users/               # Lista e edição de usuários
-│   │   │   ├── products/                # Gestão de produtos meteorológicos
-│   │   │   │   └── [slug]/              # Página individual do produto
-│   │   │   │       ├── problems/         # Problemas do produto
-│   │   │   │       └── solutions/        # Soluções do produto
-│   │   │   ├── projects/                # Gestão de projetos
-│   │   │   │   └── [projectId]/        # Projeto específico
-│   │   │   │       └── activities/       # Atividades do projeto
-│   │   │   │           └── [activityId]/ # Atividade específica
-│   │   │   ├── contacts/                # Gestão de contatos
-│   │   │   ├── chat/                    # Sistema de chat WhatsApp-like
-│   │   │   ├── help/                    # Sistema de ajuda e documentação
-│   │   │   ├── reports/                 # Relatórios avançados
-│   │   │   │   └── [id]/                # Relatório específico
-│   │   │   ├── settings/                # Configurações do usuário
-│   │   │   └── welcome/                 # Página de boas-vindas
-│   │   ├── 📁 api/                       # APIs do sistema
-│   │   │   ├── 📁 auth/                  # APIs de autenticação
-│   │   │   │   ├── register/             # Cadastro de usuários
-│   │   │   │   ├── login/                # Login com senha
-│   │   │   │   ├── login-email/          # Login apenas com email
-│   │   │   │   ├── forget-password/      # Recuperação de senha
-│   │   │   │   ├── callback/google/      # OAuth Google
-│   │   │   │   ├── verify-code/         # Verificação de códigos OTP
-│   │   │   │   └── send-password/       # Envio de nova senha
-│   │   │   ├── 📁 admin/                 # APIs administrativas
-│   │   │   │   ├── users/                # CRUD de usuários
-│   │   │   │   ├── groups/               # CRUD de grupos
-│   │   │   │   ├── products/             # CRUD de produtos
-│   │   │   │   ├── projects/             # CRUD de projetos
-│   │   │   │   ├── contacts/             # CRUD de contatos
-│   │   │   │   ├── chat/                 # APIs do sistema de chat
-│   │   │   │   ├── reports/              # APIs de relatórios
-│   │   │   │   └── dashboard/            # APIs do dashboard
-│   │   │   ├── 📁 (user)/                # APIs do usuário
-│   │   │   │   ├── user-profile/         # Perfil do usuário
-│   │   │   │   ├── user-preferences/    # Preferências do usuário
-│   │   │   │   ├── user-email-change/    # Alteração de email (NOVO)
-│   │   │   │   ├── user-password/        # Alteração de senha
-│   │   │   │   └── user-profile-image/   # Upload de imagem
-│   │   │   └── upload/                   # Proxy para upload de arquivos
-│   │   └── 📁 (site)/                    # Página inicial pública
-│   ├── 📁 components/                     # Componentes React
-│   │   ├── 📁 admin/                      # Componentes administrativos
-│   │   │   ├── 📁 dashboard/              # Componentes do dashboard
-│   │   │   ├── 📁 groups/                 # Componentes de grupos
-│   │   │   ├── 📁 products/                # Componentes de produtos
-│   │   │   ├── 📁 projects/                # Componentes de projetos
-│   │   │   ├── 📁 contacts/                # Componentes de contatos
-│   │   │   ├── 📁 chat/                    # Componentes do chat
-│   │   │   ├── 📁 help/                    # Componentes de ajuda
-│   │   │   ├── 📁 reports/                 # Componentes de relatórios
-│   │   │   ├── 📁 settings/                # Componentes de configurações
-│   │   │   ├── 📁 sidebar/                 # Barra lateral
-│   │   │   └── 📁 topbar/                  # Barra superior
-│   │   ├── 📁 auth/                        # Componentes de autenticação
-│   │   └── 📁 ui/                          # Componentes de interface
-│   │       ├── Pin.tsx                     # Input de código OTP (NOVO)
-│   │       ├── PhotoUploadLocal.tsx        # Upload de fotos local
-│   │       └── ...                         # Outros componentes UI
-│   ├── 📁 context/                         # Contextos React
-│   │   ├── UserContext.tsx                 # Contexto do usuário (NOVO)
-│   │   ├── ChatContext.tsx                 # Contexto do chat
-│   │   └── SidebarContext.tsx              # Contexto da sidebar
-│   ├── 📁 hooks/                           # Hooks customizados
-│   │   ├── useCurrentUser.ts               # Hook do usuário atual (NOVO)
-│   │   └── useChatPolling.ts               # Hook de polling do chat
-│   ├── 📁 lib/                             # Bibliotecas e utilitários
-│   │   ├── 📁 auth/                        # Autenticação e segurança
-│   │   │   ├── validate.ts                 # Validações (inclui @inpe.br)
-│   │   │   ├── code.ts                     # Geração de códigos OTP
-│   │   │   ├── hash.ts                     # Hash de senhas
-│   │   │   ├── token.ts                    # Tokens JWT
-│   │   │   ├── session.ts                  # Sessões
-│   │   │   ├── oauth.ts                    # OAuth Google
-│   │   │   └── user-groups.ts              # Grupos de usuários
-│   │   ├── 📁 db/                          # Banco de dados
-│   │   │   ├── index.ts                    # Conexão principal
-│   │   │   ├── schema.ts                   # Schema Drizzle
-│   │   │   ├── seed.ts                     # Dados iniciais
-│   │   │   └── migrations/                 # Migrações
-│   │   ├── constants.ts                     # Constantes do sistema
-│   │   ├── dateConfig.ts                   # Configuração de datas
-│   │   ├── dateUtils.ts                     # Utilitários de data
-│   │   ├── productStatus.ts                # Status de produtos
-│   │   ├── profileImage.ts                 # Imagens de perfil
-│   │   ├── rateLimit.ts                    # Limitação de taxa
-│   │   ├── sendEmail.ts                    # Envio de emails
-│   │   ├── theme.ts                        # Tema dark/light
-│   │   ├── toast.ts                        # Notificações
-│   │   └── utils.ts                        # Utilitários gerais
-│   └── 📁 types/                           # Tipos TypeScript
-│       └── projects.ts                     # Tipos de projetos
-├── 📁 fileserver/                          # Servidor de arquivos local
-│   ├── 📁 src/
-│   │   └── server.js                       # Servidor Express + Multer
-│   ├── 📁 uploads/                         # Arquivos organizados
-│   │   ├── avatars/                        # Avatars com thumbnails
-│   │   ├── contacts/                       # Fotos de contatos
-│   │   ├── problems/                       # Imagens de problemas
-│   │   ├── solutions/                      # Imagens de soluções
-│   │   ├── general/                        # Uploads genéricos
-│   │   └── temp/                           # Arquivos temporários
-│   ├── package.json                        # Dependências do servidor
-│   └── README.md                           # Documentação do servidor
-├── 📁 tests/                               # Testes automatizados
-│   ├── 📁 fixtures/                         # Dados de teste
-│   ├── 📁 utils/                           # Utilitários de teste
-│   ├── 01-authentication.spec.ts           # Testes de autenticação
-│   ├── 02a-dashboard-basic.spec.ts         # Testes básicos do dashboard
-│   ├── 02b-dashboard-charts.spec.ts        # Testes de gráficos
-│   ├── 03a-products-crud.spec.ts          # Testes de produtos
-│   ├── 04a-contacts-crud.spec.ts          # Testes de contatos
-│   ├── 05a-groups-basic.spec.ts           # Testes de grupos
-│   ├── 06a-chat-basic.spec.ts             # Testes de chat
-│   ├── 07a-projects-basic.spec.ts         # Testes de projetos
-│   ├── 08a-settings-profile.spec.ts      # Testes de configurações
-│   ├── 09a-help-basic.spec.ts             # Testes de ajuda
-│   └── 10a-integration-navigation.spec.ts # Testes de integração
-├── 📁 drizzle/                             # Migrações do banco
-├── 📁 public/                              # Arquivos estáticos
-│   └── 📁 images/                          # Imagens do sistema
-├── 📁 test-results/                         # Resultados dos testes
-├── 📁 playwright-report/                   # Relatórios Playwright
-├── docker-compose.yml                      # Orquestração Docker
-├── Dockerfile                              # Container Next.js
-├── drizzle.config.ts                       # Configuração Drizzle
-├── next.config.ts                          # Configuração Next.js
-├── package.json                            # Dependências principais
-├── playwright.config.ts                     # Configuração Playwright
-├── tsconfig.json                           # Configuração TypeScript
-└── README.md                               # Documentação principal
-```
+✅ **COMPLETAMENTE IMPLEMENTADO E FUNCIONAL EM TYPESCRIPT**
 
-### 🔧 **ARQUIVOS PRINCIPAIS IMPLEMENTADOS RECENTEMENTE**
+O SILO utiliza um servidor de arquivos local Node.js que oferece controle total sobre os dados e conformidade com requisitos de segurança institucional do CPTEC/INPE.
 
-#### **🔒 Segurança e Proteções**
-- `src/app/api/(user)/user-email-change/route.ts` - **NOVO**: Alteração segura de email com OTP
-- `src/lib/auth/code.ts` - **ATUALIZADO**: Função `generateEmailChangeCode` para alteração de email
-- `src/app/api/admin/users/route.ts` - **ATUALIZADO**: Proteções contra auto-modificação
-- `src/components/admin/users/UserFormOffcanvas.tsx` - **ATUALIZADO**: Proteções frontend
-- `src/components/admin/groups/GroupFormOffcanvas.tsx` - **ATUALIZADO**: Proteção grupo Administradores
-
-#### **🔄 Contexto e Hooks**
-- `src/context/UserContext.tsx` - **NOVO**: Contexto global do usuário
-- `src/hooks/useCurrentUser.ts` - **NOVO**: Hook otimizado para usuário atual
-- `src/app/admin/settings/page.tsx` - **ATUALIZADO**: Integração com contexto
-- `src/app/admin/welcome/page.tsx` - **ATUALIZADO**: Uso do hook otimizado
-
-#### **🎨 Interface e Componentes**
-- `src/components/ui/Pin.tsx` - **ATUALIZADO**: Prop `compact` para layout otimizado
-- `src/components/ui/PhotoUploadLocal.tsx` - **ATUALIZADO**: Integração com contexto
-
-#### **📊 Dados Reais**
-- `src/app/api/admin/reports/availability/route.ts` - **ATUALIZADO**: Dados reais de disponibilidade
-- `src/app/api/admin/reports/problems/route.ts` - **ATUALIZADO**: Dados reais de problemas
-
----
-
-## 🗂️ SERVIDOR DE ARQUIVOS LOCAL
-
-### 🚀 **COMO USAR O SERVIDOR DE ARQUIVOS**
-
-O SILO agora utiliza um servidor de arquivos local Node.js que oferece controle total sobre os dados e conformidade com requisitos de segurança institucional do CPTEC/INPE.
-
-### 📋 **ESTRUTURA DO SERVIDOR**
+### Estrutura do Servidor
 
 ```
 fileserver/                    # Servidor de arquivos independente
 ├── src/
-│   └── server.js             # Servidor principal Express + Multer + Sharp
+│   ├── server.ts              # Servidor principal Express + Multer + Sharp
+│   ├── config.ts              # Configuração centralizada
+│   ├── handlers.ts            # Handlers de rotas
+│   ├── fileHandlers.ts        # Lógica de processamento de arquivos
+│   ├── multerConfig.ts        # Configuração Multer
+│   └── utils.ts               # Utilitários
 ├── uploads/                   # Arquivos organizados por tipo
-│   ├── avatars/              # Avatars com thumbnails automáticos
-│   ├── contacts/             # Fotos de contatos
-│   ├── problems/             # Imagens de problemas
-│   ├── solutions/            # Imagens de soluções
-│   ├── general/              # Uploads genéricos
-│   └── temp/                 # Arquivos temporários (limpeza automática)
-├── package.json              # Dependências independentes
-├── .env                      # Configurações do servidor
-└── README.md                 # Documentação do servidor
+│   ├── avatars/               # Avatars com thumbnails automáticos
+│   ├── contacts/              # Fotos de contatos
+│   ├── problems/              # Imagens de problemas
+│   ├── solutions/             # Imagens de soluções
+│   ├── general/               # Uploads genéricos
+│   └── temp/                  # Arquivos temporários (limpeza automática)
+├── package.json               # Dependências independentes
+└── README.md                  # Documentação do servidor
 ```
 
-### 🔧 **COMANDOS DE EXECUÇÃO**
+### Comandos de Execução
 
-#### **⚡ Início Rápido (Desenvolvimento)**
+#### Desenvolvimento e Produção
 
 ```bash
-# 1. Instalar dependências do servidor (primeira vez)
+# Instalar dependências (primeira vez)
 cd fileserver
 npm install
 
-# 2. Executar servidor de arquivos
+# Executar servidor
 npm run dev
 
-# 3. Em outro terminal, executar o frontend SILO
-cd ..
-npm run dev
+# O servidor rodará em http://localhost:4000
+# Use Ctrl+C para parar o servidor
 ```
 
-**✅ Pronto!** Sistema completo rodando:
+### Endpoints Disponíveis
 
-- **Frontend**: `http://localhost:3000`
-- **Servidor de Arquivos**: `http://localhost:4000`
+| Método | Endpoint | Descrição | Limites |
+| --- | --- | --- | --- |
+| POST | /api/upload | Upload genérico | 1 arquivo, 4MB |
+| POST | /upload/avatar | Avatar com thumbnail | 1 arquivo, 2MB |
+| POST | /upload/contact | Foto de contato | 1 arquivo, 4MB |
+| POST | /upload/problem | Imagens de problemas | 3 arquivos, 4MB cada |
+| POST | /upload/solution | Imagens de soluções | 3 arquivos, 4MB cada |
+| GET | /files/:type/:filename | Acessar arquivo | - |
+| DELETE | /files/:type/:filename | Deletar arquivo | - |
+| GET | /health | Health check | - |
 
-#### **🚀 Produção**
+### Otimização Automática
 
-```bash
-# Instalar PM2 globalmente (primeira vez)
-npm install -g pm2
-
-# Executar servidor com PM2
-cd fileserver
-npm run pm2
-
-# Comandos de gerenciamento
-pm2 status silo-fileserver          # Ver status
-pm2 logs silo-fileserver            # Ver logs
-pm2 restart silo-fileserver         # Reiniciar
-pm2 stop silo-fileserver            # Parar
-
-# Configurar para iniciar com sistema
-pm2 startup
-pm2 save
-```
-
-#### **📋 Scripts Disponíveis**
-
-| Script              | Comando       | Descrição                |
-| ------------------- | ------------- | ------------------------ |
-| **Desenvolvimento** | `npm run dev` | Servidor com auto-reload |
-| **Produção**        | `npm start`   | Execução direta          |
-| **PM2**             | `npm run pm2` | Executar com PM2         |
-
-### 🌐 **ENDPOINTS DISPONÍVEIS**
-
-| Método   | Endpoint                 | Descrição            | Limites              |
-| -------- | ------------------------ | -------------------- | -------------------- |
-| `POST`   | `/api/upload`            | Upload genérico      | 1 arquivo, 4MB       |
-| `POST`   | `/upload/avatar`         | Avatar com thumbnail | 1 arquivo, 2MB       |
-| `POST`   | `/upload/contact`        | Foto de contato      | 1 arquivo, 4MB       |
-| `POST`   | `/upload/problem`        | Imagens de problemas | 3 arquivos, 4MB cada |
-| `POST`   | `/upload/solution`       | Imagens de soluções  | 3 arquivos, 4MB cada |
-| `GET`    | `/files/:type/:filename` | Acessar arquivo      | -                    |
-| `DELETE` | `/files/:type/:filename` | Deletar arquivo      | -                    |
-| `GET`    | `/health`                | Health check         | -                    |
-
-### 🖼️ **OTIMIZAÇÃO AUTOMÁTICA**
-
-- **Conversão WebP**: Todas as imagens são convertidas para WebP (redução ~30-50% do tamanho)
+- **Conversão WebP**: Todas as imagens convertidas para WebP (redução ~30-50% do tamanho)
 - **Redimensionamento**: Imagens redimensionadas automaticamente (máx 1920x1080)
 - **Thumbnails**: Avatars recebem thumbnails automáticos (128x128 WebP)
 - **Rotação EXIF**: Rotação automática baseada em metadados EXIF
 - **Substituição**: Imagens otimizadas substituem originais (não duplica arquivos)
 
-### 🔒 **SEGURANÇA E VALIDAÇÃO**
+### Segurança e Validação
 
 - **Validação de Tipo**: Verificação robusta com magic numbers + MIME types
 - **Limites de Tamanho**: Máximo 4MB por arquivo
@@ -1364,48 +866,11 @@ pm2 save
 - **CORS**: Configurado para domínio específico
 - **Limpeza Automática**: Remoção de arquivos temporários a cada hora
 
-### 📊 **MONITORAMENTO E VERIFICAÇÃO**
+### Configuração Centralizada
 
-#### **🔍 Verificar Status do Sistema**
-
-```bash
-# 1. Health check do servidor de arquivos
-curl http://localhost:4000/health
-
-# 2. Verificar se frontend está rodando
-curl http://localhost:3000
-
-# 3. Verificar arquivos salvos
-ls fileserver/uploads/avatars/
-ls fileserver/uploads/contacts/
-ls fileserver/uploads/problems/
-ls fileserver/uploads/solutions/
-ls fileserver/uploads/general/
-
-# 4. Verificar imagens otimizadas
-ls fileserver/uploads/*/*.webp
-ls fileserver/uploads/avatars/thumb-*.webp
-```
-
-#### **🧪 Testes Rápidos**
-
-```bash
-# Testar upload via proxy Next.js
-curl -X POST -F "file=@test.jpg" http://localhost:3000/api/upload
-
-# Testar upload direto no servidor
-curl -X POST -F "file=@test.jpg" http://localhost:4000/api/upload
-
-# Testar upload de avatar (com thumbnail)
-curl -X POST -F "file=@avatar.jpg" http://localhost:4000/upload/avatar
-```
-
-### ⚙️ **CONFIGURAÇÃO**
-
-**Configuração Centralizada (`fileserver/src/config.ts`)**:
+Arquivo `fileserver/src/config.ts`:
 
 ```typescript
-// Configuração centralizada - não precisa de arquivo .env
 export const config = {
   port: 4000,
   fileServerUrl: 'http://localhost:4000',
@@ -1424,9 +889,7 @@ export const config = {
 }
 ```
 
-**📝 Para alterar configurações**: Edite diretamente o arquivo `fileserver/src/config.ts` e reinicie o servidor.
-
-### 🎯 **BENEFÍCIOS DA MIGRAÇÃO**
+### Benefícios
 
 - ✅ **Segurança Institucional**: Controle total sobre dados e arquivos
 - ✅ **Conformidade CPTEC/INPE**: Atende requisitos de segurança institucional
@@ -1438,9 +901,235 @@ export const config = {
 
 ---
 
-## 🚨 **PADRÃO DE LOGS**
+## 🔐 Segurança
 
-### 📋 **Padrão Estabelecido**
+### Política Institucional CPTEC/INPE
+
+#### Validação de Domínio @inpe.br
+
+**Função Centralizada** (`src/lib/auth/validate.ts`):
+```typescript
+export function isValidDomain(email: string): boolean {
+    const lowerEmail = email.toLowerCase().trim()
+    return lowerEmail.endsWith('@inpe.br')
+}
+```
+
+**Endpoints Protegidos**:
+- ✅ Registro (`/api/auth/register`)
+- ✅ Login por email (`/api/auth/login-email`)
+- ✅ Recuperação de senha (`/api/auth/forget-password`)
+- ✅ Login Google (`/api/auth/callback/google`)
+- ✅ Alteração de email (`/api/user-email-change`)
+
+#### Sistema de Ativação Obrigatória
+
+- Novos usuários criados como **inativos** (`isActive: false`) por padrão
+- Ativação exclusiva por administrador
+- Verificação de ativação em **todos** os fluxos de autenticação
+- Interface administrativa com toggle direto na lista de usuários
+- Mensagens contextuais: "Sua conta ainda não foi ativada por um administrador"
+
+#### Proteções de Auto-Modificação
+
+**Proteção Frontend**:
+- Botões de desativar/excluir desabilitados para usuário atual
+- Campos nome/email desabilitados no próprio perfil via admin
+- Switches de status desabilitados
+- Usuário não pode se remover do grupo Administradores
+- Toasts informativos para ações não permitidas
+
+**Proteção Backend** (`/api/admin/users`):
+- ❌ Alterar próprio nome
+- ❌ Alterar próprio email
+- ❌ Desativar própria conta
+- ❌ Desmarcar próprio email como não verificado
+- ❌ Remover-se do grupo Administradores
+
+#### Alteração Segura de Email
+
+**Fluxo de 2 Etapas**:
+1. **Solicitação**: Usuário informa novo email → OTP enviado para novo email
+2. **Confirmação**: Usuário informa código OTP → Email alterado e verificado
+
+**Segurança**:
+- Validação de formato e domínio @inpe.br
+- Verificação de email não duplicado
+- Código OTP com expiração
+- Validação de IP e rate limiting
+- UI padronizada com componente Pin
+
+#### Sistema de Contexto de Usuário
+
+**UserContext Implementado**:
+- Estado global: `user`, `userProfile`, `userPreferences` centralizados
+- Atualizações em tempo real sem reload da página
+- Hooks especializados: `useUser()`, `useUserProfile()`, `useUserPreferences()`
+- Integração com `useCurrentUser` otimizado
+
+#### Outras Medidas de Segurança
+
+- Rate limiting em endpoints críticos
+- Logs padronizados em todas as operações
+- Try/catch obrigatório em todas as APIs
+- Validação de entrada em todas as camadas
+- Secrets e variáveis de ambiente obrigatórias
+
+---
+
+## ⚙️ Performance e Otimizações
+
+### Navegação Client-side
+
+- Uso consistente de `Link` do Next.js para navegação fluida
+- Preservação de estado e tema sem recarregar a página
+- Redução de chamadas API redundantes
+
+### Sistema de Cores Padronizado
+
+**Problema Resolvido**:
+- Inconsistências de tonalidades entre componentes
+- Diferentes variantes causavam experiência visual não uniforme
+- Status de produtos com cores e prioridades desorganizadas
+
+**Sistema Centralizado** (`src/lib/productStatus.ts`):
+
+```typescript
+export const getStatusClasses = (
+  color: StatusColor, 
+  variant: 'timeline' | 'calendar' | 'stats' = 'timeline'
+): string => {
+  // Tonalidades baseadas na barra de 28 dias como referência
+  switch (color) {
+    case 'orange': return variant === 'timeline' ? 'bg-orange-500 text-white' : 'bg-orange-500'
+    // ... todas as cores seguem o mesmo padrão
+  }
+}
+
+// Prioridade de status (menor número = mais crítico)
+export const STATUS_SEVERITY_ORDER: Record<ProductStatus, number> = {
+  with_problems: 1,   // Red - mais crítico
+  run_again: 2,       // Orange
+  not_run: 3,         // Yellow
+  under_support: 4,   // Violet
+  suspended: 5,       // Blue
+  in_progress: 6,     // Gray
+  pending: 7,         // Transparent
+  completed: 8,       // Green - só se todos concluídos
+}
+```
+
+**Componentes Padronizados**:
+- ProductTurn, ProductTimeline, ProductCalendar
+- Product (legenda), Stats, Dashboard
+- ReportCard, ReportChart, ReportFilters
+- Button, Switch, Textarea, Modal
+
+**Impacto**:
+- Experiência visual consistente
+- Hierarquia clara alinhada com criticidade
+- Mudanças de cor centralizadas em um único arquivo
+
+### Sistema de Rolagem no Chat
+
+**Controle Manual Implementado**:
+- ✅ Rolagem automática **removida** - usuário tem controle total
+- ✅ Botão fixo "Ir para o fim" no canto inferior direito
+- ✅ Aparece apenas quando não está no fim (≤5px)
+- ✅ `scrollToBottom()` chamada apenas quando usuário clica no botão
+
+**Funções Principais** (`src/components/admin/chat/MessagesList.tsx`):
+
+```typescript
+// Rola para o final da conversa
+const scrollToBottom = (): void => {
+  if (messagesEndRef.current) {
+    messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }
+}
+
+// Verifica se está totalmente no fim (para controlar botão)
+const isUserTotallyAtBottom = (): boolean => {
+  if (!messagesContainerRef.current) return false
+  const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
+  const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+  return distanceFromBottom <= 5
+}
+```
+
+### Kanban com Dark Mode
+
+**Implementação Completa**:
+- KanbanBoard 100% adaptado para tema escuro
+- Colunas tematizadas: stone-50→stone-900, blue-50→blue-950, red-50→red-950, amber-50→amber-950, emerald-50→emerald-950
+- Cards: bg-white→dark:bg-zinc-800, border-gray-200→dark:border-zinc-700
+- Texto: text-gray-900→dark:text-gray-100, text-gray-600→dark:text-gray-400
+- Transições suaves entre light/dark sem quebrar funcionalidade
+
+### Regras de Múltiplos Turnos
+
+**Dashboard com Múltiplos Turnos por Dia**:
+
+```typescript
+const lastDaysStatus = lastDates.flatMap((date) => {
+  const dayData = p.dates.filter((d) => d.date === date)
+  if (dayData.length === 0) {
+    return [{ date, turn: 0, user_id: '', status: DEFAULT_STATUS, description: null, category_id: null, alert: false }]
+  }
+  return dayData
+})
+```
+
+**Boas Práticas**:
+- Use `filter()` para coleções com múltiplas ocorrências
+- Evite `find()` quando existir mais de um item por chave
+
+### Otimização de Dados
+
+- **Dados Reais**: Substituição de dados simulados por dados reais do banco
+- **Relatórios**: Cálculo real baseado em atividades e métricas
+- **Dashboard**: Estatísticas e gráficos com dados de produção
+- **APIs Otimizadas**: Redução de chamadas redundantes
+
+---
+
+## 📝 Padrões de Desenvolvimento
+
+### Imports e Estrutura
+
+- **SEMPRE** usar alias `@/` para imports internos: `import { sendEmail } from '@/lib/sendEmail'`
+- **NUNCA** usar caminhos relativos para módulos internos
+- **SEMPRE** centralizar configurações em `src/lib/config.ts`
+- **SEMPRE** centralizar schemas em `src/lib/db/schema.ts`
+
+### Error Handling e Retornos
+
+- **SEMPRE** usar `try/catch` com logs padronizados
+- **SEMPRE** retornar `{ success: boolean, error?: string }` em APIs
+- Tipos explícitos em todas as funções exportadas
+- **NUNCA** usar `any` - TypeScript strict mode
+
+### Qualidade e Tipagem
+
+- TypeScript em modo **strict** em todo o projeto
+- Sem variáveis/imports não utilizados
+- Mantenha o lint limpo (zero warnings/errors)
+- Nome de funções em **inglês**, comentários em **português brasileiro**
+
+### Datas e Timezone
+
+- **SEMPRE** usar timezone de São Paulo (America/Sao_Paulo)
+- Configurar corretamente em cálculos e exibição
+
+### URLs e Configuração
+
+- **NUNCA** hardcode `localhost` em produção
+- **SEMPRE** usar `src/lib/config.ts` para URLs
+- Validar `FILE_SERVER_URL` e `NEXTAUTH_URL` em produção
+
+### Padrão de Logs
+
+**Emojis Padronizados**:
 
 ```typescript
 // ❌ Erro (console.error)
@@ -1453,370 +1142,334 @@ console.warn('⚠️ [CONTEXTO] Descrição do aviso', { detalhes })
 console.log('ℹ️ [CONTEXTO] Descrição', { detalhes })
 ```
 
-### 📝 **Regras de Padronização**
+**Regras**:
+- Contexto: entre `[]` em MAIÚSCULAS, sem acentos
+- Exemplos: `[API_CHAT]`, `[HOOK_USERS]`, `[COMPONENT_KANBAN]`, `[PAGE_PROJECTS]`
+- Detalhes: sempre usar objeto `{ detalhes }` para informações estruturadas
 
-- **Contexto**: Entre `[]` em MAIÚSCULAS, sem acentos, espaços substituídos por `_`
-- **Exemplos**: `[API_CHAT]`, `[HOOK_USERS]`, `[COMPONENT_KANBAN]`, `[PAGE_PROJECTS]`
-- **Detalhes**: Sempre usar objeto `{ detalhes }` para informações estruturadas
-- **Remover**: Logs de debug desnecessários, `useEffect` apenas com logs
-- **Manter**: Logs de erro críticos e informativos importantes
-
-### 🎯 **Critérios de Manutenção**
-
-**✅ Manter:**
+**O que Manter**:
 - ❌ Logs de erro em catch blocks
 - ❌ Logs de erros inesperados de API
-- ℹ️ Confirmações de ações críticas do usuário
+- ℹ️ Confirmações de ações críticas
 - ℹ️ Mudanças de estado críticas
 
-**❌ Remover:**
-- 🔵 Logs informativos de debug
-- ✅ Logs de sucesso redundantes
+**O que Remover**:
+- Logs de debug desnecessários
+- Logs de sucesso redundantes
 - Logs "Carregando...", "Dados recebidos"
-- useEffect apenas com logs de debug
-- Logs em `if (process.env.NODE_ENV === 'development')`
-
-### 📊 **Status da Padronização**
-
-**✅ PADRONIZAÇÃO MASSIVA CONCLUÍDA COM SUCESSO - FASE FINAL!**
-
-- **✅ Arquivos críticos 100% padronizados**: 200+ arquivos principais
-- **✅ Logs padronizados**: ~400+ logs críticos em componentes, páginas, hooks, contextos e APIs
-- **📊 Total de console statements**: 542 em 131 arquivos
-- **🎯 Foco**: Logs críticos de erro (❌), avisos (⚠️) e informativos (ℹ️) foram padronizados
-- **📁 Preservado**: `lib/db/seed.ts` (90 logs - scripts de desenvolvimento)
-- **⏭️ Pulado**: `useChatMessages.ts` (3 logs - conforme solicitado)
-
-**Categorias Completamente Padronizadas:**
-
-**🔐 Autenticação (100% padronizado):**
-- ✅ `src/app/(auth)/*` (todas as páginas de autenticação)
-- ✅ `src/app/api/auth/*` (todos os endpoints de autenticação)
-- ✅ `src/middleware.ts` (middleware de autenticação)
-
-**📁 Páginas Admin (100% padronizado):**
-- ✅ `src/app/admin/dashboard/page.tsx`
-- ✅ `src/app/admin/groups/page.tsx`
-- ✅ `src/app/admin/products/[slug]/page.tsx`
-- ✅ `src/app/admin/products/[slug]/problems/page.tsx`
-- ✅ `src/app/admin/projects/[projectId]/page.tsx`
-- ✅ `src/app/admin/settings/products/page.tsx`
-- ✅ `src/app/admin/welcome/page.tsx`
-- ✅ `src/app/admin/chat/layout.tsx`
-- ✅ `src/app/tests/test-menubuilder/page.tsx`
-
-**🔌 APIs Backend (100% padronizado):**
-- ✅ `src/app/api/(user)/*` (todas as APIs de usuário)
-- ✅ `src/app/api/admin/chat/*` (todas as APIs de chat)
-- ✅ `src/app/api/admin/dashboard/*` (todas as APIs de dashboard)
-- ✅ `src/app/api/admin/groups/*` (APIs de grupos)
-- ✅ `src/app/api/admin/help/*` (APIs de ajuda)
-- ✅ `src/app/api/admin/incidents/*` (APIs de incidentes)
-- ✅ `src/app/api/admin/products/*` (todas as APIs de produtos)
-- ✅ `src/app/api/admin/projects/*` (todas as APIs de projetos)
-- ✅ `src/app/api/admin/reports/*` (todas as APIs de relatórios)
-- ✅ `src/app/api/admin/tasks/*` (APIs de tarefas)
-- ✅ `src/app/api/admin/users/route.ts`
-- ✅ `src/app/api/auth/*` (todas as APIs de autenticação)
-- ✅ `src/app/api/upload/*` (APIs de upload)
-- ✅ `src/app/api/logout/route.ts`
-
-**🧩 Componentes (100% padronizado):**
-- ✅ `src/components/admin/contacts/*`
-- ✅ `src/components/admin/groups/*`
-- ✅ `src/components/admin/chat/*`
-- ✅ `src/components/admin/projects/*`
-- ✅ `src/components/admin/reports/*`
-- ✅ `src/components/admin/dashboard/*`
-- ✅ `src/components/admin/products/*`
-- ✅ `src/components/admin/sidebar/*`
-- ✅ `src/components/admin/topbar/*`
-- ✅ `src/components/admin/users/*`
-- ✅ `src/components/ui/*`
-
-**🔧 Libs e Contextos (100% padronizado):**
-- ✅ `src/context/ChatContext.tsx`
-- ✅ `src/context/UserContext.tsx`
-- ✅ `src/hooks/*` (todos os hooks)
-- ✅ `src/lib/sendEmail.ts`
-- ✅ `src/lib/email/sendEmailTemplate.ts`
-- ✅ `src/lib/taskHistory.ts`
-- ✅ `src/lib/auth/admin.ts`
-- ✅ `src/lib/db/activityStatusSync.ts`
-- ✅ `src/lib/profileImage.ts`
-
-**🧪 Arquivos de Teste (100% padronizado):**
-- ✅ `tests/01-authentication.spec.ts`
-- ✅ `tests/02a-dashboard-basic.spec.ts`
-- ✅ `tests/04b-contacts-upload.spec.ts`
-- ✅ `tests/04d-contacts-validations.spec.ts`
-- ✅ `tests/07b-projects-kanban.spec.ts`
-
-**📝 Arquivos com Logs Restantes (Não Críticos):**
-- 📁 `lib/db/seed.ts` (90 logs - scripts de desenvolvimento, mantidos intencionalmente)
-- 📁 `useChatMessages.ts` (3 logs - conforme solicitado pelo usuário)
-- `admin/chat/MessageInput.tsx` ✅
-- `admin/topbar/NotificationDropdown.tsx` ✅
-- `admin/topbar/TopbarDropdown.tsx` ✅
-- `admin/chat/ChatSidebar.tsx` ✅
-- `ui/PhotoUploadLocal.tsx` ✅
-- `admin/topbar/Topbar.tsx` ✅
-- `admin/sidebar/Sidebar.tsx` ✅
-- `admin/contacts/ContactFormOffcanvas.tsx` ✅
-- `admin/groups/GroupFormOffcanvas.tsx` ✅
-- `admin/reports/ReportCard.tsx` ✅
-- `admin/projects/ActivityMiniKanban.tsx` ✅
-- `admin/projects/ActivityFormOffcanvas.tsx` ✅
-- `admin/groups/UserSelectorOffcanvas.tsx` ✅
-- `admin/projects/ProjectMemberAssignOffcanvas.tsx` ✅
-- `admin/projects/ProjectActivitiesSection.tsx` ✅
-- `admin/groups/GroupUsersSection.tsx` ✅
-- `admin/products/ContactSelectorOffcanvas.tsx` ✅
-- `admin/users/UserDeleteDialog.tsx` ✅
-- `admin/groups/GroupDeleteDialog.tsx` ✅
-- `admin/projects/TaskFormOffcanvas.tsx` ✅
-- `admin/projects/ProjectFormOffcanvas.tsx` ✅
-- `admin/reports/ReportChart.tsx` ✅
-- `admin/ThemeInitializer.tsx` ✅
-- `admin/projects/ActivityDeleteDialog.tsx` ✅
-
-**Páginas Admin:**
-- `groups/users/page.tsx` ✅
-- `contacts/page.tsx` ✅
-- `settings/page.tsx` ✅
-- `products/[slug]/page.tsx` ✅
-- `projects/page.tsx` ✅
-- `groups/page.tsx` ✅
-- `projects/[projectId]/page.tsx` ✅
-- `chat/layout.tsx` ✅
-- `welcome/page.tsx` ✅
-- `chat/page.tsx` ✅
-- `settings/products/page.tsx` ✅
-- `projects/[projectId]/activities/[activityId]/page.tsx` ✅
-- `products/[slug]/problems/page.tsx` ✅
-
-**Hooks:**
-- `useChatPresence.ts` ✅
-- `useChatNotifications.ts` ✅
-- `useAdminCheck.ts` ✅
-
-**Contextos:**
-- `ChatContext.tsx` ✅
-- `UserContext.tsx` ✅
-
-**APIs Backend:**
-- `admin/chat/messages/route.ts` ✅
-- `admin/chat/unread-messages/route.ts` ✅
-- `admin/chat/sidebar/route.ts` ✅
-- `admin/chat/messages/count/route.ts` ✅
-- `admin/chat/messages/[messageId]/read/route.ts` ✅
-- `admin/chat/messages/read/route.ts` ✅
-- `admin/chat/presence/route.ts` ✅
-- `admin/chat/sync/route.ts` ✅
-- `admin/chat/status/route.ts` ✅
-- `admin/chat/messages/[messageId]/route.ts` ✅
-- `admin/products/solutions/summary/route.ts` ✅
-- `admin/products/solutions/count/route.ts` ✅
-- `admin/products/dependencies/reorder/route.ts` ✅
-- `admin/products/images/route.ts` ✅
-- `admin/products/solutions/images/route.ts` ✅
-- `admin/help/route.ts` ✅
-- `admin/users/route.ts` ✅
-- `admin/groups/route.ts` ✅
-- `admin/contacts/route.ts` ✅
-- `admin/projects/route.ts` ✅
-- `admin/products/route.ts` ✅
-- `admin/projects/[projectId]/activities/[activityId]/tasks/route.ts` ✅
-- `admin/products/solutions/route.ts` ✅
-- `admin/products/contacts/route.ts` ✅
-- `admin/products/manual/route.ts` ✅
-- `admin/projects/[projectId]/activities/route.ts` ✅
-- `admin/reports/problems/route.ts` ✅
-- `admin/reports/availability/route.ts` ✅
-- `admin/reports/executive/route.ts` ✅
-- `admin/reports/performance/route.ts` ✅
-- `admin/reports/projects/route.ts` ✅
-- `admin/tasks/[taskId]/users/route.ts` ✅
-- `admin/products/[productId]/history/route.ts` ✅
-- `admin/tasks/[taskId]/history/route.ts` ✅
-
-**Libs:**
-- `email/sendEmailTemplate.ts` ✅
-- `sendEmail.ts` ✅
-- `db/activityStatusSync.ts` ✅
-- `productActivityHistory.ts` ✅
-- `taskHistory.ts` ✅
-- `profileImage.ts` ✅
-- `auth/user-groups.ts` ✅
-- `auth/admin.ts` ✅
-
-**Middleware:**
-- `middleware.ts` ✅
+- `useEffect` apenas com logs de debug
 
 ---
 
-## 🐳 **DOCKER - CONTAINERIZAÇÃO**
+## 🐳 Docker e Containerização
 
-### 📋 **STATUS**: ✅ **SISTEMA DOCKER FUNCIONAL!**
+### Visão Geral
 
-**IMPLEMENTAÇÕES FINALIZADAS**:
+Docker é uma ferramenta que "empacota" aplicações em **containers** - ambientes isolados que funcionam da mesma forma em qualquer computador. Pense em containers como "caixas" que contêm tudo que a aplicação precisa para rodar.
 
-1. **Dockerfiles simplificados**: Build direto
-2. **Docker Compose minimalista**: Apenas configurações essenciais
-3. **Volumes locais**: Mapeamento direto para facilitar desenvolvimento
-4. **Dependências simples**: Next.js aguarda fileserver estar pronto
+**Vantagens**:
+- ✅ Funciona igual em qualquer máquina (desenvolvimento, teste, produção)
+- ✅ Não precisa instalar Node.js, PostgreSQL, etc. manualmente
+- ✅ Fácil de iniciar e parar o sistema completo
+- ✅ Isola a aplicação do resto do sistema
 
-### 🚀 **COMANDOS ESSENCIAIS**
+### Pré-requisitos
 
-#### **⚡ Início Rápido (Desenvolvimento)**
+Antes de começar, você precisa ter instalado:
+
+1. **Docker Desktop** (Windows/Mac) ou **Docker Engine** (Linux)
+   - Download: https://www.docker.com/products/docker-desktop
+   - Após instalar, verifique: `docker --version`
+
+2. **Docker Compose** (geralmente já vem com o Docker Desktop)
+   - Verifique: `docker-compose --version`
+
+### Como Funciona o SILO com Docker
+
+O SILO usa **2 containers**:
+
+1. **`nextapp`** (porta 3000) - Aplicação frontend Next.js
+2. **`fileserver`** (porta 4000) - Servidor de arquivos
+
+Os containers se comunicam automaticamente e compartilham arquivos quando necessário.
+
+### Opção 1: Desenvolvimento Local (SEM Docker)
+
+**Recomendado para desenvolvimento ativo do código**
 
 ```bash
-# 1. Instalar dependências do frontend
+# 1. Instalar dependências
 npm install
+cd fileserver && npm install && cd ..
 
-# 2. Instalar dependências do fileserver
-cd fileserver
-npm install
-cd ..
+# 2. Configurar variáveis de ambiente
+cp env.example .env
+# Abra o arquivo .env e configure com seus dados
 
-# 3. Executar fileserver (Terminal 1)
+# 3. Executar servidores em terminais separados
+# Terminal 1:
 cd fileserver
 npm run dev
 
-# 4. Executar frontend (Terminal 2)
+# Terminal 2 (em outra janela):
 npm run dev
+
+# ✅ Pronto! Acesse:
+# Frontend: http://localhost:3000
+# FileServer: http://localhost:4000
 ```
 
-#### **🐳 Início Rápido (Docker)**
+**Para parar**: Pressione `Ctrl+C` em cada terminal.
+
+### Opção 2: Usando Docker (Recomendado para Iniciantes)
+
+**Recomendado para testar ou usar o sistema sem configurar o ambiente**
+
+#### Passo 1: Preparar Variáveis de Ambiente
 
 ```bash
-# 1. Copiar variáveis de ambiente
+# Copiar arquivo de exemplo
 cp env.docker.example .env
 
-# 2. Editar variáveis de ambiente
-# Editar .env com suas configurações reais
-
-# 3. Construir e executar containers
-docker-compose up --build
-
-# 4. Executar em background
-docker-compose up -d --build
+# Abrir e editar o arquivo .env com suas configurações
+# Use um editor de texto (VSCode, Notepad++, etc.)
 ```
 
-#### **🔧 Comandos de Gerenciamento**
+**Configurações mínimas necessárias no .env**:
+```bash
+# Banco de Dados (use o seu banco PostgreSQL)
+DATABASE_URL='postgresql://usuario:senha@host:5432/banco'
+
+# Chaves de Autenticação (gere um secret aleatório)
+NEXTAUTH_SECRET='sua-chave-secreta-aqui'
+NEXTAUTH_URL='http://localhost:3000'
+
+# Google OAuth (opcional, se não usar deixe em branco)
+GOOGLE_CLIENT_ID=''
+GOOGLE_CLIENT_SECRET=''
+
+# Email SMTP (configure com seu servidor de email)
+SMTP_HOST='smtp.seuservidor.com'
+SMTP_PORT='587'
+SMTP_USERNAME='seu-email@dominio.com'
+SMTP_PASSWORD='sua-senha'
+```
+
+#### Passo 2: Construir e Executar
+
+```bash
+# Construir e iniciar todos os containers
+docker-compose up --build
+
+# Isso vai:
+# 1. Baixar as imagens necessárias (primeira vez demora mais)
+# 2. Construir os containers do SILO
+# 3. Iniciar frontend (porta 3000) e fileserver (porta 4000)
+# 4. Mostrar logs em tempo real
+
+# ✅ Aguarde a mensagem: "ready - started server on..."
+# ✅ Acesse: http://localhost:3000
+```
+
+**Executar em segundo plano** (sem ver os logs):
+```bash
+docker-compose up -d --build
+
+# Ver logs depois:
+docker-compose logs -f
+```
+
+#### Passo 3: Gerenciar os Containers
 
 ```bash
 # Ver status dos containers
 docker-compose ps
 
-# Ver logs
+# Ver logs em tempo real
 docker-compose logs -f
 
-# Parar containers
+# Ver logs de um container específico
+docker-compose logs -f nextapp
+docker-compose logs -f fileserver
+
+# Parar todos os containers
 docker-compose down
 
-# Reconstruir apenas um serviço
+# Parar e remover tudo (inclusive volumes)
+docker-compose down -v
+
+# Reiniciar containers
+docker-compose restart
+
+# Reconstruir apenas um container
 docker-compose up --build fileserver
-docker-compose up --build nextapp
 ```
 
-### 🏗️ **ARQUITETURA SIMPLIFICADA**
+#### Passo 4: Acessar o Sistema
 
-#### **📦 Container Next.js (`nextapp`)**
+Após iniciar os containers:
+- **Frontend**: http://localhost:3000
+- **FileServer**: http://localhost:4000/health (para verificar se está funcionando)
 
-- **Porta**: 3000
-- **Dependências**: Aguarda `fileserver` estar pronto
-- **Restart**: `unless-stopped`
+### Solução de Problemas Docker
 
-#### **📦 Container Fileserver (`fileserver`)**
+#### Erro: "port is already allocated"
+```bash
+# Outro programa está usando a porta 3000 ou 4000
+# Opção 1: Parar o programa que está usando a porta
+# Opção 2: Mudar a porta no docker-compose.yml
 
-- **Porta**: 4000
-- **Volumes**: Mapeamento direto para `./fileserver/uploads`
-- **Restart**: `unless-stopped`
+# Ver o que está usando a porta (Windows):
+netstat -ano | findstr :3000
 
-### 🔐 **VARIÁVEIS DE AMBIENTE**
+# Ver o que está usando a porta (Linux/Mac):
+lsof -i :3000
+```
 
-#### **📋 Configuração Completa**
+#### Erro: "Cannot connect to the Docker daemon"
+```bash
+# Docker Desktop não está rodando
+# Solução: Inicie o Docker Desktop e aguarde inicializar
+```
 
-Configurar no arquivo `.env` (baseado em `env.example` ou `env.docker.example`):
+#### Erro: "Network error" ou containers não se comunicam
+```bash
+# Reiniciar o Docker
+docker-compose down
+docker-compose up --build
+```
 
-**🔧 Variáveis Principais:**
-- **Ambiente**: `NODE_ENV` (development/production)
-- **Banco de dados**: `DATABASE_URL`
-- **Autenticação**: `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
-- **Google OAuth**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`
+#### Limpar tudo e recomeçar
+```bash
+# Parar e remover containers, volumes e redes
+docker-compose down -v
 
-**📧 Email (Duas Opções):**
-- **SMTP Principal**: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USERNAME`, `SMTP_PASSWORD`
-- **Email Alternativo**: `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`
+# Remover imagens antigas (libera espaço)
+docker system prune -a
 
-**📁 File Server Local:**
-- **URLs**: `FILE_SERVER_URL`, `NEXT_PUBLIC_FILE_SERVER_URL`
-- **Proxy**: `UPLOAD_PROXY_URL`
+# Reconstruir do zero
+docker-compose up --build
+```
 
-#### **🔄 Diferenças entre Desenvolvimento e Produção**
+### Arquitetura dos Containers
 
-**🛠️ Desenvolvimento (`env.example`):**
+**Container Next.js (`nextapp`)**:
+- **Porta**: 3000 (mapeada para localhost:3000)
+- **Função**: Aplicação frontend e APIs
+- **Aguarda**: `fileserver` estar pronto antes de iniciar
+- **Restart**: Automático (`unless-stopped`)
+
+**Container Fileserver (`fileserver`)**:
+- **Porta**: 4000 (mapeada para localhost:4000)
+- **Função**: Upload e gerenciamento de arquivos
+- **Volume**: `./fileserver/uploads` (arquivos salvos no host)
+- **Restart**: Automático (`unless-stopped`)
+
+**Persistência de Dados**:
+- ✅ Arquivos de upload são salvos em `./fileserver/uploads` (não perdem ao parar containers)
+- ⚠️ Banco de dados precisa ser externo (PostgreSQL separado)
+
+### Comandos Úteis para Debug
+
+```bash
+# Entrar dentro do container Next.js (para investigar)
+docker-compose exec nextapp sh
+
+# Entrar dentro do container Fileserver
+docker-compose exec fileserver sh
+
+# Ver configuração completa gerada
+docker-compose config
+
+# Ver recursos usados pelos containers
+docker stats
+
+# Verificar logs de erro específicos
+docker-compose logs nextapp | grep ERROR
+docker-compose logs fileserver | grep ERROR
+```
+
+### Quando Usar Cada Opção?
+
+| Situação | Recomendação |
+|----------|--------------|
+| **Desenvolvendo código** | Desenvolvimento Local (npm run dev) |
+| **Testando o sistema** | Docker |
+| **Primeira vez usando** | Docker |
+| **Deploy em servidor** | Docker |
+| **Debugando problemas** | Desenvolvimento Local |
+| **Demonstração rápida** | Docker |
+
+### Variáveis de Ambiente
+
+#### Principais Variáveis
+
+**Ambiente**:
+- `NODE_ENV` - development/production
+
+**Banco de Dados**:
+- `DATABASE_URL` - URL de conexão PostgreSQL
+
+**Autenticação**:
+- `NEXTAUTH_SECRET` - Secret para JWT
+- `NEXTAUTH_URL` - URL da aplicação
+- `GOOGLE_CLIENT_ID` - ID do cliente Google OAuth
+- `GOOGLE_CLIENT_SECRET` - Secret do Google OAuth
+- `GOOGLE_CALLBACK_URL` - URL de callback OAuth
+
+**Email**:
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USERNAME`, `SMTP_PASSWORD`
+
+**FileServer**:
+- `FILE_SERVER_URL` - URL interna do servidor
+- `NEXT_PUBLIC_FILE_SERVER_URL` - URL pública do servidor
+- `UPLOAD_PROXY_URL` - URL de proxy para uploads
+
+#### Desenvolvimento vs Produção
+
+**Desenvolvimento**:
 ```bash
 NODE_ENV='development'
 DATABASE_URL='postgresql://usuario:senha@localhost:5432/silo'
 FILE_SERVER_URL=http://localhost:4000
 NEXT_PUBLIC_FILE_SERVER_URL=http://localhost:4000
-UPLOAD_PROXY_URL=http://localhost:4000/api/upload
 GOOGLE_CALLBACK_URL='http://localhost:3000/api/auth/callback/google'
 ```
 
-**🚀 Produção (`env.docker.example`):**
+**Produção**:
 ```bash
 NODE_ENV='production'
 DATABASE_URL='postgresql://usuario:senha@host:5432/silo_db'
 FILE_SERVER_URL=https://files.cptec.inpe.br
 NEXT_PUBLIC_FILE_SERVER_URL=https://files.cptec.inpe.br
-UPLOAD_PROXY_URL=https://files.cptec.inpe.br/api/upload
 GOOGLE_CALLBACK_URL='https://silo.cptec.inpe.br/api/auth/callback/google'
 ```
 
-**⚠️ Importante para Produção:**
-- **URLs HTTPS**: Sempre usar HTTPS em produção
-- **Domínios Reais**: Substituir localhost por domínios institucionais
-- **Secrets Seguros**: Usar secrets complexos e únicos
-- **Banco de Dados**: Configurar servidor PostgreSQL dedicado
+**⚠️ Importante para Produção**:
+- URLs HTTPS obrigatórias
+- Domínios reais institucionais
+- Secrets complexos e únicos
+- Servidor PostgreSQL dedicado
 
-### 🗂️ **VOLUMES E PERSISTÊNCIA**
+---
 
-#### **📁 Volume Local**
+## 🚀 Deploy e Produção
 
-- **Mapeamento**: `./fileserver/uploads:/app/uploads`
-- **Persistência**: Dados mantidos no sistema host
-- **Estrutura**:
-  ```
-  fileserver/uploads/
-  ├── avatars/     # Avatars com thumbnails
-  ├── contacts/     # Fotos de contatos
-  ├── problems/     # Imagens de problemas
-  ├── solutions/    # Imagens de soluções
-  ├── general/      # Uploads genéricos
-  └── temp/         # Arquivos temporários
-  ```
-
-### 🚀 **DEPLOY E PRODUÇÃO**
-
-#### **📋 Visão Geral do Deploy**
+### Visão Geral
 
 O projeto SILO está configurado para deploy separado:
-- **Frontend Next.js**: Deploy no Vercel (automatizado)
+- **Frontend Next.js**: Deploy no Vercel (automatizado via Git) ou em servidor próprio (CPTEC/INPE)
 - **FileServer**: Deploy em servidor próprio (CPTEC/INPE)
 
-#### **🔧 Configuração de Deploy**
+### Arquivos de Configuração
 
-**Arquivos de Configuração Criados:**
-- `.gitignore` - Ignora apenas arquivos desnecessários do fileserver
+- `.gitignore` - Ignora arquivos desnecessários
 - `.vercelignore` - Otimiza deploy no Vercel
 - `.dockerignore` - Otimiza containers Docker
 - `vercel.json` - Configuração específica do Vercel
 - `next.config.ts` - Configuração Next.js otimizada
 
-#### **⚡ Deploy do Frontend (Vercel)**
+### Deploy do Frontend (Vercel)
 
 ```bash
 # Deploy automático via Git
@@ -1825,52 +1478,98 @@ git commit -m "Deploy: configuração otimizada"
 git push origin main
 ```
 
-**O Vercel fará deploy automaticamente apenas do frontend Next.js.**
+O Vercel fará deploy automaticamente apenas do frontend Next.js.
 
-#### **🖥️ Deploy do FileServer (Servidor Próprio)**
+### Deploy do FileServer (Servidor Próprio)
 
 ```bash
 # 1. Deploy do código fonte
 cd fileserver
 npm install
 
-# 2. Configurar produção
-# Editar src/config.ts com URLs de produção:
+# 2. Configurar produção (editar src/config.ts)
 # fileServerUrl: 'https://files.cptec.inpe.br'
 # nextPublicAppUrl: 'https://silo.cptec.inpe.br'
 
-# 3. Executar com PM2
-npm run pm2
+# 3. Executar servidor
+npm run dev
+
+# Para produção, considere usar um process manager como PM2 ou systemd
+# para garantir que o servidor reinicie automaticamente
 ```
 
-#### **⚙️ Configurações de Produção**
+### Configurações de Produção
 
 1. **Frontend**: URLs configuradas automaticamente no Vercel
 2. **FileServer**: Configurar URLs em `fileserver/src/config.ts`
-3. **Banco de dados**: Configurar PostgreSQL externo
+3. **Banco de Dados**: Configurar PostgreSQL externo dedicado
 4. **CORS**: FileServer deve permitir requests do domínio do frontend
+5. **Firewall**: Configurar regras de segurança de rede
+6. **Backup**: Implementar backup automático e replicação
 
-### 🐛 **TROUBLESHOOTING**
+### Migração de Infraestrutura (Pendente)
 
-#### **❌ Problemas Comuns**
+**🔴 BLOQUEADOR PARA PRODUÇÃO**
 
-#### **❌ Problemas de Deploy**
+#### Migração de Banco de Dados
 
-**Erro de Deploy no Vercel:**
+**Atual**: Banco Neon na nuvem (ambiente de teste)  
+**Objetivo**: Servidor PostgreSQL local do CPTEC/INPE
+
+**Ações Necessárias**:
+- 🔴 Configurar servidor PostgreSQL dedicado
+- 🔴 Migrar schema completo e dados de teste
+- 🔴 Ajustar variáveis de ambiente (DATABASE_URL)
+- 🔴 Testar conectividade e performance
+- 🔴 Configurar backup automático e replicação
+- 🔴 Implementar monitoramento de performance
+- 🔴 Configurar firewall e segurança de rede
+
+**Impacto**: Sistema não pode ser usado em produção até migração completa.
+
+---
+
+## 🧪 Testes
+
+### Suíte de Testes Playwright
+
+Localização: `/tests/`
+
+**Cobertura**:
+- ✅ Autenticação (login, registro, OAuth, recuperação)
+- ✅ Dashboard (estatísticas, gráficos, responsividade)
+- ✅ Produtos (CRUD, problemas, soluções, dependências)
+- ✅ Projetos (CRUD, Kanban, tarefas)
+- ✅ Chat (mensagens, presença, notificações)
+- ✅ Contatos (CRUD, upload, associações)
+- ✅ Grupos e Usuários (CRUD, relacionamentos)
+- ✅ Configurações (perfil, preferências, segurança)
+- ✅ Ajuda (navegação, busca, edição)
+- ✅ Integração (navegação, visual, performance)
+
+**Execução**:
 ```bash
-# Verificar se arquivos desnecessários estão no .vercelignore
-# Confirme que vercel.json está na raiz do projeto
-# Verifique se next.config.ts não tem erros de sintaxe
+# Executar todos os testes
+npm test
+
+# Executar testes específicos
+npx playwright test tests/01-authentication.spec.ts
+
+# Modo UI (interativo)
+npx playwright test --ui
+
+# Ver relatório
+npx playwright show-report
 ```
 
-**FileServer não funciona em produção:**
-```bash
-# Configure URLs corretas em fileserver/src/config.ts
-# Verifique se o servidor está rodando na porta correta
-# Confirme configuração de CORS
-```
+---
 
-**Container não inicia:**
+## 🔧 Troubleshooting
+
+### Problemas Comuns
+
+#### Container não inicia
+
 ```bash
 # Ver logs detalhados
 docker-compose logs nextapp
@@ -1878,16 +1577,43 @@ docker-compose logs fileserver
 
 # Verificar variáveis de ambiente
 docker-compose config
-```
 
-**Problemas de permissão:**
-
-```bash
 # Verificar permissões dos volumes
 docker-compose exec fileserver ls -la uploads/
 ```
 
-#### **🔧 Comandos de Debug**
+#### Erro de Deploy no Vercel
+
+```bash
+# Verificar arquivos no .vercelignore
+# Confirmar vercel.json na raiz do projeto
+# Verificar erros de sintaxe em next.config.ts
+```
+
+#### FileServer não funciona em produção
+
+```bash
+# Configurar URLs corretas em fileserver/src/config.ts
+# Verificar se servidor está rodando na porta correta
+# Confirmar configuração de CORS
+# Testar health check: curl http://localhost:4000/health
+```
+
+#### Problemas de Upload
+
+```bash
+# Verificar se FileServer está rodando
+curl http://localhost:4000/health
+
+# Testar upload direto
+curl -X POST -F "file=@test.jpg" http://localhost:4000/api/upload
+
+# Verificar arquivos salvos
+ls fileserver/uploads/avatars/
+ls fileserver/uploads/contacts/
+```
+
+### Comandos de Debug
 
 ```bash
 # Entrar no container Next.js
@@ -1898,12 +1624,86 @@ docker-compose exec fileserver sh
 
 # Ver configuração completa
 docker-compose config
+
+# Verificar logs em tempo real
+docker-compose logs -f nextapp
+docker-compose logs -f fileserver
 ```
 
-### 🎯 **BENEFÍCIOS DA SIMPLIFICAÇÃO**
+---
 
-- ✅ **Simplicidade**: Configuração mínima e direta
-- ✅ **Desenvolvimento**: Volumes locais facilitam debug
-- ✅ **Manutenção**: Menos complexidade para manter
-- ✅ **Portabilidade**: Execução em qualquer ambiente Docker
-- ✅ **Performance**: Build mais rápido sem multi-stage
+## 🤝 Guia de Contribuição
+
+### Autorização para Contribuições
+
+⚠️ **IMPORTANTE**: Todas as novas implementações, alterações significativas e Pull Requests devem ser **previamente aprovadas** por:
+
+**Mario A. Sesso Junior**  
+- GitHub: [@sessojunior](https://github.com/sessojunior)
+- Cargo: Técnico - INPE/CPTEC
+- Email: Disponível no perfil do GitHub
+
+**Processo de Aprovação**:
+1. Abra uma **Issue** descrevendo a proposta de mudança
+2. Aguarde aprovação do mantenedor antes de iniciar o desenvolvimento
+3. Após aprovação, siga o fluxo de trabalho padrão para criar o PR
+
+**Sem aprovação prévia, o PR poderá ser fechado sem análise.**
+
+### Diretrizes
+
+1. **PRs pequenos e focados**: Um objetivo por Pull Request
+2. **Padrões obrigatórios**:
+   - Imports com `@/`
+   - Logs padronizados (❌, ⚠️, ℹ️)
+   - TypeScript strict mode
+   - Zero warnings/errors no lint
+3. **Descrições objetivas**: Inclua trechos de código quando necessário
+4. **Build limpo**: Garanta build e lint limpos antes de abrir PR
+5. **Aprovação obrigatória**: Aguarde aprovação antes de desenvolver
+
+### Fluxo de Trabalho
+
+```bash
+# 1. Criar branch para feature
+git checkout -b feature/nome-da-feature
+
+# 2. Fazer alterações e commitar
+git add .
+git commit -m "feat: descrição da feature"
+
+# 3. Garantir qualidade
+npm run lint
+npm run build
+npm test
+
+# 4. Push e abrir PR
+git push origin feature/nome-da-feature
+```
+
+### Convenções
+
+- **Commits**: Seguir conventional commits (feat, fix, docs, refactor, test, chore)
+- **Código**: Manter legibilidade e simplicidade
+- **Testes**: Adicionar testes para novas funcionalidades
+- **Documentação**: Atualizar README.md quando necessário
+
+---
+
+## 👨‍💻 Autor e Mantenedor
+
+**Mario A. Sesso Junior**  
+Técnico - INPE/CPTEC
+
+- 🔗 GitHub: [@sessojunior](https://github.com/sessojunior)
+- 💼 LinkedIn: [in/sessojunior](https://linkedin.com/in/sessojunior)
+- 🏢 Instituição: INPE (Instituto Nacional de Pesquisas Espaciais)
+- 📍 Localização: CPTEC (Cachoeira Paulista, SP)
+
+**Projetos Relacionados**:
+- [inpe-previsao-react](https://github.com/sessojunior/inpe-previsao-react) - Projeto de Previsão Numérica de Tempo (JavaScript)
+- [inpe-ambiental-react](https://github.com/sessojunior/inpe-ambiental-react) - Projeto de Previsão Ambiental (JavaScript)
+
+---
+
+**Desenvolvido para CPTEC/INPE** 🛰️ | **Versão**: 1.0 | **Última atualização**: 2025
