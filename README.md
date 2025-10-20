@@ -1,8 +1,6 @@
-# SILO - Sistema de Gerenciamento de Produtos Meteorológicos
+# Silo
 
-O Silo é um sistema robusto de gestão de produtos meteorológicos voltado para colaboração, monitoramento e documentação técnica. Permite controle centralizado de processos, acompanhamento de status e notificações de produtos, gestão integrada de problemas e soluções, chat interno, relatórios automáticos e exportação de dados.
-
-O Silo oferece segurança institucional, performance otimizada e interface intuitiva. Suporta uploads otimizados, integração fácil com bancos de dados PostgreSQL e garante personalização total para equipes técnicas do CPTEC/INPE. Ideal para coordenação ágil e tomada de decisão em operações meteorológicas.
+O **Silo** é um sistema robusto de **gestão de produtos meteorológicos** voltado para colaboração, monitoramento e documentação técnica. Permite controle centralizado de processos, acompanhamento de status e notificações de produtos, gestão integrada de problemas e soluções, chat interno, relatórios automáticos e exportação de dados.
 
 ## Índice
 
@@ -27,14 +25,153 @@ O Silo oferece segurança institucional, performance otimizada e interface intui
 
 ## 📋 VISÃO GERAL DO PROJETO
 
-**SILO** é um sistema avançado de gerenciamento de produtos meteorológicos desenvolvido para o **CPTEC/INPE** (Centro de Previsão de Tempo e Estudos Climáticos do Instituto Nacional de Pesquisas Espaciais).
+O **Silo** é um sistema avançado de gerenciamento de produtos meteorológicos desenvolvido para o **CPTEC/INPE** (Centro de Previsão de Tempo e Estudos Climáticos do Instituto Nacional de Pesquisas Espaciais).
 
-### 🎯 Problema que Resolve
+### 🎯 Contexto e Motivação
 
-- **Monitoramento centralizado** de produtos meteorológicos complexos
-- **Colaboração eficiente** para resolução de problemas técnicos
-- **Gestão de conhecimento** e documentação técnica especializada
-- **Comunicação estruturada** entre equipes técnicas
+O sistema foi desenvolvido para resolver desafios críticos enfrentados pelas equipes técnicas do CPTEC/INPE na operação e monitoramento de produtos meteorológicos.
+
+#### Dores Identificadas
+
+- **Falta de visibilidade centralizada** do status de produtos meteorológicos
+- **Conhecimento fragmentado** e documentação técnica espalhada
+- **Comunicação ineficiente** dependente de e-mails e mensagens dispersas
+- **Retrabalho constante** por falta de histórico estruturado de soluções
+- **Dificuldade de rastreamento** de problemas recorrentes e suas causas
+- **Gestão manual** de projetos e atividades técnicas
+
+#### Solução Apresentada
+
+O **Silo** centraliza e estrutura todas as operações críticas em uma única plataforma integrada:
+
+- **Dashboard unificado** com visão consolidada de status e métricas
+- **Base de conhecimento estruturada** hierarquicamente por produto
+- **Sistema integrado** de problemas e soluções colaborativas
+- **Gestão completa** de projetos, atividades e tarefas usando Kanban
+- **Chat institucional** para comunicação estruturada entre equipes
+- **Relatórios automáticos** com análises e métricas em tempo real
+- **Interface intuitiva** focada em facilidade de uso e experiência do usuário
+
+### 💡 O que o Sistema Oferece
+
+#### 🔐 Autenticação e Controle de Acesso
+
+- Login com email e senha (validação de domínio @inpe.br)
+- Login simplificado apenas com email (código OTP)
+- Login social usando Google OAuth
+- Sistema de recuperação de senha seguro
+- Ativação de usuários por administrador
+- Controle granular de permissões por grupos
+
+#### 🎯 Dashboard Executivo
+
+- **Estatísticas em tempo real** de produtos e incidentes
+- **Lista consolidada** de produtos com prioridades e últimas atualizações
+- **Acompanhamento de turnos** nos últimos 2, 3 ou 4 dias e 3 meses
+- **Gráficos interativos**: incidentes nos últimos 7 dias, causas de problemas por categoria, problemas & soluções
+- **Resumo executivo** dos últimos 7 dias
+- **Visão de projetos** em andamento
+- **Edição inline** de atividades do turno diretamente no dashboard
+- **Modal de histórico** para visualizar problemas dos últimos 3 meses
+- **Performance otimizada** com carregamento rápido
+
+#### 📦 Gestão de Produtos
+
+**Base de Conhecimento Hierárquica**:
+
+- Estrutura completa de dependências (máquinas, redes, usuários afetados, softwares)
+- Lista de contatos úteis para resolução de problemas
+- Manual centralizado editável via Markdown (modo tela cheia)
+- Calendário visual de turnos e status
+
+**Sistema de Problemas & Soluções**:
+
+- Busca avançada por título ou descrição
+- Gerenciamento de categorias de problemas
+- Cadastro com upload de múltiplas imagens otimizadas
+- Soluções colaborativas dos próprios usuários
+- Threading de respostas para discussões organizadas
+- Marcação de soluções como verificadas
+
+#### 📋 Gestão de Projetos
+
+Sistema Kanban completo para projetos da DIPTC com estrutura hierárquica de 3 níveis:
+
+- **Projetos**: Container principal com múltiplas atividades
+- **Atividades**: Divisões lógicas do projeto com múltiplas tarefas
+- **Tarefas**: Unidades de trabalho gerenciáveis com 5 estados possíveis:
+  - **A fazer**: Tarefas planejadas que ainda não iniciaram
+  - **Em progresso**: Tarefas em desenvolvimento ativo
+  - **Bloqueado**: Tarefas com impedimentos identificados
+  - **Em revisão**: Tarefas concluídas aguardando validação
+  - **Concluído**: Tarefas finalizadas e aprovadas
+
+Funcionalidades do Kanban:
+
+- Drag & drop entre colunas de status
+- Atribuição de múltiplos usuários por tarefa
+- Histórico completo de movimentações
+- Filtros e buscas avançadas
+- Cálculo automático de progresso e conclusão
+
+#### 👥 Gestão de Contatos
+
+- Cadastro completo de contatos técnicos
+- Informações estruturadas: nome, função, equipe, email, telefone
+- Upload de fotos otimizadas
+- Associação com produtos específicos
+- Filtros por status (ativo/inativo)
+- Integração com base de conhecimento
+
+#### 💬 Sistema de Chat
+
+- Comunicação rápida entre grupos e usuários (DMs)
+- Histórico completo de conversas
+- Sistema de presença com 4 estados: **Online**, **Ausente**, **Ocupado**, **Offline**
+- Emoji picker integrado
+- Notificações em tempo real
+- Interface inspirada em WhatsApp
+- Controle de ativação por usuário
+
+#### 👥 Grupos & Usuários
+
+- Gestão de grupos com permissões específicas
+- 6 grupos padrão: Administradores, Meteorologistas, Analistas, Desenvolvedores, Suporte, Visitantes
+- Múltiplos grupos por usuário
+- Ativação/desativação de grupos
+- Interface com abas (grupos/usuários)
+
+#### ⚙️ Configurações
+
+- Edição completa do perfil do usuário
+- Upload de foto de perfil com crop
+- Alteração segura de senha
+- Gerenciamento de preferências (tema, notificações, chat)
+- Área administrativa para gerenciar produtos
+- Cadastro e gestão de projetos
+
+#### 📚 Sistema de Ajuda
+
+- Documentação técnica completa do sistema
+- Editor Markdown integrado com preview
+- Organização hierárquica do conteúdo
+- Edição em tela cheia
+- Busca por conteúdo
+
+### 🌟 Benefícios e Impacto
+
+O **Silo** resolve de forma eficaz os principais problemas enfrentados pelas equipes técnicas, promovendo uma gestão mais organizada e colaborativa:
+
+- ✅ **Visibilidade Total**: Dashboard centralizado com visão consolidada de todos os produtos
+- ✅ **Redução de Retrabalho**: Base de conhecimento estruturada elimina redundâncias
+- ✅ **Comunicação Eficiente**: Sistema integrado de chat e notificações
+- ✅ **Rastreabilidade**: Histórico completo de problemas, soluções e decisões
+- ✅ **Colaboração**: Equipes trabalham em conjunto com informações compartilhadas
+- ✅ **Agilidade**: Resolução mais rápida de problemas com acesso direto ao conhecimento
+- ✅ **Conformidade**: Segurança institucional com controle de acesso rigoroso
+- ✅ **Escalabilidade**: Arquitetura preparada para crescimento da operação
+
+Essa abordagem fortalece o monitoramento operacional, acelera a resolução de problemas técnicos e consolida o conhecimento institucional de forma acessível e sustentável.
 
 ### 🏗️ Stack Técnica
 
@@ -123,7 +260,7 @@ silo-frontend/
 
 ## 🗄️ Schema do Banco de Dados
 
-O SILO utiliza **PostgreSQL** com **Drizzle ORM** para gerenciamento do banco de dados. O schema está localizado em `src/lib/db/schema.ts`.
+O **Silo** utiliza **PostgreSQL** com **Drizzle ORM** para gerenciamento do banco de dados. O schema está localizado em `src/lib/db/schema.ts`.
 
 ### Visão Geral das Tabelas
 
@@ -178,11 +315,13 @@ O sistema possui **25 tabelas** organizadas em **8 módulos principais**:
 | **Ajuda** | `help` | id (text, PK), description (text), createdAt (timestamp), updatedAt (timestamp) |
 
 **Legenda**:
+
 - **PK** = Primary Key
 - **FK** = Foreign Key
 - **UK** = Unique Key
 
 **Observações Importantes**:
+
 - **auth_user**: Novos usuários criados inativos por padrão (isActive: false)
 - **product_activity**: Constraint `unique(productId, date, turn)` - Um registro por produto/data/turno
 - **product_dependency**: Estrutura híbrida: Adjacency List + Path Enumeration + Nested Sets
@@ -195,10 +334,12 @@ O sistema possui **25 tabelas** organizadas em **8 módulos principais**:
 ### Relacionamentos Principais
 
 #### 🔐 Autenticação e Usuários
+
 - **auth_user** (1) → (N) **user_profile**, **user_preferences**, **auth_session**
 - **auth_user** (N) ↔ (N) **group** via `user_group`
 
 #### 📦 Produtos
+
 - **product** (1) → (N) **product_activity**, **product_problem**, **product_dependency**
 - **product** (1) → (1) **product_manual**
 - **product** (N) ↔ (N) **contact** via `product_contact`
@@ -206,11 +347,13 @@ O sistema possui **25 tabelas** organizadas em **8 módulos principais**:
 - **product_solution** (1) → (N) **product_solution_image**
 
 #### 📋 Projetos e Kanban
+
 - **project** (1) → (N) **project_activity** → (N) **project_task**
 - **project_task** (N) ↔ (N) **auth_user** via `project_task_user`
 - **project_task** (1) → (N) **project_task_history**
 
 #### 💬 Chat
+
 - **chat_message** (N) → (1) **auth_user** (sender)
 - **chat_message** (N) → (1) **group** (grupo) | **auth_user** (DM)
 
@@ -261,6 +404,15 @@ npm run db:seed
 
 ## 🧩 Módulos e Funcionalidades
 
+### Sistema de Onboarding e Bem-vindo
+
+- ✅ Página de boas-vindas para novos usuários
+- ✅ Checklist interativo de primeiros passos
+- ✅ Verificação automática de conclusão de tarefas
+- ✅ Guia para completar perfil, cadastrar produtos, projetos e contatos
+- ✅ Opção de ocultar mensagem de boas-vindas
+- ✅ Navegação direta para áreas relevantes
+
 ### Sistema de Autenticação e Segurança
 
 - ✅ Login com email/senha (usuários válidos e inválidos)
@@ -297,13 +449,17 @@ npm run db:seed
 ### Sistema de Projetos e Kanban
 
 - ✅ CRUD de projetos (criar, editar, excluir com validações)
-- ✅ Gestão de atividades por projeto (CRUD completo)
+- ✅ Gestão de atividades por projeto (CRUD completo, múltiplas atividades)
 - ✅ Kanban por atividade (5 colunas: todo, in_progress, blocked, review, done)
 - ✅ CRUD de tarefas (formulário completo, validações, exclusão)
+- ✅ Atribuição de usuários às tarefas (múltiplos usuários por tarefa)
 - ✅ Drag & drop entre colunas de status
+- ✅ Histórico completo de movimentação de tarefas (tracking de mudanças)
 - ✅ Dark mode completo no Kanban
 - ✅ Filtros e buscas em projetos e atividades
-- ✅ Estatísticas e progresso de projetos
+- ✅ Estatísticas e progresso de projetos em tempo real
+- ✅ Contagem automática de tarefas por atividade
+- ✅ Cálculo de percentual de conclusão por atividade
 
 ### Sistema de Chat
 
@@ -320,25 +476,32 @@ npm run db:seed
 ### Sistema de Contatos e Grupos
 
 - ✅ CRUD completo de contatos (criar, editar, excluir)
-- ✅ Upload de fotos de contatos
+- ✅ Upload de fotos de contatos otimizadas
 - ✅ Filtros por status (ativo/inativo)
 - ✅ Busca por nome, email e função
-- ✅ Associação com produtos
-- ✅ CRUD de grupos (6 grupos padrão + novos)
-- ✅ CRUD de usuários (perfil completo, preferências)
-- ✅ Relacionamento many-to-many usuários-grupos
+- ✅ Associação com produtos (múltiplos contatos por produto)
+- ✅ CRUD de grupos (6 grupos padrão: Administradores, Meteorologistas, Analistas, Desenvolvedores, Suporte, Visitantes)
+- ✅ Criação de grupos customizados com ícones e cores
+- ✅ CRUD de usuários (perfil completo, preferências, imagem)
+- ✅ Relacionamento many-to-many usuários-grupos (múltiplos grupos por usuário)
 - ✅ Navegação por abas (grupos/usuários)
 - ✅ Hierarquia de permissões por grupo
+- ✅ Verificação de permissões administrativas
+- ✅ Gestão de usuários por grupo
 
 ### Sistema de Relatórios
 
-- ✅ Relatórios de disponibilidade por produto
-- ✅ Relatórios de problemas mais frequentes
+- ✅ Relatório de disponibilidade por produto (uptime, downtime)
+- ✅ Relatório de problemas mais frequentes (por categoria e produto)
+- ✅ Relatório executivo (visão geral gerencial)
+- ✅ Relatório de performance (métricas de tempo de resolução)
+- ✅ Relatório de projetos (status e progresso)
 - ✅ Métricas de disponibilidade e tempo médio de resolução
 - ✅ Análise por categoria e distribuição por produto
 - ✅ Gráficos ApexCharts (barra, linha, rosca, área) com dark/light
 - ✅ Interface responsiva para desktop e mobile
 - ✅ Filtros avançados (data, categoria, produto)
+- ✅ Exportação de dados para análise
 
 ### Sistema de Upload de Arquivos
 
@@ -356,13 +519,18 @@ npm run db:seed
 
 ### Sistema de Configurações e Ajuda
 
-- ✅ Edição de perfil do usuário (dados pessoais, upload foto)
+- ✅ Edição de perfil do usuário (nome, email, dados pessoais)
+- ✅ Upload de foto de perfil com crop e preview
 - ✅ Alteração de preferências (notificações, tema, chat)
-- ✅ Alteração de senha (validações, confirmação)
+- ✅ Alteração segura de senha (validações, confirmação, força da senha)
+- ✅ Alteração de email com verificação OTP
 - ✅ Salvamento automático de configurações
+- ✅ Página de configurações administrativas
+- ✅ Gerenciamento de produtos (área administrativa separada)
+- ✅ Sistema de ajuda com editor Markdown
 - ✅ Navegação hierárquica na documentação
 - ✅ Busca por conteúdo na ajuda
-- ✅ Edição da documentação (markdown, preview)
+- ✅ Edição da documentação com preview em tempo real
 - ✅ Organização por seções e capítulos
 
 ---
@@ -377,36 +545,129 @@ type ApiResponse<T> = { success: boolean; data?: T; error?: string }
 
 ### Mapa de Endpoints
 
-| Domínio | Método | Rota | Descrição |
-| --- | --- | --- | --- |
-| **Auth** | POST | /api/auth/register | Registro de usuários |
-| **Auth** | POST | /api/auth/login | Login com senha |
-| **Auth** | POST | /api/auth/login-email | Login apenas com email (OTP) |
-| **Auth** | POST | /api/auth/forget-password | Recuperação de senha |
-| **Auth** | GET/POST | /api/auth/callback/google | Google OAuth callback |
-| **Auth** | POST | /api/auth/verify-code | Verificação de códigos OTP |
-| **User** | GET/PUT | /api/(user)/user-profile | Perfil do usuário |
-| **User** | GET/PUT | /api/(user)/user-preferences | Preferências do usuário |
-| **User** | PUT | /api/(user)/user-password | Alteração de senha |
-| **User** | POST/PUT | /api/(user)/user-email-change | Alteração de email (OTP) |
-| **User** | POST | /api/(user)/user-profile-image | Upload de imagem de perfil |
-| **Admin** | CRUD | /api/admin/users | Usuários |
-| **Admin** | CRUD | /api/admin/groups | Grupos |
-| **Admin** | CRUD | /api/admin/products | Produtos |
-| **Admin** | CRUD | /api/admin/projects | Projetos |
-| **Admin** | CRUD | /api/admin/contacts | Contatos |
-| **Admin** | GET/POST | /api/admin/reports/availability | Relatório de disponibilidade |
-| **Admin** | GET/POST | /api/admin/reports/problems | Relatório de problemas |
-| **Admin** | GET/POST | /api/admin/dashboard/* | APIs de dashboard |
-| **Admin** | GET/POST | /api/admin/chat/* | APIs de chat |
-| **Upload** | POST | /api/upload | Proxy para FileServer |
-| **FileServer** | POST | /api/upload | Upload genérico |
-| **FileServer** | POST | /upload/avatar | Upload de avatar (thumbnail) |
-| **FileServer** | POST | /upload/contact | Upload de contato |
-| **FileServer** | POST | /upload/problem | Upload múltiplo de problemas |
-| **FileServer** | POST | /upload/solution | Upload múltiplo de soluções |
-| **FileServer** | GET/DELETE | /files/:type/:filename | Acesso/remoção de arquivos |
-| **FileServer** | GET | /health | Health check |
+#### 🔐 Autenticação e Sessão
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| POST | /api/auth/register | Registro de novos usuários |
+| POST | /api/auth/login | Login com email e senha |
+| POST | /api/auth/login-email | Login apenas com email (envia OTP) |
+| POST | /api/auth/forget-password | Recuperação de senha (envia OTP) |
+| POST | /api/auth/send-password | Envio de nova senha após recuperação |
+| POST | /api/auth/verify-code | Verificação de códigos OTP |
+| GET/POST | /api/auth/callback/google | Google OAuth callback |
+| POST | /api/logout | Logout e invalidação de sessão |
+
+#### 👤 Perfil do Usuário (Autenticado)
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| GET/PUT | /api/(user)/user-profile | Perfil profissional do usuário |
+| GET/PUT | /api/(user)/user-preferences | Preferências do usuário |
+| PUT | /api/(user)/user-password | Alteração de senha |
+| GET | /api/(user)/user-email | Consulta email atual |
+| POST/PUT | /api/(user)/user-email-change | Alteração de email (envia OTP) |
+| POST | /api/(user)/user-profile-image | Upload de nova imagem de perfil |
+| PUT | /api/(user)/user-profile-image/update | Atualização de imagem de perfil |
+
+#### 🛡️ Administração - Geral
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| GET | /api/admin/check-admin | Verifica se usuário é admin |
+| CRUD | /api/admin/users | Gerenciamento de usuários |
+| CRUD | /api/admin/groups | Gerenciamento de grupos |
+| GET/POST | /api/admin/groups/users | Usuários de um grupo |
+| CRUD | /api/admin/contacts | Gerenciamento de contatos |
+| GET/PUT | /api/admin/help | Documentação do sistema |
+
+#### 📦 Administração - Produtos
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| CRUD | /api/admin/products | Gerenciamento de produtos |
+| GET | /api/admin/products/[productId]/history | Histórico de atividades do produto |
+| CRUD | /api/admin/products/activities | Atividades/execuções de produtos |
+| GET/POST | /api/admin/products/contacts | Contatos vinculados a produtos |
+| CRUD | /api/admin/products/dependencies | Dependências hierárquicas |
+| POST | /api/admin/products/dependencies/reorder | Reordenação de dependências |
+| CRUD | /api/admin/products/images | Imagens de produtos |
+| GET/PUT | /api/admin/products/manual | Manual do produto (Markdown) |
+| CRUD | /api/admin/products/problems | Problemas reportados |
+| CRUD | /api/admin/products/problems/categories | Categorias de problemas |
+| CRUD | /api/admin/products/solutions | Soluções para problemas |
+| GET | /api/admin/products/solutions/count | Contagem de soluções |
+| CRUD | /api/admin/products/solutions/images | Imagens de soluções |
+| GET | /api/admin/products/solutions/summary | Resumo de soluções |
+
+#### 📋 Administração - Projetos e Tarefas
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| CRUD | /api/admin/projects | Gerenciamento de projetos |
+| CRUD | /api/admin/projects/[projectId]/activities | Atividades de um projeto |
+| CRUD | /api/admin/projects/[projectId]/activities/[activityId]/tasks | Tarefas de uma atividade |
+| GET/POST | /api/admin/tasks/[taskId]/history | Histórico de movimentação da tarefa |
+| GET/POST | /api/admin/tasks/[taskId]/users | Usuários atribuídos à tarefa |
+
+#### 📊 Administração - Dashboard e Relatórios
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| GET | /api/admin/dashboard | Dashboard principal |
+| GET | /api/admin/dashboard/summary | Resumo executivo |
+| GET | /api/admin/dashboard/projects | Projetos para dashboard |
+| GET | /api/admin/dashboard/problems-causes | Causas de problemas |
+| GET | /api/admin/dashboard/problems-solutions | Soluções de problemas |
+| GET/POST | /api/admin/reports/availability | Relatório de disponibilidade |
+| GET/POST | /api/admin/reports/problems | Relatório de problemas |
+| GET/POST | /api/admin/reports/executive | Relatório executivo |
+| GET/POST | /api/admin/reports/performance | Relatório de performance |
+| GET/POST | /api/admin/reports/projects | Relatório de projetos |
+
+#### 💬 Administração - Chat
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| GET/POST | /api/admin/chat/messages | Mensagens (grupos e DMs) |
+| GET | /api/admin/chat/messages/count | Contagem de mensagens |
+| PUT | /api/admin/chat/messages/read | Marcar mensagens como lidas |
+| GET/PUT/DELETE | /api/admin/chat/messages/[messageId] | Operações em mensagem específica |
+| PUT | /api/admin/chat/messages/[messageId]/read | Marcar mensagem como lida |
+| GET | /api/admin/chat/unread-messages | Mensagens não lidas |
+| GET/PUT | /api/admin/chat/presence | Presença do usuário (online/offline) |
+| GET | /api/admin/chat/sidebar | Dados da sidebar do chat |
+| GET | /api/admin/chat/status | Status do chat |
+| POST | /api/admin/chat/sync | Sincronização de mensagens |
+
+#### 🚨 Administração - Incidentes
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| CRUD | /api/admin/incidents | Gerenciamento de incidentes |
+| GET | /api/admin/incidents/usage | Uso de incidentes |
+
+#### 📤 Upload de Arquivos (Next.js Proxy)
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| POST | /api/upload | Proxy genérico para FileServer |
+| POST | /api/upload/avatar | Proxy para upload de avatar |
+| POST | /api/upload/contact | Proxy para upload de contato |
+| POST | /api/upload/problem | Proxy para upload de problema |
+| POST | /api/upload/solution | Proxy para upload de solução |
+
+#### 📁 FileServer (Node.js - Porta 4000)
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| POST | /upload/avatar | Upload de avatar (thumbnail automático) |
+| POST | /upload/contact | Upload de foto de contato |
+| POST | /upload/problem | Upload múltiplo de imagens de problemas |
+| POST | /upload/solution | Upload múltiplo de imagens de soluções |
+| GET | /files/:type/:filename | Acesso a arquivo |
+| DELETE | /files/:type/:filename | Remoção de arquivo |
+| GET | /health | Health check do servidor |
 
 ---
 
@@ -416,7 +677,7 @@ type ApiResponse<T> = { success: boolean; data?: T; error?: string }
 
 ✅ **COMPLETAMENTE IMPLEMENTADO E FUNCIONAL EM TYPESCRIPT**
 
-O SILO utiliza um servidor de arquivos local Node.js que oferece controle total sobre os dados e conformidade com requisitos de segurança institucional do CPTEC/INPE.
+O **Silo** utiliza um servidor de arquivos local Node.js que oferece controle total sobre os dados e conformidade com requisitos de segurança institucional do CPTEC/INPE.
 
 ### Estrutura do Servidor
 
@@ -615,6 +876,7 @@ export function isValidDomain(email: string): boolean {
 ### Sistema de Cores Padronizado
 
 **Problema Resolvido**:
+
 - Inconsistências de tonalidades entre componentes
 - Diferentes variantes causavam experiência visual não uniforme
 - Status de produtos com cores e prioridades desorganizadas
@@ -647,12 +909,14 @@ export const STATUS_SEVERITY_ORDER: Record<ProductStatus, number> = {
 ```
 
 **Componentes Padronizados**:
+
 - ProductTurn, ProductTimeline, ProductCalendar
 - Product (legenda), Stats, Dashboard
 - ReportCard, ReportChart, ReportFilters
 - Button, Switch, Textarea, Modal
 
 **Impacto**:
+
 - Experiência visual consistente
 - Hierarquia clara alinhada com criticidade
 - Mudanças de cor centralizadas em um único arquivo
@@ -660,6 +924,7 @@ export const STATUS_SEVERITY_ORDER: Record<ProductStatus, number> = {
 ### Sistema de Rolagem no Chat
 
 **Controle Manual Implementado**:
+
 - ✅ Rolagem automática **removida** - usuário tem controle total
 - ✅ Botão fixo "Ir para o fim" no canto inferior direito
 - ✅ Aparece apenas quando não está no fim (≤5px)
@@ -687,6 +952,7 @@ const isUserTotallyAtBottom = (): boolean => {
 ### Kanban com Dark Mode
 
 **Implementação Completa**:
+
 - KanbanBoard 100% adaptado para tema escuro
 - Colunas tematizadas: stone-50→stone-900, blue-50→blue-950, red-50→red-950, amber-50→amber-950, emerald-50→emerald-950
 - Cards: bg-white→dark:bg-zinc-800, border-gray-200→dark:border-zinc-700
@@ -708,6 +974,7 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 ```
 
 **Boas Práticas**:
+
 - Use `filter()` para coleções com múltiplas ocorrências
 - Evite `find()` quando existir mais de um item por chave
 
@@ -770,17 +1037,20 @@ console.log('ℹ️ [CONTEXTO] Descrição', { detalhes })
 ```
 
 **Regras**:
+
 - Contexto: entre `[]` em MAIÚSCULAS, sem acentos
 - Exemplos: `[API_CHAT]`, `[HOOK_USERS]`, `[COMPONENT_KANBAN]`, `[PAGE_PROJECTS]`
 - Detalhes: sempre usar objeto `{ detalhes }` para informações estruturadas
 
 **O que Manter**:
+
 - ❌ Logs de erro em catch blocks
 - ❌ Logs de erros inesperados de API
 - ℹ️ Confirmações de ações críticas
 - ℹ️ Mudanças de estado críticas
 
 **O que Remover**:
+
 - Logs de debug desnecessários
 - Logs de sucesso redundantes
 - Logs "Carregando...", "Dados recebidos"
@@ -795,6 +1065,7 @@ console.log('ℹ️ [CONTEXTO] Descrição', { detalhes })
 Docker é uma ferramenta que "empacota" aplicações em **containers** - ambientes isolados que funcionam da mesma forma em qualquer computador. Pense em containers como "caixas" que contêm tudo que a aplicação precisa para rodar.
 
 **Vantagens**:
+
 - ✅ Funciona igual em qualquer máquina (desenvolvimento, teste, produção)
 - ✅ Não precisa instalar Node.js, PostgreSQL, etc. manualmente
 - ✅ Fácil de iniciar e parar o sistema completo
@@ -805,15 +1076,15 @@ Docker é uma ferramenta que "empacota" aplicações em **containers** - ambient
 Antes de começar, você precisa ter instalado:
 
 1. **Docker Desktop** (Windows/Mac) ou **Docker Engine** (Linux)
-   - Download: https://www.docker.com/products/docker-desktop
+   - Download: <https://www.docker.com/products/docker-desktop>
    - Após instalar, verifique: `docker --version`
 
 2. **Docker Compose** (geralmente já vem com o Docker Desktop)
    - Verifique: `docker-compose --version`
 
-### Como Funciona o SILO com Docker
+### Como Funciona o Silo com Docker
 
-O SILO usa **2 containers**:
+O **Silo** usa **2 containers**:
 
 1. **`nextapp`** (porta 3000) - Aplicação frontend Next.js
 2. **`fileserver`** (porta 4000) - Servidor de arquivos
@@ -822,7 +1093,7 @@ Os containers se comunicam automaticamente e compartilham arquivos quando necess
 
 ### Opção 1: Desenvolvimento Local (SEM Docker)
 
-**Recomendado para desenvolvimento ativo do código**
+#### Recomendado para desenvolvimento ativo do código
 
 ```bash
 # 1. Instalar dependências
@@ -850,7 +1121,7 @@ npm run dev
 
 ### Opção 2: Usando Docker (Recomendado para Iniciantes)
 
-**Recomendado para testar ou usar o sistema sem configurar o ambiente**
+#### Recomendado para testar ou usar o sistema sem configurar o ambiente
 
 #### Passo 1: Preparar Variáveis de Ambiente
 
@@ -863,6 +1134,7 @@ cp env.docker.example .env
 ```
 
 **Configurações mínimas necessárias no .env**:
+
 ```bash
 # Banco de Dados (use o seu banco PostgreSQL)
 DATABASE_URL='postgresql://usuario:senha@host:5432/banco'
@@ -890,7 +1162,7 @@ docker-compose up --build
 
 # Isso vai:
 # 1. Baixar as imagens necessárias (primeira vez demora mais)
-# 2. Construir os containers do SILO
+# 2. Construir os containers do Silo
 # 3. Iniciar frontend (porta 3000) e fileserver (porta 4000)
 # 4. Mostrar logs em tempo real
 
@@ -899,6 +1171,7 @@ docker-compose up --build
 ```
 
 **Executar em segundo plano** (sem ver os logs):
+
 ```bash
 docker-compose up -d --build
 
@@ -935,12 +1208,14 @@ docker-compose up --build fileserver
 #### Passo 4: Acessar o Sistema
 
 Após iniciar os containers:
-- **Frontend**: http://localhost:3000
-- **FileServer**: http://localhost:4000/health (para verificar se está funcionando)
+
+- **Frontend**: <http://localhost:3000>
+- **FileServer**: <http://localhost:4000/health> (para verificar se está funcionando)
 
 ### Solução de Problemas Docker
 
 #### Erro: "port is already allocated"
+
 ```bash
 # Outro programa está usando a porta 3000 ou 4000
 # Opção 1: Parar o programa que está usando a porta
@@ -954,12 +1229,14 @@ lsof -i :3000
 ```
 
 #### Erro: "Cannot connect to the Docker daemon"
+
 ```bash
 # Docker Desktop não está rodando
 # Solução: Inicie o Docker Desktop e aguarde inicializar
 ```
 
 #### Erro: "Network error" ou containers não se comunicam
+
 ```bash
 # Reiniciar o Docker
 docker-compose down
@@ -967,6 +1244,7 @@ docker-compose up --build
 ```
 
 #### Limpar tudo e recomeçar
+
 ```bash
 # Parar e remover containers, volumes e redes
 docker-compose down -v
@@ -980,19 +1258,22 @@ docker-compose up --build
 
 ### Arquitetura dos Containers
 
-**Container Next.js (`nextapp`)**:
+#### Container Next.js (`nextapp`)
+
 - **Porta**: 3000 (mapeada para localhost:3000)
 - **Função**: Aplicação frontend e APIs
 - **Aguarda**: `fileserver` estar pronto antes de iniciar
 - **Restart**: Automático (`unless-stopped`)
 
-**Container Fileserver (`fileserver`)**:
+#### Container Fileserver (`fileserver`)
+
 - **Porta**: 4000 (mapeada para localhost:4000)
 - **Função**: Upload e gerenciamento de arquivos
 - **Volume**: `./fileserver/uploads` (arquivos salvos no host)
 - **Restart**: Automático (`unless-stopped`)
 
-**Persistência de Dados**:
+#### Persistência de Dados
+
 - ✅ Arquivos de upload são salvos em `./fileserver/uploads` (não perdem ao parar containers)
 - ⚠️ Banco de dados precisa ser externo (PostgreSQL separado)
 
@@ -1032,12 +1313,15 @@ docker-compose logs fileserver | grep ERROR
 #### Principais Variáveis
 
 **Ambiente**:
+
 - `NODE_ENV` - development/production
 
 **Banco de Dados**:
+
 - `DATABASE_URL` - URL de conexão PostgreSQL
 
 **Autenticação**:
+
 - `NEXTAUTH_SECRET` - Secret para JWT
 - `NEXTAUTH_URL` - URL da aplicação
 - `GOOGLE_CLIENT_ID` - ID do cliente Google OAuth
@@ -1045,9 +1329,11 @@ docker-compose logs fileserver | grep ERROR
 - `GOOGLE_CALLBACK_URL` - URL de callback OAuth
 
 **Email**:
+
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USERNAME`, `SMTP_PASSWORD`
 
 **FileServer**:
+
 - `FILE_SERVER_URL` - URL interna do servidor
 - `NEXT_PUBLIC_FILE_SERVER_URL` - URL pública do servidor
 - `UPLOAD_PROXY_URL` - URL de proxy para uploads
@@ -1055,6 +1341,7 @@ docker-compose logs fileserver | grep ERROR
 #### Desenvolvimento vs Produção
 
 **Desenvolvimento**:
+
 ```bash
 NODE_ENV='development'
 DATABASE_URL='postgresql://usuario:senha@localhost:5432/silo'
@@ -1064,6 +1351,7 @@ GOOGLE_CALLBACK_URL='http://localhost:3000/api/auth/callback/google'
 ```
 
 **Produção**:
+
 ```bash
 NODE_ENV='production'
 DATABASE_URL='postgresql://usuario:senha@host:5432/silo_db'
@@ -1073,6 +1361,7 @@ GOOGLE_CALLBACK_URL='https://silo.cptec.inpe.br/api/auth/callback/google'
 ```
 
 **⚠️ Importante para Produção**:
+
 - URLs HTTPS obrigatórias
 - Domínios reais institucionais
 - Secrets complexos e únicos
@@ -1082,9 +1371,10 @@ GOOGLE_CALLBACK_URL='https://silo.cptec.inpe.br/api/auth/callback/google'
 
 ## 🚀 Deploy e Produção
 
-### Visão Geral
+### Estratégia de Deploy
 
-O projeto SILO está configurado para deploy separado:
+O projeto **Silo** está configurado para deploy separado:
+
 - **Frontend Next.js**: Deploy no Vercel (automatizado via Git) ou em servidor próprio (CPTEC/INPE)
 - **FileServer**: Deploy em servidor próprio (CPTEC/INPE)
 
@@ -1136,7 +1426,7 @@ npm run dev
 
 ### Migração de Infraestrutura (Pendente)
 
-**🔴 REQUISITOS PARA PRODUÇÃO**
+#### 🔴 REQUISITOS PARA PRODUÇÃO
 
 #### Migração de Banco de Dados
 
@@ -1144,6 +1434,7 @@ npm run dev
 **Objetivo**: Servidor PostgreSQL local do CPTEC/INPE
 
 **Ações Necessárias**:
+
 - 🔴 Configurar servidor PostgreSQL dedicado
 - 🔴 Migrar schema completo e dados de teste
 - 🔴 Ajustar variáveis de ambiente (DATABASE_URL)
@@ -1267,13 +1558,14 @@ git push origin feature/nome-da-feature
 
 ## 👨‍💻 Autor e Mantenedor
 
-**Mario A. Sesso Junior**
+### Mario A. Sesso Junior
 
 - 🔗 GitHub: [@sessojunior](https://github.com/sessojunior)
 - 💼 LinkedIn: [in/sessojunior](https://linkedin.com/in/sessojunior)
 - 🏢 Instituição: CPTEC/INPE (Instituto Nacional de Pesquisas Espaciais)
 
 **Projetos Relacionados**:
+
 - [inpe-previsao-react](https://github.com/sessojunior/inpe-previsao-react) - Projeto de Previsão Numérica de Tempo (JavaScript)
 - [inpe-ambiental-react](https://github.com/sessojunior/inpe-ambiental-react) - Projeto de Previsão Ambiental (JavaScript)
 
