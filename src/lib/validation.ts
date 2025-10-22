@@ -272,27 +272,6 @@ export function validateApiData<T>(
 	}
 }
 
-// === SCHEMAS DE RESPOSTA DE API ===
-
-export const apiResponseSchema = z.object({
-	success: z.boolean(),
-	data: z.any().optional(),
-	message: z.string().optional(),
-	error: z.string().optional(),
-	field: z.string().optional()
-})
-
-export const paginatedResponseSchema = z.object({
-	data: z.array(z.any()),
-	pagination: z.object({
-		page: z.number(),
-		limit: z.number(),
-		total: z.number(),
-		totalPages: z.number(),
-		hasNext: z.boolean(),
-		hasPrev: z.boolean()
-	})
-})
 
 // === TIPOS EXPORTADOS ===
 
@@ -306,6 +285,4 @@ export type ProjectActivityInput = z.infer<typeof projectActivitySchema>
 export type ContactInput = z.infer<typeof contactSchema>
 export type DateRangeInput = z.infer<typeof dateRangeSchema>
 export type PaginationInput = z.infer<typeof paginationSchema>
-export type ApiResponse = z.infer<typeof apiResponseSchema>
-export type PaginatedResponse = z.infer<typeof paginatedResponseSchema>
 

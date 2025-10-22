@@ -25,25 +25,13 @@ export const config = {
 	},
 
 	/**
-	 * URL pública do servidor de arquivos
-	 * Usado pelo frontend para acessar arquivos
-	 */
-	get publicFileServerUrl(): string {
-		const url = process.env.NEXT_PUBLIC_FILE_SERVER_URL
-		if (!url && process.env.NODE_ENV === 'production') {
-			throw new Error('NEXT_PUBLIC_FILE_SERVER_URL deve ser configurada em produção')
-		}
-		return url || 'http://localhost:4000'
-	},
-
-	/**
 	 * URL base da aplicação Next.js
 	 * Usado para redirecionamentos e callbacks
 	 */
 	get appUrl(): string {
-		const url = process.env.NEXTAUTH_URL
+		const url = process.env.APP_URL
 		if (!url && process.env.NODE_ENV === 'production') {
-			throw new Error('NEXTAUTH_URL deve ser configurada em produção')
+			throw new Error('APP_URL deve ser configurada em produção')
 		}
 		return url || 'http://localhost:3000'
 	},
@@ -186,8 +174,7 @@ export const configValidation = {
 
 		const requiredVars = [
 			'FILE_SERVER_URL',
-			'NEXT_PUBLIC_FILE_SERVER_URL', 
-			'NEXTAUTH_URL',
+			'APP_URL',
 			'GOOGLE_CALLBACK_URL',
 			'UPLOAD_PROXY_URL',
 			'DATABASE_URL'

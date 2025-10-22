@@ -1019,7 +1019,7 @@ const lastDaysStatus = lastDates.flatMap((date) => {
 
 - **NUNCA** hardcode `localhost` em produção
 - **SEMPRE** usar `src/lib/config.ts` para URLs
-- Validar `FILE_SERVER_URL` e `NEXTAUTH_URL` em produção
+- Validar `FILE_SERVER_URL` e `APP_URL` em produção
 
 ### Padrão de Logs
 
@@ -1140,8 +1140,7 @@ cp env.docker.example .env
 DATABASE_URL='postgresql://usuario:senha@host:5432/banco'
 
 # Chaves de Autenticação (gere um secret aleatório)
-NEXTAUTH_SECRET='sua-chave-secreta-aqui'
-NEXTAUTH_URL='http://localhost:3000'
+APP_URL='http://localhost:3000'
 
 # Google OAuth (opcional, se não usar deixe em branco)
 GOOGLE_CLIENT_ID=''
@@ -1322,8 +1321,7 @@ docker-compose logs fileserver | grep ERROR
 
 **Autenticação**:
 
-- `NEXTAUTH_SECRET` - Secret para JWT
-- `NEXTAUTH_URL` - URL da aplicação
+- `APP_URL` - URL da aplicação
 - `GOOGLE_CLIENT_ID` - ID do cliente Google OAuth
 - `GOOGLE_CLIENT_SECRET` - Secret do Google OAuth
 - `GOOGLE_CALLBACK_URL` - URL de callback OAuth
@@ -1335,7 +1333,6 @@ docker-compose logs fileserver | grep ERROR
 **FileServer**:
 
 - `FILE_SERVER_URL` - URL interna do servidor
-- `NEXT_PUBLIC_FILE_SERVER_URL` - URL pública do servidor
 - `UPLOAD_PROXY_URL` - URL de proxy para uploads
 
 #### Desenvolvimento vs Produção
@@ -1346,7 +1343,6 @@ docker-compose logs fileserver | grep ERROR
 NODE_ENV='development'
 DATABASE_URL='postgresql://usuario:senha@localhost:5432/silo'
 FILE_SERVER_URL=http://localhost:4000
-NEXT_PUBLIC_FILE_SERVER_URL=http://localhost:4000
 GOOGLE_CALLBACK_URL='http://localhost:3000/api/auth/callback/google'
 ```
 
@@ -1356,7 +1352,6 @@ GOOGLE_CALLBACK_URL='http://localhost:3000/api/auth/callback/google'
 NODE_ENV='production'
 DATABASE_URL='postgresql://usuario:senha@host:5432/silo_db'
 FILE_SERVER_URL=https://files.cptec.inpe.br
-NEXT_PUBLIC_FILE_SERVER_URL=https://files.cptec.inpe.br
 GOOGLE_CALLBACK_URL='https://silo.cptec.inpe.br/api/auth/callback/google'
 ```
 

@@ -13,7 +13,7 @@ services:
       
       # URLs do sistema
       - FILE_SERVER_URL=${FILE_SERVER_URL:-http://localhost:4000}
-      - NEXT_PUBLIC_APP_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - APP_URL=${APP_URL:-http://localhost:3000}
       
       # Configurações de upload
       - MAX_FILE_SIZE=${MAX_FILE_SIZE:-4194304}
@@ -35,31 +35,23 @@ services:
       # Banco de dados
       - DATABASE_URL=${DATABASE_URL}
       
-      # Autenticação NextAuth
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      # URL da aplicação
+      - APP_URL=${APP_URL:-http://localhost:3000}
       
       # Google OAuth
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL:-http://localhost:3000/api/auth/callback/google}
       
-      # Email SMTP (variáveis principais)
+      # Email SMTP
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_SECURE=${SMTP_SECURE:-false}
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       
-      # Email (variáveis alternativas para compatibilidade)
-      - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
-      - EMAIL_PORT=${EMAIL_PORT:-587}
-      - EMAIL_USER=${EMAIL_USER}
-      - EMAIL_PASS=${EMAIL_PASS}
-      
       # File Server Local (desenvolvimento)
       - FILE_SERVER_URL=${FILE_SERVER_URL:-http://localhost:4000}
-      - NEXT_PUBLIC_FILE_SERVER_URL=${NEXT_PUBLIC_FILE_SERVER_URL:-http://localhost:4000}
       - UPLOAD_PROXY_URL=${UPLOAD_PROXY_URL:-http://localhost:4000/api/upload}
       
       # File Server (produção)
