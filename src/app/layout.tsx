@@ -1,5 +1,11 @@
 import type { Metadata } from 'next'
 import '@/app/globals.css'
+import { configValidation } from '@/lib/config'
+
+// Validar configuração na inicialização (apenas produção)
+if (process.env.NODE_ENV === 'production') {
+	configValidation.validateProductionConfig()
+}
 
 export const metadata: Metadata = {
 	title: 'Silo',

@@ -1,4 +1,5 @@
-# Ignorar arquivos do servidor de fileserver
+# FileServer é deployado separadamente (servidor próprio CPTEC/INPE)
+# Apenas o frontend Next.js deve ser deployado no Vercel
 fileserver/
 
 # Ignorar arquivos de desenvolvimento
