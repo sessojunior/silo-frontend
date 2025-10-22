@@ -170,7 +170,10 @@ export const configValidation = {
 	 * Deve ser chamada na inicialização da aplicação em produção
 	 */
 	validateProductionConfig(): void {
-		if (process.env.NODE_ENV !== 'production') return
+		// Não executar durante o build (Next.js define NODE_ENV como 'production' durante build)
+		if (process.env.NODE_ENV !== 'production' || process.env.NEXT_PHASE === 'phase-production-build') {
+			return
+		}
 
 		const requiredVars = [
 			'FILE_SERVER_URL',

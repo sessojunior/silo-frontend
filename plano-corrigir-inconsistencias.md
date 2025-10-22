@@ -2,22 +2,41 @@
 
 ## 1. ✅ Validação de Configuração em Produção - CONCLUÍDO
 
-**Status**: ✅ **IMPLEMENTADO**
+**Status**: ✅ **IMPLEMENTADO E CORRIGIDO**
 
-A função `configValidation.validateProductionConfig()` foi adicionada ao `src/app/layout.tsx` e será executada na inicialização da aplicação em produção.
+A validação de configuração foi implementada com sucesso e o problema de build foi resolvido.
 
 **Arquivos modificados**:
-- `src/app/layout.tsx` - adicionada validação de configuração (linhas 3-8)
+- `src/lib/config.ts` - modificada validação para não executar durante build (linhas 172-176)
+- `src/lib/init.ts` - criado sistema de inicialização (novo arquivo)
+- `src/lib/db/index.ts` - adicionada importação do sistema de inicialização (linha 7)
 
 **Código implementado**:
 ```typescript
-import { configValidation } from '@/lib/config'
-
-// Validar configuração na inicialização (apenas produção)
-if (process.env.NODE_ENV === 'production') {
-	configValidation.validateProductionConfig()
+// src/lib/config.ts - Validação corrigida
+validateProductionConfig(): void {
+	// Não executar durante o build (Next.js define NODE_ENV como 'production' durante build)
+	if (process.env.NODE_ENV !== 'production' || process.env.NEXT_PHASE === 'phase-production-build') {
+		return
+	}
+	// ... resto da validação
 }
+
+// src/lib/init.ts - Sistema de inicialização
+export function initializeApp(): void {
+	if (initialized) return
+	
+	if (process.env.NODE_ENV === 'production') {
+		configValidation.validateProductionConfig()
+	}
+	initialized = true
+}
+
+// src/lib/db/index.ts - Importação da inicialização
+import '@/lib/init'
 ```
+
+**Problema resolvido**: Build agora executa com sucesso sem erros de validação de configuração.
 
 ---
 
@@ -540,11 +559,14 @@ fileserver/logs/
 
 ## ✅ RESUMO DA IMPLEMENTAÇÃO REALIZADA
 
-**Itens Concluídos**: 5 de 10 itens solicitados
+**Itens Concluídos**: 5 de 10 itens solicitados + **Problema de Build Resolvido**
 
 ### ✅ Implementados com Sucesso:
 
-1. **Validação de Configuração em Produção** - Adicionada ao `layout.tsx`
+1. **Validação de Configuração em Produção** - ✅ **IMPLEMENTADO E CORRIGIDO**
+   - Sistema de inicialização criado (`src/lib/init.ts`)
+   - Validação não executa durante build (corrigido problema)
+   - Build executa com sucesso sem erros
 2. **Pool PostgreSQL com Limites** - Configurado com 20 conexões máximas
 3. **Documentação .gitignore/.vercelignore** - Explicações sobre arquitetura de deploy
 4. **Verificação oauth.ts** - Confirmado uso correto de config centralizada
@@ -560,4 +582,4 @@ fileserver/logs/
 8. **Padrões de API Response** - ~65 arquivos precisam padronização
 9. **ESLint desabilitado** - 6 arquivos com problemas ocultos
 
-**Status**: 50% concluído. Itens críticos de produção foram resolvidos. Restam principalmente questões de qualidade de código e manutenibilidade.
+**Status**: 50% concluído + **Build funcionando**. Itens críticos de produção foram resolvidos e o sistema pode ser buildado sem erros. Restam principalmente questões de qualidade de código e manutenibilidade.

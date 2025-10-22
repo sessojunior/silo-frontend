@@ -3,6 +3,9 @@ import { Pool } from 'pg'
 import * as schema from './schema'
 import { config } from '@/lib/config'
 
+// Inicializar aplicação (validação de config em produção)
+import '@/lib/init'
+
 const pool = new Pool({
 	connectionString: config.databaseUrl,
 	max: 20, // Máximo 20 conexões simultâneas
