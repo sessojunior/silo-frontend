@@ -1,22 +1,44 @@
-# Ignorar apenas arquivos desnecessários do fileserver no Docker
-fileserver/uploads/
-fileserver/node_modules/
-fileserver/logs/
-fileserver/dist/
+# Arquivos desnecessários para o Docker
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Ignorar arquivos de desenvolvimento
+# Arquivos de ambiente (usar .env no host)
 .env.local
 .env.development
 .env.test
 
-# Ignorar logs e temporários
+# Arquivos de build e cache
+.next/
+out/
+dist/
+build/
+
+# Arquivos de upload (serão montados como volume)
+fileserver/uploads/
+
+# Logs e temporários
 *.log
 temp/
 logs/
 
-# Ignorar arquivos de teste
+# Arquivos de teste
 test-results/
 playwright-report/
+coverage/
 
-# Ignorar node_modules (será instalado no container)
-node_modules/
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Arquivos Git
+.git/
+.gitignore
+README.md

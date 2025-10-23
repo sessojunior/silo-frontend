@@ -7,36 +7,25 @@ services:
     ports:
       - '4000:4000'
     environment:
-      # Configuração do servidor
-      - PORT=4000
       - NODE_ENV=${NODE_ENV:-development}
-      
-      # URLs do sistema
-      - FILE_SERVER_URL=${FILE_SERVER_URL:-http://localhost:4000}
-      - APP_URL=${APP_URL:-http://localhost:3000}
-      
-      # Configurações de upload
-      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-4194304}
-      - MAX_FILES_COUNT=${MAX_FILES_COUNT:-3}
-      - ALLOWED_EXTENSIONS=${ALLOWED_EXTENSIONS:-jpg,jpeg,png,webp,gif}
+      - PORT=4000
     volumes:
       - ./fileserver/uploads:/app/uploads
     restart: unless-stopped
 
-  # Aplicação principal
+  # Aplicação principal Next.js
   nextapp:
     build: .
     ports:
       - '3000:3000'
     environment:
-      # Ambiente
+      # Ambiente e banco
       - NODE_ENV=${NODE_ENV:-development}
-      
-      # Banco de dados
       - DATABASE_URL=${DATABASE_URL}
       
-      # URL da aplicação
+      # URLs do sistema
       - APP_URL=${APP_URL:-http://localhost:3000}
+      - FILE_SERVER_URL=${FILE_SERVER_URL:-http://localhost:4000}
       
       # Google OAuth
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
@@ -44,19 +33,10 @@ services:
       - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL:-http://localhost:3000/api/auth/callback/google}
       
       # Email SMTP
-      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
-      - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
-      
-      # File Server Local (desenvolvimento)
-      - FILE_SERVER_URL=${FILE_SERVER_URL:-http://localhost:4000}
-      - UPLOAD_PROXY_URL=${UPLOAD_PROXY_URL:-http://localhost:4000/api/upload}
-      
-      # File Server (produção)
-      - FILE_SERVER_HOSTNAME=${FILE_SERVER_HOSTNAME}
-      - FILE_SERVER_PROTOCOL=${FILE_SERVER_PROTOCOL:-https}
     depends_on:
       - fileserver
     restart: unless-stopped
