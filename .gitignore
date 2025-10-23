@@ -43,21 +43,9 @@ next-env.d.ts
 # database
 *.db
 
-# Playwright
-node_modules/
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-
-# Test fixtures (imagens de teste)
-tests/fixtures/*.jpg
-tests/fixtures/*.png
-tests/fixtures/*.gif
-tests/fixtures/*.webp
-
 # File Server - Arquivos de upload e dependências
 # Uploads são ignorados pois devem ser gerenciados pelo servidor de produção
 fileserver/uploads/
 fileserver/node_modules/
+fileserver/dist/
 fileserver/logs/

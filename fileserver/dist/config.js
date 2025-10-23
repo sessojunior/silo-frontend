@@ -3,8 +3,8 @@
 export const config = {
     // Configurações básicas do servidor
     port: 4000,
-    fileServerUrl: 'http://localhost:4000',
-    nextPublicAppUrl: 'http://localhost:3000',
+    fileServerUrl: process.env.FILE_SERVER_URL || 'http://localhost:4000',
+    nextPublicAppUrl: process.env.APP_URL || 'http://localhost:3000',
     // Configurações de upload
     upload: {
         maxFileSize: 4194304, // 4MB

@@ -61,7 +61,7 @@ export async function generateThumbnail(buffer, filename) {
     try {
         const thumbFilename = `thumb-${filename.replace(/\.[^/.]+$/, '')}.webp`;
         const thumbPath = path.join(process.cwd(), 'uploads', 'avatars', thumbFilename);
-        // Configuração baseada em src/server/uploadthing.ts
+        // Configuração baseada em servidor local
         const thumbnailSize = config.optimization.avatar.thumbnailSize;
         const thumbnailQuality = config.optimization.avatar.thumbnailQuality;
         await sharp(buffer)
