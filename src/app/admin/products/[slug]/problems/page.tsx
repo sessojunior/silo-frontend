@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { toast } from '@/lib/toast'
@@ -69,7 +69,7 @@ export default function ProblemsPage() {
 	const [formCategoryId, setFormCategoryId] = useState<string | null>(null)
 
 	// 🚀 FUNÇÃO HELPER OTIMIZADA: Busca contagem de soluções para múltiplos problemas
-	const fetchSolutionsCount = async (problems: ProductProblemWithCategory[]): Promise<Record<string, number>> => {
+	const fetchSolutionsCount = useCallback(async (problems: ProductProblemWithCategory[]): Promise<Record<string, number>> => {
 		if (problems.length === 0) return {}
 
 		try {
@@ -92,10 +92,10 @@ export default function ProblemsPage() {
 			console.error('❌ [PAGE_PRODUCT_PROBLEMS] Erro ao buscar contagens:', { error })
 			return {}
 		}
-	}
+	}, [])
 
 	// Função para selecionar um problema e buscar seus dados
-	const handleSelectProblem = async (selected: ProductProblemWithCategory) => {
+	const handleSelectProblem = useCallback(async (selected: ProductProblemWithCategory) => {
 		setProblem(selected)
 		setLoadingDetail(true)
 		try {
@@ -116,7 +116,7 @@ export default function ProblemsPage() {
 		} finally {
 			setLoadingDetail(false)
 		}
-	}
+	}, [currentUser?.id])
 
 	useEffect(() => {
 		const fetchProblems = async () => {
@@ -152,8 +152,7 @@ export default function ProblemsPage() {
 		}
 
 		fetchProblems()
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [slug])
+	}, [slug, fetchSolutionsCount, handleSelectProblem])
 
 	useEffect(() => {
 		const handleScroll = () => {

@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
 		const password = body.password as string
 
 		// Validação básica dos campos
-
 		if (!name || !email || !password) {
 			return NextResponse.json({ field: null, message: 'Todos os campos são obrigatórios.' }, { status: 400 })
 		}
@@ -66,7 +65,7 @@ export async function POST(req: NextRequest) {
 		// Gera e envia código de verificação por e-mail
 		const otp = await generateCode(email)
 		if ('error' in otp) {
-			return NextResponse.json({ field: 'email', message: otp.error.message ?? 'Erro ao gerar o código de verificação para enviar por e-mail.' }, { status: 500 })
+			return NextResponse.json({ field: 'email', message: otp.error.message ?? 'Erro ao gerar o código de verificação para enviar por e-mail.' }, { status: 400 })
 		}
 
 		// Código OTP
@@ -80,16 +79,13 @@ export async function POST(req: NextRequest) {
 		if ('error' in sendEmailOtp) return NextResponse.json({ field: 'email', message: sendEmailOtp.error.message ?? 'Erro ao enviar o código de verificação por e-mail.' }, { status: 400 })
 
 		// Retorna para a página o próximo passo com informação sobre ativação
-		return NextResponse.json(
-			{
-				step: 2,
-				email,
-				message: 'Cadastro realizado com sucesso! Após verificar seu e-mail, sua conta precisará ser ativada por um administrador para ter acesso ao sistema.',
-			},
-			{ status: 200 },
-		)
+		return NextResponse.json({
+			step: 2,
+			email,
+			message: 'Cadastro realizado com sucesso! Após verificar seu e-mail, sua conta precisará ser ativada por um administrador para ter acesso ao sistema.',
+		})
 	} catch (error) {
 		console.error('❌ [API_AUTH_REGISTER] Erro ao criar conta de usuário:', { error })
-		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })
+		return NextResponse.json({ error: 'Erro inesperado. Tente novamente.' }, { status: 500 })
 	}
 }

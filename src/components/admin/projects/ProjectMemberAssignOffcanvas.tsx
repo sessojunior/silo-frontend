@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { toast } from '@/lib/toast'
 
 import Offcanvas from '@/components/ui/Offcanvas'
@@ -9,7 +9,7 @@ import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import Label from '@/components/ui/Label'
 
-import { Project, ProjectMember } from '@/types/projects'
+import { Project } from '@/types/projects'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
 interface User {
@@ -30,14 +30,14 @@ interface ProjectMemberAssignOffcanvasProps {
 interface AssignmentData {
 	projectId: string
 	userId: string
-	role: ProjectMember['role']
+	role: string
 }
 
 export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project, onSubmit }: ProjectMemberAssignOffcanvasProps) {
 	const [saving, setSaving] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [search, setSearch] = useState('')
-	const [selectedRole, setSelectedRole] = useState<ProjectMember['role']>('member')
+	const [selectedRole, setSelectedRole] = useState<string>('member')
 	const [availableUsers, setAvailableUsers] = useState<User[]>([])
 	const [filteredUsers, setFilteredUsers] = useState<User[]>([])
 	const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set())
@@ -51,12 +51,43 @@ export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project,
 	]
 
 	// Carregar usuários disponíveis
+	const fetchAvailableUsers = useCallback(async () => {
+		try {
+			setLoading(true)
+
+			// Simular API - buscar usuários que não estão no projeto
+			const allUsers: User[] = [
+				{ id: 'user-1', name: 'Ana Silva', email: 'ana.silva@inpe.br', avatar: null, isActive: true },
+				{ id: 'user-2', name: 'Carlos Santos', email: 'carlos.santos@inpe.br', avatar: null, isActive: true },
+				{ id: 'user-3', name: 'Maria Oliveira', email: 'maria.oliveira@inpe.br', avatar: null, isActive: true },
+				{ id: 'user-4', name: 'João Costa', email: 'joao.costa@inpe.br', avatar: null, isActive: false },
+				{ id: 'user-5', name: 'Fernanda Lima', email: 'fernanda.lima@inpe.br', avatar: null, isActive: true },
+				{ id: 'user-6', name: 'Ricardo Alves', email: 'ricardo.alves@inpe.br', avatar: null, isActive: true },
+			]
+
+			// Filtrar usuários que já estão no projeto
+			const projectMemberIds: string[] = [] // Sem membros por enquanto
+			const available = allUsers.filter((user) => !projectMemberIds.includes(user.id) && user.isActive)
+
+			setAvailableUsers(available)
+			setFilteredUsers(available)
+		} catch (error) {
+			console.error('❌ [PROJECT_MEMBER_ASSIGN] Erro ao carregar usuários:', { error })
+			toast({
+				type: 'error',
+				title: 'Erro ao carregar usuários',
+				description: 'Não foi possível carregar a lista de usuários disponíveis.',
+			})
+		} finally {
+			setLoading(false)
+		}
+	}, [])
+
 	useEffect(() => {
 		if (isOpen && project) {
 			fetchAvailableUsers()
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isOpen, project])
+	}, [isOpen, project, fetchAvailableUsers])
 
 	// Filtrar usuários por busca
 	useEffect(() => {
@@ -80,36 +111,6 @@ export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project,
 		}
 	}, [isOpen])
 
-	async function fetchAvailableUsers() {
-		try {
-			setLoading(true)
-
-			// Simular API - buscar usuários que não estão no projeto
-			const allUsers: User[] = [
-				{ id: 'user-1', name: 'Ana Silva', email: 'ana.silva@inpe.br', avatar: null, isActive: true },
-				{ id: 'user-2', name: 'Carlos Santos', email: 'carlos.santos@inpe.br', avatar: null, isActive: true },
-				{ id: 'user-3', name: 'Maria Oliveira', email: 'maria.oliveira@inpe.br', avatar: null, isActive: true },
-				{ id: 'user-4', name: 'João Costa', email: 'joao.costa@inpe.br', avatar: null, isActive: false },
-				{ id: 'user-5', name: 'Fernanda Lima', email: 'fernanda.lima@inpe.br', avatar: null, isActive: true },
-				{ id: 'user-6', name: 'Ricardo Alves', email: 'ricardo.alves@inpe.br', avatar: null, isActive: true },
-			]
-
-			// Filtrar usuários que já estão no projeto
-			const projectMemberIds = project?.members.map((m) => m.user.id) || []
-			const available = allUsers.filter((user) => !projectMemberIds.includes(user.id) && user.isActive)
-
-			setAvailableUsers(available)
-			setLoading(false)
-		} catch (error) {
-			console.error('❌ [COMPONENT_PROJECT_MEMBER_ASSIGN] Erro ao carregar usuários:', { error })
-			toast({
-				type: 'error',
-				title: 'Erro inesperado',
-				description: 'Erro ao carregar usuários disponíveis',
-			})
-			setLoading(false)
-		}
-	}
 
 	function toggleUserSelection(userId: string) {
 		setSelectedUsers((prev) => {
@@ -185,14 +186,14 @@ export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project,
 				<div className='bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4'>
 					<div className='flex items-center gap-3'>
 						{/* Ícone do Projeto */}
-						<div className='size-10 rounded-lg flex items-center justify-center' style={{ backgroundColor: `${project.color}20` }}>
-							<span className={`icon-[lucide--${project.icon}] size-5`} style={{ color: project.color }} />
+						<div className='size-10 rounded-lg flex items-center justify-center bg-blue-100 dark:bg-blue-900/30'>
+							<span className='icon-[lucide--folder] size-5 text-blue-600 dark:text-blue-400' />
 						</div>
 
 						{/* Info do Projeto */}
 						<div>
 							<h3 className='font-medium text-zinc-900 dark:text-zinc-100'>{project.name}</h3>
-							<p className='text-sm text-zinc-500 dark:text-zinc-400'>{project.members.length} membro(s) atual(mente)</p>
+							<p className='text-sm text-zinc-500 dark:text-zinc-400'>0 membro(s) atual(mente)</p>
 						</div>
 					</div>
 				</div>
@@ -201,7 +202,7 @@ export default function ProjectMemberAssignOffcanvas({ isOpen, onClose, project,
 				<div>
 					<Label htmlFor='role'>Papel no Projeto</Label>
 					<div className='max-w-md'>
-						<Select name='role' selected={selectedRole} onChange={(value) => setSelectedRole(value as ProjectMember['role'])} options={roleOptions} placeholder='Selecionar papel' />
+						<Select name='role' selected={selectedRole} onChange={(value) => setSelectedRole(value as string)} options={roleOptions} placeholder='Selecionar papel' />
 					</div>
 				</div>
 

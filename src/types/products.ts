@@ -137,15 +137,6 @@ export interface PaginatedResponse<T> {
 	pagination: PaginationInfo
 }
 
-// Interface para resposta de API
-export interface ApiResponse<T = unknown> {
-	success: boolean
-	data?: T
-	message?: string
-	error?: string
-	field?: string
-}
-
 // Interface para formulários de produtos
 export interface ProductFormData {
 	name: string
@@ -163,30 +154,5 @@ export interface FileUpload {
 	file: File
 	description?: string
 	category?: string
-}
-
-// Interface para notificações
-export interface ProductNotification {
-	id: string
-	type: 'problem' | 'solution' | 'activity' | 'update'
-	title: string
-	message: string
-	productId: string
-	userId: string
-	read: boolean
-	createdAt: Date
-}
-
-// Interface para logs de auditoria
-export interface ProductAuditLog {
-	id: string
-	productId: string
-	action: string
-	details: Record<string, unknown>
-	userId: string
-	userName: string
-	ipAddress: string
-	userAgent: string
-	createdAt: Date
 }
 

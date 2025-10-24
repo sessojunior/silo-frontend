@@ -2,8 +2,8 @@
 
 import nodemailer from 'nodemailer'
 import { config } from '@/lib/config'
-import { EmailTemplate, SendEmailTemplateParams } from './types'
-import { generateEmailTemplate, generateTextFallback } from './templates'
+import { EmailTemplate, SendEmailTemplateParams } from '@/lib/email/types'
+import { generateEmailTemplate, generateTextFallback } from '@/lib/email/templates'
 
 // Função independente para envio de emails com templates
 export async function sendEmailTemplate<T extends EmailTemplate>(

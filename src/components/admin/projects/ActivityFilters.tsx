@@ -4,18 +4,18 @@ import { useState } from 'react'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
-import { Activity, ProjectMember } from '@/types/projects'
+import { ProjectActivity } from '@/types/projects'
 
 interface ActivityFiltersProps {
 	onFilterChange: (filters: FilterOptions) => void
-	members: ProjectMember[]
+	members: { id: string; name: string }[]
 	categories: string[]
 }
 
 export interface FilterOptions {
 	search: string
-	status: Activity['status'] | 'all'
-	priority: Activity['priority'] | 'all'
+	status: ProjectActivity['status'] | 'all'
+	priority: ProjectActivity['priority'] | 'all'
 	category: string | 'all'
 	assignee: string | 'all'
 }
@@ -52,7 +52,7 @@ export default function ActivityFilters({ onFilterChange, members, categories }:
 	const categoryOptions = [{ value: 'all', label: 'Todas categorias' }, ...categories.map((cat) => ({ value: cat, label: cat }))]
 
 	// Opções de assignee
-	const assigneeOptions = [{ value: 'all', label: 'Todos os membros' }, ...members.map((member) => ({ value: member.userId, label: member.user.name }))]
+	const assigneeOptions = [{ value: 'all', label: 'Todos os membros' }, ...members.map((member) => ({ value: member.id, label: member.name }))]
 
 	const handleFilterChange = (key: keyof FilterOptions, value: string) => {
 		const newFilters = { ...filters, [key]: value }

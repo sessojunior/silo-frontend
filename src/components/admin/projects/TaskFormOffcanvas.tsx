@@ -172,11 +172,11 @@ interface TaskFormOffcanvasProps {
 	onClose: () => void
 	task?: KanbanTask | null
 	initialStatus?: KanbanTask['status'] // Para quando criar nova tarefa numa coluna específica
-	onSubmit: (taskData: TaskFormData) => void
+	onSubmit: (taskData: LocalTaskFormData) => void
 	onDelete?: (task: KanbanTask) => void
 }
 
-interface TaskFormData {
+interface LocalTaskFormData {
 	name: string
 	description: string
 	category: string
@@ -189,7 +189,7 @@ interface TaskFormData {
 }
 
 export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus = 'todo', onSubmit, onDelete }: TaskFormOffcanvasProps) {
-	const [formData, setFormData] = useState<TaskFormData>({
+	const [formData, setFormData] = useState<LocalTaskFormData>({
 		name: '',
 		description: '',
 		category: '',
@@ -371,7 +371,7 @@ export default function TaskFormOffcanvas({ isOpen, onClose, task, initialStatus
 		}
 	}
 
-	const handleFieldChange = (field: keyof TaskFormData, value: string | number | string[]) => {
+	const handleFieldChange = (field: keyof LocalTaskFormData, value: string | number | string[]) => {
 		setFormData((prev) => ({
 			...prev,
 			[field]: value,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Project } from '@/types/projects'
+import { Project, ProjectFormData } from '@/types/projects'
 import Offcanvas from '@/components/ui/Offcanvas'
 import Input from '@/components/ui/Input'
 
@@ -19,25 +19,15 @@ interface ProjectFormOffcanvasProps {
 	onDelete?: (project: Project) => void
 }
 
-interface ProjectFormData {
-	name: string
-	shortDescription: string
-	description: string
-	status: Project['status']
-	priority: Project['priority']
-	startDate: string
-	endDate: string
-}
-
 export default function ProjectFormOffcanvas({ isOpen, onClose, project, onSubmit, onDelete }: ProjectFormOffcanvasProps) {
 	const [formData, setFormData] = useState<ProjectFormData>({
 		name: '',
 		shortDescription: '',
 		description: '',
-		status: 'active',
+		startDate: null,
+		endDate: null,
 		priority: 'medium',
-		startDate: '',
-		endDate: '',
+		status: 'active',
 	})
 	const [saving, setSaving] = useState(false)
 
@@ -64,10 +54,10 @@ export default function ProjectFormOffcanvas({ isOpen, onClose, project, onSubmi
 				name: project.name,
 				shortDescription: project.shortDescription || '',
 				description: project.description,
-				status: project.status,
-				priority: project.priority,
-				startDate: project.startDate || '',
-				endDate: project.endDate || '',
+				status: project.status as 'active' | 'completed' | 'paused' | 'cancelled',
+				priority: project.priority as 'low' | 'medium' | 'high' | 'urgent',
+				startDate: project.startDate,
+				endDate: project.endDate,
 			})
 		} else {
 			// Reset para novo projeto
@@ -77,8 +67,8 @@ export default function ProjectFormOffcanvas({ isOpen, onClose, project, onSubmi
 				description: '',
 				status: 'active',
 				priority: 'medium',
-				startDate: '',
-				endDate: '',
+				startDate: null,
+				endDate: null,
 			})
 		}
 	}, [project, isOpen])
@@ -124,7 +114,7 @@ export default function ProjectFormOffcanvas({ isOpen, onClose, project, onSubmi
 		}
 	}
 
-	const handleFieldChange = (field: keyof ProjectFormData, value: string) => {
+	const handleFieldChange = (field: keyof ProjectFormData, value: string | null) => {
 		setFormData((prev) => ({
 			...prev,
 			[field]: value,
@@ -173,13 +163,13 @@ export default function ProjectFormOffcanvas({ isOpen, onClose, project, onSubmi
 					{/* Data de Início */}
 					<div>
 						<Label htmlFor='startDate'>Data de Início</Label>
-						<input id='startDate' type='date' value={formData.startDate} onChange={(e) => handleFieldChange('startDate', e.target.value)} disabled={saving} className='w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50' />
+						<input id='startDate' type='date' value={formData.startDate || ''} onChange={(e) => handleFieldChange('startDate', e.target.value || null)} disabled={saving} className='w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50' />
 					</div>
 
 					{/* Data de Fim */}
 					<div>
 						<Label htmlFor='endDate'>Data de Fim</Label>
-						<input id='endDate' type='date' value={formData.endDate} onChange={(e) => handleFieldChange('endDate', e.target.value)} disabled={saving} className='w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50' />
+						<input id='endDate' type='date' value={formData.endDate || ''} onChange={(e) => handleFieldChange('endDate', e.target.value || null)} disabled={saving} className='w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50' />
 					</div>
 				</div>
 

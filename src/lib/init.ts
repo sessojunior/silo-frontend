@@ -3,7 +3,7 @@
  * Executa validações e configurações que devem rodar apenas em runtime
  */
 
-import { configValidation } from './config'
+import { configValidation } from '@/lib/config'
 
 // Flag para evitar execução múltipla
 let initialized = false

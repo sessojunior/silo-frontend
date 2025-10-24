@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Activity, Project } from '@/types/projects'
+import { ProjectActivity, Project, ActivityFormData } from '@/types/projects'
 import Offcanvas from '@/components/ui/Offcanvas'
 import Input from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
@@ -13,20 +13,9 @@ import { toast } from '@/lib/toast'
 interface ActivityFormOffcanvasProps {
 	isOpen: boolean
 	onClose: () => void
-	activity?: Activity | null
+	activity?: ProjectActivity | null
 	project: Project
 	onSubmit: (activityData: ActivityFormData) => void
-}
-
-interface ActivityFormData {
-	name: string
-	description: string
-	status: Activity['status']
-	priority: Activity['priority']
-	category: string
-	startDate: string
-	endDate: string
-	days: string // Dias estimados (conforme DB)
 }
 
 export default function ActivityFormOffcanvas({ isOpen, onClose, activity, project, onSubmit }: ActivityFormOffcanvasProps) {
@@ -35,10 +24,10 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 		description: '',
 		status: 'todo',
 		priority: 'medium',
-		category: '',
-		startDate: '',
-		endDate: '',
-		days: '',
+		category: null,
+		estimatedDays: null,
+		startDate: null,
+		endDate: null,
 	})
 	const [saving, setSaving] = useState(false)
 
@@ -78,12 +67,12 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 			setFormData({
 				name: activity.name,
 				description: activity.description,
-				status: activity.status,
-				priority: activity.priority,
+				status: activity.status as 'todo' | 'progress' | 'done' | 'blocked',
+				priority: activity.priority as 'low' | 'medium' | 'high' | 'urgent',
 				category: activity.category,
-				startDate: activity.startDate || '',
-				endDate: activity.endDate || '',
-				days: activity.estimatedDays ? activity.estimatedDays.toString() : '',
+				estimatedDays: activity.estimatedDays,
+				startDate: activity.startDate,
+				endDate: activity.endDate,
 			})
 		} else {
 			// Reset para nova atividade
@@ -92,10 +81,10 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 				description: '',
 				status: 'todo',
 				priority: 'medium',
-				category: '',
-				startDate: '',
-				endDate: '',
-				days: '',
+				category: null,
+				estimatedDays: null,
+				startDate: null,
+				endDate: null,
 			})
 		}
 	}, [activity, isOpen])
@@ -131,7 +120,7 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 			return
 		}
 
-		if (formData.days && (isNaN(Number(formData.days)) || Number(formData.days) < 0)) {
+		if (formData.estimatedDays && (isNaN(Number(formData.estimatedDays)) || Number(formData.estimatedDays) < 0)) {
 			toast({
 				type: 'error',
 				title: 'Erro na validação',
@@ -141,10 +130,10 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 		}
 
 		// Validação crítica: verificar se o período (data fim - data início) é suficiente para os dias estimados
-		if (formData.startDate && formData.endDate && formData.days) {
+		if (formData.startDate && formData.endDate && formData.estimatedDays) {
 			const startDate = new Date(formData.startDate)
 			const endDate = new Date(formData.endDate)
-			const estimatedDays = Number(formData.days)
+			const estimatedDays = Number(formData.estimatedDays)
 
 			// Calcular diferença em dias (incluindo o dia inicial)
 			const diffInTime = endDate.getTime() - startDate.getTime()
@@ -167,7 +156,7 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 			// Converter days de string para number para o backend
 			const submissionData = {
 				...formData,
-				estimatedHours: formData.days, // Manter compatibilidade com interface atual
+				estimatedHours: formData.estimatedDays, // Manter compatibilidade com interface atual
 			}
 
 			await onSubmit(submissionData)
@@ -199,9 +188,6 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 				{/* Informações do Projeto */}
 				<div className='bg-zinc-50 dark:bg-zinc-800 rounded-lg p-4 border border-zinc-200 dark:border-zinc-700'>
 					<div className='flex items-center gap-3'>
-						<div className='size-8 rounded-lg flex items-center justify-center' style={{ backgroundColor: `${project.color}20` }}>
-							<span className={`icon-[lucide--${project.icon}] size-4`} style={{ color: project.color }} />
-						</div>
 						<div>
 							<p className='font-medium text-zinc-900 dark:text-zinc-100'>{project.name}</p>
 							<p className='text-sm text-zinc-500 dark:text-zinc-400'>Atividade para este projeto</p>
@@ -246,8 +232,8 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 
 					{/* Dias Estimados - usando componente Input */}
 					<div>
-						<Label htmlFor='days'>Dias Estimados</Label>
-						<Input id='days' type='text' placeholder='Ex: 3 ou 1.5' value={formData.days} setValue={(value) => handleFieldChange('days', value)} disabled={saving} />
+						<Label htmlFor='estimatedDays'>Dias Estimados</Label>
+						<Input id='estimatedDays' type='text' placeholder='Ex: 3 ou 1.5' value={formData.estimatedDays?.toString() || ''} setValue={(value) => handleFieldChange('estimatedDays', value)} disabled={saving} />
 					</div>
 				</div>
 
@@ -256,13 +242,13 @@ export default function ActivityFormOffcanvas({ isOpen, onClose, activity, proje
 					{/* Data de Início */}
 					<div>
 						<Label htmlFor='startDate'>Data de Início</Label>
-						<input id='startDate' type='date' value={formData.startDate} onChange={(e) => handleFieldChange('startDate', e.target.value)} disabled={saving} className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
+						<input id='startDate' type='date' value={formData.startDate || ''} onChange={(e) => handleFieldChange('startDate', e.target.value)} disabled={saving} className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
 					</div>
 
 					{/* Data de Fim */}
 					<div>
 						<Label htmlFor='endDate'>Data de Fim</Label>
-						<input id='endDate' type='date' value={formData.endDate} onChange={(e) => handleFieldChange('endDate', e.target.value)} disabled={saving} className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
+						<input id='endDate' type='date' value={formData.endDate || ''} onChange={(e) => handleFieldChange('endDate', e.target.value)} disabled={saving} className='block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300' />
 					</div>
 				</div>
 

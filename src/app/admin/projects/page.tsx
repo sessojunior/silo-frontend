@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from '@/lib/toast'
 import { formatDateBR } from '@/lib/dateUtils'
+import { ProjectFormData } from '@/types/projects'
 import ReactMarkdown from 'react-markdown'
 import { getMarkdownClasses } from '@/lib/markdown'
 
@@ -50,62 +51,7 @@ export default function ProjectsPage() {
 	// Estado para controlar qual projeto tem dropdown expandido
 	const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null)
 
-	// Função para calcular progresso real de um projeto baseado nas tarefas do Kanban
-	const calculateProjectProgress = useCallback(async (projectId: string): Promise<number> => {
-		try {
-			console.log('ℹ️ [PAGE_PROJECTS] Calculando progresso real para projeto:', { projectId })
-			
-			// Buscar atividades do projeto
-			const activitiesResponse = await fetch(`/api/admin/projects/${projectId}/activities`)
-			if (!activitiesResponse.ok) {
-				console.warn('⚠️ [PAGE_PROJECTS] Erro ao buscar atividades do projeto:', { projectId })
-				return 0
-			}
-			
-			const activitiesData = await activitiesResponse.json()
-			if (!activitiesData.success || !activitiesData.activities) {
-				console.warn('⚠️ [PAGE_PROJECTS] Nenhuma atividade encontrada para projeto:', { projectId })
-				return 0
-			}
-			
-			let totalTasks = 0
-			let completedTasks = 0
-			
-			// Para cada atividade, buscar suas tarefas e calcular progresso
-			for (const activity of activitiesData.activities) {
-				try {
-					const tasksResponse = await fetch(`/api/admin/projects/${projectId}/activities/${activity.id}/tasks`)
-					if (tasksResponse.ok) {
-						const tasksData = await tasksResponse.json()
-						if (tasksData.success && tasksData.tasks) {
-							// Contar tarefas por status
-							if (typeof tasksData.tasks === 'object' && !Array.isArray(tasksData.tasks)) {
-								for (const status in tasksData.tasks) {
-									if (Array.isArray(tasksData.tasks[status])) {
-										totalTasks += tasksData.tasks[status].length
-										if (status === 'done') {
-											completedTasks += tasksData.tasks[status].length
-										}
-									}
-								}
-							}
-						}
-					}
-				} catch (error) {
-					console.warn('⚠️ [PAGE_PROJECTS] Erro ao buscar tarefas da atividade:', { activityId: activity.id, error })
-				}
-			}
-			
-			const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
-			
-			return progressPercentage
-		} catch (error) {
-			console.error('❌ [PAGE_PROJECTS] Erro ao calcular progresso do projeto:', { projectId, error })
-			return 0
-		}
-	}, [])
-
-	// Função para carregar projetos com progresso real
+	// Função para carregar projetos
 	const fetchProjects = useCallback(async () => {
 		try {
 			setLoading(true)
@@ -118,12 +64,9 @@ export default function ProjectsPage() {
 
 			const projectsData: ProjectDB[] = await response.json()
 
-			// Converter dados do banco para formato da interface e calcular progresso real
+			// Converter dados do banco para formato da interface
 			const formattedProjects: Project[] = await Promise.all(
 				projectsData.map(async (project) => {
-					// Calcular progresso real baseado nas tarefas do Kanban
-					const realProgress = await calculateProjectProgress(project.id)
-					
 					return {
 						id: project.id,
 						name: project.name,
@@ -134,13 +77,8 @@ export default function ProjectsPage() {
 						startDate: project.startDate,
 						endDate: project.endDate,
 						// Campos padrão para compatibilidade com interface existente
-						icon: 'folder',
-						color: '#3b82f6',
-						progress: realProgress, // Progresso real calculado baseado nas tarefas
-						members: [], // Sem membros por enquanto
-						activities: [], // Sem atividades por enquanto
-						createdAt: new Date(project.createdAt).toISOString(),
-						updatedAt: new Date(project.updatedAt).toISOString(),
+						createdAt: new Date(project.createdAt),
+						updatedAt: new Date(project.updatedAt),
 					}
 				})
 			)
@@ -156,7 +94,7 @@ export default function ProjectsPage() {
 		} finally {
 			setLoading(false)
 		}
-	}, [calculateProjectProgress])
+	}, [])
 
 	// Carregar projetos
 	useEffect(() => {
@@ -217,7 +155,7 @@ export default function ProjectsPage() {
 	}
 
 	// Funções CRUD para projetos
-	async function handleProjectSubmit(projectData: { name: string; shortDescription: string; description: string; status: Project['status']; priority: Project['priority']; startDate: string; endDate: string }) {
+	async function handleProjectSubmit(projectData: ProjectFormData) {
 		try {
 			if (editingProject) {
 				// Editar projeto existente
@@ -248,7 +186,7 @@ export default function ProjectsPage() {
 					priority: updatedProjectData.priority,
 					startDate: updatedProjectData.startDate,
 					endDate: updatedProjectData.endDate,
-					updatedAt: new Date(updatedProjectData.updatedAt).toISOString(),
+					updatedAt: new Date(updatedProjectData.updatedAt),
 				}
 
 				setProjects((prev) => prev.map((p) => (p.id === editingProject.id ? updatedProject : p)))
@@ -284,13 +222,8 @@ export default function ProjectsPage() {
 					priority: newProjectData.priority,
 					startDate: newProjectData.startDate,
 					endDate: newProjectData.endDate,
-					icon: 'folder',
-					color: '#3b82f6',
-					progress: 0,
-					members: [],
-					activities: [],
-					createdAt: new Date(newProjectData.createdAt).toISOString(),
-					updatedAt: new Date(newProjectData.updatedAt).toISOString(),
+					createdAt: new Date(newProjectData.createdAt),
+					updatedAt: new Date(newProjectData.updatedAt),
 				}
 
 				setProjects((prev) => [newProject, ...prev])
@@ -366,7 +299,7 @@ export default function ProjectsPage() {
 			paused: 'Pausado',
 			cancelled: 'Cancelado',
 		}
-		return `${statusIcons[status]} ${statusLabels[status]}`
+		return `${statusIcons[status as keyof typeof statusIcons]} ${statusLabels[status as keyof typeof statusLabels]}`
 	}
 
 	const getPriorityIcon = (priority: Project['priority']) => {
@@ -382,7 +315,7 @@ export default function ProjectsPage() {
 			high: 'Alta',
 			urgent: 'Urgente',
 		}
-		return `${priorityIcons[priority]} ${priorityLabels[priority]}`
+		return `${priorityIcons[priority as keyof typeof priorityIcons]} ${priorityLabels[priority as keyof typeof priorityLabels]}`
 	}
 
 	return (
@@ -525,23 +458,7 @@ export default function ProjectsPage() {
 													<div className='flex items-center gap-2'>
 														<span className='icon-[lucide--users] size-4 text-zinc-400' />
 														<div className='flex items-center gap-1.5'>
-															{project.members.length > 0 ? (
-																<>
-																	<div className='flex -space-x-1.5'>
-																		{project.members.slice(0, 3).map((member) => (
-																			<div key={member.id} className='size-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center text-white text-xs font-medium' title={member.user.name}>
-																				{member.user.name.charAt(0).toUpperCase()}
-																			</div>
-																		))}
-																		{project.members.length > 3 && <div className='size-8 bg-zinc-400 text-white rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center text-xs font-medium'>+{project.members.length - 3}</div>}
-																	</div>
-																	<span className='text-zinc-600 dark:text-zinc-300 text-sm font-medium ml-1'>
-																		{project.members.length} {project.members.length === 1 ? 'pessoa' : 'pessoas'}
-																	</span>
-																</>
-															) : (
-																<span className='text-zinc-400 text-sm px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md'>Não atribuído</span>
-															)}
+															<span className='text-zinc-400 text-sm px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md'>Não atribuído</span>
 														</div>
 													</div>
 
@@ -562,9 +479,9 @@ export default function ProjectsPage() {
 														<span className='text-sm font-medium text-zinc-700 dark:text-zinc-300'>Progresso:</span>
 														<div className='flex items-center gap-3'>
 															<div className='w-20 bg-zinc-200 dark:bg-zinc-700 rounded-full h-2'>
-																<div className={`h-2 rounded-full transition-all duration-300 ${project.progress >= 100 ? 'bg-green-500' : project.progress >= 50 ? 'bg-blue-500' : 'bg-orange-500'}`} style={{ width: `${project.progress}%` }} />
+																<div className='h-2 rounded-full transition-all duration-300 bg-orange-500' style={{ width: '0%' }} />
 															</div>
-															<span className='text-sm font-semibold text-zinc-800 dark:text-zinc-200'>{project.progress}%</span>
+															<span className='text-sm font-semibold text-zinc-800 dark:text-zinc-200'>0%</span>
 														</div>
 													</div>
 												</div>

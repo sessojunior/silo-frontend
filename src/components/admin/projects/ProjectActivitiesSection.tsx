@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Project, Activity } from '@/types/projects'
+import { Project, ProjectActivity, ActivityFormData } from '@/types/projects'
 import Button from '@/components/ui/Button'
 import ActivityFormOffcanvas from '@/components/admin/projects/ActivityFormOffcanvas'
 import { toast } from '@/lib/toast'
@@ -16,7 +16,7 @@ interface ProjectActivitiesSectionProps {
 
 export default function ProjectActivitiesSection({ project, isExpanded }: ProjectActivitiesSectionProps) {
 	const router = useRouter()
-	const [activities, setActivities] = useState<Activity[]>([])
+	const [activities, setActivities] = useState<ProjectActivity[]>([])
 	const [loading, setLoading] = useState(false)
 	const [activityFormOpen, setActivityFormOpen] = useState(false)
 
@@ -49,7 +49,7 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 	}, [isExpanded, project.id, loadActivities])
 
 	// Função para status circle
-	const getStatusCircle = (status: Activity['status']) => {
+	const getStatusCircle = (status: ProjectActivity['status']) => {
 		const statusStyles = {
 			todo: 'bg-zinc-200 dark:bg-zinc-700',
 			todo_doing: 'bg-orange-400',
@@ -65,11 +65,11 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 			blocked: 'bg-red-500',
 		}
 
-		return <div className={`size-3 rounded-full ${statusStyles[status]}`} />
+		return <div className={`size-3 rounded-full ${statusStyles[status as keyof typeof statusStyles]}`} />
 	}
 
 	// Função para priority badge
-	const getPriorityBadge = (priority: Activity['priority']) => {
+	const getPriorityBadge = (priority: ProjectActivity['priority']) => {
 		const priorityStyles = {
 			low: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300',
 			medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -85,8 +85,8 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 		}
 
 		return (
-			<span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${priorityStyles[priority]}`}>
-				<span className={`icon-[lucide--${priorityIcons[priority]}] size-3`} />
+			<span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${priorityStyles[priority as keyof typeof priorityStyles]}`}>
+				<span className={`icon-[lucide--${priorityIcons[priority as keyof typeof priorityIcons]}] size-3`} />
 				{priority === 'low' ? 'Baixa' : priority === 'medium' ? 'Média' : priority === 'high' ? 'Alta' : 'Urgente'}
 			</span>
 		)
@@ -108,7 +108,7 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 	}
 
 	// Função para criar nova atividade
-	const handleSubmitActivity = async (activityData: { name: string; description: string; status: string; priority: string; category: string; startDate: string; endDate: string; days: string }) => {
+	const handleSubmitActivity = async (activityData: ActivityFormData) => {
 		try {
 			const response = await fetch(`/api/admin/projects/${project.id}/activities`, {
 				method: 'POST',
@@ -123,7 +123,7 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 					category: activityData.category,
 					startDate: activityData.startDate || null,
 					endDate: activityData.endDate || null,
-					estimatedDays: activityData.days ? Number(activityData.days) : null,
+					estimatedDays: activityData.estimatedDays,
 				}),
 			})
 
@@ -228,9 +228,9 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 														{/* Mobile: Progresso compacto */}
 														<div className='flex items-center gap-2 sm:hidden'>
 															<div className='w-12 bg-zinc-200 dark:bg-zinc-700 rounded-full h-1.5'>
-																<div className='bg-gradient-to-r from-green-500 to-green-600 h-1.5 rounded-full transition-all duration-300' style={{ width: `${activity.progress}%` }} />
+																<div className='bg-gradient-to-r from-green-500 to-green-600 h-1.5 rounded-full transition-all duration-300' style={{ width: '0%' }} />
 															</div>
-															<span className='text-xs text-zinc-500 dark:text-zinc-400'>{activity.progress}%</span>
+															<span className='text-xs text-zinc-500 dark:text-zinc-400'>0%</span>
 														</div>
 													</div>
 												</div>
@@ -240,14 +240,10 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 													{/* Avatares dos Usuários */}
 													<div className='flex-shrink-0'>
 														<div className='flex -space-x-2'>
-															{activity.assignees.slice(0, 3).map((assignee) => (
-																<div key={assignee.id} className='size-6 bg-blue-100 dark:bg-blue-900/30 rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center' title={assignee.user.name}>
-																	<span className='icon-[lucide--user] size-3 text-blue-600 dark:text-blue-400' />
-																</div>
-															))}
-															{activity.assignees.length > 3 && <div className='size-6 bg-zinc-500 text-white rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center text-xs font-medium'>+{activity.assignees.length - 3}</div>}
+															<div className='size-6 bg-blue-100 dark:bg-blue-900/30 rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center' title='Sem atribuição'>
+																<span className='icon-[lucide--user] size-3 text-blue-600 dark:text-blue-400' />
+															</div>
 														</div>
-														{activity.assignees.length === 0 && <span className='text-xs text-zinc-400'>Não atribuída</span>}
 													</div>
 
 													{/* Priority Badge */}
@@ -257,9 +253,9 @@ export default function ProjectActivitiesSection({ project, isExpanded }: Projec
 													<div className='flex-shrink-0 w-20'>
 														<div className='flex items-center gap-1'>
 															<div className='w-16 bg-zinc-200 dark:bg-zinc-700 rounded-full h-1.5'>
-																<div className='bg-gradient-to-r from-green-500 to-green-600 h-1.5 rounded-full transition-all duration-300' style={{ width: `${activity.progress}%` }} />
+																<div className='bg-gradient-to-r from-green-500 to-green-600 h-1.5 rounded-full transition-all duration-300' style={{ width: '0%' }} />
 															</div>
-															<span className='text-xs text-zinc-500 dark:text-zinc-400 min-w-8'>{activity.progress}%</span>
+															<span className='text-xs text-zinc-500 dark:text-zinc-400 min-w-8'>0%</span>
 														</div>
 													</div>
 

@@ -30,7 +30,7 @@ export default function ProjectMainRow({ project, isExpanded, onToggleExpansion,
 			cancelled: '🔴 Cancelado',
 		}
 
-		return <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusStyles[status]}`}>{statusLabels[status]}</span>
+		return <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusStyles[status as keyof typeof statusStyles]}`}>{statusLabels[status as keyof typeof statusLabels]}</span>
 	}
 
 	// Função para priority badge
@@ -49,7 +49,7 @@ export default function ProjectMainRow({ project, isExpanded, onToggleExpansion,
 			urgent: '🚨 Urgente',
 		}
 
-		return <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${priorityStyles[priority]}`}>{priorityLabels[priority]}</span>
+		return <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${priorityStyles[priority as keyof typeof priorityStyles]}`}>{priorityLabels[priority as keyof typeof priorityLabels]}</span>
 	}
 
 	// Função para formatar data
@@ -68,8 +68,8 @@ export default function ProjectMainRow({ project, isExpanded, onToggleExpansion,
 					</Button>
 
 					{/* Ícone do Projeto */}
-					<div className='size-8 rounded-lg flex items-center justify-center' style={{ backgroundColor: `${project.color}20` }}>
-						<span className={`icon-[lucide--${project.icon}] size-4`} style={{ color: project.color }} />
+					<div className='size-8 rounded-lg flex items-center justify-center bg-blue-100 dark:bg-blue-900/30'>
+						<span className='icon-[lucide--folder] size-4 text-blue-600 dark:text-blue-400' />
 					</div>
 
 					{/* Nome e Descrição */}
@@ -90,9 +90,9 @@ export default function ProjectMainRow({ project, isExpanded, onToggleExpansion,
 			<td className='px-6 py-4 whitespace-nowrap'>
 				<div className='flex items-center gap-2'>
 					<div className='w-24 bg-zinc-200 dark:bg-zinc-700 rounded-full h-2'>
-						<div className='bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500' style={{ width: `${project.progress}%` }} />
+						<div className='bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500' style={{ width: '0%' }} />
 					</div>
-					<span className='text-sm text-zinc-600 dark:text-zinc-400 min-w-10'>{project.progress}%</span>
+					<span className='text-sm text-zinc-600 dark:text-zinc-400 min-w-10'>0%</span>
 				</div>
 			</td>
 
@@ -109,14 +109,10 @@ export default function ProjectMainRow({ project, isExpanded, onToggleExpansion,
 				<div className='flex items-center gap-1'>
 					{/* Avatar Stack (max 3) */}
 					<div className='flex -space-x-2'>
-						{project.members.slice(0, 3).map((member) => (
-							<div key={member.id} className='size-6 bg-blue-100 dark:bg-blue-900/30 rounded-full border-2 border-white dark:border-zinc-800 flex items-center justify-center' title={member.user.name}>
-								<span className='icon-[lucide--user] size-3 text-blue-600 dark:text-blue-400' />
-							</div>
-						))}
-						{project.members.length > 3 && <div className='size-6 bg-zinc-500 text-white rounded-full border-2 border-white dark:border-zinc-800 flex items-center justify-center text-xs font-medium'>+{project.members.length - 3}</div>}
+						<div className='size-6 bg-blue-100 dark:bg-blue-900/30 rounded-full border-2 border-white dark:border-zinc-800 flex items-center justify-center' title='Sem membros'>
+							<span className='icon-[lucide--user] size-3 text-blue-600 dark:text-blue-400' />
+						</div>
 					</div>
-					{project.members.length === 0 && <span className='text-sm text-zinc-400'>Nenhum membro</span>}
 				</div>
 			</td>
 

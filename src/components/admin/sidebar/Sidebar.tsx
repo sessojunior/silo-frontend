@@ -121,14 +121,8 @@ export default function Sidebar() {
 						priority: project.priority,
 						startDate: project.startDate,
 						endDate: project.endDate,
-						// Campos padrão para compatibilidade
-						icon: 'folder',
-						color: '#3b82f6',
-						progress: 0,
-						members: [],
-						activities: [],
-						createdAt: new Date(project.createdAt).toISOString(),
-						updatedAt: new Date(project.updatedAt).toISOString(),
+						createdAt: new Date(project.createdAt),
+						updatedAt: new Date(project.updatedAt),
 					}))
 
 				setProjects(formattedProjects)

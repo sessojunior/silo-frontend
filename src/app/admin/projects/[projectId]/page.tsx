@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from '@/lib/toast'
 import { useParams, useRouter } from 'next/navigation'
 import { formatDateBR } from '@/lib/dateUtils'
+import { ProjectFormData, ActivityFormData } from '@/types/projects'
 
 import ActivityMiniKanban from '@/components/admin/projects/ActivityMiniKanban'
 import ProjectFormOffcanvas from '@/components/admin/projects/ProjectFormOffcanvas'
@@ -318,7 +319,7 @@ export default function ProjectDetailsPage() {
 	}
 
 	// Função para atualizar projeto
-	async function handleProjectSubmit(projectData: { name: string; shortDescription: string; description: string; status: Project['status']; priority: Project['priority']; startDate: string; endDate: string }) {
+	async function handleProjectSubmit(projectData: ProjectFormData) {
 		if (!project) return
 
 		try {
@@ -375,22 +376,22 @@ export default function ProjectDetailsPage() {
 	}
 
 	// Função para criar/editar atividade
-	async function handleActivitySubmit(activityData: ActivitySubmissionData) {
+	async function handleActivitySubmit(activityData: ActivityFormData) {
 		if (!project) return
 
 		try {
 
 			const dbStatus = convertStatusToDatabase(activityData.status)
 
-			// Usar 'estimatedHours' se disponível, senão 'days'
-			const estimatedDays = activityData.estimatedHours || activityData.days
+			// Usar 'estimatedDays' do ActivityFormData
+			const estimatedDays = activityData.estimatedDays
 
 			const requestData = {
 				id: editingActivity?.id,
 				name: activityData.name,
 				description: activityData.description,
 				category: activityData.category || null,
-				estimatedDays: estimatedDays ? Number(estimatedDays) : null,
+				estimatedDays: estimatedDays,
 				startDate: activityData.startDate || null,
 				endDate: activityData.endDate || null,
 				priority: activityData.priority,
@@ -806,17 +807,12 @@ export default function ProjectDetailsPage() {
 						name: project.name,
 						shortDescription: project.shortDescription,
 						description: project.description,
-						icon: 'folder',
-						color: '#3b82f6',
 						status: project.status,
 						priority: project.priority,
-						startDate: project.startDate || '',
-						endDate: project.endDate || '',
-						members: [],
-						progress: 0,
-						activities: [],
-						createdAt: project.createdAt.toString(),
-						updatedAt: project.updatedAt.toString(),
+						startDate: project.startDate,
+						endDate: project.endDate,
+						createdAt: project.createdAt,
+						updatedAt: project.updatedAt,
 					}}
 					onSubmit={handleProjectSubmit}
 				/>
@@ -838,14 +834,10 @@ export default function ProjectDetailsPage() {
 									status: convertActivityStatus(editingActivity.status),
 									priority: editingActivity.priority,
 									estimatedDays: editingActivity.estimatedDays,
-									actualDays: null,
-									progress: 0,
 									startDate: editingActivity.startDate || '',
 									endDate: editingActivity.endDate || '',
-									assignees: [],
-									labels: [],
-									createdAt: editingActivity.createdAt.toString(),
-									updatedAt: editingActivity.updatedAt.toString(),
+									createdAt: editingActivity.createdAt,
+									updatedAt: editingActivity.updatedAt,
 								}
 							: null
 					}
@@ -854,17 +846,12 @@ export default function ProjectDetailsPage() {
 						name: project.name,
 						shortDescription: project.shortDescription,
 						description: project.description,
-						icon: 'folder',
-						color: '#3b82f6',
 						status: project.status,
 						priority: project.priority,
-						startDate: project.startDate || '',
-						endDate: project.endDate || '',
-						members: [],
-						progress: 0,
-						activities: [],
-						createdAt: project.createdAt.toString(),
-						updatedAt: project.updatedAt.toString(),
+						startDate: project.startDate,
+						endDate: project.endDate,
+						createdAt: project.createdAt,
+						updatedAt: project.updatedAt,
 					}}
 					onSubmit={handleActivitySubmit}
 				/>

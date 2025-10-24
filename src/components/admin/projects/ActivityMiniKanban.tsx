@@ -2,24 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
-
-interface ProjectTask {
-	id: string
-	projectId: string
-	projectActivityId: string
-	name: string
-	description: string
-	category: string | null
-	estimatedDays: number | null
-	startDate: string | null
-	endDate: string | null
-	priority: 'low' | 'medium' | 'high' | 'urgent'
-	status: 'todo' | 'in_progress' | 'blocked' | 'review' | 'done'
-	createdAt: string | Date
-	updatedAt: string | Date
-	kanbanSubcolumn?: string
-	kanbanOrder?: number
-}
+import { ProjectTask } from '@/types/projects'
 
 interface ActivityMiniKanbanProps {
 	activityId: string

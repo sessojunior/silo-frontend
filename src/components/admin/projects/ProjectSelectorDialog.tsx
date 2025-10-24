@@ -64,8 +64,8 @@ export default function ProjectSelectorDialog({ isOpen, onClose, projects, onSel
 								<div key={project.id} className='p-4 cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800' onClick={() => handleSelectProject(project)}>
 									<div className='flex items-center gap-3'>
 										{/* Ícone do Projeto */}
-										<div className='size-10 rounded-lg flex items-center justify-center' style={{ backgroundColor: `${project.color}20` }}>
-											<span className={`icon-[lucide--${project.icon}] size-5`} style={{ color: project.color }} />
+										<div className='size-10 rounded-lg flex items-center justify-center bg-blue-100 dark:bg-blue-900/30'>
+											<span className='icon-[lucide--folder] size-5 text-blue-600 dark:text-blue-400' />
 										</div>
 
 										{/* Info do Projeto */}
@@ -81,7 +81,7 @@ export default function ProjectSelectorDialog({ isOpen, onClose, projects, onSel
 											</div>
 											{project.description && <p className='text-sm text-zinc-500 dark:text-zinc-400 truncate'>{project.description}</p>}
 											<p className='text-sm text-zinc-500 dark:text-zinc-400'>
-												{project.members.length} membro{project.members.length !== 1 ? 's' : ''}
+												0 membros
 											</p>
 										</div>
 
