@@ -1,12 +1,12 @@
-# Dockerfile simplificado para FileServer
-FROM node:18-alpine
+# Dockerfile para FileServer
+FROM node:20-alpine
 
 # Define diretório de trabalho
 WORKDIR /app
 
-# Instala dependências primeiro (cache layer)
+# Instala dependências
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install
 
 # Copia código fonte
 COPY . .

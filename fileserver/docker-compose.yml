@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  fileserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: silo-fileserver
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      - FILE_SERVER_URL=http://localhost:4000
+      - APP_URL=http://localhost:3000
+    restart: unless-stopped
