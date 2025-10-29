@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
 		return NextResponse.redirect(new URL('/error?error=invalid_code&status=400', baseUrl))
 	}
 
-	// 6. Decodifica o ID do token (JWT) e extrai os dados do usuário
+	// 6. Decodifica o ID token do Google (JWT fornecido pelo Google OAuth) e extrai os dados do usuário
 	const claims = decodeIdToken(tokens.idToken()) as {
 		sub: string
 		name: string

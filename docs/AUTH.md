@@ -47,7 +47,6 @@ O sistema SILO implementa múltiplos métodos de autenticação com foco em segu
 {
   success: true,
   data: {
-    token: "jwt_token_aqui",
     user: {
       id: "user-123",
       name: "João Silva",
@@ -94,7 +93,6 @@ O sistema SILO implementa múltiplos métodos de autenticação com foco em segu
 {
   success: true,
   data: {
-    token: "jwt_token",
     user: { /* dados do usuário */ }
   }
 }
@@ -105,7 +103,7 @@ O sistema SILO implementa múltiplos métodos de autenticação com foco em segu
 1. Usuário informa apenas o email
 2. Sistema envia código OTP por email
 3. Usuário informa código recebido
-4. Sistema valida e retorna token
+4. Sistema valida código, cria sessão e define cookie
 
 ### **3. Registro de Usuário**
 
@@ -310,23 +308,67 @@ export async function verifyPassword(
 }
 ```
 
-### **Tokens JWT**
+### **Sistema de Sessões**
 
-Arquivo: `src/lib/auth/token.ts`
+O SILO utiliza **sessões baseadas em banco de dados** em vez de JWT. Isso oferece maior controle e segurança.
 
+Arquivo: `src/lib/auth/session.ts`
+
+**Criação de Sessão:**
 ```typescript
-export function generateToken(userId: string): string {
-  return jwt.sign(
-    { userId },
-    process.env.JWT_SECRET!,
-    { expiresIn: '7d' }
-  )
-}
-
-export function verifyToken(token: string): { userId: string } {
-  return jwt.verify(token, process.env.JWT_SECRET!) as { userId: string }
+export async function createSessionCookie(userId: string) {
+  // Gera token seguro (hash SHA-256)
+  const token = generateToken()
+  
+  // Gera hash do token para armazenar no banco
+  const hashToken = await generateHashToken(token)
+  
+  // Sessão expira em 30 dias
+  const expiresAt = new Date(Date.now() + DAY_IN_MS * 30)
+  
+  // Salva sessão no banco de dados
+  await db.insert(authSession).values({
+    id: randomUUID(),
+    userId,
+    token: hashToken,
+    expiresAt
+  })
+  
+  // Define cookie HTTP-only seguro
+  cookieStore.set('session_token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    expires: expiresAt
+  })
 }
 ```
+
+**Validação de Sessão:**
+```typescript
+export async function validateSession(token: string) {
+  // Hash do token para buscar no banco
+  const hashToken = generateHashToken(token)
+  
+  // Busca sessão no banco
+  const session = await db.query.authSession.findFirst({
+    where: eq(authSession.token, hashToken)
+  })
+  
+  // Verifica expiração e renova se necessário
+  // Retorna usuário associado
+  return { session, user }
+}
+```
+
+**Características:**
+- ✅ Token aleatório seguro (UUID + hash SHA-256)
+- ✅ Armazenado como hash no banco (segurança)
+- ✅ Expiração em 30 dias
+- ✅ Renovação automática (estende em 15 dias antes de expirar)
+- ✅ Limpeza automática de sessões expiradas
+- ✅ Cookie HTTP-only (proteção XSS)
+- ✅ Secure em produção (proteção HTTPS)
 
 ---
 
@@ -337,9 +379,9 @@ export function verifyToken(token: string): { userId: string } {
 ```bash
 # .env
 
-# Autenticação
+# URLs do sistema
 APP_URL='http://localhost:3000'
-JWT_SECRET='seu-secret-aleatorio-com-minimo-32-caracteres'
+FILE_SERVER_URL='http://localhost:4000'
 
 # Google OAuth
 GOOGLE_CLIENT_ID='seu-client-id'
@@ -349,29 +391,68 @@ GOOGLE_CALLBACK_URL='http://localhost:3000/api/auth/callback/google'
 # Email (para OTP)
 SMTP_HOST='smtp.exemplo.com'
 SMTP_PORT='587'
+SMTP_SECURE=false # Defina como true se usar SSL (porta 465)
 SMTP_USERNAME='usuario@exemplo.com'
 SMTP_PASSWORD='senha'
+
+# Configuração para interceptar uploads externos
+UPLOAD_PROXY_URL='http://localhost:4000/api/upload'
 ```
 
-### **Middleware de Autenticação**
+### **Obter Usuário Autenticado**
 
-Arquivo: `src/lib/auth/session.ts`
+Arquivo: `src/lib/auth/token.ts`
 
 ```typescript
-export async function getSession(request: NextRequest): Promise<Session | null> {
-  const token = request.cookies.get('session')?.value
+export async function getAuthUser() {
+  // Busca token do cookie
+  const cookieStore = await cookies()
+  const token = cookieStore.get('session_token')?.value
   if (!token) return null
+
+  // Gera hash do token
+  const hashToken = generateHashToken(token)
+
+  // Busca sessão válida no banco
+  const session = await db.query.authSession.findFirst({
+    where: and(
+      eq(authSession.token, hashToken),
+      gt(authSession.expiresAt, new Date())
+    )
+  })
   
-  try {
-    const { userId } = verifyToken(token)
-    const session = await db.query.sessions.findFirst({
-      where: eq(sessions.userId, userId)
-    })
-    
-    return session
-  } catch {
+  if (!session) return null
+
+  // Busca usuário relacionado
+  const user = await db.query.authUser.findFirst({
+    where: eq(authUser.id, session.userId)
+  })
+
+  // Verifica se usuário está ativo e verificado
+  if (!user || user.emailVerified !== true || !user.isActive) {
     return null
   }
+
+  return user
+}
+```
+
+**Uso em APIs:**
+```typescript
+// src/app/api/admin/example/route.ts
+import { getAuthUser } from '@/lib/auth/token'
+
+export async function GET() {
+  const user = await getAuthUser()
+  if (!user) {
+    return NextResponse.json(
+      { success: false, error: 'Não autenticado' },
+      { status: 401 }
+    )
+  }
+  
+  // Usuário autenticado
+  return NextResponse.json({ success: true, data: user })
 }
 ```
 

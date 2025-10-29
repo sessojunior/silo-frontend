@@ -35,8 +35,12 @@ services:
       # Email SMTP
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
+      
+      # Upload
+      - UPLOAD_PROXY_URL=${UPLOAD_PROXY_URL:-http://localhost:4000/api/upload}
     depends_on:
       - fileserver
     restart: unless-stopped

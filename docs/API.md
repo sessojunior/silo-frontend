@@ -75,11 +75,12 @@ Content-Type: application/json
   "password": "senha123"
 }
 
+// Observação: A sessão é criada automaticamente via cookie HTTP-only
+// Não há token na resposta, pois o sistema usa sessões baseadas em banco
 Response:
 {
   "success": true,
   "data": {
-    token: "jwt_token",
     user: { id, name, email, image }
   }
 }

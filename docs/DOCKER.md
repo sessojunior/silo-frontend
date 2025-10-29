@@ -59,9 +59,9 @@ Crie um arquivo `.env` na raiz do projeto:
 # Banco de Dados
 DATABASE_URL='postgresql://usuario:senha@host:5432/banco'
 
-# Autenticação
+# URLs do sistema
 APP_URL='http://localhost:3000'
-JWT_SECRET='seu-secret-aleatorio-com-minimo-32-caracteres'
+FILE_SERVER_URL='http://localhost:4000'
 
 # Google OAuth (opcional)
 GOOGLE_CLIENT_ID=''
@@ -71,11 +71,12 @@ GOOGLE_CALLBACK_URL='http://localhost:3000/api/auth/callback/google'
 # Email SMTP
 SMTP_HOST='smtp.seuservidor.com'
 SMTP_PORT='587'
+SMTP_SECURE=false # Defina como true se usar SSL (porta 465)
 SMTP_USERNAME='seu-email@dominio.com'
 SMTP_PASSWORD='sua-senha'
 
-# FileServer
-FILE_SERVER_URL='http://localhost:4000'
+# Configuração para interceptar uploads externos
+UPLOAD_PROXY_URL='http://localhost:4000/api/upload'
 ```
 
 ### **Arquivo docker-compose.yml**

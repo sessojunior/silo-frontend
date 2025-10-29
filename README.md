@@ -212,18 +212,24 @@ npm run lint
 # Banco de Dados
 DATABASE_URL='postgresql://user:pass@host:5432/db'
 
-# Autenticação
+# URLs do sistema
 APP_URL='http://localhost:3000'
-JWT_SECRET='seu-secret-32-caracteres-minimo'
+FILE_SERVER_URL='http://localhost:4000'
+
+# Google OAuth (opcional)
+GOOGLE_CLIENT_ID=''
+GOOGLE_CLIENT_SECRET=''
+GOOGLE_CALLBACK_URL='http://localhost:3000/api/auth/callback/google'
 
 # Email (SMTP)
 SMTP_HOST='smtp.exemplo.com'
 SMTP_PORT='587'
+SMTP_SECURE=false # Defina como true se usar SSL (porta 465)
 SMTP_USERNAME='usuario@exemplo.com'
 SMTP_PASSWORD='senha'
 
-# FileServer
-FILE_SERVER_URL='http://localhost:4000'
+# Configuração para interceptar uploads externos
+UPLOAD_PROXY_URL='http://localhost:4000/api/upload'
 ```
 
 ---
