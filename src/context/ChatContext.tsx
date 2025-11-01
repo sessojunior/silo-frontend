@@ -824,7 +824,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 					const data = await response.json()
 					const enabled = data.userPreferences?.chatEnabled !== false
 					setChatEnabled(enabled)
-
 				} else {
 					console.error('❌ [CONTEXT_CHAT] Erro na resposta da API de preferências:', { status: response.status })
 					setChatEnabled(true) // Default para habilitado em caso de erro
@@ -835,11 +834,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			}
 		}
 
-		// Pequeno delay para garantir que cookies estejam disponíveis após login/redirect
-		// Isso evita race condition onde checkChatPreference é chamado antes do cookie estar disponível
-		const timer = setTimeout(() => {
-			checkChatPreference()
-		}, 500) // 500ms de delay para garantir propagação do cookie
+		checkChatPreference()
 
 		// Listener para mudanças de preferência
 		const handleChatPreferenceChange = (event: CustomEvent) => {
@@ -850,7 +845,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		window.addEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
 
 		return () => {
-			clearTimeout(timer)
 			window.removeEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
 		}
 	}, [])
