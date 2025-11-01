@@ -43,6 +43,14 @@ export async function POST(req: NextRequest) {
 		// Atualiza o último acesso do usuário
 		await updateUserLastLogin(user.id)
 
+		// Remove todas as sessões antigas do usuário antes de criar uma nova
+		// Isso garante que apenas uma sessão válida exista por vez
+		// Nota: validateCode já remove todas as sessões por segurança após verificar email
+		// Mas vamos garantir aqui também para casos onde validateCode não foi chamado
+		const { destroyAllSession } = await import('@/lib/auth/session')
+		await destroyAllSession(user.id)
+		console.log('🗑️ [API_AUTH_VERIFY_CODE] Sessões antigas removidas antes de criar nova sessão:', { userId: user.id })
+
 		// Cria a sessão e o cookie do usuário
 		const sessionToken = await createSessionCookie(user.id)
 		if ('error' in sessionToken) {

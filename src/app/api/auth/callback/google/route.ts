@@ -84,6 +84,12 @@ export async function GET(req: NextRequest) {
 		return NextResponse.redirect(new URL('/error?error=account_not_activated&status=403', baseUrl))
 	}
 
+	// Remove todas as sessões antigas do usuário antes de criar uma nova
+	// Isso garante que apenas uma sessão válida exista por vez
+	const { destroyAllSession } = await import('@/lib/auth/session')
+	await destroyAllSession(user.id)
+	console.log('🗑️ [API_AUTH_GOOGLE] Sessões antigas removidas antes de criar nova sessão:', { userId: user.id })
+
 	// 11. Cria a sessão e o cookie de sessão
 	const sessionToken = await createSessionCookie(user.id)
 	if ('error' in sessionToken) {

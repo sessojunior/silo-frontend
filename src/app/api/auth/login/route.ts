@@ -49,6 +49,12 @@ export async function POST(req: NextRequest) {
 		// Atualiza o último acesso do usuário
 		await updateUserLastLogin(user.id)
 
+		// Remove todas as sessões antigas do usuário antes de criar uma nova
+		// Isso garante que apenas uma sessão válida exista por vez
+		const { destroyAllSession } = await import('@/lib/auth/session')
+		await destroyAllSession(user.id)
+		console.log('🗑️ [API_AUTH_LOGIN] Sessões antigas removidas antes de criar nova sessão:', { userId: user.id })
+
 		// Se o e-mail do usuário ainda não tiver sido verificado
 		if (user.emailVerified === false) {
 			// Obtém um código OTP e salva-o no banco de dados
