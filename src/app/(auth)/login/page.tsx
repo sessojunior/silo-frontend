@@ -61,13 +61,44 @@ export default function LoginPage() {
 				body: JSON.stringify({ email, password }),
 			})
 
-			const data = await res.json()
-
-			if (!res.ok) {
-				setForm({ field: data.field, message: data.message })
+			// Verifica se a resposta é 405 (Method Not Allowed)
+			if (res.status === 405) {
+				console.error('❌ [PAGE_LOGIN] Método não permitido (405). Possível problema de configuração do servidor')
 				toast({
 					type: 'error',
-					title: data.message,
+					title: 'Erro de configuração do servidor. Entre em contato com o suporte.',
+				})
+				setForm({ field: null, message: 'Erro de configuração do servidor. Entre em contato com o suporte.' })
+				return
+			}
+
+			// Verifica se há conteúdo antes de tentar fazer parse JSON
+			const contentType = res.headers.get('content-type')
+			let data: { field?: string | null; message?: string; step?: number; success?: boolean } = {}
+
+			if (contentType && contentType.includes('application/json')) {
+				const text = await res.text()
+				if (text) {
+					try {
+						data = JSON.parse(text)
+					} catch (parseError) {
+						console.error('❌ [PAGE_LOGIN] Erro ao fazer parse do JSON:', { parseError, text })
+						toast({
+							type: 'error',
+							title: 'Resposta inválida do servidor.',
+						})
+						setForm({ field: null, message: 'Resposta inválida do servidor.' })
+						return
+					}
+				}
+			}
+
+			if (!res.ok) {
+				const errorMessage = data.message || `Erro ${res.status}: ${res.statusText}`
+				setForm({ field: data.field || null, message: errorMessage })
+				toast({
+					type: 'error',
+					title: errorMessage,
 				})
 			} else {
 				if (data.step && data.step === 2) {
@@ -110,13 +141,44 @@ export default function LoginPage() {
 				body: JSON.stringify({ email, code }),
 			})
 
-			const data = await res.json()
-
-			if (!res.ok) {
-				setForm({ field: data.field, message: data.message })
+			// Verifica se a resposta é 405 (Method Not Allowed)
+			if (res.status === 405) {
+				console.error('❌ [PAGE_LOGIN] Método não permitido (405) - possível problema de configuração do servidor')
 				toast({
 					type: 'error',
-					title: data.message,
+					title: 'Erro de configuração do servidor. Entre em contato com o suporte.',
+				})
+				setForm({ field: null, message: 'Erro de configuração do servidor. Entre em contato com o suporte.' })
+				return
+			}
+
+			// Verifica se há conteúdo antes de tentar fazer parse JSON
+			const contentType = res.headers.get('content-type')
+			let data: { field?: string | null; message?: string; success?: boolean } = {}
+
+			if (contentType && contentType.includes('application/json')) {
+				const text = await res.text()
+				if (text) {
+					try {
+						data = JSON.parse(text)
+					} catch (parseError) {
+						console.error('❌ [PAGE_LOGIN] Erro ao fazer parse do JSON:', { parseError, text })
+						toast({
+							type: 'error',
+							title: 'Resposta inválida do servidor.',
+						})
+						setForm({ field: null, message: 'Resposta inválida do servidor.' })
+						return
+					}
+				}
+			}
+
+			if (!res.ok) {
+				const errorMessage = data.message || `Erro ${res.status}: ${res.statusText}`
+				setForm({ field: data.field || null, message: errorMessage })
+				toast({
+					type: 'error',
+					title: errorMessage,
 				})
 			} else {
 				toast({
