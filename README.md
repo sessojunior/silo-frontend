@@ -256,6 +256,34 @@ UPLOAD_PROXY_URL='http://localhost:4000/api/upload'
 - ✅ Proteções contra auto-modificação
 - ✅ CORS configurado
 
+### 🚨 **ALERTA CRÍTICO: Prefetch em Links de Logout**
+
+**⚠️ NUNCA use `Link` do Next.js sem `prefetch={false}` em rotas de API destrutivas!**
+
+O Next.js prefetcha automaticamente links visíveis na tela. Se um link apontar para `/api/logout`, o Next.js pode fazer logout automático do usuário sem que ele clique, causando bugs graves que levam horas para debugar.
+
+**Solução:**
+
+```typescript
+// ✅ CORRETO - Desabilita prefetch para APIs
+<Link href='/api/logout' prefetch={false}>Sair</Link>
+
+// ✅ CORRETO - Usar button ao invés de Link
+<button onClick={() => router.push('/api/logout')}>Sair</button>
+
+// ❌ ERRADO - Pode causar logout automático!
+<Link href='/api/logout'>Sair</Link>
+```
+
+**Onde aplicar:**
+
+- Todos os componentes com links de logout (`SidebarFooter`, `TopbarDropdown`)
+- Componentes genéricos que podem renderizar links para APIs (`Button`, `NavButton`, `TopbarButton`, `AuthLink`, `SidebarMenu`)
+
+**Regra:** Se o `href` começar com `/api/`, SEMPRE usar `prefetch={false}` ou usar `button` + `router.push()`.
+
+**Histórico:** Bug identificado após horas de debug. Usuários eram deslogados automaticamente após login devido ao prefetch automático do Next.js.
+
 ---
 
 ## 📊 **Características Técnicas**

@@ -137,14 +137,27 @@ Response: Redirect para /admin/dashboard
 ### **Logout**
 
 ```http
-POST /api/logout
+GET /api/logout
 
-Response:
-{
-  "success": true,
-  "message": "Logout realizado com sucesso"
-}
+Response: Redirect para /login
 ```
+
+**⚠️ ALERTA CRÍTICO - Prefetch em Links de Logout:**
+
+**NUNCA use `Link` sem `prefetch={false}` para este endpoint!** O Next.js prefetcha links automaticamente, causando logout automático do usuário sem clique.
+
+```typescript
+// ✅ CORRETO
+<Link href='/api/logout' prefetch={false}>Sair</Link>
+
+// ✅ CORRETO
+<button onClick={() => window.location.href='/api/logout'}>Sair</button>
+
+// ❌ ERRADO - Causa logout automático!
+<Link href='/api/logout'>Sair</Link>
+```
+
+**Este bug levou horas de debug para identificar. SEMPRE desabilite prefetch em links para APIs destrutivas.**
 
 ---
 

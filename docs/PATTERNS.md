@@ -224,6 +224,41 @@ export const config = {
 
 ## ⚛️ **COMPONENTES REACT**
 
+### 🚨 **ALERTA CRÍTICO: Prefetch em Links para APIs**
+
+**⚠️ REGRA OBRIGATÓRIA:** Links do Next.js que apontam para rotas de API (`/api/*`) SEMPRE devem ter `prefetch={false}` ou usar `button` ao invés de `Link`.
+
+**Por quê?**
+
+- Next.js prefetcha automaticamente links visíveis na viewport
+- Prefetch de `/api/logout` executa logout sem clique do usuário
+- Bug crítico que causa deslogamento imediato após login
+- Muito difícil de identificar (levou horas de debug)
+
+**Solução padrão:**
+
+```typescript
+// Componentes genéricos devem detectar e desabilitar automaticamente
+const isApiRoute = href.startsWith('/api/')
+const prefetch = isApiRoute ? false : undefined
+
+return <Link href={href} prefetch={prefetch}>...</Link>
+```
+
+**Onde aplicar:**
+
+- Todos os componentes que renderizam links (`Button`, `NavButton`, `TopbarButton`, `AuthLink`, `SidebarMenu`)
+- Links específicos de logout (`SidebarFooter`, `TopbarDropdown`)
+
+**Alternativa com button:**
+
+```typescript
+// Para ações destrutivas como logout, considere usar button
+<button onClick={() => window.location.href='/api/logout'}>
+  Sair
+</button>
+```
+
 ### **Tipos de Props**
 
 ```typescript

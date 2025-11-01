@@ -40,9 +40,13 @@ export default function Button(props: ButtonProps) {
 
 	if (href) {
 		const anchorProps = rest as AnchorHTMLAttributes<HTMLAnchorElement>
+		
+		// Desabilita prefetch para URLs de API (ex: /api/logout) para evitar ações destrutivas automáticas
+		const isApiRoute = href.startsWith('/api/')
+		const prefetch = isApiRoute ? false : undefined
 
 		return (
-			<Link href={href} className={finalClass} role='button' {...anchorProps}>
+			<Link href={href} prefetch={prefetch} className={finalClass} role='button' {...anchorProps}>
 				{Icon}
 				{children}
 			</Link>

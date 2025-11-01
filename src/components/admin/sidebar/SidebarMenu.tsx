@@ -80,6 +80,7 @@ function SidebarMenuItem({ item }: { item: SidebarMenuProps }) {
 				item.url && (
 					<NextLink
 						href={item.url}
+						prefetch={item.url.startsWith('/api/') ? false : undefined}
 						className={`
 							flex w-full items-center gap-2 rounded-lg px-3 py-2 text-base font-medium
 							${isActive ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-600 dark:text-white' : 'text-zinc-600 hover:bg-zinc-200 dark:text-zinc-200 dark:hover:bg-zinc-700'}

@@ -246,6 +246,34 @@ export async function GET(request: NextRequest) {
 
 ## 🔒 **SEGURANÇA E VALIDAÇÃO**
 
+### 🚨 **ALERTA CRÍTICO: Prefetch em Links de Logout**
+
+**⚠️ IMPORTANTE:** O Next.js prefetcha automaticamente links visíveis na página. Links para `/api/logout` SEMPRE devem ter `prefetch={false}` ou usar `button` ao invés de `Link`.
+
+**Problema:**
+- Next.js prefetcha links automaticamente quando aparecem na viewport
+- Se um link apontar para `/api/logout`, pode fazer logout automático sem clique do usuário
+- Bug crítico que causa deslogamento imediato após login
+
+**Solução:**
+```typescript
+// ✅ CORRETO
+<Link href='/api/logout' prefetch={false}>Sair</Link>
+
+// ✅ CORRETO - Alternativa com button
+<button onClick={() => window.location.href='/api/logout'}>Sair</button>
+
+// ❌ ERRADO - Causa logout automático!
+<Link href='/api/logout'>Sair</Link>
+```
+
+**Componentes afetados:**
+- `src/components/admin/sidebar/SidebarFooter.tsx`
+- `src/components/admin/topbar/TopbarDropdown.tsx`
+- Componentes genéricos (`Button`, `NavButton`, etc.) devem automaticamente desabilitar prefetch para URLs que começam com `/api/`
+
+**Regra geral:** Se `href.startsWith('/api/')`, SEMPRE usar `prefetch={false}`.
+
 ### **Validação de Domínio**
 
 Função centralizada em `src/lib/auth/validate.ts`:

@@ -22,8 +22,12 @@ export default function NavButton({ children, href = '#', disabled = false, icon
 		}),
 	)
 
+	// Desabilita prefetch para URLs de API (ex: /api/logout) para evitar ações destrutivas automáticas
+	const isApiRoute = (href || '#').startsWith('/api/')
+	const prefetch = isApiRoute ? false : undefined
+
 	return (
-		<Link href={href || '#'} aria-disabled={disabled} role='button' className={finalClassName} {...props}>
+		<Link href={href || '#'} prefetch={prefetch} aria-disabled={disabled} role='button' className={finalClassName} {...props}>
 			{icon && <span className={clsx(icon, 'size-4 shrink-0')} aria-hidden='true' />}
 			{children}
 		</Link>

@@ -258,6 +258,31 @@ useEffect(() => {
 
 ## 🎯 **BEST PRACTICES**
 
+### 🚨 **ALERTA: Logs de Debug de Prefetch**
+
+Ao debugar problemas de autenticação/logout automático, verifique logs relacionados a:
+
+- Prefetch automático do Next.js em links
+- Chamadas não solicitadas para `/api/logout`
+- Requisições GET para `/api/logout` sem ação do usuário
+
+**Exemplo de bug que pode aparecer nos logs:**
+
+```
+GET /api/logout (sem clique do usuário)
+GET /api/user-profile 401 (usuário foi deslogado)
+```
+
+**Causa:** Link para `/api/logout` sem `prefetch={false}`.
+
+**Solução:** Sempre desabilitar prefetch em links de API:
+
+```typescript
+<Link href='/api/logout' prefetch={false}>Sair</Link>
+```
+
+## 🎯 **BEST PRACTICES**
+
 ### **1. Sempre incluir detalhes relevantes**
 
 ```typescript
