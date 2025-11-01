@@ -49,7 +49,11 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ field: 'code', message: 'Ocorreu um erro ao criar a sessão.' }, { status: 400 })
 		}
 
-		return NextResponse.json({ success: true, token: sessionToken.token }, { status: 200 })
+		// O cookie já foi definido via cookies().set() no createSessionCookie
+		// Apenas retornamos o response - Next.js incluirá o cookie automaticamente
+		const response = NextResponse.json({ success: true, token: sessionToken.token }, { status: 200 })
+		console.log('✅ [API_AUTH_VERIFY_CODE] Código verificado, sessão criada, cookie incluído:', { userId: user.id })
+		return response
 	} catch (error) {
 		console.error('❌ [API_AUTH_VERIFY_CODE] Erro ao verificar o código:', { error })
 		return NextResponse.json({ field: null, message: 'Erro inesperado. Tente novamente.' }, { status: 500 })

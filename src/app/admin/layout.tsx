@@ -23,8 +23,13 @@ export default async function AdminLayout({
 }>) {
 	// Verificar se o usuário está autenticado
 	// Se o usuário não estiver autenticado, redireciona para a tela de login
+	console.log('🔍 [ADMIN_LAYOUT] Verificando autenticação...')
 	const currentUser = await getAuthUser()
-	if (!currentUser) redirect('/login')
+	if (!currentUser) {
+		console.log('❌ [ADMIN_LAYOUT] Usuário não autenticado, redirecionando para login')
+		redirect('/login')
+	}
+	console.log('✅ [ADMIN_LAYOUT] Usuário autenticado:', currentUser.email)
 
 	// Sessão válida - o UserContext fará a busca dos dados completos
 	return (

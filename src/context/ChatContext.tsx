@@ -835,7 +835,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 			}
 		}
 
-		checkChatPreference()
+		// Pequeno delay para garantir que cookies estejam disponíveis após login/redirect
+		// Isso evita race condition onde checkChatPreference é chamado antes do cookie estar disponível
+		const timer = setTimeout(() => {
+			checkChatPreference()
+		}, 500) // 500ms de delay para garantir propagação do cookie
 
 		// Listener para mudanças de preferência
 		const handleChatPreferenceChange = (event: CustomEvent) => {
@@ -846,6 +850,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 		window.addEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
 
 		return () => {
+			clearTimeout(timer)
 			window.removeEventListener('chatPreferenceChanged', handleChatPreferenceChange as EventListener)
 		}
 	}, [])

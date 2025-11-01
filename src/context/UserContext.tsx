@@ -212,7 +212,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 	// === INICIALIZAÇÃO ===
 
 	useEffect(() => {
-		syncUserData()
+		// Pequeno delay para garantir que cookies estejam disponíveis após login/redirect
+		// Isso evita race condition onde syncUserData é chamado antes do cookie estar disponível
+		const timer = setTimeout(() => {
+			syncUserData()
+		}, 500) // 500ms de delay para garantir propagação do cookie
+
+		return () => clearTimeout(timer)
 	}, [syncUserData])
 
 	// === LISTENERS PARA EVENTOS CUSTOMIZADOS ===

@@ -12,7 +12,7 @@ export async function createSessionCookie(userId: string) {
 	const token = generateToken()
 
 	// Gera o hash do token
-	const hashToken = await generateHashToken(token)
+	const hashToken = generateHashToken(token)
 
 	// Um dia em milissegundos
 	const DAY_IN_MS = 24 * 60 * 60 * 1000 // 86400000 ms (1 dia)
@@ -25,6 +25,7 @@ export async function createSessionCookie(userId: string) {
 
 	// Insere a sessão no banco de dados
 	await db.insert(authSession).values(session)
+	console.log('✅ [AUTH_SESSION] Sessão criada no banco:', { userId, sessionId: session.id })
 
 	// Insere o cookie de sessão no navegador
 	const cookieStore = await cookies()
@@ -35,6 +36,7 @@ export async function createSessionCookie(userId: string) {
 		path: '/',
 		expires: expiresAt,
 	})
+	console.log('✅ [AUTH_SESSION] Cookie definido:', { userId, expiresAt: expiresAt.toISOString() })
 
 	// Retorna a sessão e o token
 	return { session, token }
@@ -42,8 +44,11 @@ export async function createSessionCookie(userId: string) {
 
 // Remove a sessão do banco de dados e do cookie
 export async function destroySessionCookie(token: string) {
-	// Remove a sessão do banco de dados
-	await db.delete(authSession).where(eq(authSession.token, token))
+	// Gera o hash do token para buscar no banco de dados
+	const hashToken = generateHashToken(token)
+	
+	// Remove a sessão do banco de dados (usa o hash do token)
+	await db.delete(authSession).where(eq(authSession.token, hashToken))
 
 	// Remove o cookie do navegador
 	const cookieStore = await cookies()
