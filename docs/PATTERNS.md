@@ -215,7 +215,7 @@ const url = `${config.appUrl}/api/users`
 ```typescript
 export const config = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-  fileServerUrl: process.env.FILE_SERVER_URL || 'http://localhost:4000',
+  fileServerUrl: process.env.FILESERVER_URL || 'http://localhost:4000',
   databaseUrl: process.env.DATABASE_URL!
 }
 ```

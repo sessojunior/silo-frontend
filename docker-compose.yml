@@ -25,12 +25,11 @@ services:
       
       # URLs do sistema
       - APP_URL=${APP_URL:-http://localhost:3000}
-      - FILE_SERVER_URL=${FILE_SERVER_URL:-http://localhost:4000}
+      - FILESERVER_URL=${FILESERVER_URL:-http://localhost:4000}
       
       # Google OAuth
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL:-http://localhost:3000/api/auth/callback/google}
       
       # Email SMTP
       - SMTP_HOST=${SMTP_HOST}
@@ -38,9 +37,7 @@ services:
       - SMTP_SECURE=${SMTP_SECURE:-false}
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
-      
-      # Upload
-      - UPLOAD_PROXY_URL=${UPLOAD_PROXY_URL:-http://localhost:4000/api/upload}
+
     depends_on:
       - fileserver
     restart: unless-stopped

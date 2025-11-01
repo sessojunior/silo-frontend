@@ -739,7 +739,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 						loadSidebarData()
 						// Note: Dropdown agora detecta mudanças via totalUnread - sem necessidade de evento
 					} else if (data.messages && data.messages.length > 0) {
-						console.log('ℹ️ [CONTEXT_CHAT] Mensagens já existentes - sem recarregamento:', { messagesCount: data.messages.length })
+						// Mensagens já existentes - sem recarregamento
+						// Não é necessário fazer nada
 					}
 				}
 
@@ -758,7 +759,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 	const startPolling = useCallback(() => {
 		if (isPollingActive.current) {
-			console.log('ℹ️ [CONTEXT_CHAT] Polling já ativo - ignorando solicitação')
+			// Polling já ativo - ignorar solicitação
 			return
 		}
 
@@ -773,7 +774,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
 	const stopPolling = useCallback(() => {
 		if (!isPollingActive.current) {
-			console.log('ℹ️ [CONTEXT_CHAT] Polling já parado - ignorando solicitação')
+			// Polling já parado - ignorar solicitação
 			return
 		}
 

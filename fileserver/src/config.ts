@@ -5,7 +5,7 @@ import { FileServerConfig } from './types.js'
 export const config: FileServerConfig = {
   // Configurações básicas do servidor
   port: 4000,
-  fileServerUrl: process.env.FILE_SERVER_URL || 'http://localhost:4000',
+  fileServerUrl: process.env.FILESERVER_URL || 'http://localhost:4000',
   nextPublicAppUrl: process.env.APP_URL || 'http://localhost:3000',
 
   // Configurações de upload

@@ -52,7 +52,7 @@ app.get('/health', handleHealthCheck)
 ```typescript
 export const config: FileServerConfig = {
   port: 4000,
-  fileServerUrl: process.env.FILE_SERVER_URL || 'http://localhost:4000',
+  fileServerUrl: process.env.FILESERVER_URL || 'http://localhost:4000',
   nextPublicAppUrl: process.env.APP_URL || 'http://localhost:3000',
   upload: {
     maxFileSize: 4194304,
@@ -127,7 +127,7 @@ export interface OptimizationConfig {
 O servidor aceita variáveis de ambiente opcionais:
 
 ```bash
-FILE_SERVER_URL=http://localhost:4000
+FILESERVER_URL=http://localhost:4000
 APP_URL=http://localhost:3000
 ```
 
@@ -370,7 +370,7 @@ allowedMimes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 // src/app/api/upload/route.ts
 export async function POST(request: NextRequest) {
   const formData = await request.formData()
-  const fileServerUrl = process.env.FILE_SERVER_URL || 'http://localhost:4000'
+  const fileServerUrl = process.env.FILESERVER_URL || 'http://localhost:4000'
   const response = await fetch(`${fileServerUrl}/api/upload`, {
     method: 'POST',
     body: formData,

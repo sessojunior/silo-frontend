@@ -182,7 +182,6 @@ O sistema envia email com código OTP para redefinição.
 # .env
 GOOGLE_CLIENT_ID='seu-client-id.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET='seu-client-secret'
-GOOGLE_CALLBACK_URL='http://localhost:3000/api/auth/callback/google'
 ```
 
 ### **Arquivo de Configuração**
@@ -193,7 +192,6 @@ Arquivo: `src/lib/auth/oauth.ts`
 export const googleConfig = {
   clientId: process.env.GOOGLE_CLIENT_ID!,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-  callbackUrl: process.env.GOOGLE_CALLBACK_URL!
 }
 ```
 
@@ -365,7 +363,7 @@ export async function createSessionCookie(userId: string) {
   // Define cookie HTTP-only seguro
   cookieStore.set('session_token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: config.nodeEnv === 'production',
     sameSite: 'lax',
     expires: expiresAt
   })
@@ -409,12 +407,11 @@ export async function validateSession(token: string) {
 
 # URLs do sistema
 APP_URL='http://localhost:3000'
-FILE_SERVER_URL='http://localhost:4000'
+FILESERVER_URL='http://localhost:4000'
 
 # Google OAuth
 GOOGLE_CLIENT_ID='seu-client-id'
 GOOGLE_CLIENT_SECRET='seu-client-secret'
-GOOGLE_CALLBACK_URL='http://localhost:3000/api/auth/callback/google'
 
 # Email (para OTP)
 SMTP_HOST='smtp.exemplo.com'
@@ -422,9 +419,6 @@ SMTP_PORT='587'
 SMTP_SECURE=false # Defina como true se usar SSL (porta 465)
 SMTP_USERNAME='usuario@exemplo.com'
 SMTP_PASSWORD='senha'
-
-# Configuração para interceptar uploads externos
-UPLOAD_PROXY_URL='http://localhost:4000/api/upload'
 ```
 
 ### **Obter Usuário Autenticado**
@@ -590,53 +584,6 @@ export function useCurrentUser() {
   )
   
   return { user, isLoading, refresh: mutate }
-}
-```
-
----
-
-## 📝 **EXEMPLOS DE USO**
-
-### **Login React Hook**
-
-```typescript
-const handleLogin = async (email: string, password: string) => {
-  try {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    })
-    
-    const data = await response.json()
-    
-    if (data.success) {
-      router.push('/admin/dashboard')
-    } else {
-      toast.error(data.error)
-    }
-  } catch (error) {
-    toast.error('Erro ao fazer login')
-  }
-}
-```
-
-### **Google OAuth Button**
-
-```typescript
-const handleGoogleLogin = () => {
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-  const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_CALLBACK_URL
-  const scope = 'email profile'
-  
-  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-    `client_id=${clientId}&` +
-    `redirect_uri=${redirectUri}&` +
-    `response_type=code&` +
-    `scope=${scope}&` +
-    `state=${Math.random()}`
-  
-  window.location.href = authUrl
 }
 ```
 

@@ -13,15 +13,26 @@
  */
 export const config = {
 	/**
+	 * Ambiente de execução
+	 */
+	get nodeEnv(): string {
+		const env = process.env.NODE_ENV
+		if (!env && process.env.NODE_ENV === 'production') {
+			throw new Error('NODE_ENV deve ser configurada em produção')
+		}
+		return env || ''
+	},
+
+	/**
 	 * URL do servidor de arquivos local
 	 * Fallback para localhost:4000 em desenvolvimento
 	 */
 	get fileServerUrl(): string {
-		const url = process.env.FILE_SERVER_URL
+		const url = process.env.FILESERVER_URL
 		if (!url && process.env.NODE_ENV === 'production') {
-			throw new Error('FILE_SERVER_URL deve ser configurada em produção')
+			throw new Error('FILESERVER_URL deve ser configurada em produção')
 		}
-		return url || 'http://localhost:4000'
+		return url || ''
 	},
 
 	/**
@@ -33,7 +44,7 @@ export const config = {
 		if (!url && process.env.NODE_ENV === 'production') {
 			throw new Error('APP_URL deve ser configurada em produção')
 		}
-		return url || 'http://localhost:3000'
+		return url || ''
 	},
 
 	/**
@@ -41,11 +52,11 @@ export const config = {
 	 * Usado para autenticação Google
 	 */
 	get googleCallbackUrl(): string {
-		const url = process.env.GOOGLE_CALLBACK_URL
+		const url = `${process.env.APP_URL}/api/auth/callback/google`
 		if (!url && process.env.NODE_ENV === 'production') {
-			throw new Error('GOOGLE_CALLBACK_URL deve ser configurada em produção')
+			throw new Error('APP_URL deve ser configurada em produção')
 		}
-		return url || 'http://localhost:3000/api/auth/callback/google'
+		return url || ''
 	},
 
 	/**
@@ -53,11 +64,11 @@ export const config = {
 	 * Usado para interceptar uploads via Next.js
 	 */
 	get uploadProxyUrl(): string {
-		const url = process.env.UPLOAD_PROXY_URL
+		const url = `${process.env.FILESERVER_URL}/api/upload`
 		if (!url && process.env.NODE_ENV === 'production') {
-			throw new Error('UPLOAD_PROXY_URL deve ser configurada em produção')
+			throw new Error('FILESERVER_URL deve ser configurada em produção')
 		}
-		return url || 'http://localhost:4000/api/upload'
+		return url || ''
 	},
 
 	/**
@@ -176,10 +187,8 @@ export const configValidation = {
 		}
 
 		const requiredVars = [
-			'FILE_SERVER_URL',
 			'APP_URL',
-			'GOOGLE_CALLBACK_URL',
-			'UPLOAD_PROXY_URL',
+			'FILESERVER_URL',
 			'DATABASE_URL'
 		]
 

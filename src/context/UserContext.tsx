@@ -63,7 +63,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
 	const fetchUser = useCallback(async (): Promise<User | null> => {
 		try {
-			console.log('ℹ️ [CONTEXT_USER] Buscando dados do usuário...')
 			const response = await fetch('/api/user-profile')
 			
 			if (response.ok) {
@@ -91,7 +90,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
 	const fetchUserProfile = useCallback(async (): Promise<UserProfile | null> => {
 		try {
-			console.log('ℹ️ [CONTEXT_USER] Buscando perfil do usuário...')
 			const response = await fetch('/api/user-profile')
 			
 			if (response.ok) {
@@ -116,7 +114,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
 	const fetchUserPreferences = useCallback(async (): Promise<UserPreferences | null> => {
 		try {
-			console.log('ℹ️ [CONTEXT_USER] Buscando preferências do usuário...')
 			const response = await fetch('/api/user-preferences')
 			
 			if (response.ok) {
@@ -139,17 +136,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
 	const updateUser = useCallback((updates: Partial<User>) => {
 		setUser(prev => prev ? { ...prev, ...updates } : null)
-		console.log('ℹ️ [CONTEXT_USER] Usuário atualizado:', { updates })
 	}, [])
 
 	const updateUserProfile = useCallback((updates: Partial<UserProfile>) => {
 		setUserProfile(prev => prev ? { ...prev, ...updates } : updates)
-		console.log('ℹ️ [CONTEXT_USER] Perfil atualizado:', { updates })
 	}, [])
 
 	const updateUserPreferences = useCallback((updates: Partial<UserPreferences>) => {
 		setUserPreferences(prev => prev ? { ...prev, ...updates } : updates)
-		console.log('ℹ️ [CONTEXT_USER] Preferências atualizadas:', { updates })
 		
 		// Disparar evento customizado para notificar outros componentes
 		window.dispatchEvent(new CustomEvent('userPreferencesChanged', { detail: updates }))
@@ -183,8 +177,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 		setError(null)
 		
 		try {
-			console.log('ℹ️ [CONTEXT_USER] Sincronizando todos os dados do usuário...')
-			
 			const [userData, profileData, preferencesData] = await Promise.all([
 				fetchUser(),
 				fetchUserProfile(),

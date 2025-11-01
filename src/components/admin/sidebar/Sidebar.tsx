@@ -135,9 +135,6 @@ export default function Sidebar() {
 		fetchProjects()
 	}, [])
 
-	// Log para debug do estado do chat
-	console.log('ℹ️ [COMPONENT_SIDEBAR] Renderizando menu com chatEnabled:', { chatEnabled })
-
 	// Dados para o menu lateral
 	const sidebar: SidebarProps = {
 		menu: [

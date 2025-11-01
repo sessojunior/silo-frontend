@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { authSession, authUser } from '@/lib/db/schema'
 import { eq, lt } from 'drizzle-orm'
 import { cookies } from 'next/headers'
+import { config } from '@/lib/config'
 
 // Criar e validar sessão
 
@@ -36,7 +37,7 @@ export async function createSessionCookie(userId: string) {
 	const cookieStore = await cookies()
 	cookieStore.set('session_token', token, {
 		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production',
+		secure: config.nodeEnv === 'production',
 		sameSite: 'lax',
 		path: '/',
 		expires: expiresAt,
@@ -46,7 +47,7 @@ export async function createSessionCookie(userId: string) {
 		tokenPrefix: token.substring(0, 10) + '...',
 		tokenLength: token.length,
 		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production',
+		secure: config.nodeEnv === 'production',
 		sameSite: 'lax',
 		path: '/',
 		expiresAt: expiresAt.toISOString()

@@ -11,6 +11,6 @@ services:
     volumes:
       - ./uploads:/app/uploads
     environment:
-      - FILE_SERVER_URL=http://localhost:4000
+      - FILESERVER_URL=http://localhost:4000
       - APP_URL=http://localhost:3000
     restart: unless-stopped

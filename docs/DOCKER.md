@@ -61,12 +61,11 @@ DATABASE_URL='postgresql://usuario:senha@host:5432/banco'
 
 # URLs do sistema
 APP_URL='http://localhost:3000'
-FILE_SERVER_URL='http://localhost:4000'
+FILESERVER_URL='http://localhost:4000'
 
 # Google OAuth (opcional)
 GOOGLE_CLIENT_ID=''
 GOOGLE_CLIENT_SECRET=''
-GOOGLE_CALLBACK_URL='http://localhost:3000/api/auth/callback/google'
 
 # Email SMTP
 SMTP_HOST='smtp.seuservidor.com'
@@ -74,9 +73,6 @@ SMTP_PORT='587'
 SMTP_SECURE=false # Defina como true se usar SSL (porta 465)
 SMTP_USERNAME='seu-email@dominio.com'
 SMTP_PASSWORD='sua-senha'
-
-# Configuração para interceptar uploads externos
-UPLOAD_PROXY_URL='http://localhost:4000/api/upload'
 ```
 
 ### **Arquivo docker-compose.yml**
@@ -288,13 +284,11 @@ npm run dev
 ```bash
 # Desenvolvimento
 APP_URL='http://localhost:3000'
-FILE_SERVER_URL='http://localhost:4000'
-GOOGLE_CALLBACK_URL='http://localhost:3000/api/auth/callback/google'
+FILESERVER_URL='http://localhost:4000'
 
 # Produção
 APP_URL='https://silo.cptec.inpe.br'
-FILE_SERVER_URL='https://files.cptec.inpe.br'
-GOOGLE_CALLBACK_URL='https://silo.cptec.inpe.br/api/auth/callback/google'
+FILESERVER_URL='https://files.cptec.inpe.br'
 ```
 
 **⚠️ Importante para Produção:**
