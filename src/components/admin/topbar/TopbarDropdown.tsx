@@ -5,12 +5,14 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useChat } from '@/context/ChatContext'
+import { useLogout } from '@/context/LogoutContext'
 import Avatar from '@/components/ui/Avatar'
 import type { AccountProps } from '@/components/admin/topbar/Topbar'
 
 export default function TopbarDropdown({ account }: { account: AccountProps }) {
 	const { currentUser } = useCurrentUser()
 	const { currentPresence, isLoading } = useChat()
+	const { openLogoutDialog } = useLogout()
 
 	const [isOpen, setIsOpen] = useState(false)
 	const dropdownRef = useRef<HTMLDivElement>(null)
@@ -85,9 +87,8 @@ export default function TopbarDropdown({ account }: { account: AccountProps }) {
 									key={link.id}
 									onClick={(e) => {
 										e.preventDefault()
-										if (window.confirm('Tem certeza que deseja sair?')) {
-											window.location.href = link.url
-										}
+										setIsOpen(false) // Fecha o dropdown
+										openLogoutDialog() // Abre o Dialog compartilhado de confirmação
 									}}
 									className={`flex w-full items-center gap-x-3 rounded-lg px-3 py-2 text-base font-medium transition-all duration-300 hover:bg-zinc-100 focus:bg-zinc-100 focus:outline-none dark:hover:bg-zinc-700 dark:hover:text-zinc-300 dark:focus:bg-zinc-700 dark:focus:text-zinc-300 text-zinc-800 dark:text-zinc-400`}
 								>
