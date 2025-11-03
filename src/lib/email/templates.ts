@@ -6,34 +6,54 @@ import { config } from '@/lib/config'
 // Template base com layout CPTEC/INPE
 const baseTemplate = (content: string, subject: string): string => `
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${subject}</title>
-</head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <div style="max-width:600px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;">
-    <!-- Header -->
-    <div style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);color:white;padding:32px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;">
-      <h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-0.5px;text-shadow:0 2px 4px rgba(0,0,0,0.1);flex:1;">SILO</h1>
-      <p style="margin:0;font-size:13px;opacity:0.95;font-weight:400;letter-spacing:0.5px;flex:1;text-align:right;">CPTEC/INPE</p>
-    </div>
-    
-    <!-- Content -->
-    <div style="padding:40px 30px;">
-      ${content}
-    </div>
-    
-    <!-- Footer -->
-    <div style="background:#f1f5f9;padding:24px 32px;border-top:1px solid #e7e7e7;border-radius:0 0 12px 12px;box-sizing:border-box;">
-      <div style="display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;">
-        <p style="margin:0;font-size:13px;opacity:0.95;font-weight:400;letter-spacing:0.5px;color:#64748b;flex:1;">CPTEC/INPE</p>
-        <p style="margin:0;font-size:28px;font-weight:700;letter-spacing:-0.5px;color:#64748b;flex:1;text-align:right;">SILO</p>
-      </div>
-    </div>
-  </div>
-</body>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${subject}</title>
+  </head>
+  <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#f3f4f6;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;overflow:hidden;">
+      <!-- Header -->
+      <tr>
+        <td style="background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:#ffffff;padding:32px;border-radius:12px 12px 0 0;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+            <tr>
+              <td align="left" style="font-size:28px;font-weight:700;letter-spacing:-0.5px;text-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                SILO
+              </td>
+              <td align="right" style="font-size:13px;opacity:0.95;font-weight:400;letter-spacing:0.5px;">
+                CPTEC/INPE
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- Content -->
+      <tr>
+        <td style="padding:40px 30px;color:#111827;line-height:1.6;">
+          ${content}111
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="background:#f1f5f9;padding:24px 32px;border-top:1px solid #e7e7e7;border-radius:0 0 12px 12px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+            <tr>
+              <td align="left" style="font-size:13px;opacity:0.95;font-weight:400;letter-spacing:0.5px;color:#64748b;">
+                CPTEC/INPE
+              </td>
+              <td align="right" style="font-size:28px;font-weight:700;letter-spacing:-0.5px;color:#64748b;">
+                SILO
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>
 `
 
