@@ -7,15 +7,16 @@ export const group = pgTable('group', {
 	description: text('description'),
 	icon: text('icon').notNull().default('icon-[lucide--users]'), // ícone para o canal do chat
 	color: text('color').notNull().default('#3B82F6'), // cor do canal no chat
+	role: text('role').notNull().default('user'), // 'user' | 'admin' - define se grupo é administrativo
 	active: boolean('active').notNull().default(true),
 	isDefault: boolean('is_default').notNull().default(false), // grupo padrão para novos usuários
-	maxUsers: integer('max_users'), // limite opcional de usuários
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 export type Group = typeof group.$inferSelect
 
 // Relacionamento Many-to-Many entre Usuários e Grupos
+// O papel do usuário (admin/user) é definido pelo grupo (group.role), não por esta tabela
 export const userGroup = pgTable(
 	'user_group',
 	{
@@ -26,7 +27,6 @@ export const userGroup = pgTable(
 		groupId: text('group_id')
 			.notNull()
 			.references(() => group.id, { onDelete: 'cascade' }),
-		role: text('role').notNull().default('member'), // 'member' | 'admin' | 'owner'
 		joinedAt: timestamp('joined_at').notNull().defaultNow(),
 		createdAt: timestamp('created_at').notNull().defaultNow(),
 	},

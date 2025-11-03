@@ -15,9 +15,9 @@ const baseTemplate = (content: string, subject: string): string => `
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <div style="max-width:600px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;">
     <!-- Header -->
-    <div style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);color:white;padding:32px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;">
-      <h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-0.5px;text-shadow:0 2px 4px rgba(0,0,0,0.1);">SILO</h1>
-      <p style="margin:0;font-size:13px;opacity:0.95;font-weight:400;letter-spacing:0.5px;">CPTEC/INPE</p>
+    <div style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);color:white;padding:32px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;">
+      <h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-0.5px;text-shadow:0 2px 4px rgba(0,0,0,0.1);flex:1;">SILO</h1>
+      <p style="margin:0;font-size:13px;opacity:0.95;font-weight:400;letter-spacing:0.5px;flex:1;text-align:right;">CPTEC/INPE</p>
     </div>
     
     <!-- Content -->
@@ -26,10 +26,10 @@ const baseTemplate = (content: string, subject: string): string => `
     </div>
     
     <!-- Footer -->
-    <div style="background:#f1f5f9;padding:24px 32px;border-top:1px solid #e7e7e7;border-radius:0 0 12px 12px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <p style="margin:0;font-size:13px;opacity:0.95;font-weight:400;letter-spacing:0.5px;color:#64748b;">CPTEC/INPE</p>
-        <p style="margin:0;font-size:28px;font-weight:700;letter-spacing:-0.5px;color:#64748b;">SILO</p>
+    <div style="background:#f1f5f9;padding:24px 32px;border-top:1px solid #e7e7e7;border-radius:0 0 12px 12px;box-sizing:border-box;">
+      <div style="display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;">
+        <p style="margin:0;font-size:13px;opacity:0.95;font-weight:400;letter-spacing:0.5px;color:#64748b;flex:1;">CPTEC/INPE</p>
+        <p style="margin:0;font-size:28px;font-weight:700;letter-spacing:-0.5px;color:#64748b;flex:1;text-align:right;">SILO</p>
       </div>
     </div>
   </div>

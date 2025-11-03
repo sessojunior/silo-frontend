@@ -260,7 +260,7 @@ export default function GroupsPage() {
 									<tr>
 										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Grupo</th>
 										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Descrição</th>
-										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Limite</th>
+										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Quantidade</th>
 										<th className='px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider'>Criado em</th>
 										{/* Coluna Ações - apenas para administradores */}
 										{!adminLoading && isAdmin && (
@@ -295,7 +295,7 @@ export default function GroupsPage() {
 														<div className='text-sm text-zinc-600 dark:text-zinc-400 max-w-xs truncate'>{group.description || '—'}</div>
 													</td>
 													<td className='px-4 py-4 cursor-pointer' onClick={() => toggleGroupExpansion(group.id)}>
-														<div className='text-sm text-zinc-600 dark:text-zinc-400'>{group.maxUsers ? `${group.maxUsers} usuários` : 'Ilimitado'}</div>
+														<div className='text-sm font-medium text-zinc-600 dark:text-zinc-400'>{(group as Group & { userCount?: number }).userCount || 0} usuários</div>
 													</td>
 													<td className='px-4 py-4 cursor-pointer' onClick={() => toggleGroupExpansion(group.id)}>
 														<div className='text-xs text-zinc-500 dark:text-zinc-400'>{formatDateBR(new Date(group.createdAt).toISOString().split('T')[0])}</div>
@@ -313,8 +313,8 @@ export default function GroupsPage() {
 																<Button onClick={() => openEditForm(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20' title='Editar Grupo'>
 																	<span className='icon-[lucide--edit] size-4 text-blue-600 dark:text-blue-400' />
 																</Button>
-																{/* Não permitir exclusão do grupo Administradores */}
-																{group.name !== 'Administradores' && (
+																{/* Não permitir exclusão de grupos administrativos */}
+																{group.role !== 'admin' && (
 																	<Button onClick={() => openDeleteDialog(group)} className='size-8 p-0 rounded-md bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20' title='Excluir Grupo'>
 																		<span className='icon-[lucide--trash] size-4 text-red-600 dark:text-red-400' />
 																	</Button>

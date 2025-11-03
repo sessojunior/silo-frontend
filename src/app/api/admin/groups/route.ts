@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { group, userGroup, chatMessage } from '@/lib/db/schema'
-import { eq, desc, ilike, and, sql, not, inArray } from 'drizzle-orm'
+import { eq, desc, ilike, and, sql, not, inArray, count } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { getAuthUser } from '@/lib/auth/token'
 import { requireAdmin } from '@/lib/auth/admin'
@@ -33,19 +33,39 @@ export async function GET(request: NextRequest) {
 			conditions.push(eq(group.active, false))
 		}
 
-		// Buscar grupos
+		// Buscar grupos primeiro
 		const groups = await db
 			.select()
 			.from(group)
 			.where(conditions.length > 0 ? and(...conditions) : undefined)
 			.orderBy(desc(group.isDefault), desc(group.createdAt))
 
+		// Buscar contagem de usuários por grupo
+		const userCounts = await db
+			.select({
+				groupId: userGroup.groupId,
+				count: count(userGroup.userId),
+			})
+			.from(userGroup)
+			.groupBy(userGroup.groupId)
+
+		// Criar mapa de contagens
+		const countMap = new Map<string, number>()
+		userCounts.forEach((uc) => {
+			countMap.set(uc.groupId, Number(uc.count))
+		})
+
+		// Adicionar contagem aos grupos
+		const groupsWithCount = groups.map((g) => ({
+			...g,
+			userCount: countMap.get(g.id) || 0,
+		}))
 
 		return NextResponse.json({
 			success: true,
 			data: {
-				items: groups,
-				total: groups.length,
+				items: groupsWithCount,
+				total: groupsWithCount.length,
 			},
 		})
 	} catch (error) {
@@ -75,7 +95,7 @@ export async function POST(request: NextRequest) {
 		}
 
 		const body = await request.json()
-		const { name, description, icon, color, active, isDefault, maxUsers } = body
+		const { name, description, icon, color, role, active, isDefault } = body
 
 		console.log('ℹ️ [API_GROUPS] Criando novo grupo:', { name, description, active, isDefault })
 
@@ -113,16 +133,29 @@ export async function POST(request: NextRequest) {
 				.where(eq(group.isDefault, true))
 		}
 
-		// Criar grupo
+		// Não permitir criar grupos com role='admin'
+		// Apenas um grupo pode ter role='admin' e ele já existe (criado pelo seed)
+		if (role === 'admin') {
+			return NextResponse.json(
+				{
+					success: false,
+					field: 'role',
+					message: 'Não é possível criar grupos com permissões de administrador. Apenas o grupo "Administradores" pode ter essa função.',
+				},
+				{ status: 400 },
+			)
+		}
+
+		// Criar grupo (sempre com role='user')
 		const newGroup = {
 			id: randomUUID(),
 			name: name.trim(),
 			description: description?.trim() || null,
 			icon: icon || 'icon-[lucide--users]',
 			color: color || '#3B82F6',
+			role: 'user', // Sempre 'user' para novos grupos
 			active: active !== undefined ? active : true,
 			isDefault: isDefault || false,
-			maxUsers: maxUsers || null,
 		}
 
 		await db.insert(group).values(newGroup)
@@ -159,7 +192,7 @@ export async function PUT(request: NextRequest) {
 		}
 
 		const body = await request.json()
-		const { id, name, description, icon, color, active, isDefault, maxUsers } = body
+		const { id, name, description, icon, color, role, active, isDefault } = body
 
 		console.log('ℹ️ [API_GROUPS] Atualizando grupo:', { id, name, active, isDefault })
 
@@ -199,33 +232,55 @@ export async function PUT(request: NextRequest) {
 			)
 		}
 
-		// Verificar se é o grupo Administradores e proteger contra mudanças críticas
-		if (existingGroup[0].name === 'Administradores') {
-			// Não permitir desativar o grupo Administradores
+		// Proteger grupos admin contra mudanças críticas
+		// Grupos com role='admin' não podem ser desativados ou tornados padrão
+		if (existingGroup[0].role === 'admin') {
+			// Não permitir desativar grupos admin
 			if (active === false) {
 				return NextResponse.json(
 					{
 						success: false,
 						field: 'active',
-						message: 'Não é possível desativar o grupo Administradores. Este grupo é essencial para o funcionamento do sistema.',
+						message: 'Não é possível desativar o grupo de administradores. Este grupo é essencial para o funcionamento do sistema.',
 					},
 					{ status: 400 },
 				)
 			}
 
-			// Não permitir tornar o grupo Administradores como padrão
+			// Não permitir tornar grupos admin como padrão
 			if (isDefault === true) {
 				return NextResponse.json(
 					{
 						success: false,
 						field: 'isDefault',
-						message: 'Não é possível tornar o grupo Administradores como padrão. Este grupo é especial e não deve ser o grupo padrão do sistema.',
+						message: 'Não é possível tornar grupos administrativos como padrão. Estes grupos são especiais e não devem ser o grupo padrão do sistema.',
 					},
 					{ status: 400 },
 				)
 			}
 
-			// Não permitir alterar o nome do grupo Administradores
+			// Não permitir alterar role de 'admin' para 'user' se há usuários neste grupo
+			if (role === 'user') {
+				// Verificar se há usuários neste grupo
+				const usersInGroup = await db.select({ userId: userGroup.userId }).from(userGroup).where(eq(userGroup.groupId, id)).limit(1)
+				if (usersInGroup.length > 0) {
+					return NextResponse.json(
+						{
+							success: false,
+							field: 'role',
+							message: 'Não é possível alterar um grupo administrativo para usuário comum se houver usuários nele. Remova todos os usuários primeiro ou crie um novo grupo.',
+						},
+						{ status: 400 },
+					)
+				}
+			}
+
+			console.warn('⚠️ [API_GROUPS] Tentativa de alteração crítica em grupo administrativo bloqueada')
+		}
+
+		// Proteção específica para o grupo "Administradores" por nome (grupo especial do sistema)
+		if (existingGroup[0].name === 'Administradores') {
+			// Não permitir alterar o nome do grupo Administradores (proteção específica)
 			if (name.trim() !== 'Administradores') {
 				return NextResponse.json(
 					{
@@ -236,8 +291,6 @@ export async function PUT(request: NextRequest) {
 					{ status: 400 },
 				)
 			}
-
-			console.warn('⚠️ [API_GROUPS] Tentativa de alteração crítica no grupo Administradores bloqueada')
 		}
 
 		// Verificar se nome já existe em outro grupo
@@ -286,15 +339,46 @@ export async function PUT(request: NextRequest) {
 				.where(eq(group.isDefault, true))
 		}
 
+		// Não permitir alterar role para 'admin'
+		// Apenas um grupo pode ter role='admin' e ele já existe (criado pelo seed)
+		if (role === 'admin') {
+			return NextResponse.json(
+				{
+					success: false,
+					field: 'role',
+					message: 'Não é possível alterar um grupo para ter permissões de administrador. Apenas o grupo "Administradores" pode ter essa função.',
+				},
+				{ status: 400 },
+			)
+		}
+
+		// Se tentar alterar um grupo admin para user, verificar se há usuários
+		if (existingGroup[0].role === 'admin' && role === 'user') {
+			// Verificar se há usuários neste grupo
+			const usersInGroup = await db.select({ userId: userGroup.userId }).from(userGroup).where(eq(userGroup.groupId, id)).limit(1)
+			if (usersInGroup.length > 0) {
+				return NextResponse.json(
+					{
+						success: false,
+						field: 'role',
+						message: 'Não é possível alterar o grupo Administradores para usuário comum. Este grupo é essencial para o sistema.',
+					},
+					{ status: 400 },
+				)
+			}
+		}
+
 		// Atualizar grupo
+		// Se role não for fornecido ou for undefined, manter o role atual
+		// Mas nunca permitir mudar para 'admin' (já validado acima)
 		const updatedData = {
 			name: name.trim(),
 			description: description?.trim() || null,
-			icon: icon || 'icon-[lucide--users]',
-			color: color || '#3B82F6',
-			active: active !== undefined ? active : true,
-			isDefault: isDefault || false,
-			maxUsers: maxUsers || null,
+			icon: icon || existingGroup[0].icon,
+			color: color || existingGroup[0].color,
+			role: role !== undefined && role !== 'admin' ? role : existingGroup[0].role, // Manter role atual ou 'user', nunca permitir 'admin'
+			active: active !== undefined ? active : existingGroup[0].active,
+			isDefault: isDefault !== undefined ? isDefault : existingGroup[0].isDefault,
 			updatedAt: new Date(),
 		}
 
@@ -370,12 +454,12 @@ export async function DELETE(request: NextRequest) {
 			)
 		}
 
-		// Verificar se é o grupo Administradores
-		if (existingGroup[0].name === 'Administradores') {
+		// Não permitir excluir grupos administrativos
+		if (existingGroup[0].role === 'admin') {
 			return NextResponse.json(
 				{
 					success: false,
-					message: 'Não é possível excluir o grupo Administradores. Este grupo é essencial para o funcionamento do sistema.',
+					message: 'Não é possível excluir o grupo de administradores. Este grupo é essencial para o funcionamento do sistema.',
 				},
 				{ status: 400 },
 			)

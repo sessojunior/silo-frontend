@@ -86,13 +86,13 @@ export default function SetupPasswordPage() {
 			{step === 1 && (
 				<AuthHeader
 					icon='icon-[lucide--lock-keyhole]'
-					title='Definir senha inicial'
-					description='Informe seu e-mail, o código OTP recebido e defina sua senha de acesso.'
+					title='Definir senha'
+					description='Informe seu e-mail, o código recebido e defina sua senha de acesso.'
 				/>
 			)}
 			{step === 2 && (
 				<AuthHeader
-					icon='icon-[lucide--check-circle-2]'
+					icon='icon-[lucide--key]'
 					title='Senha definida com sucesso!'
 					description='Sua senha foi configurada. Agora você pode fazer login no sistema.'
 				/>

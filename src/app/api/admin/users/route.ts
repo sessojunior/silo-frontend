@@ -11,7 +11,6 @@ import { isValidEmail, isValidDomain } from '@/lib/auth/validate'
 // Interface para grupos de usuário
 interface UserGroupInput {
 	groupId: string
-	role?: string
 }
 
 // GET - Listar usuários com busca e filtros
@@ -74,6 +73,7 @@ export async function GET(request: NextRequest) {
 				isActive: authUser.isActive,
 				lastLogin: authUser.lastLogin,
 				createdAt: authUser.createdAt,
+				password: authUser.password, // Incluir para verificar se precisa setup
 			})
 			.from(authUser)
 			.where(conditions.length > 0 ? and(...conditions) : undefined)
@@ -96,13 +96,17 @@ export async function GET(request: NextRequest) {
 			// Para compatibilidade com a interface existente, vamos usar o primeiro grupo como groupId
 			const primaryGroup = userGroups[0]
 
+			// Remover password da resposta, mas adicionar flag needsPasswordSetup
+			const { password, ...userWithoutPassword } = user
+			
 			usersWithGroups.push({
-				...user,
+				...userWithoutPassword,
 				groupId: primaryGroup?.groupId || null,
 				groupName: primaryGroup?.groupName || null,
 				groupIcon: primaryGroup?.groupIcon || null,
 				groupColor: primaryGroup?.groupColor || null,
 				groups: userGroups, // Lista completa de grupos
+				needsPasswordSetup: !password, // Flag para indicar se precisa definir senha
 			})
 		}
 
@@ -144,7 +148,7 @@ export async function POST(request: NextRequest) {
 		const { name, email, password, emailVerified, groups, groupId, isActive } = body
 
 		// Determinar grupos usando novo formato ou legado
-		const userGroups: UserGroupInput[] = groups || (groupId ? [{ groupId, role: 'member' }] : [])
+		const userGroups: UserGroupInput[] = groups || (groupId ? [{ groupId }] : [])
 
 		console.log('ℹ️ [API_USERS] Criando novo usuário:', { name, email, emailVerified, groups: userGroups, isActive })
 
@@ -268,7 +272,6 @@ export async function POST(request: NextRequest) {
 		const newUserGroupEntries = userGroups.map((ug: UserGroupInput) => ({
 			userId: userId,
 			groupId: ug.groupId,
-			role: ug.role || 'member',
 		}))
 
 		await db.insert(userGroup).values(newUserGroupEntries)
@@ -362,7 +365,7 @@ export async function PUT(request: NextRequest) {
 		const { id, name, email, emailVerified, groups, groupId, isActive, password } = body
 
 		// Suporte a ambos os formatos: novo (groups array) e legado (groupId único)
-		const userGroups: UserGroupInput[] = groups || (groupId ? [{ groupId, role: 'member' }] : [])
+		const userGroups: UserGroupInput[] = groups || (groupId ? [{ groupId }] : [])
 
 		console.log('ℹ️ [API_USERS] Atualizando usuário:', { id, name, email, emailVerified, userGroups, isActive })
 
@@ -525,17 +528,18 @@ export async function PUT(request: NextRequest) {
 				)
 			}
 
-			// Verificar se está tentando se remover do grupo Administradores
+			// Verificar se está tentando se remover de grupos admin
+			// Um usuário admin não pode se remover de todos os grupos admin
 			const currentUserGroups = await db
-				.select({ groupId: userGroup.groupId, groupName: group.name })
+				.select({ groupId: userGroup.groupId, groupRole: group.role, groupName: group.name })
 				.from(userGroup)
 				.innerJoin(group, eq(userGroup.groupId, group.id))
 				.where(eq(userGroup.userId, id))
 
-			const isCurrentlyAdmin = currentUserGroups.some(ug => ug.groupName === 'Administradores')
+			const isCurrentlyAdmin = currentUserGroups.some(ug => ug.groupRole === 'admin')
 			const willBeAdmin = userGroups.some(ug => {
 				const group = existingGroups.find(g => g.id === ug.groupId)
-				return group?.name === 'Administradores'
+				return group?.role === 'admin'
 			})
 
 			if (isCurrentlyAdmin && !willBeAdmin) {
@@ -543,7 +547,7 @@ export async function PUT(request: NextRequest) {
 					{
 						success: false,
 						field: 'groups',
-						message: 'Você não pode se remover do grupo Administradores.',
+						message: 'Você não pode se remover do grupo Administradores. É necessário ter ao menos um usuário com permissões de administrador.',
 					},
 					{ status: 400 },
 				)
@@ -574,7 +578,7 @@ export async function PUT(request: NextRequest) {
 		await db.update(authUser).set(updatedData).where(eq(authUser.id, id))
 
 		// Buscar grupos atuais do usuário
-		const currentUserGroups = await db.select({ groupId: userGroup.groupId, role: userGroup.role }).from(userGroup).where(eq(userGroup.userId, id))
+		const currentUserGroups = await db.select({ groupId: userGroup.groupId }).from(userGroup).where(eq(userGroup.userId, id))
 
 		const currentGroupIds = currentUserGroups.map((ug) => ug.groupId).sort()
 		const newGroupIds = userGroups.map((ug: UserGroupInput) => ug.groupId).sort()
@@ -590,7 +594,6 @@ export async function PUT(request: NextRequest) {
 			const newUserGroupEntries = userGroups.map((ug: UserGroupInput) => ({
 				userId: id,
 				groupId: ug.groupId,
-				role: ug.role || 'member',
 			}))
 
 			await db.insert(userGroup).values(newUserGroupEntries)
@@ -681,13 +684,18 @@ export async function DELETE(request: NextRequest) {
 		}
 
 		// Verificar se o usuário a ser excluído é administrador
-		const userGroups = await db.select({ role: userGroup.role, groupName: group.name }).from(userGroup).innerJoin(group, eq(userGroup.groupId, group.id)).where(eq(userGroup.userId, id))
+		const userGroups = await db.select({ groupRole: group.role, groupName: group.name }).from(userGroup).innerJoin(group, eq(userGroup.groupId, group.id)).where(eq(userGroup.userId, id))
 
-		const isAdmin = userGroups.some((ug) => ug.role === 'admin')
+		const isAdmin = userGroups.some((ug) => ug.groupRole === 'admin')
 
 		// Se for administrador, verificar se é o último administrador do sistema
 		if (isAdmin) {
-			const allAdmins = await db.select({ userId: userGroup.userId }).from(userGroup).where(eq(userGroup.role, 'admin'))
+			// Buscar todos os usuários em grupos admin
+			const allAdminGroups = await db.select({ groupId: group.id }).from(group).where(eq(group.role, 'admin'))
+			const adminGroupIds = allAdminGroups.map(g => g.groupId)
+			const allAdmins = adminGroupIds.length > 0 
+				? await db.select({ userId: userGroup.userId }).from(userGroup).where(inArray(userGroup.groupId, adminGroupIds))
+				: []
 
 			if (allAdmins.length <= 1) {
 				return NextResponse.json(
@@ -699,7 +707,6 @@ export async function DELETE(request: NextRequest) {
 				)
 			}
 		}
-
 
 		// Executar exclusão em cascata usando transação
 		await db.transaction(async (tx) => {

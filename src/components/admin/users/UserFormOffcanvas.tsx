@@ -21,6 +21,7 @@ interface UserWithGroup extends AuthUser {
 	groupName?: string
 	groupIcon?: string
 	groupColor?: string
+	needsPasswordSetup?: boolean // Flag para indicar se precisa definir senha
 	groups?: Array<{
 		groupId: string
 		groupName: string
@@ -39,6 +40,7 @@ interface UserFormOffcanvasProps {
 
 export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuccess }: UserFormOffcanvasProps) {
 	const [loading, setLoading] = useState(false)
+	const [resendingEmail, setResendingEmail] = useState(false)
 	const { currentUser } = useCurrentUser()
 	const [formData, setFormData] = useState({
 		name: '',
@@ -50,6 +52,7 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 
 	const isEditing = !!user
 	const isCurrentUser = !!(currentUser && user && currentUser.id === user.id)
+	const needsPasswordSetup = isEditing && (user?.needsPasswordSetup || !user?.password)
 
 	useEffect(() => {
 		if (isOpen) {
@@ -109,7 +112,7 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 				...formData,
 				// 🆕 Ao criar novo usuário, email sempre não verificado (usuário precisa confirmar via OTP)
 				emailVerified: isEditing ? formData.emailVerified : false,
-				groups: selectedGroups.map((sg) => ({ groupId: sg.groupId, role: 'member' })), // API ainda espera role
+				groups: selectedGroups.map((sg) => ({ groupId: sg.groupId })), // Role foi movido para group, não mais em user_group
 				// Manter compatibilidade com API legado
 				groupId: selectedGroups[0]?.groupId || '',
 			}
@@ -151,6 +154,42 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 			})
 		} finally {
 			setLoading(false)
+		}
+	}
+
+	async function handleResendPasswordSetup() {
+		if (!user?.id) return
+
+		try {
+			setResendingEmail(true)
+			const response = await fetch(`/api/admin/users/${user.id}/resend-password-setup`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+			})
+
+			const data = await response.json()
+
+			if (data.success) {
+				toast({
+					type: 'success',
+					title: 'Email reenviado',
+					description: 'O código OTP para definição de senha foi reenviado por email com sucesso.',
+				})
+			} else {
+				toast({
+					type: 'error',
+					title: 'Erro ao reenviar email',
+					description: data.message || data.error || 'Erro desconhecido',
+				})
+			}
+		} catch {
+			toast({
+				type: 'error',
+				title: 'Erro inesperado',
+				description: 'Erro ao reenviar email',
+			})
+		} finally {
+			setResendingEmail(false)
 		}
 	}
 
@@ -202,7 +241,8 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 					<div className='max-h-64 overflow-y-auto border border-zinc-200 dark:border-zinc-700 rounded-lg p-1 pb-2'>
 						{groups.map((group) => {
 							const isSelected = selectedGroups.some((sg) => sg.groupId === group.id)
-							const isAdminGroup = group.name === 'Administradores'
+							// Verificar se é grupo admin baseado em role, não no nome
+							const isAdminGroup = group.role === 'admin'
 							const isCurrentUserInAdminGroup = isCurrentUser && isAdminGroup && isSelected
 							const isDisabled = loading || isCurrentUserInAdminGroup
 
@@ -234,7 +274,8 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 					</div>
 					{isCurrentUser && selectedGroups.some(sg => {
 						const group = groups.find(g => g.id === sg.groupId)
-						return group?.name === 'Administradores'
+						// Verificar se é grupo admin baseado em role, não no nome
+						return group?.role === 'admin'
 					}) && (
 						<p className='text-sm text-amber-600 dark:text-amber-400 mt-1'>
 							⚠️ Você não pode se remover do grupo Administradores.
@@ -278,7 +319,44 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 					/>
 				</div>
 
-				<div className='flex gap-3 pt-4'>
+				{/* Botão para reenviar email de setup de senha */}
+				{isEditing && needsPasswordSetup && (
+					<div>
+						<div className='bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4'>
+							<div className='flex items-start gap-3'>
+								<span className='icon-[lucide--key] size-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5' />
+								<div className='flex-1'>
+									<h3 className='text-base font-medium text-amber-600 dark:text-amber-200 mb-1'>
+										Senha não definida
+									</h3>
+									<p className='text-sm text-amber-600 dark:text-amber-300 mb-3'>
+										Este usuário ainda não definiu a senha inicial. Se o código OTP expirou, você pode reenviar o email.
+									</p>
+									<Button
+										type='button'
+										onClick={handleResendPasswordSetup}
+										disabled={resendingEmail || loading}
+										className='bg-amber-600 hover:bg-amber-700 text-white px-6'
+									>
+										{resendingEmail ? (
+											<>
+												<span className='icon-[lucide--loader-circle] size-4 animate-spin' />
+												Reenviando...
+											</>
+										) : (
+											<>
+												<span className='icon-[lucide--mail] size-4' />
+												Reenviar email para definir senha
+											</>
+										)}
+									</Button>
+								</div>
+							</div>
+						</div>
+					</div>
+				)}
+
+				<div className='flex gap-3'>
 					<Button type='button' onClick={onClose} disabled={loading} className='flex-1 bg-zinc-500 hover:bg-zinc-600'>
 						Cancelar
 					</Button>

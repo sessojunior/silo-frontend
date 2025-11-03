@@ -25,7 +25,14 @@ export default function AuthLayout({
 							<div className='flex'>
 								<div className='flex items-center justify-center px-10 pt-10'>
 									<Image src='/images/logo.png' alt='Logo' width={48} height={48} className='block h-12 w-12' />
-									<div className='inline-block px-1 pt-0.5 text-3xl font-bold text-zinc-600 dark:text-zinc-200'>Silo</div>
+									<div 
+										className={`inline-block px-1 text-zinc-600 dark:text-zinc-200 text-3xl font-bold tracking-[-0.5px] flex-1 m-0 uppercase`}
+										style={{
+											fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+										}}
+									>
+										Silo
+									</div>
 								</div>
 							</div>
 							<div className='flex flex-grow items-center justify-center'>

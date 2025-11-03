@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { eq, and, gt } from 'drizzle-orm'
+import { eq, and, gt, lt } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { authUser, authCode } from '@/lib/db/schema'
 import { hashPassword } from '@/lib/auth/hash'
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
 	try {
 		const body = await req.json()
 		const email = (body.email as string)?.trim().toLowerCase()
-		const code = (body.code as string)?.trim()
+		const code = (body.code as string)?.trim().toUpperCase() // Normalizar para maiúsculas
 		const password = body.password as string
 
 		// Validação básica dos campos
@@ -43,18 +43,57 @@ export async function POST(req: NextRequest) {
 		}
 
 		// Verifica se o código OTP é válido e não expirou
+		// Primeiro busca todos os códigos do usuário para debug
+		const allCodes = await db.query.authCode.findMany({
+			where: and(eq(authCode.email, email), eq(authCode.userId, user.id)),
+		})
+		
+		console.log('🔍 [API_AUTH_SETUP_PASSWORD] Códigos encontrados para o usuário:', {
+			email,
+			userId: user.id,
+			codes: allCodes.map((c) => ({
+				id: c.id,
+				code: c.code,
+				expiresAt: c.expiresAt,
+				isExpired: c.expiresAt < new Date(),
+			})),
+			codeProcurado: code,
+		})
+
 		const otpCode = await db.query.authCode.findFirst({
 			where: and(
 				eq(authCode.email, email),
-				eq(authCode.code, code),
+				eq(authCode.code, code.trim().toUpperCase()), // Garantir maiúsculas e sem espaços
 				eq(authCode.userId, user.id), // Garantir que o código pertence ao usuário
 				gt(authCode.expiresAt, new Date()),
 			),
 		})
 
 		if (!otpCode) {
-			// Limpa códigos expirados
-			await db.delete(authCode).where(and(eq(authCode.email, email), gt(authCode.expiresAt, new Date())))
+			// Limpa códigos expirados deste usuário (menores que a data atual = expirados)
+			await db.delete(authCode).where(and(eq(authCode.email, email), lt(authCode.expiresAt, new Date())))
+
+			// Verifica se existe algum código com esse valor mas expirado
+			const expiredCode = await db.query.authCode.findFirst({
+				where: and(
+					eq(authCode.email, email),
+					eq(authCode.code, code.trim().toUpperCase()),
+					eq(authCode.userId, user.id),
+					lt(authCode.expiresAt, new Date()),
+				),
+			})
+
+			if (expiredCode) {
+				console.log('⚠️ [API_AUTH_SETUP_PASSWORD] Código encontrado mas expirado:', {
+					code: expiredCode.code,
+					expiresAt: expiredCode.expiresAt,
+					now: new Date(),
+				})
+				return NextResponse.json(
+					{ field: 'code', message: 'O código expirou. Solicite um novo código.' },
+					{ status: 400 },
+				)
+			}
 
 			return NextResponse.json(
 				{ field: 'code', message: 'O código é inválido ou expirou.' },

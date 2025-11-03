@@ -57,7 +57,6 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 		color: group?.color || '#2563EB',
 		active: group?.active ?? true,
 		isDefault: group?.isDefault ?? false,
-		maxUsers: group?.maxUsers?.toString() || '',
 	})
 
 	// Atualizar form quando grupo mudar
@@ -73,7 +72,6 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 				color: group.color,
 				active: group.active,
 				isDefault: group.isDefault,
-				maxUsers: group.maxUsers?.toString() || '',
 			})
 		} else if (!group && isOpen) {
 			setFormData({
@@ -83,7 +81,6 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 				color: '#2563EB',
 				active: true,
 				isDefault: false,
-				maxUsers: '',
 			})
 		}
 	}, [group, group?.id, isOpen])
@@ -105,24 +102,6 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 			return
 		}
 
-		if (formData.maxUsers && isNaN(Number(formData.maxUsers))) {
-			toast({
-				type: 'error',
-				title: 'Limite inválido',
-				description: 'O limite máximo de usuários deve ser um número',
-			})
-			return
-		}
-
-		if (formData.maxUsers && Number(formData.maxUsers) < 1) {
-			toast({
-				type: 'error',
-				title: 'Limite inválido',
-				description: 'O limite máximo deve ser pelo menos 1',
-			})
-			return
-		}
-
 		try {
 			setLoading(true)
 
@@ -133,7 +112,6 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 				color: formData.color,
 				active: formData.active,
 				isDefault: formData.isDefault,
-				maxUsers: formData.maxUsers ? Number(formData.maxUsers) : null,
 			}
 
 			// Para edição, incluir ID
@@ -170,7 +148,6 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 						color: '#2563EB',
 						active: true,
 						isDefault: false,
-						maxUsers: '',
 					})
 				}
 
@@ -226,6 +203,7 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 							⚠️ O nome do grupo &quot;Administradores&quot; não pode ser alterado.
 						</p>
 					)}
+					{/* Nota: Alguns grupos administrativos podem ter outros nomes, mas o grupo "Administradores" é especial */}
 				</div>
 
 				{/* Descrição */}
@@ -259,12 +237,6 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 					</div>
 				</div>
 
-				{/* Limite de Usuários */}
-				<div>
-					<Label htmlFor='maxUsers'>Limite de Usuários</Label>
-					<Input type='text' id='maxUsers' name='maxUsers' value={formData.maxUsers} setValue={(value) => handleInputChange('maxUsers', value)} placeholder='Deixe vazio para ilimitado' disabled={loading} />
-				</div>
-
 				{/* Switches */}
 				<div className='space-y-4'>
 					<Switch 
@@ -273,8 +245,8 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 						checked={formData.active} 
 						onChange={(checked) => handleInputChange('active', checked)} 
 						title='Grupo ativo' 
-						description={group?.name === 'Administradores' ? 'O grupo Administradores deve sempre permanecer ativo' : 'Grupos inativos não aparecerão para novos usuários'} 
-						disabled={loading || (group?.name === 'Administradores')} 
+						description={group?.role === 'admin' ? 'Grupos administrativos devem sempre permanecer ativos' : 'Grupos inativos não aparecerão para novos usuários'} 
+						disabled={loading || (group?.role === 'admin')} 
 					/>
 
 					<Switch 
@@ -284,18 +256,18 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 						onChange={(checked) => handleInputChange('isDefault', checked)} 
 						title='Grupo padrão' 
 						description={
-							group?.name === 'Administradores' 
-								? 'O grupo Administradores não pode ser o grupo padrão do sistema'
+							group?.role === 'admin' 
+								? 'Grupos administrativos não podem ser o grupo padrão do sistema'
 								: (group?.isDefault && formData.isDefault)
 									? 'Este grupo já é padrão. Para alterar, marque outro grupo como padrão.'
 									: 'Novos usuários serão automaticamente atribuídos a este grupo'
 						} 
-						disabled={loading || (group?.name === 'Administradores') || (group?.isDefault && formData.isDefault)} 
+						disabled={loading || (group?.role === 'admin') || (group?.isDefault && formData.isDefault)} 
 					/>
 				</div>
 
 				{/* Aviso sobre grupo padrão */}
-				{(group?.isDefault && formData.isDefault) && group?.name !== 'Administradores' && (
+				{(group?.isDefault && formData.isDefault) && group?.role !== 'admin' && (
 					<div className='p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg'>
 						<div className='flex items-start gap-3'>
 							<span className='icon-[lucide--info] size-5 text-blue-600 dark:text-blue-400 mt-0.5' />
@@ -307,21 +279,21 @@ export default function GroupFormOffcanvas({ isOpen, onClose, group, onSuccess }
 					</div>
 				)}
 
-				{/* Aviso sobre Grupo Administradores */}
-				{group?.name === 'Administradores' && (
+				{/* Aviso sobre Grupos Administrativos */}
+				{group?.role === 'admin' && (
 					<div className='p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg'>
 						<div className='flex items-start gap-3'>
 							<span className='icon-[lucide--shield-alert] size-5 text-red-600 dark:text-red-400 mt-0.5' />
 							<div>
-								<h4 className='font-medium text-red-900 dark:text-red-100 mb-1'>Grupo Administradores</h4>
-								<p className='text-sm text-red-800 dark:text-red-200'>Este é um grupo crítico do sistema. O nome, status ativo e configuração de grupo padrão não podem ser alterados.</p>
+								<h4 className='font-medium text-red-900 dark:text-red-100 mb-1'>Grupo Administrativo</h4>
+								<p className='text-sm text-red-800 dark:text-red-200'>Este é um grupo administrativo do sistema. Status ativo e configuração de grupo padrão não podem ser alterados. O role deste grupo define permissões de administrador.</p>
 							</div>
 						</div>
 					</div>
 				)}
 
 				{/* Aviso sobre Grupo Padrão */}
-				{(!group?.isDefault && formData.isDefault) && group?.name !== 'Administradores' && (
+				{(!group?.isDefault && formData.isDefault) && group?.role !== 'admin' && (
 					<div className='p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg'>
 						<div className='flex items-start gap-3'>
 							<span className='icon-[lucide--info] size-5 text-amber-600 dark:text-amber-400 mt-0.5' />

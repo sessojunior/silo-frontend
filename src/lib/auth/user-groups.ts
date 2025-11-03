@@ -35,7 +35,6 @@ export async function addUserToDefaultGroup(userId: string): Promise<boolean> {
 			id: randomUUID(),
 			userId,
 			groupId: defaultGroup.id,
-			role: 'member',
 			joinedAt: new Date(),
 		})
 

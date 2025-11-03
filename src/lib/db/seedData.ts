@@ -31,36 +31,36 @@ export const groups: GroupData[] = [
 		description: 'Administradores do sistema com acesso completo',
 		icon: 'icon-[lucide--shield-check]',
 		color: '#DC2626',
+		role: 'admin', // Grupo administrativo
 		active: true,
 		isDefault: false,
-		maxUsers: 5,
 	},
 	{
 		name: 'Operadores',
 		description: 'Operadores responsáveis pelo funcionamento dos sistemas',
 		icon: 'icon-[lucide--settings]',
 		color: '#059669',
+		role: 'user', // Grupo de usuários normais
 		active: true,
 		isDefault: true,
-		maxUsers: 10,
 	},
 	{
 		name: 'Suporte',
 		description: 'Equipe de suporte técnico e atendimento',
 		icon: 'icon-[lucide--headphones]',
 		color: '#EA580C',
+		role: 'user', // Grupo de usuários normais
 		active: true,
 		isDefault: false,
-		maxUsers: 8,
 	},
 	{
 		name: 'Visitantes',
 		description: 'Usuários externos com acesso limitado',
 		icon: 'icon-[lucide--user-check]',
 		color: '#64748B',
+		role: 'user', // Grupo de usuários normais
 		active: true,
 		isDefault: false,
-		maxUsers: 20,
 	},
 ]
 
@@ -351,13 +351,13 @@ O sistema gera estatísticas automáticas de progresso, incluindo percentual de 
 A integração com o sistema de chat permite comunicação contextual dentro de cada projeto, enquanto a associação com produtos meteorológicos facilita o rastreamento de iniciativas relacionadas a melhorias operacionais específicas.
 
 ## 👥 Grupos
-O sistema de Grupos implementa uma arquitetura de permissões hierárquica que organiza os usuários conforme suas funções e responsabilidades no CPTEC/INPE. Cada grupo possui características específicas de acesso, limites de usuários e funcionalidades disponíveis, garantindo segurança e organização adequada.
+O sistema de Grupos implementa uma arquitetura de permissões hierárquica que organiza os usuários conforme suas funções e responsabilidades no CPTEC/INPE. Cada grupo possui características específicas de acesso e funcionalidades disponíveis, garantindo segurança e organização adequada.
 
-O grupo **Administradores** possui acesso completo ao sistema, incluindo gestão de usuários, configurações avançadas e relatórios administrativos. Os **Meteorologistas** têm acesso privilegiado à gestão de produtos, podendo criar, editar e monitorar execuções dos modelos meteorológicos. Os **Pesquisadores** possuem acesso focado em dados e análises, podendo consultar informações históricas e gerar relatórios científicos.
+O grupo **Administradores** possui acesso completo ao sistema, incluindo gestão de usuários, configurações avançadas e relatórios administrativos. Os grupos podem ter role **admin** ou **user**, definindo as permissões dos membros. O grupo "Administradores" é especial e sempre possui role **admin**. Apenas um grupo pode ter role **admin** no sistema.
 
-Os **Operadores** são responsáveis pela execução e monitoramento dos sistemas, tendo acesso a dashboards operacionais e ferramentas de controle. O grupo **Suporte** possui acesso limitado focado em resolução de problemas técnicos e atendimento aos usuários. Os **Visitantes** têm acesso restrito para consulta de informações públicas e documentação básica.
+Os grupos padrão incluem **Operadores**, responsáveis pela execução e monitoramento dos sistemas, tendo acesso a dashboards operacionais e ferramentas de controle. O grupo **Suporte** possui acesso limitado focado em resolução de problemas técnicos e atendimento aos usuários. Os **Visitantes** têm acesso restrito para consulta de informações públicas e documentação básica.
 
-O sistema permite que usuários pertençam a múltiplos grupos simultaneamente, com permissões acumulativas. Cada grupo possui ícone distintivo, cor de identificação e limite máximo de usuários configurável. A gestão de grupos é centralizada na interface administrativa, permitindo criação, edição e exclusão conforme necessidades organizacionais.
+O sistema permite que usuários pertençam a múltiplos grupos simultaneamente, com permissões acumulativas. Cada grupo possui ícone distintivo e cor de identificação. A gestão de grupos é centralizada na interface administrativa, permitindo criação, edição e exclusão conforme necessidades organizacionais. Grupos não possuem limite de usuários.
 
 ## 💬 Chat
 O sistema de Chat implementa uma plataforma de comunicação em tempo real inspirada no WhatsApp, oferecendo funcionalidades avançadas para colaboração entre equipes do CPTEC/INPE. A interface suporta conversas em grupos específicos e mensagens diretas entre usuários, facilitando a comunicação contextual e resolução rápida de problemas.

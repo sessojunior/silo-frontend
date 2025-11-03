@@ -108,7 +108,6 @@ export default function GroupDeleteDialog({ isOpen, onClose, group, onSuccess }:
 							<div className='flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400 mt-1'>
 								<span className={group.active ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}>{group.active ? '● Ativo' : '● Inativo'}</span>
 								{group.isDefault && <span className='text-blue-600 dark:text-blue-500'>🌟 Padrão</span>}
-								{group.maxUsers && <span>Limite: {group.maxUsers} usuários</span>}
 							</div>
 						</div>
 					</div>

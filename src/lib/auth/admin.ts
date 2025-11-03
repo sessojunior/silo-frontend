@@ -1,9 +1,10 @@
 import { db } from '@/lib/db'
 import { userGroup, group } from '@/lib/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 /**
  * Verifica se um usuário é administrador do sistema
+ * Um usuário é admin se estiver em pelo menos um grupo com role='admin'
  * @param userId - ID do usuário a ser verificado
  * @returns Promise<boolean> - true se o usuário for administrador
  */
@@ -11,27 +12,25 @@ export async function isUserAdmin(userId: string): Promise<boolean> {
 	try {
 		console.log('ℹ️ [LIB_AUTH_ADMIN] Verificando se usuário é administrador:', { userId })
 		
-		// Buscar grupos do usuário onde ele tem role 'admin' ou 'owner'
-		const userGroups = await db
+		// Buscar grupos do usuário onde o grupo tem role='admin'
+		const adminGroups = await db
 			.select({
 				groupId: userGroup.groupId,
-				role: userGroup.role,
+				groupRole: group.role,
 				groupName: group.name,
 			})
 			.from(userGroup)
 			.innerJoin(group, eq(userGroup.groupId, group.id))
-			.where(
-				and(
-					eq(userGroup.userId, userId),
-					eq(group.name, 'Administradores')
-				)
-			)
+			.where(eq(userGroup.userId, userId))
 
-		// Verificar se o usuário está no grupo Administradores com role admin ou owner
-		const isAdmin = userGroups.some(ug => 
-			ug.groupName === 'Administradores' && 
-			(ug.role === 'admin' || ug.role === 'owner')
-		)
+		// Verificar se o usuário está em algum grupo com role='admin'
+		const isAdmin = adminGroups.some(ug => ug.groupRole === 'admin')
+
+		if (isAdmin) {
+			console.log('✅ [LIB_AUTH_ADMIN] Usuário é administrador:', { userId, adminGroups: adminGroups.filter(ug => ug.groupRole === 'admin').map(ug => ug.groupName) })
+		} else {
+			console.log('❌ [LIB_AUTH_ADMIN] Usuário não é administrador:', { userId, groups: adminGroups.map(ug => ({ name: ug.groupName, role: ug.groupRole })) })
+		}
 
 		return isAdmin
 	} catch (error) {

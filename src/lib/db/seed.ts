@@ -9,7 +9,7 @@ import { createLocalDate } from '@/lib/utils'
 import { NO_INCIDENTS_CATEGORY_ID, NO_INCIDENTS_CATEGORY_NAME } from '@/lib/constants'
 
 // Importar dados do arquivo separado
-import { products, groups, contacts, testUsers, dependencyStructure, projectsData, helpDocumentation, manualData, generateProblems, generateSolutions, projectActivitiesData } from './seed-data'
+import { products, groups, contacts, testUsers, dependencyStructure, projectsData, helpDocumentation, manualData, generateProblems, generateSolutions, projectActivitiesData } from './seedData'
 
 // === TIPAGENS DO SCHEMA ===
 type ProductDependency = typeof schema.productDependency.$inferInsert
@@ -141,7 +141,6 @@ async function seed() {
 				await db.insert(schema.userGroup).values({
 					userId: userId,
 					groupId: adminGroup.id,
-					role: 'admin',
 				})
 			}
 			
@@ -149,7 +148,6 @@ async function seed() {
 				await db.insert(schema.userGroup).values({
 					userId: userId,
 					groupId: supportGroup.id,
-					role: 'member',
 				})
 			}
 			console.log('✅ Mario Junior adicionado aos grupos Administradores e Suporte!')
@@ -239,7 +237,6 @@ async function seed() {
 					await db.insert(schema.userGroup).values({
 						userId: newUserId,
 						groupId: targetGroup.id,
-						role: 'member',
 					})
 					console.log(`✅ ${user.name} associado ao grupo ${user.groupName}`)
 				}

@@ -71,9 +71,9 @@ CREATE TABLE "group" (
 	"description" text,
 	"icon" text DEFAULT 'icon-[lucide--users]' NOT NULL,
 	"color" text DEFAULT '#3B82F6' NOT NULL,
+	"role" text DEFAULT 'user' NOT NULL,
 	"active" boolean DEFAULT true NOT NULL,
 	"is_default" boolean DEFAULT false NOT NULL,
-	"max_users" integer,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "group_name_unique" UNIQUE("name")
@@ -282,7 +282,6 @@ CREATE TABLE "user_group" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text NOT NULL,
 	"group_id" text NOT NULL,
-	"role" text DEFAULT 'member' NOT NULL,
 	"joined_at" timestamp DEFAULT now() NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "unique_user_group" UNIQUE("user_id","group_id")

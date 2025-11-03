@@ -148,9 +148,9 @@ Constraint: unique(email, ip, route)
   description: text,
   icon: text,
   color: text,
+  role: text,
   active: boolean,
   isDefault: boolean,
-  maxUsers: integer,
   createdAt: timestamp,
   updatedAt: timestamp
 }
