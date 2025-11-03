@@ -5,7 +5,7 @@ export type EmailTemplate = 'otpCode' | 'emailChanged' | 'passwordChanged'
 export interface EmailTemplateData {
 	otpCode: {
 		code: string
-		type: 'sign-in' | 'email-verification' | 'forget-password' | 'email-change'
+		type: 'sign-in' | 'email-verification' | 'forget-password' | 'email-change' | 'setup-password'
 	}
 	emailChanged: {
 		oldEmail: string

@@ -45,7 +45,7 @@ export const authUser = pgTable('auth_user', {
 	name: text('name').notNull(),
 	email: text('email').notNull().unique(),
 	emailVerified: boolean('email_verified').notNull().default(false),
-	password: text('password').notNull(),
+	password: text('password'), // Opcional: null quando usuário precisa definir senha via OTP
 	image: text('image'), // URL da imagem de perfil do usuário
 	isActive: boolean('is_active').notNull().default(false), // usuários criados inativos por padrão - precisam ativação por admin
 	lastLogin: timestamp('last_login'), // último acesso do usuário

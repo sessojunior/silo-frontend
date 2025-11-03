@@ -24,7 +24,7 @@ CREATE TABLE "auth_user" (
 	"name" text NOT NULL,
 	"email" text NOT NULL,
 	"email_verified" boolean DEFAULT false NOT NULL,
-	"password" text NOT NULL,
+	"password" text,
 	"image" text,
 	"is_active" boolean DEFAULT false NOT NULL,
 	"last_login" timestamp,
@@ -46,7 +46,7 @@ CREATE TABLE "chat_message" (
 --> statement-breakpoint
 CREATE TABLE "chat_user_presence" (
 	"user_id" text PRIMARY KEY NOT NULL,
-	"status" text DEFAULT 'offline' NOT NULL,
+	"status" text DEFAULT 'invisible' NOT NULL,
 	"last_activity" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -106,7 +106,8 @@ CREATE TABLE "product_activity" (
 	"problem_category_id" text,
 	"description" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "unique_product_activity_product_date_turn" UNIQUE("product_id","date","turn")
 );
 --> statement-breakpoint
 CREATE TABLE "product_activity_history" (
@@ -273,7 +274,8 @@ CREATE TABLE "rate_limit" (
 	"email" text NOT NULL,
 	"ip" text NOT NULL,
 	"count" integer NOT NULL,
-	"last_request" timestamp NOT NULL
+	"last_request" timestamp NOT NULL,
+	CONSTRAINT "unique_rate_limit_email_ip_route" UNIQUE("email","ip","route")
 );
 --> statement-breakpoint
 CREATE TABLE "user_group" (
@@ -342,10 +344,17 @@ ALTER TABLE "user_profile" ADD CONSTRAINT "user_profile_user_id_auth_user_id_fk"
 CREATE INDEX "idx_chat_message_group" ON "chat_message" USING btree ("receiver_group_id","created_at");--> statement-breakpoint
 CREATE INDEX "idx_chat_message_user" ON "chat_message" USING btree ("receiver_user_id","sender_user_id","created_at");--> statement-breakpoint
 CREATE INDEX "idx_chat_message_unread_user" ON "chat_message" USING btree ("receiver_user_id","read_at");--> statement-breakpoint
+CREATE INDEX "idx_chat_message_sender" ON "chat_message" USING btree ("sender_user_id");--> statement-breakpoint
 CREATE INDEX "idx_product_activity_product_date" ON "product_activity" USING btree ("product_id","date");--> statement-breakpoint
+CREATE INDEX "idx_product_activity_product_turn" ON "product_activity" USING btree ("product_id","turn");--> statement-breakpoint
+CREATE INDEX "idx_product_activity_user_id" ON "product_activity" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "idx_product_activity_history_product_activity_id" ON "product_activity_history" USING btree ("product_activity_id");--> statement-breakpoint
 CREATE INDEX "idx_product_activity_history_user_id" ON "product_activity_history" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "idx_product_activity_history_created_at" ON "product_activity_history" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "idx_product_problem_product" ON "product_problem" USING btree ("product_id");--> statement-breakpoint
+CREATE INDEX "idx_product_problem_user" ON "product_problem" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "idx_product_problem_category" ON "product_problem" USING btree ("problem_category_id");--> statement-breakpoint
+CREATE INDEX "idx_product_problem_created_at" ON "product_problem" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "idx_project_task_history_task_id" ON "project_task_history" USING btree ("task_id");--> statement-breakpoint
 CREATE INDEX "idx_project_task_history_user_id" ON "project_task_history" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "idx_project_task_history_created_at" ON "project_task_history" USING btree ("created_at");--> statement-breakpoint

@@ -76,10 +76,11 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 					setSelectedGroups([])
 				}
 			} else {
+				// Ao criar novo usuário, email sempre não verificado
 				setFormData({
 					name: '',
 					email: '',
-					emailVerified: false,
+					emailVerified: false, // Sempre false para novos usuários
 					isActive: true,
 				})
 				setSelectedGroups([])
@@ -106,6 +107,8 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 			// Preparar dados com múltiplos grupos (apenas IDs dos grupos)
 			const bodyData = {
 				...formData,
+				// 🆕 Ao criar novo usuário, email sempre não verificado (usuário precisa confirmar via OTP)
+				emailVerified: isEditing ? formData.emailVerified : false,
 				groups: selectedGroups.map((sg) => ({ groupId: sg.groupId, role: 'member' })), // API ainda espera role
 				// Manter compatibilidade com API legado
 				groupId: selectedGroups[0]?.groupId || '',
@@ -251,11 +254,17 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 					<Switch 
 						id='emailVerified' 
 						name='emailVerified' 
-						checked={formData.emailVerified} 
+						checked={!isEditing ? false : formData.emailVerified} 
 						onChange={(checked) => setFormData((prev) => ({ ...prev, emailVerified: checked }))} 
 						title='Email Verificado' 
-						description={isCurrentUser ? 'Você não pode desmarcar seu próprio email como não verificado' : 'Marque se o email do usuário foi verificado'} 
-						disabled={loading || isCurrentUser} 
+						description={
+							!isEditing
+								? 'O email será verificado automaticamente quando o usuário definir a senha via código OTP'
+								: isCurrentUser
+									? 'Você não pode desmarcar seu próprio email como não verificado'
+									: 'Marque se o email do usuário foi verificado'
+						}
+						disabled={loading || isCurrentUser || !isEditing} 
 					/>
 
 					<Switch 

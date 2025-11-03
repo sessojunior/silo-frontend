@@ -1,5 +1,5 @@
 {
-  "id": "fa86949a-c0a5-4fe5-b205-b9afdae5309c",
+  "id": "575e8923-8d5b-4538-b436-c121bead8855",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -190,7 +190,7 @@
           "name": "password",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "image": {
           "name": "image",
@@ -366,6 +366,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "idx_chat_message_sender": {
+          "name": "idx_chat_message_sender",
+          "columns": [
+            {
+              "expression": "sender_user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -430,7 +445,7 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "'offline'"
+          "default": "'invisible'"
         },
         "last_activity": {
           "name": "last_activity",
@@ -827,6 +842,42 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "idx_product_activity_product_turn": {
+          "name": "idx_product_activity_product_turn",
+          "columns": [
+            {
+              "expression": "product_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "turn",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_product_activity_user_id": {
+          "name": "idx_product_activity_user_id",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -871,7 +922,17 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "unique_product_activity_product_date_turn": {
+          "name": "unique_product_activity_product_date_turn",
+          "nullsNotDistinct": false,
+          "columns": [
+            "product_id",
+            "date",
+            "turn"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1275,7 +1336,68 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_product_problem_product": {
+          "name": "idx_product_problem_product",
+          "columns": [
+            {
+              "expression": "product_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_product_problem_user": {
+          "name": "idx_product_problem_user",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_product_problem_category": {
+          "name": "idx_product_problem_category",
+          "columns": [
+            {
+              "expression": "problem_category_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_product_problem_created_at": {
+          "name": "idx_product_problem_created_at",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "product_problem_product_id_product_id_fk": {
           "name": "product_problem_product_id_product_id_fk",
@@ -2258,7 +2380,17 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "unique_rate_limit_email_ip_route": {
+          "name": "unique_rate_limit_email_ip_route",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email",
+            "ip",
+            "route"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

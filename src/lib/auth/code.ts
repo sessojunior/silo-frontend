@@ -179,6 +179,68 @@ export async function generateEmailChangeCode(email: string, userId: string): Pr
 	return { success: true, code, requestId: codeId }
 }
 
+// Gera código OTP para definição inicial de senha (não verifica se usuário existe)
+export async function generatePasswordSetupCode(
+	email: string,
+	userId: string,
+): Promise<{ success: boolean; code: string; requestId: string } | { error: { code: string; message: string } }> {
+	// Formata os dados recebidos
+	const formatEmail = email.trim().toLowerCase()
+
+	// Verifica se o e-mail é inválido
+	if (!isValidEmail(formatEmail)) return { error: { code: 'INVALID_EMAIL', message: 'E-mail inválido.' } }
+
+	// Gera um ID baseado em UUID v4 (128 bits, padrão universal)
+	const codeId = randomUUID()
+
+	// Função auxiliar que gera um código alfanumérico com caracteres legíveis para evitar ambiguidades
+	const randomCode = ({ allowedCharacters, numberCharacters }: { allowedCharacters: string; numberCharacters: number }): string => {
+		const chars = allowedCharacters
+		const charsLen = chars.length
+
+		// Gera bytes aleatórios usando a Web Crypto API
+		const array = new Uint8Array(numberCharacters)
+		const random = crypto.getRandomValues(array)
+
+		let code = ''
+
+		for (let i = 0; i < numberCharacters; i++) {
+			const index = random[i] % charsLen
+			code += chars[index]
+		}
+
+		return code
+	}
+
+	// Gera um código aleatório utilizando caracteres legíveis em todas as tipografias
+	const code = randomCode({ allowedCharacters: '347AEFHJKMNPRTWY', numberCharacters: 5 })
+
+	// Remove códigos anteriores de setup de senha para este usuário
+	await db.delete(authCode).where(eq(authCode.userId, userId))
+
+	// Um minuto em milissegundos
+	const MINUTE_IN_MS = 60 * 1000 // 60000 ms (1 minuto)
+
+	// Tempo de expiração do código: 30 minutos (mais tempo para setup de senha)
+	const expiresAt = new Date(Date.now() + MINUTE_IN_MS * 30)
+
+	// Insere o novo código no banco de dados
+	const [insertCode] = await db
+		.insert(authCode)
+		.values({
+			id: codeId,
+			code,
+			email: formatEmail,
+			userId,
+			expiresAt,
+		})
+		.returning()
+	if (!insertCode) return { error: { code: 'INSERT_CODE_ERROR', message: 'Erro ao salvar o código no banco de dados.' } }
+
+	// Retorna o código OTP e o ID da requisição
+	return { success: true, code, requestId: codeId }
+}
+
 // Envia o código de verificação OTP para o e-mail do usuário
 export async function sendEmailCode({ email, type, code, ip }: { email: string; type: string; code: string; ip: string }): Promise<{ success: boolean } | { error: { code: string; message: string } }> {
 	// Formata os dados recebidos
@@ -204,7 +266,22 @@ export async function sendEmailCode({ email, type, code, ip }: { email: string; 
 		to: email,
 		subject: `Código de verificação: ${code}`,
 		template: 'otpCode',
-		data: { code, type: type as 'sign-in' | 'email-verification' | 'forget-password' | 'email-change' },
-		text: `Utilize o seguinte código de verificação ${type === 'sign-in' ? 'para fazer login' : type === 'email-verification' ? 'para verificar seu e-mail' : type === 'forget-password' ? 'para recuperar sua senha' : 'a seguir'}: ${code}`, // Fallback
+		data: {
+			code,
+			type: type as 'sign-in' | 'email-verification' | 'forget-password' | 'email-change' | 'setup-password',
+		},
+		text: `Utilize o seguinte código de verificação ${
+			type === 'sign-in'
+				? 'para fazer login'
+				: type === 'email-verification'
+					? 'para verificar seu e-mail'
+					: type === 'forget-password'
+						? 'para recuperar sua senha'
+						: type === 'setup-password'
+							? 'para definir sua senha inicial'
+							: type === 'email-change'
+								? 'para alterar seu e-mail'
+								: 'a seguir'
+		}: ${code}`, // Fallback
 	})
 }

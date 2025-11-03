@@ -40,6 +40,17 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ field: 'email', message: 'Sua conta ainda não foi ativada por um administrador. Entre em contato com o suporte.' }, { status: 403 })
 		}
 
+		// 🆕 Verifica se o usuário já definiu senha
+		if (!user.password) {
+			return NextResponse.json(
+				{
+					field: 'email',
+					message: 'Você precisa definir sua senha primeiro. Verifique seu e-mail para obter o código de ativação.',
+				},
+				{ status: 403 },
+			)
+		}
+
 		// Verifica se a senha está correta
 		const passwordMatch = await verifyPassword(password, user.password)
 		if (!passwordMatch) {

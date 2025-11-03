@@ -184,7 +184,19 @@ export async function POST(request: NextRequest) {
 			)
 		}
 
-		if (!password || password.length < 8) {
+		// 🆕 Senha é OPCIONAL na criação - se não fornecida, usuário precisa definir via OTP
+		let hashedPassword: string | null = null
+		let needsPasswordSetup = false
+
+		if (password && password.length >= 8) {
+			// Se senha foi fornecida e é válida, usar ela
+			hashedPassword = await bcrypt.hash(password, 10)
+		} else if (!password) {
+			// Se senha não foi fornecida, marcar para setup via OTP
+			needsPasswordSetup = true
+			console.log('🔑 [API_USERS] Usuário criado sem senha, será necessário definir via OTP:', { email })
+		} else {
+			// Senha fornecida mas inválida (< 8 caracteres)
 			return NextResponse.json(
 				{
 					success: false,
@@ -238,17 +250,15 @@ export async function POST(request: NextRequest) {
 			)
 		}
 
-		// Hash da senha
-		const hashedPassword = await bcrypt.hash(password, 10)
-
-		// Criar usuário
+		// Criar usuário (com ou sem senha)
 		const userId = randomUUID()
 		const newUser = {
 			id: userId,
 			name: name.trim(),
 			email: email.trim().toLowerCase(),
-			emailVerified: emailVerified || false,
-			password: hashedPassword,
+			// 🆕 Sempre false para novos usuários - será verificado quando definir senha via OTP
+			emailVerified: false,
+			password: hashedPassword, // Pode ser null se needsPasswordSetup
 			isActive: isActive !== undefined ? isActive : true,
 		}
 
@@ -262,6 +272,35 @@ export async function POST(request: NextRequest) {
 		}))
 
 		await db.insert(userGroup).values(newUserGroupEntries)
+
+		// 🆕 Se precisa definir senha, gerar OTP e enviar por email
+		if (needsPasswordSetup) {
+			const { generatePasswordSetupCode, sendEmailCode } = await import('@/lib/auth/code')
+			const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1'
+
+			// Gera código OTP para setup de senha
+			const otpResult = await generatePasswordSetupCode(email.trim().toLowerCase(), userId)
+
+			if ('error' in otpResult) {
+				console.error('❌ [API_USERS] Erro ao gerar código OTP:', otpResult.error)
+				// Não falha a criação do usuário, mas loga o erro
+				// Admin pode solicitar reenvio do código depois
+			} else {
+				// Envia código por email
+				const emailResult = await sendEmailCode({
+					email: email.trim().toLowerCase(),
+					type: 'setup-password',
+					code: otpResult.code,
+					ip,
+				})
+
+				if ('error' in emailResult) {
+					console.error('❌ [API_USERS] Erro ao enviar código por email:', emailResult.error)
+				} else {
+					console.log('✅ [API_USERS] Código OTP de setup de senha enviado para:', email)
+				}
+			}
+		}
 
 
 		// Buscar grupos criados para retorno
@@ -288,6 +327,10 @@ export async function POST(request: NextRequest) {
 				// Manter compatibilidade com código legado
 				groupId: finalUserGroups[0]?.groupId || null,
 			},
+			// 🆕 Informar sobre necessidade de setup de senha
+			...(needsPasswordSetup && {
+				message: 'Usuário criado. Um código OTP foi enviado por email para definir a senha inicial.',
+			}),
 		})
 	} catch (error) {
 		console.error('❌ [API_USERS] Erro ao criar usuário:', { error })
