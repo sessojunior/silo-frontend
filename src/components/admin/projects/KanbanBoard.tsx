@@ -187,27 +187,26 @@ function TaskCardContent({ task, showEditButton = true, onEditTask, onViewHistor
 
 			{/* Informações de tempo e data */}
 			<div className='flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3'>
-				<div className='flex items-center gap-2'>
+				<div className='flex items-center justify-center gap-2 text-zinc-400 dark:text-zinc-600'>
 					{/* Data de início */}
-					<span className='cursor-help' title={`Data de início: ${task.start_date ? formatFullDate(task.start_date) : 'Não definida'}`}>
-						📅 {task.start_date ? formatDate(task.start_date) : 'N/A'}
+					<span className='flex items-center justify-center gap-2 cursor-help' title={`Data de início: ${task.start_date ? formatFullDate(task.start_date) : 'Não definida'}`}>
+						<span className='icon-[lucide--calendar] size-4' /> {task.start_date ? formatDate(task.start_date) : 'N/A'}
 					</span>
+					<span className='icon-[lucide--arrow-right] size-4' />
 					{/* Data de fim */}
 					{task.end_date && (
 						<span className='cursor-help' title={`Data de término: ${formatFullDate(task.end_date)}`}>
-							→ {formatDate(task.end_date)}
+							{formatDate(task.end_date)}
 						</span>
 					)}
-				</div>
-				<span className='cursor-help' title={`Estimativa: ${task.estimated_days} dia${task.estimated_days !== 1 ? 's' : ''} de trabalho`}>
-					⏱️ {task.estimated_days} dia{task.estimated_days !== 1 ? 's' : ''}
+					<span className='cursor-help' title={`Estimativa: ${task.estimated_days} dia${task.estimated_days !== 1 ? 's' : ''} de trabalho`}>
 				</span>
+				</div>
 			</div>
 
 			{/* Usuários associados */}
 			{task.assignedUsers && task.assignedUsers.length > 0 && (
-				<div className='flex items-center justify-between'>
-					<span className='text-xs text-gray-500 dark:text-gray-400'>👥 Usuários:</span>
+				<div className='flex items-center justify-end'>
 					<div className='flex -space-x-2'>
 						{task.assignedUsers.slice(0, 3).map((userId, index) => {
 							// Buscar o nome real do usuário dos detalhes
