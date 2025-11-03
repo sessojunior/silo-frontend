@@ -52,7 +52,9 @@ export default function UserFormOffcanvas({ isOpen, onClose, user, groups, onSuc
 
 	const isEditing = !!user
 	const isCurrentUser = !!(currentUser && user && currentUser.id === user.id)
-	const needsPasswordSetup = isEditing && (user?.needsPasswordSetup || !user?.password)
+	// Verificar se precisa setup de senha apenas quando o flag needsPasswordSetup é true
+	// (não confiar em user.password pois ele não vem na resposta da API por segurança)
+	const needsPasswordSetup = isEditing && user?.needsPasswordSetup === true
 
 	useEffect(() => {
 		if (isOpen) {
