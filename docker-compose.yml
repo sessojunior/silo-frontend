@@ -7,14 +7,15 @@ services:
     ports:
       - '4000:4000'
     environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - PORT=4000
+      # URLs públicas para retornar ao navegador (CORS, CSP, respostas JSON)
+      - FILESERVER_URL=${FILESERVER_URL:-http://localhost:4000}
+      - APP_URL=${APP_URL:-http://localhost:3000}
     volumes:
       - ./fileserver/uploads:/app/uploads
     restart: unless-stopped
 
   # Aplicação principal Next.js
-  nextapp:
+  app:
     build: .
     ports:
       - '3000:3000'
@@ -25,7 +26,8 @@ services:
       
       # URLs do sistema
       - APP_URL=${APP_URL:-http://localhost:3000}
-      - FILESERVER_URL=${FILESERVER_URL:-http://localhost:4000}
+      # URL interna do Docker para comunicação entre containers
+      - FILESERVER_URL=${FILESERVER_URL:-http://fileserver:4000}
       
       # Google OAuth
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}

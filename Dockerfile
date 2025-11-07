@@ -7,11 +7,14 @@ RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
 # Define diretório de trabalho
 WORKDIR /app
 
-# Instala dependências primeiro (cache layer)
-COPY package*.json ./
+# Copia os arquivos package.json e package-lock.json para o diretório de trabalho /app (.)
+COPY package*.json .
+
+# Instala as dependências (ci = clean install) removendo node_modules e instalando as dependências novamente
+# Ou poderia usar o npm install, mas o npm ci é mais rápido e seguro
 RUN npm ci
 
-# Copia código fonte
+# Copia todo o conteúdo do projeto que está no diretório atual (.) para o diretório de trabalho /app (.)
 COPY . .
 
 # Build da aplicação
