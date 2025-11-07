@@ -5,6 +5,7 @@ services:
   fileserver:
     build: ./fileserver
     ports:
+      # Exponha a porta 4000 do container para a porta 4000 do host
       - '4000:4000'
     environment:
       # URLs públicas para retornar ao navegador (CORS, CSP, respostas JSON)
@@ -18,7 +19,8 @@ services:
   app:
     build: .
     ports:
-      - '3000:3000'
+      # Exponha a porta 3000 do container para a porta 80 do hodt
+      - '80:3000'
     environment:
       # Ambiente e banco
       - NODE_ENV=${NODE_ENV:-development}
