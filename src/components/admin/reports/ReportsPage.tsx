@@ -6,7 +6,7 @@ export function ReportsPage() {
 	const reports = [
 		{
 			id: 'availability',
-			title: '📈 Disponibilidade por Produto',
+			title: 'Disponibilidade por Produto',
 			description: 'Métricas de uptime, tempo de resposta e falhas por período',
 			icon: '📊',
 			color: 'blue',
@@ -14,7 +14,7 @@ export function ReportsPage() {
 		},
 		{
 			id: 'problems',
-			title: '🚨 Problemas Mais Frequentes',
+			title: 'Problemas Mais Frequentes',
 			description: 'Top problemas, frequência e tempo de resolução',
 			icon: '📋',
 			color: 'red',
@@ -22,7 +22,7 @@ export function ReportsPage() {
 		},
 		{
 			id: 'performance',
-			title: '👥 Performance da Equipe',
+			title: 'Performance da Equipe',
 			description: 'Sistema justo que reconhece problemas, soluções e participação em projetos',
 			icon: '🏆',
 			color: 'green',
@@ -30,7 +30,7 @@ export function ReportsPage() {
 		},
 		{
 			id: 'projects',
-			title: '📋 Projetos e Atividades',
+			title: 'Projetos e Atividades',
 			description: 'Análise de projetos, progresso e distribuição de tarefas',
 			icon: '📁',
 			color: 'purple',

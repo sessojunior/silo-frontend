@@ -56,43 +56,49 @@ export function ReportCard({ report }: ReportCardProps) {
       ${colorClasses[report.color as keyof typeof colorClasses]}
     `}
 		>
-			{/* Ícone */}
-			<div className={`text-4xl mb-4 ${iconColors[report.color as keyof typeof iconColors]}`}>{report.icon}</div>
 
-			{/* Título */}
-			<h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2'>{report.title}</h3>
+			<div className='flex h-full justify-between flex-col'>
+				<div>
+					{/* Ícone */}
+					<div className={`text-4xl mb-4 ${iconColors[report.color as keyof typeof iconColors]}`}>{report.icon}</div>
 
-			{/* Descrição */}
-			<p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>{report.description}</p>
+					{/* Título */}
+					<h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2'>{report.title}</h3>
 
-			{/* Métricas */}
-			<div className='space-y-2 mb-6'>
-				{report.metrics.map((metric, index) => (
-					<div key={index} className='flex items-center text-sm text-gray-700 dark:text-gray-300'>
-						<div className='w-2 h-2 rounded-full bg-gray-400 mr-2'></div>
-						{metric}
+					{/* Descrição */}
+					<p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>{report.description}</p>
+
+					{/* Métricas */}
+					<div className='space-y-2 mb-6'>
+						{report.metrics.map((metric, index) => (
+							<div key={index} className='flex items-center text-sm text-gray-700 dark:text-gray-300'>
+								<div className='w-2 h-2 rounded-full bg-gray-400 mr-2'></div>
+								{metric}
+							</div>
+						))}
 					</div>
-				))}
+				</div>
+				<div>
+					{/* Botão de Ação */}
+					<button
+						onClick={handleGenerateReport}
+						disabled={isGenerating}
+						className={`
+							w-full px-4 py-2 rounded-md font-medium transition-colors
+							${isGenerating ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'}
+						`}
+					>
+						{isGenerating ? (
+							<span className='flex items-center justify-center'>
+								<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2'></div>
+								Gerando...
+							</span>
+						) : (
+							'Abrir Relatório'
+						)}
+					</button>
+				</div>
 			</div>
-
-			{/* Botão de Ação */}
-			<button
-				onClick={handleGenerateReport}
-				disabled={isGenerating}
-				className={`
-          w-full px-4 py-2 rounded-md font-medium transition-colors
-          ${isGenerating ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'}
-        `}
-			>
-				{isGenerating ? (
-					<span className='flex items-center justify-center'>
-						<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2'></div>
-						Gerando...
-					</span>
-				) : (
-					'Abrir Relatório'
-				)}
-			</button>
 
 			{/* Indicador de Status */}
 			<div className='absolute top-4 right-4'>

@@ -140,10 +140,10 @@ function TreeItem({ node, depth, isLast, parentLines, onLeafClick, defaultExpand
 				{/* Botões de ação */}
 				{showActions && (
 					<div className='flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity'>
-						<button onClick={handleEdit} className='p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300' title='Editar dependência'>
+						<button onClick={handleEdit} className='size-6 flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300' title='Editar dependência'>
 							<span className='icon-[lucide--edit-2] size-4' />
 						</button>
-						<button onClick={handleDelete} className='p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded text-zinc-500 hover:text-red-600 dark:hover:text-red-400' title='Excluir dependência'>
+						<button onClick={handleDelete} className='size-6 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full text-zinc-500 hover:text-red-600 dark:hover:text-red-400' title='Excluir dependência'>
 							<span className='icon-[lucide--trash-2] size-4' />
 						</button>
 					</div>
