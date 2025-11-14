@@ -41,7 +41,9 @@ services:
       - SMTP_SECURE=${SMTP_SECURE:-false}
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
-
+    volumes:
+      # Cache do Next.js - persiste entre rebuilds para melhor performance
+      - ./.next:/app/.next
     depends_on:
       - fileserver
     restart: unless-stopped

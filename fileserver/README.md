@@ -1,6 +1,6 @@
-# 🗂️ Servidor de Arquivos SILO
+# Servidor de arquivos do Silo
 
-**Servidor de arquivos independente** para gerenciamento de uploads e armazenamento local de imagens no sistema SILO.
+Servidor de arquivos independente para gerenciamento de uploads e armazenamento local de imagens no sistema SILO.
 
 ---
 

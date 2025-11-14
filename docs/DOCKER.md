@@ -81,26 +81,29 @@ SMTP_PASSWORD='sua-senha'
 version: '3.8'
 
 services:
-  nextapp:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: silo-nextapp
+  app:
+    build: .
     ports:
-      - "3000:3000"
-    env_file:
-      - .env
+      - "80:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DATABASE_URL=${DATABASE_URL}
+      - APP_URL=${APP_URL:-http://localhost:3000}
+      - FILESERVER_URL=${FILESERVER_URL:-http://fileserver:4000}
+      # ... outras variáveis de ambiente
+    volumes:
+      - ./.next:/app/.next  # Cache do Next.js
     depends_on:
       - fileserver
     restart: unless-stopped
 
   fileserver:
-    build:
-      context: ./fileserver
-      dockerfile: Dockerfile
-    container_name: silo-fileserver
+    build: ./fileserver
     ports:
       - "4000:4000"
+    environment:
+      - FILESERVER_URL=${FILESERVER_URL:-http://localhost:4000}
+      - APP_URL=${APP_URL:-http://localhost:3000}
     volumes:
       - ./fileserver/uploads:/app/uploads
     restart: unless-stopped
@@ -260,10 +263,11 @@ npm run dev
 
 ## 🏭 **PRODUÇÃO**
 
-### **Container Next.js (`nextapp`)**
+### **Container Next.js (`app`)**
 
-- **Porta**: 3000 (mapeada para localhost:3000)
+- **Porta**: 3000 (mapeada para localhost:80)
 - **Função**: Aplicação frontend e APIs
+- **Volume**: `./.next` (cache do Next.js persiste entre rebuilds)
 - **Aguarda**: `fileserver` estar pronto antes de iniciar
 - **Restart**: Automático (`unless-stopped`)
 
@@ -276,6 +280,7 @@ npm run dev
 
 ### **Persistência de Dados**
 
+- ✅ Cache do Next.js (`.next/`) persiste entre rebuilds para melhor performance
 - ✅ Arquivos de upload são salvos em `./fileserver/uploads` (não perdem ao parar containers)
 - ⚠️ Banco de dados precisa ser externo (PostgreSQL separado)
 
